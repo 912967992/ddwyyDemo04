@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 import java.nio.file.Files;
@@ -370,14 +372,97 @@ public class ExcelShowService {
         }
     }
 
-    public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
-        FileInputStream fileInputStream = null;
-        FileOutputStream fileOutputStream = null;
-        try {
+//    public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
+//        FileInputStream fileInputStream = null;
+//        FileOutputStream fileOutputStream = null;
+//        try {
+//
+//            // 获取文件输入流并创建工作簿
+//            fileInputStream = new FileInputStream(filePath);
+//            XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
+//
+//            // 处理单元格数据
+//            for (Map.Entry<String, Map<String, Object>> entry : cellData.entrySet()) {
+//                Map<String, Object> cellDetails = entry.getValue();
+//                String sheetName = (String) cellDetails.get("sheetName");
+//                int row = (int) cellDetails.get("row");
+//                int column = (int) cellDetails.get("column");
+//                String value = (String) cellDetails.get("value");
+//
+//                Sheet sheet = workbook.getSheet(sheetName);
+//                if (sheet == null) {
+//                    continue;
+//                }
+//
+//                Row sheetRow = sheet.getRow(row);
+//                if (sheetRow == null) {
+//                    sheetRow = sheet.createRow(row);
+//                }
+//
+//                Cell cell = sheetRow.getCell(column, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+//                if (cell == null) {
+//                    cell = sheetRow.createCell(column);
+//                }
+//
+//                if (value.startsWith("/imageDirectory/")) {
+//                    deleteImageFromCell(sheet, row, column);
+//                    insertImageToCell(workbook, sheet, value, row, column);
+//                    cell.setCellValue("");
+//                } else {
+//                    if ("NG".equals(value) || "FAIL".equals(value) || "×".equals(value)) {
+//                        setCellFontColor(cell, "FF0000");
+//                    } else {
+//                        setCellFontColor(cell, "7030A0");
+//                    }
+//                    cell.setCellValue(value);
+//                }
+//
+//                if (cellDetails.containsKey("scrollHeight")) {
+//                    float scrollHeight = ((Number) cellDetails.get("scrollHeight")).floatValue();
+//                    sheetRow.setHeightInPoints(scrollHeight);
+//                }
+//            }
+//
+//            // 关闭文件输入流
+//            fileInputStream.close();
+//            fileInputStream = null;
+//
+//            // 使用文件输出流写入内容,如果有进程占用，则这里会报错，所以在这里要用try
+//            // 尝试获取文件输出流写入内容
+//            try {
+//                fileOutputStream = new FileOutputStream(filePath);
+//                workbook.write(fileOutputStream);
+//
+//                // 关闭工作簿和文件输出流
+//                workbook.close();
+//                fileOutputStream.close();
+//
+//                return "{\"status\": \"saved\"}";
+//            } catch (IOException e) {
+//                return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
+//        } finally {
+//            try {
+//
+//                if (fileInputStream != null) {
+//                    fileInputStream.close();
+//                }
+//                if (fileOutputStream != null) {
+//                    fileOutputStream.close();
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
-            // 获取文件输入流并创建工作簿
-            fileInputStream = new FileInputStream(filePath);
-            XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
+    public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
+        // 使用 try-with-resources 确保 FileInputStream 和 FileOutputStream 自动关闭
+        try (FileInputStream fileInputStream = new FileInputStream(filePath);
+             XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream)) {
 
             // 处理单元格数据
             for (Map.Entry<String, Map<String, Object>> entry : cellData.entrySet()) {
@@ -421,41 +506,20 @@ public class ExcelShowService {
                 }
             }
 
-            // 关闭文件输入流
-            fileInputStream.close();
-            fileInputStream = null;
-
-            // 使用文件输出流写入内容,如果有进程占用，则这里会报错，所以在这里要用try
             // 尝试获取文件输出流写入内容
-            try {
-                fileOutputStream = new FileOutputStream(filePath);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
                 workbook.write(fileOutputStream);
-
-                // 关闭工作簿和文件输出流
-                workbook.close();
-                fileOutputStream.close();
-
                 return "{\"status\": \"saved\"}";
             } catch (IOException e) {
+                e.printStackTrace();
                 return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
             }
         } catch (IOException e) {
             e.printStackTrace();
             return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
-        } finally {
-            try {
-
-                if (fileInputStream != null) {
-                    fileInputStream.close();
-                }
-                if (fileOutputStream != null) {
-                    fileOutputStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
+
 
 
     public static void deleteImageFromCell(Sheet sheet, int row, int column) {
@@ -527,17 +591,12 @@ public class ExcelShowService {
             int lastCol = column;
             int numOfColumns = 0;
 
-//            int numOfColumns = 0;
-
             // 计算合并单元格的列数和行数
             if(mergedRegion != null){
                 firstCol = mergedRegion.getFirstColumn();
                 lastCol = mergedRegion.getLastColumn();
                 numOfColumns = lastCol + firstCol + 1;
             }
-//            int firstCol = mergedRegion.getFirstColumn();
-//            int lastCol = mergedRegion.getLastColumn();
-//            numOfColumns = lastCol + firstCol + 1;
 
             anchor.setCol1(firstCol);
 
@@ -549,46 +608,44 @@ public class ExcelShowService {
                 anchor.setCol2(lastCol);
             }
 
-
             // 设置图片插入的位置和大小
-
-//            anchor.setCol1(firstCol);
-
             anchor.setRow1(row);
             anchor.setRow2(row+1);
-
-//            anchor.setRow1(row);
-//            anchor.setCol2(column + 1); // 图片占据一个单元格
-//            anchor.setRow2(row + 1);
-
 
             Picture pict = drawing.createPicture(anchor, pictureIdx);
             pict.resize(); // 自动调整图片大小以适应单元格
 
 
             // 获取单元格的宽度和高度
-            float cellWidth = sheet.getColumnWidthInPixels(column);
             float cellHeight = sheet.getRow(row).getHeightInPoints() / 72 * 96; // 将高度从点转换为像素
+            // 计算合并区域的总宽度
+            float cellWidth = 0;
+            for (int col = firstCol; col <= lastCol; col++) {
+                cellWidth += sheet.getColumnWidthInPixels(col);
+            }
 
             // 获取图片的原始尺寸
             Dimension originalSize = pict.getImageDimension();
             float originalWidth = (float) originalSize.getWidth();
             float originalHeight = (float) originalSize.getHeight();
 
+            System.out.println("originalWidth:"+originalWidth);
+            System.out.println("originalHeight:"+originalHeight);
+
             float scaleWidth;
             float scaleHeight;
             float scale;
             scaleWidth = cellWidth / originalWidth;
             scaleHeight = cellHeight / originalHeight;
+            System.out.println("scaleWidth:"+scaleWidth);
+            System.out.println("scaleHeight:"+scaleHeight);
+
 
             if(mergedRegion!=null){
-
-                scale  = (scaleWidth + scaleHeight) / 2;
+                scale = Math.min(scaleWidth, scaleHeight)/2;
             }else{
-
                 scale = Math.min(scaleWidth, scaleHeight);
             }
-
 
             // 按照计算的缩放比例调整图片大小
             pict.resize(scale);
@@ -639,8 +696,42 @@ public class ExcelShowService {
     }
 
 
-    public Map<String, String> uploadImage(@RequestParam("image") MultipartFile imageFile,@RequestParam("row") int row,@RequestParam("column") int column,@RequestParam("sheetName") String sheetName,@RequestParam("filepath") String filepath) {
+//    public Map<String, String> uploadImage(@RequestParam("image") MultipartFile imageFile,@RequestParam("row") int row,@RequestParam("column") int column,@RequestParam("sheetName") String sheetName,@RequestParam("filepath") String filepath) {
+//
+//        Map<String, String> response = new HashMap<>();
+//        try {
+//            // 检查并创建目录
+//            if (!Files.exists(getImageLocationC())) {
+//                Files.createDirectories(getImageLocationC());
+//            }
+//
+//            int lastIndex = filepath.lastIndexOf('\\');
+//            String fileName = filepath.substring(lastIndex + 1);
+//
+//            // 获取图片文件名
+//            String imageName = fileName + "_" + sheetName + "_" + row + "_" + column + ".png";
+//            // 构建目标文件路径
+//            Path targetPath = getImageLocationC().resolve(imageName);
+//            System.out.println("targetPath: " + targetPath);
+//            // 将上传的图片保存到目标文件路径
+//            Files.copy(imageFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+//            // 构建图片访问路径
+//            String imageUrl = "/imageDirectory/" + imageName;
+//
+//            // 返回上传成功的图片路径
+//            response.put("imageUrl", imageUrl);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            logger.info("和文件保存起冲突，上传图片失败，请稍等5s后重试");
+//            // 返回上传失败的响应
+//            response.put("error", "和文件保存起冲突，上传图片失败，请稍等5s后重试");
+//
+//        }
+//        return response;
+//    }
 
+    public Map<String, String> uploadImage(@RequestParam("image") MultipartFile imageFile, @RequestParam("row") int row, @RequestParam("column") int column, @RequestParam("sheetName") String sheetName, @RequestParam("filepath") String filepath) {
         Map<String, String> response = new HashMap<>();
         try {
             // 检查并创建目录
@@ -656,6 +747,17 @@ public class ExcelShowService {
             // 构建目标文件路径
             Path targetPath = getImageLocationC().resolve(imageName);
             System.out.println("targetPath: " + targetPath);
+
+            // 检查图片是否损坏
+            try (InputStream imageInputStream = imageFile.getInputStream()) {
+                BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+                if (bufferedImage == null) {
+                    response.put("error", "上传的文件不是有效的图片文件或已损坏。");
+                    logger.info("上传的文件不是有效的图片文件或已损坏。"+imageName);
+                    return response;
+                }
+            }
+
             // 将上传的图片保存到目标文件路径
             Files.copy(imageFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
             // 构建图片访问路径
@@ -663,16 +765,15 @@ public class ExcelShowService {
 
             // 返回上传成功的图片路径
             response.put("imageUrl", imageUrl);
-
         } catch (IOException e) {
             e.printStackTrace();
             logger.info("和文件保存起冲突，上传图片失败，请稍等5s后重试");
             // 返回上传失败的响应
             response.put("error", "和文件保存起冲突，上传图片失败，请稍等5s后重试");
-
         }
         return response;
     }
+
 
 
 

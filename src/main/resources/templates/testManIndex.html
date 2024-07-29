@@ -88,9 +88,9 @@
         <h2>请输入产品信息</h2>
         <form id="fileInfoForm">
             <label for="model">大编码:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input type="text" id="model" name="model" required placeholder="必填项，没有则填/">
+            <input type="text" id="model" name="model" required placeholder="必填项，没有则填无">
             <label for="coding">小编码:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input type="text" id="coding" name="coding" required placeholder="必填项，没有则填/">
+            <input type="text" id="coding" name="coding" required placeholder="必填项，没有则填无">
             <label for="category">类别:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <select id="category" name="category" required>
                 <option value="" disabled selected>请选择类别</option>
@@ -126,7 +126,7 @@
             </select>
 
             <label for="version">版本:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input type="text" id="version" name="version" required placeholder="必填项，没有填/，必须是大写">
+            <input type="text" id="version" name="version" required placeholder="必填项大写，没有填无">
             <label for="sample_name">产品名称:</label>
             <input type="text" id="sample_name" name="sample_name" required placeholder="必填项，/\:*?<>|会替换成下横线_"><br>
             <label for="planfinish_time">预计完成时间:</label>
@@ -135,9 +135,9 @@
             <label for="sample_frequency">送样次数:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <input type="number" id="sample_frequency" name="sample_frequency" min="1" required placeholder="必填项，请写明是第几次送样，第一次则为1">
             <label for="sample_quantity">送样数量:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input type="number" id="sample_quantity" name="sample_quantity" min="1" required placeholder="必填项，没有则填/">
+            <input type="number" id="sample_quantity" name="sample_quantity" min="1" required placeholder="必填项">
 
-            <label for="high_frequency">是否高频:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <label for="high_frequency">您是高频测试人员吗？&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <select id="high_frequency" name="high_frequency" required>
                 <option value="" disabled selected>请选择</option>
                 <option value="是">是</option>
@@ -1228,6 +1228,20 @@
         this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
     });
 
+    document.getElementById('model').addEventListener('input', function(e) {
+        // this.value = this.value.replace(/[\\\/]/g, '_');
+        this.value = this.value.replace(/[\\\/:*?"<>|]/g, '无');
+    });
+
+    document.getElementById('coding').addEventListener('input', function(e) {
+        // this.value = this.value.replace(/[\\\/]/g, '_');
+        this.value = this.value.replace(/[\\\/:*?"<>|]/g, '无');
+    });
+
+    document.getElementById('version').addEventListener('input', function(e) {
+        // this.value = this.value.replace(/[\\\/]/g, '_');
+        this.value = this.value.replace(/[\\\/:*?"<>|]/g, '无');
+    });
 
 
     //选择大类之后选择小类
