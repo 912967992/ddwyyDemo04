@@ -47,6 +47,9 @@ public class ExcelShowService {
     @Value("${file.storage.imagepath}")
     private String imagepath;
 
+    @Value("${file.storage.jsonpath}")
+    private String jsonpath;
+
     private Path getImageLocationC(){
         return Paths.get(imagepath.replace("/","\\"));
     }
@@ -158,6 +161,7 @@ public class ExcelShowService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(filepath);
         return allSheetData;
     }
 

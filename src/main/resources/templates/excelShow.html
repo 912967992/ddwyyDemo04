@@ -782,8 +782,19 @@
         if (fetchController) {
             fetchController.abort();
             console.log('请求已中止，正在返回主页...');
-            // 跳转到主页
-            location.href = '/home';
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if(isIOS){
+                dd.closePage({
+                    success: () => {},
+                    fail: () => {},
+                    complete: () => {},
+                });
+            }else{
+                // 跳转到主页
+                location.href = '/home';
+            }
+
             return; // 确保在中止请求后不执行其他操作
         }
 
