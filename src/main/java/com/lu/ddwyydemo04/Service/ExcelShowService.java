@@ -1,5 +1,11 @@
 package com.lu.ddwyydemo04.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.SamplesDao;
@@ -33,10 +39,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 //此服务层主要用于填写测试报告页面的详细功能方法！
 @Service
@@ -47,11 +51,16 @@ public class ExcelShowService {
     @Value("${file.storage.imagepath}")
     private String imagepath;
 
+    @Value("${file.storage.jsonpath}")
+    private String jsonpath;
+
     private Path getImageLocationC(){
         return Paths.get(imagepath.replace("/","\\"));
     }
 
     private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
+    // 定义静态最终的 ObjectMapper 实例
+    private static final ObjectMapper mapper = new ObjectMapper();
 
 
     @Autowired
@@ -120,10 +129,6 @@ public class ExcelShowService {
 
                                 //获取cell的字符宽度
                                 col_width = getCellWidth(cell,sheet,colNum);
-//                                if(getCellValue(cell).equals("测试项目")){
-//                                    System.out.println("测试项目"+col_width);
-//                                }
-
                                 getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
 
 
@@ -158,8 +163,45 @@ public class ExcelShowService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //将解析好的数据保存为一份json文件
+        saveDataAsJson(allSheetData, filepath);
         return allSheetData;
     }
+
+    //将allSheetData转换成json文件保存到jsonpath路径下
+    private void saveDataAsJson(List<List<List<Object>>> allSheetData, String filepath) {
+        File file = new File(filepath);
+        String fileName = file.getName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.')); // 去除文件扩展名
+        String jsonFilePath = jsonpath + File.separator + baseName + ".json";
+
+        try {
+            mapper.writeValue(new File(jsonFilePath), allSheetData);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //将jsonpath路径下的json文件解析出来返回给前端
+    public List<List<List<Object>>> getAllSheetDataFromJson(String filepath) {
+        List<List<List<Object>>> allSheetData = new ArrayList<>();
+
+        // 获取文件名并去除扩展名
+        File file = new File(filepath);
+        String fileName = file.getName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.')); // 去除文件扩展名
+        // 生成 JSON 文件的路径
+        String jsonFilePath = jsonpath + File.separator + baseName + ".json";
+
+        try {
+            // 从 JSON 文件中读取数据
+            allSheetData = mapper.readValue(new File(jsonFilePath), new TypeReference<List<List<List<Object>>>>() {});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return allSheetData;
+    }
+
 
 
     public int getCellWidth(Cell cell, Sheet sheet, int colNum) {
@@ -245,12 +287,7 @@ public class ExcelShowService {
                 }
 
             }
-//            else if (drawing instanceof XSSFDrawing && ((XSSFDrawing) drawing).getShapes().stream().anyMatch(s -> s instanceof XSSFPicture && ((XSSFPicture) s).getClientAnchor().getCol1() == cell.getColumnIndex() && ((XSSFPicture) s).getClientAnchor().getRow1() == cell.getRowIndex())) { // 检查单元格是否包含图片，并且单元格颜色标记为蓝色、绿色或红色
-//                //锚点：图片只认第一个最接近左边的第一个单元格，其他的统一认为不是图片的锚点！所以只有该图片的锚点（小的单元格）才能进这个方法
-//                String imageLink = saveImageFromCell(cell, drawing, sheetName, rowNum, mergedRegion.getFirstColumn(),filepath,mergedRegion.getFirstColumn());
-//                MergedCellInfo lastItem = (MergedCellInfo) rowData.get(rowData.size()-1);
-//                lastItem.setValue(imageLink);
-//            }
+
         } else {
             int finalCurrentCol = cell.getColumnIndex();
             // 非合并单元格，添加单元格值
@@ -460,7 +497,35 @@ public class ExcelShowService {
 //    }
 
     public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
-        // 使用 try-with-resources 确保 FileInputStream 和 FileOutputStream 自动关闭
+        System.out.println("进来保存方法里了");
+        // 更新 XLSX 文件
+        String xlsxUpdateStatus = updateXlsxFile(filePath, cellData);
+
+        // 解析 XLSX 更新状态
+        try {
+            JsonNode statusNode = mapper.readTree(xlsxUpdateStatus);
+            String status = statusNode.path("status").asText();
+
+            if (!"saved".equals(status)) {
+                return xlsxUpdateStatus; // 返回错误状态，如果 XLSX 更新失败
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "{\"status\": \"error\", \"message\": \"无法解析 XLSX 更新状态\"}";
+        }
+
+        return updatejsonIorD(filePath,cellData);
+
+    }
+    private String getJsonFilePath(String filePath) {
+        // 从 XLSX 文件路径中提取文件名（去掉扩展名）
+        String fileNameWithoutExtension = Paths.get(filePath).getFileName().toString().replaceFirst("[.][^.]+$", "");
+
+        // 构造 JSON 文件路径
+        return Paths.get(jsonpath, fileNameWithoutExtension + ".json").toString();
+    }
+
+    private String updateXlsxFile(String filePath, Map<String, Map<String, Object>> cellData) {
         try (FileInputStream fileInputStream = new FileInputStream(filePath);
              XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream)) {
 
@@ -520,7 +585,153 @@ public class ExcelShowService {
         }
     }
 
+    public String updatejsonIorD(String filePath, Map<String, Map<String, Object>> cellData){
+        // 构造 JSON 文件路径
+        String jsonFilePath = getJsonFilePath(filePath);
+        try {
+            File jsonFile = new File(jsonFilePath);
+            if (!jsonFile.exists()) {
+                System.out.println("JSON file does not exist.");
+                return "{\"status\": \"error\", \"message\": \"JSON 文件不存在\"}";
+            }
+            if (!jsonFile.canRead()) {
+                System.out.println("Cannot read JSON file.");
+                return "{\"status\": \"error\", \"message\": \"无法读取 JSON 文件\"}";
+            }
+            // 读取 JSON 文件
+            JsonNode rootNode = mapper.readTree(new File(jsonFilePath));
 
+            updateJson(rootNode, cellData);
+
+            // 保存更新后的 JSON 数据
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(jsonFilePath), rootNode);
+            return "{\"status\": \"saved\"}";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "{\"status\": \"error\", \"message\": \"JSON 文件更新失败\"}";
+        }
+    }
+
+
+    private static void updateJson(JsonNode rootNode, Map<String, Map<String, Object>> collectData) {
+        List<JsonNode> allFirstElements = new ArrayList<>();
+        if (rootNode.isArray() && rootNode.size() > 0) {
+            for (JsonNode sheetNode : rootNode) {
+                List<JsonNode> firstElements = collectFirstElements(sheetNode);
+                allFirstElements.addAll(firstElements);
+            }
+
+            // 遍历 collectData
+            for (Map.Entry<String, Map<String, Object>> entry : collectData.entrySet()) {
+                Map<String, Object> data = entry.getValue();
+
+                String sheetName = (String) data.get("sheetName");
+                String insertRow = (String) data.get("insertRow");
+
+                // 找到对应的工作表
+                int sheetIndex = -1;
+                for (int i = 0; i < allFirstElements.size(); i++) {
+                    JsonNode firstElement = allFirstElements.get(i);
+                    if (firstElement.path("sheetName").asText().equals(sheetName)) {
+                        sheetIndex = i;
+                        break;
+                    }
+                }
+
+                if (sheetIndex >= 0 && sheetIndex < rootNode.size()) {
+                    JsonNode sheetNode = rootNode.get(sheetIndex);
+                    if (sheetNode.isArray()) {
+                        // 如果 collectData 中的任意项有 insertRow = "是"，则清除该工作表中的所有数据
+                        boolean hasInsertRow = collectData.values().stream()
+                                .anyMatch(entryData -> "是".equals(entryData.get("insertRow")));
+
+                        if (hasInsertRow) {
+                            // 清除工作表中的所有数据
+                            ((ArrayNode) sheetNode).removeAll();
+                        }
+
+                        // 将 collectData 的数据添加到工作表
+                        for (Map.Entry<String, Map<String, Object>> collectEntry : collectData.entrySet()) {
+                            Map<String, Object> cellData = collectEntry.getValue();
+                            String cellSheetName = (String) cellData.get("sheetName");
+                            int row = (int) cellData.get("row");
+                            int column = (int) cellData.get("column");
+
+
+                            // 确保在正确的工作表中
+                            if (cellSheetName.equals(sheetName)) {
+                                if ("是".equals(insertRow)) {
+                                    int rowspan = (int) cellData.get("rowspan");
+                                    int colspan = (int) cellData.get("colspan");
+                                    int col_wdith = (int) cellData.get("col_width");
+                                    String color = (String) cellData.get("color");
+                                    // 清除工作表中的所有数据并添加新单元格
+                                    ObjectNode newCell = new ObjectMapper().createObjectNode()
+                                            .put("sheetName", cellSheetName)
+                                            .put("value", (String) cellData.get("value"))
+                                            .put("row", row)
+                                            .put("column", column)
+                                            .put("rowspan", rowspan)
+                                            .put("colspan", colspan)
+                                            .put("col_width", col_wdith)
+                                            .put("color", color);
+
+                                    ((ArrayNode) sheetNode).add(newCell);
+                                }else{
+                                    // 遍历现有单元格
+                                    ArrayNode sheetArrayNode = (ArrayNode) sheetNode;
+                                    boolean updated = false;  // 标志变量，表示是否已经更新了单元格
+
+                                    for (JsonNode existingCell : sheetArrayNode) {
+                                        for (JsonNode signalCell : existingCell) {
+                                            int existingRow = signalCell.path("row").asInt();
+                                            int existingColumn = signalCell.path("column").asInt();
+                                            if (existingRow == row && existingColumn == column) {
+                                                ((ObjectNode) signalCell).put("value", (String) cellData.get("value"));
+
+                                                updated = true;  // 标记为已更新
+                                                break;
+                                            }
+                                        }
+                                        if (updated) {
+                                            break;  // 跳出外层循环
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private static List<JsonNode> collectFirstElements(JsonNode sheetNode) {
+        List<JsonNode> firstElements = new ArrayList<>();
+
+        // 确保工作表节点是数组
+        if (sheetNode.isArray() && sheetNode.size() > 0) {
+            // 获取第一个元素
+            JsonNode firstElement = sheetNode.get(0);
+
+            // 检查第一个元素是否是数组
+            if (firstElement.isArray() && firstElement.size() > 0) {
+                // 获取第一个数据数组的第一个元素
+                JsonNode firstDataElement = firstElement.get(0);
+                // 添加到集合中
+                firstElements.add(firstDataElement);
+            } else {
+                // 如果第一个元素不是有效的数组，添加一个空的占位符
+                firstElements.add(new ObjectMapper().createObjectNode());
+            }
+        } else {
+            // 如果工作表为空或不符合预期，添加一个空的占位符
+            firstElements.add(new ObjectMapper().createObjectNode());
+        }
+
+        return firstElements;
+    }
 
     public static void deleteImageFromCell(Sheet sheet, int row, int column) {
         if (sheet instanceof XSSFSheet) {
@@ -695,41 +906,6 @@ public class ExcelShowService {
                 anchor.getFrom().getCol() >= mergedRegion.getFirstColumn() && anchor.getTo().getCol() <= mergedRegion.getLastColumn();
     }
 
-
-//    public Map<String, String> uploadImage(@RequestParam("image") MultipartFile imageFile,@RequestParam("row") int row,@RequestParam("column") int column,@RequestParam("sheetName") String sheetName,@RequestParam("filepath") String filepath) {
-//
-//        Map<String, String> response = new HashMap<>();
-//        try {
-//            // 检查并创建目录
-//            if (!Files.exists(getImageLocationC())) {
-//                Files.createDirectories(getImageLocationC());
-//            }
-//
-//            int lastIndex = filepath.lastIndexOf('\\');
-//            String fileName = filepath.substring(lastIndex + 1);
-//
-//            // 获取图片文件名
-//            String imageName = fileName + "_" + sheetName + "_" + row + "_" + column + ".png";
-//            // 构建目标文件路径
-//            Path targetPath = getImageLocationC().resolve(imageName);
-//            System.out.println("targetPath: " + targetPath);
-//            // 将上传的图片保存到目标文件路径
-//            Files.copy(imageFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-//            // 构建图片访问路径
-//            String imageUrl = "/imageDirectory/" + imageName;
-//
-//            // 返回上传成功的图片路径
-//            response.put("imageUrl", imageUrl);
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            logger.info("和文件保存起冲突，上传图片失败，请稍等5s后重试");
-//            // 返回上传失败的响应
-//            response.put("error", "和文件保存起冲突，上传图片失败，请稍等5s后重试");
-//
-//        }
-//        return response;
-//    }
 
     public Map<String, String> uploadImage(@RequestParam("image") MultipartFile imageFile, @RequestParam("row") int row, @RequestParam("column") int column, @RequestParam("sheetName") String sheetName, @RequestParam("filepath") String filepath) {
         Map<String, String> response = new HashMap<>();
@@ -965,6 +1141,30 @@ public class ExcelShowService {
 
     public int updateUUID(String filepath,String uuid){
         return samplesDao.updateUUID(filepath,uuid);
+    }
+
+    public  List<List<List<Object>>> getJson(String filepath){
+        // 获取文件名并去除扩展名
+        File file = new File(filepath);
+        String fileName = file.getName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.')); // 去除文件扩展名
+        // 生成 JSON 文件的路径
+        String jsonFilePath = jsonpath + File.separator + baseName + ".json";
+        logger.info("jsonFilePath:"+jsonFilePath);
+        // 创建 File 对象
+        File jsonFile = new File(jsonFilePath);
+
+        // 检查文件是否存在
+        if (jsonFile.exists()) {
+            logger.info("JSON file exists: " + jsonFilePath);
+            // 如果文件存在，可以返回从 JSON 文件读取的数据
+            return getAllSheetDataFromJson(jsonFilePath);
+        } else {
+            logger.info("JSON file does not exist: " + jsonFilePath);
+            // 如果文件不存在，处理逻辑或者返回默认值
+            // return an empty list or handle the case when the file doesn't exist
+            return new ArrayList<>();
+        }
     }
 
 }

@@ -826,8 +826,14 @@
                                     sessionStorage.setItem("tester",tester);
 
 
-
-                                    window.location.href = response.redirectUrl;
+                                    var redirectUrl = response.redirectUrl;
+                                    if (redirectUrl.indexOf('?') !== -1) {
+                                        redirectUrl += '&dd_orientation=landscape';
+                                    } else {
+                                        redirectUrl += '?dd_orientation=landscape';
+                                    }
+                                    window.location.href = redirectUrl;
+                                    // window.location.href = response.redirectUrl;
                                 } else {
                                     alert(response.message);
                                 }
