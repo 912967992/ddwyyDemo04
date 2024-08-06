@@ -26,14 +26,6 @@
     </div>
 </div>
 
-<!--<div id="headerContainer">-->
-<!--    <h2>工作表<br>内容-->
-<!--        <button class="saveBtn" id="saveBtn">保存<br>数据</button>-->
-<!--        <button class="functionBtn" id="functionBtn">功能<br>按钮</button>-->
-<!--        <button class="deviceListBtn" id="deviceListBtn">设备<br>清单</button>-->
-<!--    </h2>-->
-<!--    <button class="homeBtn" id="homeBtn">返回<br>主页</button>-->
-<!--</div>-->
 <div id="headerContainer">
         <button class="saveBtn" id="saveBtn">保存<br>数据</button>
         <button class="functionBtn" id="functionBtn">功能<br>按钮</button>
@@ -161,10 +153,10 @@
     }
 
     function updateLocalStorage() {
-        const filepathKey = `sheetData_${filePath}`;
+        // const filepathKey = `sheetData_${filePath}`;
         const collectDataKey = `collectData_${filePath}`;
 
-        localStorage.setItem(filepathKey, JSON.stringify(allSheetData));
+        // localStorage.setItem(filepathKey, JSON.stringify(allSheetData));
         localStorage.setItem(collectDataKey, JSON.stringify(collectData));
 
     }
@@ -281,34 +273,40 @@
 
 
     // 用户操作时更新 collectData
-    function updateCollectData(sheetName, row, column, value, scrollHeight) {
+    function updateCollectData(sheetName, row, column, value, scrollHeight, rowspan, colspan, col_width, color) {
         const cellKey = `${sheetName}-${row}-${column}`;
-        collectData[cellKey] = {
-            sheetName: sheetName,
-            row: row,
-            column: column,
-            value: value
-        };
+        if(rowspan){
+            collectData[cellKey] = {
+                sheetName: sheetName,
+                row: row,
+                column: column,
+                value: value,
+                rowspan: rowspan,
+                colspan: colspan,
+                col_width: col_width,
+                color: color
 
-        pendingCollectData[cellKey] = {
-            sheetName: sheetName,
-            row: row,
-            column: column,
-            value: value
-        };
+            };
+        }else{
+            collectData[cellKey] = {
+                sheetName: sheetName,
+                row: row,
+                column: column,
+                value: value
+
+            };
+        }
 
         // 如果有 scrollHeight 并且超过默认行高，才添加到 collectData 和 pendingCollectData
         if (scrollHeight && scrollHeight > 100) {
             collectData[cellKey].scrollHeight = scrollHeight - 7;
-            pendingCollectData[cellKey].scrollHeight = scrollHeight - 7;
+            // pendingCollectData[cellKey].scrollHeight = scrollHeight - 7;
         } else {
             // 如果存在且小于等于默认行高，删除 scrollHeight 属性
             if (collectData[cellKey].hasOwnProperty('scrollHeight')) {
                 delete collectData[cellKey].scrollHeight;
             }
-            if (pendingCollectData[cellKey].hasOwnProperty('scrollHeight')) {
-                delete pendingCollectData[cellKey].scrollHeight;
-            }
+
         }
     }
 
@@ -407,9 +405,7 @@
                     updateSpecialCells(allSheetData); // 更新DQE单元格
 
                     getSheetNames();
-
-
-                    localStorage.setItem(storageKey, JSON.stringify(allSheetData));
+                    // localStorage.setItem(storageKey, JSON.stringify(allSheetData));
 
                     // resetSaveTimer();
                     resolve(); // 数据加载完成，resolve Promise
@@ -475,6 +471,8 @@
                     cell.setAttribute('data-column', cellData.column);
                     cell.setAttribute('data-color', cellData.color);
                     cell.setAttribute('data-col_width', cellData.col_width);
+                    cell.setAttribute('data-rowspan', cellData.rowspan || 1);
+                    cell.setAttribute('data-colspan', cellData.colspan || 1);
 
                     cell.rowSpan = cellData.rowspan || 1;
                     cell.colSpan = cellData.colspan || 1;
@@ -599,8 +597,200 @@
     }
 
 
-    // 页面加载完成后获取工作表名称
+    // // 页面加载完成后获取工作表名称
+    // window.onload = function () {
+    //     function getUUID(filepath) {
+    //         return fetch(`/getUUID`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({ filepath: filepath })
+    //         })
+    //             .then(response => response.text())
+    //             .then(data => {
+    //                 return data; // 返回获取到的uuid
+    //             })
+    //             .catch(error => {
+    //                 alert('getUUID失败');
+    //                 return null; // 返回null以便处理错误
+    //             });
+    //     }
+    //     function updateUUID(filepath,uuid) {
+    //         return fetch(`/updateUUID`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({ filepath: filepath,uuid: uuid })
+    //         })
+    //             .then(response => response.text())
+    //             .then(data => {
+    //                 if(data==="1"){
+    //                     console.log("更新UUID成功");
+    //                 }else {
+    //                     console.log("更新UUID失败");
+    //                 }
+    //             })
+    //             .catch(error => {
+    //                 alert("更新UUID出错");
+    //                 return null; // 返回null以便处理错误
+    //             });
+    //     }
+    //
+    //     function loadCollectData() {
+    //         const storageCollectData = `collectData_${filePath}`;
+    //         const storedData = localStorage.getItem(storageCollectData);
+    //         if (storedData) {
+    //             try {
+    //                 collectData = JSON.parse(storedData);
+    //             } catch (error) {
+    //                 console.error('Error parsing stored collectData:', error);
+    //                 collectData = {};
+    //             }
+    //         } else {
+    //             collectData = {};
+    //         }
+    //     }
+    //
+    //     // 获取返回按钮并添加点击事件监听器
+    //     var saveBtn =  document.getElementById('saveBtn');
+    //     document.getElementById('homeBtn').addEventListener('click', onHomeBtnClick);
+    //     // document.getElementById('saveBtn').addEventListener('click', onSaveBtnClick);
+    //
+    //     // 显示加载中提示
+    //     var loadingElement = document.getElementById('startloading');
+    //     loadingElement.style.display = 'block';
+    //
+    //     filePath = getQueryParam('filePath');
+    //
+    //     // 获取 filePath 参数并设置到 <h2> 元素中
+    //     var fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
+    //     // 更新 <h2> 元素的内容为文件名
+    //     var filePathDisplayElement = document.getElementById('filepathDisplay');
+    //     filePathDisplayElement.textContent = `当前文件：${fileName}`;
+    //
+    //     uuidStorage = localStorage.getItem("uuid_");
+    //     storageKey = `sheetData_${filePath}`;
+    //
+    //     // 使用getUUID方法并进行uuidStorage比较
+    //     getUUID(filePath).then(uuidMysql => {
+    //         if (uuidMysql) {
+    //             if (uuidMysql === uuidStorage) {
+    //                 // storageKey = `sheetData_${filePath}`;
+    //                 const cachedData = localStorage.getItem(storageKey);
+    //
+    //                 if (cachedData) {
+    //                     allSheetData = JSON.parse(cachedData);
+    //                     updateSpecialCells(allSheetData);
+    //                     getSheetNames();
+    //                     loadCollectData();
+    //                     loadingElement.style.display = 'none';
+    //                     saveBtn.addEventListener('click', onSaveBtnClick);
+    //                     functionBtnClick();
+    //                     DeviceListBtnClick();
+    //
+    //                     // var currentUrl = window.location.href;
+    //                     // showModalWithMessage(currentUrl);
+    //                 } else {
+    //                     getAllSheetData().then(() => {
+    //                         loadingElement.style.display = 'none';
+    //                         saveBtn.addEventListener('click', onSaveBtnClick);
+    //                         functionBtnClick();
+    //                         DeviceListBtnClick();
+    //                         updateUUID(filePath,uuidStorage);
+    //                     }).catch(error => {
+    //                         console.error('Error loading sheet data:', error);
+    //                         loadingElement.style.display = 'none';
+    //                     });
+    //                 }
+    //
+    //
+    //             } else {
+    //                 getAllSheetData().then(() => {
+    //                     loadingElement.style.display = 'none';
+    //                     saveBtn.addEventListener('click', onSaveBtnClick);
+    //                     functionBtnClick();
+    //                     DeviceListBtnClick();
+    //                     updateUUID(filePath,uuidStorage);
+    //                 }).catch(error => {
+    //                     console.error('Error loading sheet data:', error);
+    //                     loadingElement.style.display = 'none';
+    //
+    //                 });
+    //             }
+    //         }else{
+    //             getAllSheetData().then(() => {
+    //                 loadingElement.style.display = 'none';
+    //                 saveBtn.addEventListener('click', onSaveBtnClick);
+    //                 functionBtnClick();
+    //                 DeviceListBtnClick();
+    //                 updateUUID(filePath,uuidStorage);
+    //             }).catch(error => {
+    //                 console.error('Error loading sheet data:', error);
+    //                 loadingElement.style.display = 'none';
+    //
+    //             });
+    //         }
+    //     });
+    //
+    //
+    //
+    //
+    //
+    //
+    //     //配置jsapi
+    //     var baseUrl = window.location.origin + window.location.pathname;
+    //     // 使用 Fetch API 发送请求
+    //     fetch(`/getJsapiConfig?url=${encodeURIComponent(baseUrl)}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         }
+    //     })
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error(`HTTP error! Status: ${response.status}`);
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(config => {
+    //             dd.config({
+    //                 agentId: config.agentId,
+    //                 corpId: config.corpId,
+    //                 timeStamp: config.timeStamp,
+    //                 nonceStr: config.nonceStr,
+    //                 signature: config.signature,
+    //                 jsApiList: config.jsApiList
+    //             });
+    //         })
+    //         .catch(error => {
+    //             console.error('Fetch 请求失败:', error);
+    //         });
+    //
+    //
+    //
+    // };
+
     window.onload = function () {
+        function getJson(filepath) {
+            return fetch(`/getJson`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filepath: filepath })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    return data; // 返回获取到的uuid
+                })
+                .catch(error => {
+                    alert('getJson');
+                    return null; // 返回null以便处理错误
+                });
+        }
+
         function getUUID(filepath) {
             return fetch(`/getUUID`, {
                 method: 'POST',
@@ -673,39 +863,40 @@
         filePathDisplayElement.textContent = `当前文件：${fileName}`;
 
         uuidStorage = localStorage.getItem("uuid_");
-        storageKey = `sheetData_${filePath}`;
+        // storageKey = `sheetData_${filePath}`;
 
         // 使用getUUID方法并进行uuidStorage比较
         getUUID(filePath).then(uuidMysql => {
             if (uuidMysql) {
                 if (uuidMysql === uuidStorage) {
-                    // storageKey = `sheetData_${filePath}`;
-                    const cachedData = localStorage.getItem(storageKey);
-
-                    if (cachedData) {
-                        allSheetData = JSON.parse(cachedData);
-                        updateSpecialCells(allSheetData);
-                        getSheetNames();
-                        loadCollectData();
-                        loadingElement.style.display = 'none';
-                        saveBtn.addEventListener('click', onSaveBtnClick);
-                        functionBtnClick();
-                        DeviceListBtnClick();
-
-                        // var currentUrl = window.location.href;
-                        // showModalWithMessage(currentUrl);
-                    } else {
-                        getAllSheetData().then(() => {
+                    getJson(filePath).then(jsonData => {
+                        if (jsonData && jsonData.length > 0) {
+                            // 如果 JSON 文件存在并且数据有效
+                            allSheetData = jsonData;
+                            updateSpecialCells(allSheetData);
+                            getSheetNames();
+                            loadCollectData();
                             loadingElement.style.display = 'none';
                             saveBtn.addEventListener('click', onSaveBtnClick);
                             functionBtnClick();
                             DeviceListBtnClick();
-                            updateUUID(filePath,uuidStorage);
-                        }).catch(error => {
-                            console.error('Error loading sheet data:', error);
-                            loadingElement.style.display = 'none';
-                        });
-                    }
+                        } else {
+                            // 如果 JSON 文件不存在或数据无效
+                            getAllSheetData().then(() => {
+                                loadingElement.style.display = 'none';
+                                saveBtn.addEventListener('click', onSaveBtnClick);
+                                functionBtnClick();
+                                DeviceListBtnClick();
+                                updateUUID(filePath, uuidStorage);
+                            }).catch(error => {
+                                console.error('Error loading sheet data:', error);
+                                loadingElement.style.display = 'none';
+                            });
+                        }
+                    }).catch(error => {
+                        console.error('Error checking JSON file:', error);
+                        loadingElement.style.display = 'none';
+                    });
 
 
                 } else {
@@ -736,11 +927,6 @@
             }
         });
 
-
-
-
-
-
         //配置jsapi
         var baseUrl = window.location.origin + window.location.pathname;
         // 使用 Fetch API 发送请求
@@ -769,10 +955,9 @@
             .catch(error => {
                 console.error('Fetch 请求失败:', error);
             });
-
-
-
     };
+
+
 
     // onHomeBtnClick 函数实现
     function onHomeBtnClick() {
@@ -892,7 +1077,6 @@
 
         updateCollectData(selectedSheetName, parseInt(target_row, 10), parseInt(target_column, 10), newvalue);
 
-        // resetSaveTimer();
     }
 
 
@@ -1093,6 +1277,7 @@
                 // 这里可以添加一些成功保存后的处理逻辑
                 if (data === "成功新增一行") {
                     insertRowBefore(row);
+
                 } else {
                     alert(data);
                 }
@@ -1104,7 +1289,20 @@
             });
     }
 
+
+
     function deleteRow(row) {
+        // 检查当前行的所有单元格是否包含 "/imageDirectory/"
+        const currentRowData = sheetData.find(rowData => rowData.some(cell => cell.row === row));
+
+        if (currentRowData) {
+            const hasImageDirectory = currentRowData.some(cell => cell.value.includes('/imageDirectory/'));
+
+            if (hasImageDirectory) {
+                alert("当前行包含图片数据，无法删除。");
+                return; // 不能删除，直接返回
+            }
+        }
         // 使用 Fetch API 进行 AJAX 调用
         // 发送位置信息和值到后端保存
         fetch(`/deleteRow?sheetName=${encodeURIComponent(selectedSheetName)}&filePath=${encodeURIComponent(filePath)}`, {
@@ -1147,6 +1345,8 @@
         const rowIndex = sheetData.findIndex(rowData => rowData.some(cell => cell.row === row + 1));
 
         if (rowIndex !== -1) {
+
+
             // 复制指定行的数据
             const newRowData = sheetData[rowIndex].map(cell => {
                 // 创建新的单元格对象
@@ -1154,13 +1354,41 @@
                     ...cell,
                     row: row,
                     // 如果 value 不等于 "上传图片"，则将 value 设为空
-                    value: cell.value === '上传图片' ? cell.value : ''
+                    // value: cell.value === '上传图片' ? cell.value : ''
+                    value: cell.value.includes('/imageDirectory/') ? cell.value : ''
                 };
+            });
+
+            // 处理原始行数据，将图片路径的单元格值设为空
+            sheetData[rowIndex].forEach(cell => {
+                if (cell.value.includes('/imageDirectory/')) {
+                    cell.value = '上传图片'; // 清空原行的图片路径
+                }
             });
 
             // 在 sheetData 中插入新行数据
             sheetData.splice(rowIndex, 0, newRowData);
+
         }
+        sheetData.forEach(rowData => {
+            rowData.forEach(cell => {
+                const cellKey = `${cell.sheetName}-${cell.row}-${cell.column}`;
+                collectData[cellKey] = {
+                    sheetName: cell.sheetName,
+                    row: cell.row,
+                    column: cell.column,
+                    value: cell.value,
+                    rowspan: cell.rowspan,
+                    colspan: cell.colspan,
+                    col_width: cell.col_width,
+                    color: cell.color,
+                    insertRow: "是"
+
+                };
+            });
+        });
+
+        updatejsonIorD();
 
         syncSheetDataToAllSheetData();
         renderSheetTable();
@@ -1209,9 +1437,28 @@
                     });
                 });
 
-                console.log("删除行 index:", rowIndex);
             }
         }
+
+        sheetData.forEach(rowData => {
+            rowData.forEach(cell => {
+                const cellKey = `${cell.sheetName}-${cell.row}-${cell.column}`;
+                collectData[cellKey] = {
+                    sheetName: cell.sheetName,
+                    row: cell.row,
+                    column: cell.column,
+                    value: cell.value,
+                    rowspan: cell.rowspan,
+                    colspan: cell.colspan,
+                    col_width: cell.col_width,
+                    color: cell.color,
+                    insertRow: "是"
+
+                };
+            });
+        });
+        updatejsonIorD();
+
 
         syncSheetDataToAllSheetData();
         renderSheetTable();
@@ -1270,6 +1517,31 @@
                 }
             }
         }
+    }
+
+    // 删一行和增一行的更新json方法,在执行完操作之后才进行更新json
+    function updatejsonIorD() {
+        fetch(`/updatejsonIorD?filePath=${encodeURIComponent(filePath)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(collectData)  // 正确的结构
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "saved") {
+                    collectData={};
+                    alert("json文件更新成功");
+                } else {
+                    alert("更新失败？"+data.status);
+                }
+
+            })
+            .catch(error => {
+                console.error('Error saving data:', error);
+                alert('Failed to save data.');
+            });
     }
 
     function functionBtnClick(){

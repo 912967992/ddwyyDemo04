@@ -237,7 +237,15 @@ public class ExcelShowController {
     @ResponseBody
     public String saveEditedCell(@RequestParam String filePath, @RequestBody Map<String, Map<String, Object>> cellData) {
         logger.info("saveData："+cellData);
+
         return excelShowService.saveEditedCell(filePath,cellData);
+    }
+
+    @PostMapping("/updatejsonIorD")
+    @ResponseBody
+    public String updatejsonIorD(@RequestParam String filePath, @RequestBody Map<String, Map<String, Object>> cellData) {
+        logger.info("updatejsonIorD："+cellData);
+        return excelShowService.updatejsonIorD(filePath,cellData);
     }
 
 
@@ -283,6 +291,15 @@ public class ExcelShowController {
     public String deleteRow(@RequestParam String sheetName, @RequestBody Map<String, Integer> requestBody,@RequestParam String filePath) {
         int row = requestBody.get("row");
         return excelShowService.deleteRow(sheetName, row, filePath);
+    }
+
+
+    @PostMapping("/getJson")
+    @ResponseBody
+    public List<List<List<Object>>> getJson(@RequestBody Map<String, String> request) {
+        String filepath = request.get("filepath");
+
+        return excelShowService.getJson(filepath);
     }
 
 
