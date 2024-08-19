@@ -205,6 +205,12 @@ public class ExcelShowService {
         double columnWidthInChars = sheet.getColumnWidth(colNum) / 256.0;
         int estimatedPixelWidth = (int) (columnWidthInChars * 6);
 
+        // 获取单元格字体大小
+        Workbook workbook = sheet.getWorkbook();
+        CellStyle cellStyle = cell.getCellStyle();
+        Font font = workbook.getFontAt(cellStyle.getFontIndexAsInt());
+        int fontSize = font.getFontHeightInPoints();
+
         // 检查单元格是否在合并单元格区域内
         for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
             CellRangeAddress region = sheet.getMergedRegion(i);
@@ -217,7 +223,14 @@ public class ExcelShowService {
                 break;
             }
         }
-//        System.out.println(getCellValue(cell)+estimatedPixelWidth);
+
+        // 根据字体大小调整宽度
+        if (fontSize != 12) {
+            int scaleNum = 12 - fontSize;
+            estimatedPixelWidth += scaleNum*25;
+        }
+
+        System.out.println(getCellValue(cell)+estimatedPixelWidth);
         return estimatedPixelWidth;
     }
 
