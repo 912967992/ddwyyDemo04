@@ -167,8 +167,9 @@
 
 .table-container table th,
 .table-container table td {
-    width: 20%; /* 设置单元格宽度为25%，可根据需要调整 */
-    max-width: 120px; /* 设置最大宽度，以防止内容溢出 */
+    /*width: 25%; !* 设置单元格宽度为25%，可根据需要调整 *!*/
+    width: 100px;
+    /*max-width: 120px; !* 设置最大宽度，以防止内容溢出 *!*/
     border: 0.5px solid #2ba245;
     padding: 8px;
     text-align: center;
@@ -184,7 +185,8 @@
 .table-container table {
     border-collapse: collapse;
     width: 100%;
-    /*margin-bottom: 20px; !* 表格之间的间隔 *!*/
+
+    table-layout: fixed; /* 固定列宽 */
 
 }
 

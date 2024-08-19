@@ -960,13 +960,13 @@
                 table += '<tr>';
                 table += '<th rowspan="1" colspan="1" title="样品进度：' + getSampleScheduleDescription(product.sample_schedule) + '">' + '进度：'+ getSampleScheduleDescription(product.sample_schedule) + '</th>';
                 // 每个单元格的具体值作为title属性的值
-                table += '<th colspan="2" title="大型号' + product.sample_model + ', 小型号' + product.sample_coding + '">' + '' + product.sample_model + ' ' + product.sample_coding + '</th>';
-                table += '<th colspan="1" title="类别：' + product.sample_category + ', 版本' + product.version + '">' + product.sample_category + ' ' + product.version + '</th>';
+                table += '<th colspan="2" title="大型号' + product.sample_model + ', 小型号' + product.sample_coding  + '">' + '' + product.sample_model + ' ' + product.sample_coding  + '</th>';
+                table += '<th colspan="1" title="类别：' + product.sample_category + ', 版本' + product.version + ', 任务属性' + product.questStats  + '">' + product.sample_category + ' ' + product.version + ' ' + product.questStats + '</th>';
                 table += '<th colspan="1" title="第' + product.sample_frequency + '次送样' +'">' + '第' + product.sample_frequency + '次送样' + '</th>';
                 table += '</tr>';
                 table += '<tr>';
-                table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + ', 任务属性' + product.questStats  + '">' + '' + product.big_species + ' ' + product.small_species + ' ' + product.questStats + '</th>';
-                table += '<th colspan="5" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
+                table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';
+                table += '<th colspan="4" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
                 table += '</tr>';
                 table += '</thead>';
                 table += '</table>';
