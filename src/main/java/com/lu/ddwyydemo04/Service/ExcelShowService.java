@@ -104,34 +104,29 @@ public class ExcelShowService {
                             // 检查单元格的颜色
                             String colorStr = getColorAsString(cell);
                             String color = "";
-                            if(getCellValue(cell).equals("初版234567890")){
-                                System.out.println(colorStr);
-                            }
+
+
                             // 检查颜色是否为蓝色,蓝色的为测试项
-                            if ("0070C0".equals(colorStr)) {
+//                            if ("0070C0".equals(colorStr)) {
+                            if ("000000".equals(colorStr)) {
                                 // 检查单元格是否在合并区域内
                                 CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-                                color = "blue";
+                                color = "black";
 
                                 //获取cell的字符宽度
                                 col_width = getCellWidth(cell,sheet,colNum);
 
                                 getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
 
-
-                            }else if ("7030A0".equals(colorStr) || "FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测试结果
+//                            }else if ("7030A0".equals(colorStr) || "FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测试结果
+                            }else if ("FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测
                                 CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-                                if("7030A0".equals(colorStr)){
-                                    color = "purple";
-                                }else{
-                                    color = "red";
-                                }
+
+                                color = "red";
 
                                 //获取cell的字符宽度
                                 col_width = getCellWidth(cell,sheet,colNum);
                                 getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
-
-
                             }
                         }
                     }
@@ -264,12 +259,18 @@ public class ExcelShowService {
 
         if (mergedRegion != null) {
             boolean imageFound = false;
+
             // 如果是合并区域的左上角单元格，则添加合并信息
             if (cell.getRowIndex() == mergedRegion.getFirstRow() && cell.getColumnIndex() == mergedRegion.getFirstColumn()) {
 
                 for (int currentCol = mergedRegion.getFirstColumn(); currentCol <= mergedRegion.getLastColumn(); currentCol++) {
                     int finalCurrentCol = currentCol;
                     if (drawing instanceof XSSFDrawing && ((XSSFDrawing) drawing).getShapes().stream().anyMatch(s -> s instanceof XSSFPicture && ((XSSFPicture) s).getClientAnchor().getCol1() == finalCurrentCol && ((XSSFPicture) s).getClientAnchor().getRow1() == cell.getRowIndex())) { // 检查单元格是否包含图片，并且单元格颜色标记为蓝色、绿色或红色
+                        //当单元格有图片和内容的时候，只展示内容
+                        if(!Objects.equals(getCellValue(cell), "")){
+                            break;
+                        }
+
                         // 如果找到图片
                         imageFound = true;
                         //锚点：图片只认第一个最接近左边的第一个单元格，其他的统一认为不是图片的锚点！所以只有该图片的锚点（小的单元格）才能进这个方法
@@ -320,6 +321,8 @@ public class ExcelShowService {
                         return bytesToHex(rgb);
                     }
                 }
+                // 如果颜色为null，返回默认的黑色
+                return "000000";
             }
         }
         return "";
@@ -560,7 +563,7 @@ public class ExcelShowService {
                     if ("NG".equals(value) || "FAIL".equals(value) || "×".equals(value)) {
                         setCellFontColor(cell, "FF0000");
                     } else {
-                        setCellFontColor(cell, "7030A0");
+                        setCellFontColor(cell, "000000");
                     }
                     cell.setCellValue(value);
                 }

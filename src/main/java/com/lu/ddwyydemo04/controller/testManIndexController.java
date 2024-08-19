@@ -1,7 +1,5 @@
 package com.lu.ddwyydemo04.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.*;
@@ -10,22 +8,18 @@ import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.FileData;
-import com.lu.ddwyydemo04.pojo.QuestData;
+
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TotalData;
 import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
 import com.taobao.api.internal.util.WebUtils;
-import jdk.nashorn.internal.objects.NativeMath;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.*;
+
 import org.springframework.stereotype.Controller;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.SocketUtils;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
@@ -58,6 +52,8 @@ public class testManIndexController {
     @Value("${file.storage.savepath}")
     private String savepath;
 
+    @Value("${file.storage.jsonpath}")
+    private String jsonpath;
 
     private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
 
@@ -394,6 +390,7 @@ public class testManIndexController {
         Map<String, Object> response = new HashMap<>();
         String filepath = request.get("filepath");
 
+        logger.info("删除json文件："+filepath);
         //删除文件夹里的文件,后续要备份则需要在这里增加备份到别的路径的处理
         try {
             // 创建文件路径的Path对象
@@ -406,6 +403,7 @@ public class testManIndexController {
             int deleteJudge = testManIndexService.deleteFilepath(filepath);
             if(deleteJudge==1){
                 // 返回成功响应
+                response.put("oldFilePath",filepath);
                 response.put("status", "success");
                 response.put("message", "删除文件成功");
                 logger.info("deleteFilepath successfully filepath:"+filepath);
@@ -429,16 +427,6 @@ public class testManIndexController {
         return response;
     }
 
-
-    @PostMapping("/postChooseContact")
-    @ResponseBody
-    public ResponseEntity<String> receiveContacts(@RequestBody String contactsJson) {
-        // 在这里，您可以处理数据，如打印到控制台或存储到数据库
-        System.out.println(contactsJson);
-
-        // 返回一个简单的确认信息
-        return ResponseEntity.ok("Contacts received");
-    }
 
 
     @PostMapping("/testManIndex/uploadFileToDingtalk")
@@ -570,23 +558,7 @@ public class testManIndexController {
         OapiCspaceAddToSingleChatResponse response = client.execute(request, accesstoken);
         logger.info("sendDingFileToUser successfully."+response.getBody());
     }
-    private static String parseUploadId(String responseBody) throws ApiException {
-        JSONObject jsonObject = JSON.parseObject(responseBody);
-        if (jsonObject.getInteger("errcode") == 0) {
-            return jsonObject.getString("upload_id");
-        } else {
-            throw new ApiException("Error uploading file: " + jsonObject.getString("errmsg"));
-        }
-    }
 
-    private String parseMediaId(String responseBody) throws ApiException {
-        JSONObject jsonObject = JSON.parseObject(responseBody);
-        if (jsonObject.getInteger("errcode") == 0) {
-            return jsonObject.getString("media_id");
-        } else {
-            throw new ApiException("Error uploading file: " + jsonObject.getString("errmsg"));
-        }
-    }
 
     @PostMapping("/log/debug")
     @ResponseBody
@@ -595,5 +567,37 @@ public class testManIndexController {
         logger.info(message);
         return message;
     }
+
+    @PostMapping("/testManIndex/clearJson")
+    @ResponseBody
+    public String clearJson(@RequestBody Map<String, String> data) {
+        String oldFilePath = data.get("oldFilePath");
+
+        // 获取文件名并去除扩展名
+        File file = new File(oldFilePath);
+        String fileName = file.getName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+        String jsonFilePath = jsonpath+ File.separator + baseName + ".json";
+
+        try {
+            File jsonFile = new File(jsonFilePath);
+            if (jsonFile.exists()) {
+                if (jsonFile.delete()) {
+                    logger.info("删除json文件了: " + jsonFilePath);
+                    return "json文件成功删除";
+                } else {
+                    logger.error("删除json文件失败 " + jsonFilePath);
+                    return "删除json文件失败";
+                }
+            } else {
+                logger.info("json文件没有找到 " + jsonFilePath);
+                return "json文件没有找到";
+            }
+        } catch (Exception e) {
+            logger.error("An error occurred while deleting the JSON file.", e);
+            return "An error occurred while deleting the JSON file.";
+        }
+    }
+
 
 }

@@ -1125,6 +1125,7 @@
                             data: JSON.stringify({ filepath: filepath }), // 发送到服务器的JSON数据
                             success: async function(response) {
                                 await sendLogToServer(response.message);
+                                await clearStorage(response)
                                 if (response.status === "success") {
                                     const storageKey = `sheetData_${filepath}`;
                                     if (localStorage.getItem(storageKey) !== null) {
@@ -1336,6 +1337,21 @@
         }else{
             await sendLogToServer(`没有 ${collectDataKey} 的缓存`);
         }
+
+        try {
+            await $.ajax({
+                url: '/testManIndex/clearJson',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ oldFilePath: response.oldFilePath})
+            });
+        } catch (error) {
+            console.error('发送日志失败: ', error);
+        }
+
+
+
+
     }
 
 
