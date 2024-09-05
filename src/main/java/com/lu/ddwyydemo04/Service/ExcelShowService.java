@@ -225,12 +225,12 @@ public class ExcelShowService {
         }
 
         // 根据字体大小调整宽度
-        if (fontSize != 12) {
+        if (fontSize < 12) {
             int scaleNum = 12 - fontSize;
             estimatedPixelWidth += scaleNum*25;
         }
 
-        System.out.println(getCellValue(cell)+estimatedPixelWidth);
+//        System.out.println(getCellValue(cell)+estimatedPixelWidth);
         return estimatedPixelWidth;
     }
 
@@ -385,10 +385,10 @@ public class ExcelShowService {
 
                         // 检查文件是否已存在
                         Path imagePathC = getImageLocationC().resolve(imageName);
-                        if (!Files.exists(imagePathC)) {
+//                        if (!Files.exists(imagePathC)) {
                             // 保存图片到C盘目录
-                            Files.write(imagePathC, pictureData);
-                        }
+                        Files.write(imagePathC, pictureData);
+//                        }
                         // 返回图片文件路径（保持路径格式不变）
                         return "/imageDirectory/" + imageName;
                     }
@@ -400,6 +400,7 @@ public class ExcelShowService {
         return "";
 
     }
+
 
     private String getCellValue(Cell cell) {
         if (cell == null) {

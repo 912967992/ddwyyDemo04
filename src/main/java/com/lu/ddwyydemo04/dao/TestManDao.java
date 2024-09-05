@@ -2,6 +2,7 @@ package com.lu.ddwyydemo04.dao;
 
 import com.lu.ddwyydemo04.pojo.FileData;
 import com.lu.ddwyydemo04.pojo.Samples;
+import com.lu.ddwyydemo04.pojo.TestIssues;
 import com.lu.ddwyydemo04.pojo.TotalData;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -53,6 +54,14 @@ public interface TestManDao {
     public String queryTester(Samples sample);
 
     public int deleteFilepath(String filepath);//根据文件删除sample数据库的数据
+
+    //提取问题点相关
+    public int querySampleId(String filepath);//根据文件删除sample数据库的数据
+
+    public int insertTestIssues(TestIssues testIssues);
+
+
+    public int queryHistoryid(@Param("sample_id") int sample_id);
 
 
 }

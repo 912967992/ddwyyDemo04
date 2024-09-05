@@ -128,13 +128,27 @@
     let uuidStorage="";
 
     var username = sessionStorage.getItem("username");
-    var DQE = sessionStorage.getItem("DQE");
-    var Developer = sessionStorage.getItem("Developer");
-    var product_model = sessionStorage.getItem("model") + " " + sessionStorage.getItem("coding");
-    var sample_name = sessionStorage.getItem("sample_name");
-    var supplier = sessionStorage.getItem("supplier");
-    var tester = sessionStorage.getItem("tester");
+    // var DQE = sessionStorage.getItem("DQE");
+    // var Developer = sessionStorage.getItem("Developer");
+    // var product_model = sessionStorage.getItem("model") + " " + sessionStorage.getItem("coding");
+    // var sample_name = sessionStorage.getItem("sample_name");
+    // var supplier = sessionStorage.getItem("supplier");
+    // var tester = sessionStorage.getItem("tester");
+    let DQE ;
+    let Developer ;
+    let product_model ;
+    let sample_name ;
+    let supplier;
+    let tester;
 
+    function getLocalStoreSpecial(){
+        DQE = localStorage.getItem(`DQE_`);
+        Developer = localStorage.getItem(`Developer_`);
+        product_model = localStorage.getItem(`model_`) + " " + localStorage.getItem(`coding_`);
+        sample_name = localStorage.getItem(`sample_name_`);
+        supplier = localStorage.getItem(`supplier_`);
+        tester = localStorage.getItem(`tester_`);
+    }
 
 
     function handleCellPaste(event) {
@@ -426,6 +440,7 @@
 
     //在获取xlsx全部数据后马上用这个方法，将每个工作表里的DQE，研发，测试人都改成对应的值存到collectData
     function updateSpecialCells(allSheetData) {
+        getLocalStoreSpecial();
         allSheetData.forEach(sheet => {
             sheet.forEach(rowData => {
                 rowData.forEach(cellData => {
@@ -438,7 +453,7 @@
                     } else if (cellData.value === "测试人" && tester !== "" && tester !== null) {
                         cellData.value = tester;
                         updateCollectData(cellData.sheetName, cellData.row, cellData.column, cellData.value);
-                    } else if (cellData.value === "产品型号签名" && product_model !== "" && product_model !== null) {
+                    } else if (cellData.value === "产品型号签名" && product_model !== "" && product_model !== "null null") {
                         cellData.value = product_model;
                         updateCollectData(cellData.sheetName, cellData.row, cellData.column, cellData.value);
                     } else if (cellData.value === "产品名称签名" && sample_name !== "" && sample_name !== null) {
@@ -1106,7 +1121,7 @@
         imgContainer.style.maxHeight = '50vh'; // 设置图片容器的最大高度为视口高度的70%
         // 创建图片元素
         const img = document.createElement('img');
-        img.src = imageSrc + '?t=' + new Date().getTime(); // 添加时间戳
+        img.src =  imageSrc.replace(/#/g, '%23') + '?t=' + new Date().getTime(); // 添加时间戳
         img.className = 'modal-content';
         img.style.maxWidth = '100%'; // 设置图片的最大宽度为容器宽度的100%
         img.style.maxHeight = '100%'; // 设置图片的最大高度为容器高度的100%'
@@ -1137,60 +1152,70 @@
         zoomOutButton.onclick = () => {
             img.style.transform = 'scale(1)'; // 将图像还原
         };
+
+        // 创建文件输入框
+        const inputFile = document.createElement('input');
+        inputFile.type = 'file';
+        inputFile.accept = 'image/*';
+        inputFile.style.display = 'none'; // 隐藏输入框
+
         // 创建上传按钮
         const uploadButton = document.createElement('button');
         uploadButton.textContent = '上传新图片';
         uploadButton.onclick = () => {
-            // 打开文件选择对话框
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (event) => {
-                const file = event.target.files[0];
-                console.log(event.target)
-                if (file) {
-                    const formData = new FormData();
-                    formData.append('image', file);
-                    formData.append('row', row);
-                    formData.append('column', column);
-                    formData.append('sheetName', selectedSheetName);
-                    formData.append('filepath', filePath);
-                    // 发送图片文件到后端静态文件夹
-                    fetch('/uploadImage', {
-                        method: 'POST',
-                        body: formData
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            const imageUrl = data.imageUrl;
-                            const error = data.error;
-
-                            if (error) {
-                                alert(error);
-                            } else {
-                                alert("图片正在上传，请稍等云端提示。");
-                                const rowIndex = sheetData.findIndex(rowData => rowData.some(cell => cell.row === row));
-                                if (rowIndex !== -1) {
-                                    const columnIndex = sheetData[rowIndex].findIndex(cell => cell.column === column);
-                                    if (columnIndex !== -1) {
-                                        sheetData[rowIndex][columnIndex].value = imageUrl;
-                                        syncSheetDataToAllSheetData();
-                                    }
-                                }
-                                img.src = imageUrl + '?t=' + new Date().getTime();
-                                updateCollectData(selectedSheetName, row, column, imageUrl);
-                                saveData();
-                                // renderSheetTable();
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error uploading image:', error);
-                            alert('Failed to upload image.');
-                        });
-                }
-            };
-            input.click();
+            // 触发文件选择对话框
+            inputFile.click();
         };
+        // 绑定文件选择事件
+        inputFile.onchange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('row', row);
+                formData.append('column', column);
+                formData.append('sheetName', selectedSheetName);
+                formData.append('filepath', filePath);
+                // 发送图片文件到后端静态文件夹
+                fetch('/uploadImage', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const imageUrl = data.imageUrl;
+                        const error = data.error;
+
+                        if (error) {
+                            alert(error);
+                        } else {
+                            alert("图片正在上传，请稍等云端提示。");
+                            const rowIndex = sheetData.findIndex(rowData => rowData.some(cell => cell.row === row));
+                            if (rowIndex !== -1) {
+                                const columnIndex = sheetData[rowIndex].findIndex(cell => cell.column === column);
+                                if (columnIndex !== -1) {
+                                    sheetData[rowIndex][columnIndex].value = imageUrl;
+                                    syncSheetDataToAllSheetData();
+                                }
+                            }
+                            img.src = imageUrl.replace(/#/g, '%23') + '?t=' + new Date().getTime();
+                            updateCollectData(selectedSheetName, row, column, imageUrl);
+                            saveData();
+                            // renderSheetTable();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error uploading image:', error);
+                        alert('Failed to upload image.');
+                    });
+            } else {
+                alert("图片没有检查到，请联系卢健此处可能有bug")
+            }
+        };
+
+// 添加input和button到页面
+        document.body.appendChild(inputFile);
+        document.body.appendChild(uploadButton);
 
         // 创建按钮容器
         const buttonContainer = document.createElement('div');

@@ -1,0 +1,196 @@
+.header-container {
+    position: relative;
+    height: 60px;
+    display: flex;
+    justify-content: center; /* 让标题居中 */
+    align-items: center; /* 垂直居中 */
+}
+
+.title {
+    font-weight: bold;
+    color: #2ba245;
+    font-size: 25px;
+    text-align: center; /* 文字在自身容器内居中 */
+}
+
+.BackBtn {
+    position: absolute; /* 绝对定位 */
+    top: 0px; /* 距离顶部10px */
+    left: 10px; /* 距离左侧10px */
+    padding: 8px 16px;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background-color: #FFDAB9;
+    color: #000000;
+    font-size: 16px;
+}
+
+.divider {
+    position: absolute;
+    left: 0;
+    bottom: 70px;
+    width: 100%;
+    height: 1px;
+    background-color: #2ba245;
+    z-index: 500;
+}
+
+.btn-container {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.btn {
+    width: 60px;
+    height: 60px;
+    background-color: #2ba245;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) {
+    .btn {
+        padding-left: 19.5px;
+    }
+}
+
+
+/*  DQE问题点页面*/
+/* DQE问题点页面 */
+.search-container {
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 0 auto;
+
+}
+
+.search-form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 一行四列 */
+    gap: 10px;
+    align-items: start;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.input-group label {
+    flex: 0 0 65px; /* 标签宽度固定 */
+    font-size: 8px; /* 设置标签字体大小 */
+    color: #333;
+}
+
+.date-range {
+    grid-column: span 2; /* 占据两个搜索框的位置 */
+    display: flex; /* 让日期输入框并排显示 */
+    align-items: center;
+}
+
+.date-range label {
+    font-size: 8px; /* 设置日期范围标签的字体大小 */
+}
+
+.date-range input {
+    flex: 1; /* 让两个日期输入框均匀分布 */
+    min-width: 0; /* 避免宽度自动扩展造成换行 */
+}
+
+.input-group input,
+.input-group select {
+    padding: 6px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-form button {
+    grid-column: span 4; /* 搜索按钮占据整行 */
+    padding: 8px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-form button:hover {
+    background-color: #0056b3;
+}
+
+/* 响应式调整 */
+@media (max-width: 900px) {
+    .search-form {
+        grid-template-columns: repeat(2, 1fr); /* 在较小屏幕上每行显示两个搜索框 */
+    }
+
+    .search-form button {
+        grid-column: span 2; /* 调整按钮宽度 */
+    }
+}
+
+@media (max-width: 600px) {
+    .search-form {
+        grid-template-columns: 1fr; /* 在小屏幕上每行显示一个搜索框 */
+    }
+
+    .search-form button {
+        grid-column: span 1; /* 调整按钮宽度 */
+    }
+}
+
+/*问题点表格容器*/
+.problemtable_container {
+    height: 500px;
+    overflow-y: auto;
+    border: 1px solid #ccc; /* 可选的边框样式 */
+}
+
+/* 手机端兼容样式 */
+@media only screen and (max-width: 768px) {
+    .btn {
+        width: 50px;            /* 根据手机屏幕大小调整按钮尺寸 */
+        height: 50px;
+        font-size: 20px;        /* 调整字体大小 */
+        padding: 0;             /* 清除可能影响布局的内边距 */
+        margin: 0;              /* 清除可能影响布局的外边距 */
+        display: flex;          /* 使用 flex 布局 */
+        align-items: center;    /* 垂直居中 */
+        justify-content: center;/* 水平居中 */
+    }
+
+    .divider {
+        position: absolute;
+        left: 0;
+        bottom: 60px;
+        width: 100%;
+        height: 1px;
+        background-color: #2ba245;
+        z-index: 500;
+    }
+
+}
+
+

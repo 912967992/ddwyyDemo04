@@ -416,6 +416,11 @@
     margin-bottom: 20px; /* 增加标题下边距 */
 }
 
+/* 为按钮组添加一个新的样式 */
+.button-group {
+    display: flex;
+    gap: 20px; /* 按钮之间的间距 */
+}
 /* 包含按钮的容器 */
 .edith2-container {
     display: flex; /* 使用flexbox进行布局 */
@@ -425,6 +430,7 @@
     margin-top: 20px; /* 按钮容器的顶部外边距 */
 }
 /* 跳转按钮样式 */
+#replaceButton,
 #jumpButton {
     padding: 8px 16px; /* 增加内边距 */
     border: none; /* 去掉边框 */
@@ -436,7 +442,9 @@
     text-align: center; /* 文本居中 */
     /*line-height: 1.5; !* 行高 *!*/
     white-space: nowrap; /* 防止文本换行 */
+
 }
+
 
 
 .inputModal-content label,

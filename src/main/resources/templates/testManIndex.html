@@ -494,14 +494,28 @@
                                 alert(filepaths[0]);
                             }else if(filepaths[0] === newFileName){
                                 // window.location.href = '/loginExcelShow?filePath=' + encodeURIComponent(filepaths[0]);
-                                sessionStorage.setItem("model",model);
-                                sessionStorage.setItem("coding",coding);
-                                sessionStorage.setItem("sample_name",sample_name);
-                                sessionStorage.setItem("tester",username);
+                                // sessionStorage.setItem("model",model);
+                                // sessionStorage.setItem("coding",coding);
+                                // sessionStorage.setItem("sample_name",sample_name);
+                                // sessionStorage.setItem("tester",username);
 
+                                localStorage.removeItem(`DQE_`);
+                                localStorage.removeItem(`Developer_`);
+                                localStorage.removeItem(`supplier_`);
 
-                                window.location.href = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
+                                localStorage.setItem(`model_` ,model);
+                                localStorage.setItem(`coding_` ,coding);
+                                localStorage.setItem(`sample_name_` ,sample_name);
+                                localStorage.setItem(`tester_` ,username);
 
+                                // window.location.href = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
+                                let redirectUrl = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
+                                if (redirectUrl.indexOf('?') !== -1) {
+                                    redirectUrl += '&dd_orientation=landscape';
+                                } else {
+                                    redirectUrl += '?dd_orientation=landscape';
+                                }
+                                window.location.href = redirectUrl;
                             }else{
                                 addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
                             }
@@ -534,18 +548,48 @@
         var originalFileLink = document.createElement('a');
         originalFileLink.href = 'javascript:void(0);';
         originalFileLink.onclick = function() {
-            sessionStorage.setItem("model",model);
-            sessionStorage.setItem("coding",coding);
-            sessionStorage.setItem("sample_name",sample_name);
-            sessionStorage.setItem("tester",username);
+            // sessionStorage.setItem("model",model);
+            // sessionStorage.setItem("coding",coding);
+            // sessionStorage.setItem("sample_name",sample_name);
+            // sessionStorage.setItem("tester",username);
+            localStorage.removeItem(`DQE_`);
+            localStorage.removeItem(`Developer_`);
+            localStorage.removeItem(`supplier_`);
+
+            localStorage.setItem(`model_` ,model);
+            localStorage.setItem(`coding_` ,coding);
+            localStorage.setItem(`sample_name_` ,sample_name);
+            localStorage.setItem(`tester_` ,username);
 
 
-            window.location.href = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath) + '&model=' + encodeURIComponent(model)
-                + '&coding=' + encodeURIComponent(coding)   + '&category=' + encodeURIComponent(category)  + '&version=' + encodeURIComponent(version)
-                + '&sample_name=' + encodeURIComponent(sample_name) + '&planfinish_time=' + encodeURIComponent(planfinish_time) +'&username=' +encodeURIComponent(username)
-                +'&sample_frequencyStr=' +encodeURIComponent(sample_frequencyStr) +'&sample_quantityStr=' +encodeURIComponent(sample_quantityStr)
-                +'&big_species=' +encodeURIComponent(big_species) +'&small_species=' +encodeURIComponent(small_species)+'&high_frequency=' +encodeURIComponent(high_frequency)
-                +'&questStats=' +encodeURIComponent(questStats);
+            // window.location.href = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath) + '&model=' + encodeURIComponent(model)
+            //     + '&coding=' + encodeURIComponent(coding)   + '&category=' + encodeURIComponent(category)  + '&version=' + encodeURIComponent(version)
+            //     + '&sample_name=' + encodeURIComponent(sample_name) + '&planfinish_time=' + encodeURIComponent(planfinish_time) +'&username=' +encodeURIComponent(username)
+            //     +'&sample_frequencyStr=' +encodeURIComponent(sample_frequencyStr) +'&sample_quantityStr=' +encodeURIComponent(sample_quantityStr)
+            //     +'&big_species=' +encodeURIComponent(big_species) +'&small_species=' +encodeURIComponent(small_species)+'&high_frequency=' +encodeURIComponent(high_frequency)
+            //     +'&questStats=' +encodeURIComponent(questStats);
+            let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
+                + '&model=' + encodeURIComponent(model)
+                + '&coding=' + encodeURIComponent(coding)
+                + '&category=' + encodeURIComponent(category)
+                + '&version=' + encodeURIComponent(version)
+                + '&sample_name=' + encodeURIComponent(sample_name)
+                + '&planfinish_time=' + encodeURIComponent(planfinish_time)
+                + '&username=' + encodeURIComponent(username)
+                + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
+                + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
+                + '&big_species=' + encodeURIComponent(big_species)
+                + '&small_species=' + encodeURIComponent(small_species)
+                + '&high_frequency=' + encodeURIComponent(high_frequency)
+                + '&questStats=' + encodeURIComponent(questStats);
+
+            if (redirectUrl.indexOf('?') !== -1) {
+                redirectUrl += '&dd_orientation=landscape';
+            } else {
+                redirectUrl += '?dd_orientation=landscape';
+            }
+
+            window.location.href = redirectUrl;
         };
         originalFileLink.textContent = selectedFilePath;
         originalFileLink.style.fontWeight = 'bold'; // 加粗
@@ -557,18 +601,50 @@
             var fileLink = document.createElement('a');
             fileLink.href = 'javascript:void(0);';
             fileLink.onclick = function() {
-                sessionStorage.setItem("model",model);
-                sessionStorage.setItem("coding",coding);
-                sessionStorage.setItem("sample_name",sample_name);
-                sessionStorage.setItem("tester",username);
+                // sessionStorage.setItem("model",model);
+                // sessionStorage.setItem("coding",coding);
+                // sessionStorage.setItem("sample_name",sample_name);
+                // sessionStorage.setItem("tester",username);
+                localStorage.removeItem(`DQE_`);
+                localStorage.removeItem(`Developer_`);
+                localStorage.removeItem(`supplier_`);
+
+                localStorage.setItem(`model_` ,model);
+                localStorage.setItem(`coding_` ,coding);
+                localStorage.setItem(`sample_name_` ,sample_name);
+                localStorage.setItem(`tester_` ,username);
 
 
-                window.location.href = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath) + '&model=' + encodeURIComponent(model)
-                    + '&coding=' + encodeURIComponent(coding)  + '&category=' + encodeURIComponent(category)  + '&version=' + encodeURIComponent(version)
-                    + '&sample_name=' + encodeURIComponent(sample_name) + '&planfinish_time=' + encodeURIComponent(planfinish_time) +'&username=' +encodeURIComponent(username)
-                    +'&sample_frequencyStr=' +encodeURIComponent(sample_frequencyStr) +'&sample_quantityStr=' +encodeURIComponent(sample_quantityStr)
-                    +'&big_species=' +encodeURIComponent(big_species) +'&small_species=' +encodeURIComponent(small_species)+'&high_frequency=' +encodeURIComponent(high_frequency)
-                    +'&questStats=' +encodeURIComponent(questStats);
+                // window.location.href = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath) + '&model=' + encodeURIComponent(model)
+                //     + '&coding=' + encodeURIComponent(coding)  + '&category=' + encodeURIComponent(category)  + '&version=' + encodeURIComponent(version)
+                //     + '&sample_name=' + encodeURIComponent(sample_name) + '&planfinish_time=' + encodeURIComponent(planfinish_time) +'&username=' +encodeURIComponent(username)
+                //     +'&sample_frequencyStr=' +encodeURIComponent(sample_frequencyStr) +'&sample_quantityStr=' +encodeURIComponent(sample_quantityStr)
+                //     +'&big_species=' +encodeURIComponent(big_species) +'&small_species=' +encodeURIComponent(small_species)+'&high_frequency=' +encodeURIComponent(high_frequency)
+                //     +'&questStats=' +encodeURIComponent(questStats);
+                let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
+                    + '&model=' + encodeURIComponent(model)
+                    + '&coding=' + encodeURIComponent(coding)
+                    + '&category=' + encodeURIComponent(category)
+                    + '&version=' + encodeURIComponent(version)
+                    + '&sample_name=' + encodeURIComponent(sample_name)
+                    + '&planfinish_time=' + encodeURIComponent(planfinish_time)
+                    + '&username=' + encodeURIComponent(username)
+                    + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
+                    + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
+                    + '&big_species=' + encodeURIComponent(big_species)
+                    + '&small_species=' + encodeURIComponent(small_species)
+                    + '&high_frequency=' + encodeURIComponent(high_frequency)
+                    + '&questStats=' + encodeURIComponent(questStats);
+
+// Check if the URL already contains a query string (i.e., '?')
+                if (redirectUrl.indexOf('?') !== -1) {
+                    redirectUrl += '&dd_orientation=landscape';
+                } else {
+                    redirectUrl += '?dd_orientation=landscape';
+                }
+
+// Redirect the user to the constructed URL
+                window.location.href = redirectUrl;
             };
             fileLink.textContent = selectedFilePath;
             existModalContent.appendChild(fileLink);
@@ -587,7 +663,12 @@
                         <span class="close">&times;</span>
                         <div class="edith2-container">
                             <h2>请输入产品信息</h2>
-                            <button type="button" id="jumpButton">进入<br>报告</button>
+                            <div class="button-group">
+                                 <!-- 隐藏的文件输入框 -->
+                                <input type="file" id="fileInput" accept=".xlsx" style="display:none;" />
+                                <button type="button" id="replaceButton">替换<br>报告</button>
+                                <button type="button" id="jumpButton">进入<br>报告</button>
+                            </div>
                         </div>
                         <form id="fileEditForm">
                             <label for="edit_model">大编码:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -675,6 +756,9 @@
                                 <option value="张锐">张锐</option>
                                 <option value="阮晓晴">阮晓晴</option>
                                 <option value="卢绮敏">卢绮敏</option>
+                                <option value="蓝明城">蓝明城</option>
+                                <option value="廖建伟">廖建伟</option>
+                                <option value="蔡义会">蔡义会</option>
                             </select>
                             <button type="submit">保存信息</button>
                         </form>
@@ -730,6 +814,89 @@
             //保存之后会更新数据库，此时需要重新从后端获取到新的数据才准，所以需要再走一遍获取数据的方法
             // window.location.href = '/testManIndex';
             performSearch();
+        };
+
+
+        // 替换报告按钮
+        document.querySelector('#replaceButton').onclick = function() {
+            // 获取隐藏的文件输入框
+            const fileInput = document.querySelector('#fileInput');
+
+            // 触发文件选择对话框
+            fileInput.click();
+
+            // 当用户选择文件时触发
+            fileInput.onchange = function() {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert("请选择一个文件进行替换！");
+                    return;
+                }
+
+                // 验证文件类型是否为 .xlsx
+                const fileType = file.name.split('.').pop().toLowerCase();
+                if (fileType !== 'xlsx') {
+                    alert("请上传一个 .xlsx 格式的文件！");
+                    return;
+                }
+
+                const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2); // 将文件大小转换为MB并保留两位小数
+                const estimatedTime = (fileSizeInMB / 6).toFixed(1); // 计算预计时间并保留一位小数
+                alert(`您选择的文件大小为 ${fileSizeInMB} MB，正在上传中，预计需要 ${estimatedTime} min，请稍等结果框弹出再操作本文件`);
+
+                var model = $('#edit_model').val();
+                var coding = $('#edit_coding').val();
+                var category = $('#edit_category').val();
+                var version = $('#edit_version').val();
+                var big_species = $('#edit_big_species').val();
+                var small_species = $('#edit_small_species').val();
+                var high_frequency = $('#edit_high_frequency').val();
+                var questStats = $('#edit_questStats').val();
+                var sample_frequency = $('#edit_sample_frequency').val();
+
+                $.ajax({
+                    url: '/testManIndex/getjumpFilepath',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        model: model,
+                        coding: coding,
+                        category: category,
+                        version: version,
+                        big_species: big_species,
+                        small_species: small_species,
+                        high_frequency: high_frequency,
+                        questStats: questStats,
+                        sample_frequency: sample_frequency
+                    }),
+                    success: function(jumpfilepath){
+                        // 使用获取到的文件路径替换服务器上的文件
+                        var formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('filepath', jumpfilepath);
+
+                        $.ajax({
+                            url: '/testManIndex/replaceFilepath', // 你需要在后端创建处理这个路径替换的API
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: async function (response) {
+                                await clearStorage(response)
+                                // 这里处理后端返回的消息
+                                alert(response.message); // 弹出服务器返回的消息（例如 "文件替换成功"）
+                            },
+                            error: function(xhr, status, error){
+                                alert("文件替换失败，请稍后再试！");
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error){
+                        alert("替换文件失败,获取不到文件路径!");
+                    },
+                });
+
+            };
         };
 
 
@@ -817,13 +984,20 @@
                             success: function(response){
                                 if (response.status === 'success') {
                                     // 跳转之前把DQE和恶工程师信息存到前端丢过去，方便后边自动化填写
-                                    sessionStorage.setItem("DQE",sample_DQE);
-                                    sessionStorage.setItem("Developer",sample_Developer);
-                                    sessionStorage.setItem("model",model);
-                                    sessionStorage.setItem("coding",coding);
-                                    sessionStorage.setItem("sample_name",sample_name);
-                                    sessionStorage.setItem("supplier",supplier);
-                                    sessionStorage.setItem("tester",tester);
+                                    // sessionStorage.setItem("DQE",sample_DQE);
+                                    // sessionStorage.setItem("Developer",sample_Developer);
+                                    // sessionStorage.setItem("model",model);
+                                    // sessionStorage.setItem("coding",coding);
+                                    // sessionStorage.setItem("sample_name",sample_name);
+                                    // sessionStorage.setItem("supplier",supplier);
+                                    // sessionStorage.setItem("tester",tester);
+                                    localStorage.setItem(`DQE_` ,sample_DQE);
+                                    localStorage.setItem(`Developer_` ,sample_Developer);
+                                    localStorage.setItem(`model_` ,model);
+                                    localStorage.setItem(`coding_` ,coding);
+                                    localStorage.setItem(`sample_name_` ,sample_name);
+                                    localStorage.setItem(`supplier_` ,supplier);
+                                    localStorage.setItem(`tester_` ,tester);
 
 
                                     var redirectUrl = response.redirectUrl;

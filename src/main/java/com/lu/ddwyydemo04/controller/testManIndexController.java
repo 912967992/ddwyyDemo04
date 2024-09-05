@@ -4,12 +4,15 @@ import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.*;
 import com.dingtalk.api.response.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.FileData;
 
 import com.lu.ddwyydemo04.pojo.Samples;
+import com.lu.ddwyydemo04.pojo.TestIssues;
 import com.lu.ddwyydemo04.pojo.TotalData;
 import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
@@ -18,6 +21,8 @@ import com.taobao.api.internal.util.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +39,7 @@ import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class testManIndexController {
@@ -218,6 +224,60 @@ public class testManIndexController {
         return testManIndexService.queryFilepath(sample);
     }
 
+    //替换报告
+    @PostMapping("/testManIndex/replaceFilepath")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> replaceFile(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("filepath") String filePath) {
+        Map<String, Object> response = new HashMap<>();
+        System.out.println("filePath:"+filePath);
+        try {
+            // 创建目标文件对象
+            File targetFile = new File(filePath);
+
+            // 检查目标文件是否存在，如果存在则删除
+            if (targetFile.exists()) {
+                if (!targetFile.delete()) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+                }
+            }
+
+            // 将上传的文件保存到目标路径
+            file.transferTo(targetFile);
+
+            String fileName = targetFile.getName();
+            String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            String jsonFilePath = jsonpath+ File.separator + baseName + ".json";
+            System.out.println("json文件是："+jsonFilePath);
+
+            try {
+                File jsonFile = new File(jsonFilePath);
+                if (jsonFile.exists()) {
+                    if (jsonFile.delete()) {
+                        logger.info("删除json文件了: " + jsonFilePath);
+                    } else {
+                        logger.error("删除json文件失败 " + jsonFilePath);
+                    }
+                } else {
+                    logger.info("json文件没有找到 " + jsonFilePath);
+                }
+            } catch (Exception e) {
+                logger.error("在替换报告进行到删除json文件的时候出错：.", e);
+            }
+
+            // 添加旧文件路径到响应中
+            response.put("oldFilePath", filePath);
+            response.put("message", "文件替换成功");
+            logger.error("成功替换文件:"+filePath);
+            // 返回成功响应
+            return ResponseEntity.ok().body(response);
+
+        } catch (IOException e) {
+            // 捕获IO异常并返回错误响应
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
 
     @PostMapping("/testManIndex/updateSamples")
     @ResponseBody
@@ -368,17 +428,223 @@ public class testManIndexController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = now.format(formatter);
             testManIndexService.finishTestWithoutTime(schedule,model,coding,category,version,formattedDateTime,big_species,small_species,high_frequency,sample_frequency,questStats);
+
+            String problen = getProblemFromJson(filepath,model,coding,category,version,sample_frequency,big_species,small_species,high_frequency,questStats);
+            response.put("message", "文件提交成功，接下来请审核！");
+            logger.info("提交文件："+filepath);
+
         }else if(schedule.equals("1")){
             schedule = "0";
             testManIndexService.finishTest(schedule,model,coding,category,version,big_species,small_species,high_frequency,sample_frequency,questStats);
+            response.put("message", "文件撤回成功，请重新提交！");
+            logger.info("撤回审核成功："+filepath);
         }
 
-
-
         response.put("status", "success");
-        response.put("message", "文件提交成功，接下来请审核！");
-        logger.info("finishTest提交文件/撤回审核成功："+filepath);
+
+
         return response;
+    }
+
+    private String getProblemFromJson(String filepath,String model,String coding,String category,
+                                      String version,Integer sample_frequency,String big_species,
+                                      String small_species,String high_frequency,String questStats){
+        // 获取文件名并去除扩展名
+        File file = new File(filepath);
+        String fileName = file.getName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+        String jsonFilePath = jsonpath + File.separator + baseName + ".json";
+
+        try {
+            // 创建ObjectMapper实例
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // 读取JSON文件为JsonNode对象
+            JsonNode rootNode = objectMapper.readTree(new File(jsonFilePath));
+
+            // 定义目标sheetName
+            String targetSheetName = "测试问题点汇总";
+
+            // 用于存储所有数据行
+            List<List<String>> dataRows = new ArrayList<>();
+
+            // 遍历JSON数组
+            if (rootNode.isArray()) {
+                for (JsonNode outerArrayNode : rootNode) {
+                    if (outerArrayNode.isArray()) {
+                        for (JsonNode innerArrayNode : outerArrayNode) {
+                            // 筛选sheetName为目标名称的数据
+                            List<JsonNode> matchedNodes = getMatchedNodes(innerArrayNode, targetSheetName);
+
+                            // 提取所有数据行
+                            for (JsonNode node : matchedNodes) {
+                                if (node.has("row") && node.has("column")) {
+                                    int rowIndex = node.get("row").asInt();
+                                    int colIndex = node.get("column").asInt();
+
+                                    // 确保rowIndex和colIndex为正数
+                                    if (rowIndex > 0 && colIndex > 0) {
+                                        // 确保行列表存在
+                                        while (dataRows.size() < rowIndex) {
+                                            dataRows.add(new ArrayList<>());
+                                        }
+
+                                        // 获取对应行数据
+                                        List<String> rowData = dataRows.get(rowIndex - 1);
+                                        String value = node.get("value").asText().replace("\n", "").trim();
+
+                                        // 确保列列表存在
+                                        while (rowData.size() < colIndex) {
+                                            rowData.add("");
+                                        }
+
+                                        // 如果列索引有效，设置值
+                                        if (colIndex > 0) {
+                                            rowData.set(colIndex - 1, value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
+
+// 遍历并打印 filteredRows 中的所有数据
+//            for (Map<String, String> rowMap : filteredRows) {
+//                for (Map.Entry<String, String> entry : rowMap.entrySet()) {
+//                    System.out.println(entry.getKey() + ": " + entry.getValue());
+//                }
+//                System.out.println("----------"); // 用于分隔不同的行
+
+            // 获取当前时间
+            LocalDateTime now = LocalDateTime.now();
+            // 定义格式化器，将 LocalDateTime 格式化为 yyyy-MM-dd HH:mm:ss
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            // 格式化当前时间为字符串
+            String created_at = now.format(formatter);
+            // 使用相同的格式化器解析字符串
+            LocalDateTime parsedDateTime = LocalDateTime.parse(created_at, formatter);
+            System.out.println("Parsed LocalDateTime: " + parsedDateTime);
+            //要先获取samples的id主键，然后搜索历史版本id，没有的话就是0，有就加1
+            int sample_id = testManIndexService.querySampleId(filepath);
+            System.out.println("sample_id:"+sample_id);
+            int history_id = testManIndexService.queryHistoryid(sample_id);
+            System.out.println("history_id:"+history_id);
+
+
+            for (Map<String, String> rowMap : filteredRows) {
+                TestIssues testIssues = new TestIssues();
+
+                String full_model = rowMap.get("样品型号");
+                String sample_stage = rowMap.get("样品阶段");
+                String issue_version = rowMap.get("版本");
+                String chip_solution = rowMap.get("芯片方案");
+                String problem_time = rowMap.get("日期"); //此数据是问题点工作表里的只填日期的数据，所以我设置数据库里字段是varchar(8)
+                String tester = rowMap.get("测试人员");
+                String test_platform = rowMap.get("测试平台");
+                String test_device = rowMap.get("测试设备");
+                String other_device = rowMap.get("其他设备");
+                String problem = rowMap.get("问题点");
+                String problem_image_or_video = rowMap.get("问题视频或图片");
+                String reproduction_method = rowMap.get("复现手法");
+                String recovery_method = rowMap.get("恢复方法");
+                String reproduction_probability = rowMap.get("复现概率");
+                String defect_level = rowMap.get("缺陷等级");
+                String current_status = rowMap.get("当前状态");
+                String comparison_with_previous = rowMap.get("对比上一版或竞品");
+                String dqe_and_development_confirm = rowMap.get("DQE&研发确认");
+                String improvement_plan = rowMap.get("改善对策（研发回复）");
+                String responsible_person = rowMap.get("分析责任人");
+                String post_improvement_risk = rowMap.get("改善后风险");
+                String next_version_regression_test = rowMap.get("下一版回归测试");
+                String remark = rowMap.get("备注");
+
+                testIssues.setFull_model(full_model);
+                testIssues.setSample_stage(sample_stage);
+                testIssues.setVersion(version);//这里的问题点版本不能用测试人员写的版本，要强制用测试的实际版本,用户用的是上一版的问题点，验证之后也必须改为本版本才对，不然我这里会产生上一版的问题点多出来
+                testIssues.setChip_solution(chip_solution);
+                testIssues.setProblem_time(problem_time);
+                testIssues.setTester(tester);
+                testIssues.setTest_platform(test_platform);
+                testIssues.setTest_device(test_device);
+                testIssues.setOther_device(other_device);
+                testIssues.setProblem(problem);
+                testIssues.setProblem_image_or_video(problem_image_or_video);
+                testIssues.setReproduction_method(reproduction_method);
+                testIssues.setRecovery_method(recovery_method);
+                testIssues.setReproduction_probability(reproduction_probability);
+                testIssues.setDefect_level(defect_level);
+                testIssues.setCurrent_status(current_status);
+                testIssues.setComparison_with_previous(comparison_with_previous);
+                testIssues.setDqe_and_development_confirm(dqe_and_development_confirm);
+                testIssues.setImprovement_plan(improvement_plan);
+                testIssues.setResponsible_person(responsible_person);
+                testIssues.setPost_improvement_risk(post_improvement_risk);
+                testIssues.setNext_version_regression_test(next_version_regression_test);
+                testIssues.setRemark(remark);
+
+                testIssues.setCreated_at(parsedDateTime);
+                testIssues.setSample_id(sample_id);
+                testIssues.setHistory_id(history_id);
+
+                int insertProblem = testManIndexService.insertTestIssues(testIssues);
+
+                if(insertProblem == 1){
+                    logger.info("问题点上传成功："+filepath);
+                }
+
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "getProblem";
+    }
+
+    private static List<JsonNode> getMatchedNodes(JsonNode node, String targetSheetName) {
+        List<JsonNode> matchedNodes = new ArrayList<>();
+        if (node.isArray()) {
+            for (JsonNode item : node) {
+                // 检查是否匹配目标sheetName
+                if (item.has("sheetName") && targetSheetName.equals(item.get("sheetName").asText().trim())) {
+                    matchedNodes.add(item);
+                }
+            }
+        }
+        return matchedNodes;
+    }
+
+    private List<Map<String, String>> filterAndPrintRows(List<List<String>> dataRows) {
+        // 获取第一行作为列名
+        List<String> columnNames = dataRows.get(0);
+
+        // 用于存储过滤后的数据行
+        List<Map<String, String>> filteredRows = new ArrayList<>();
+
+        // 从第二行开始处理数据
+        for (int i = 1; i < dataRows.size(); i++) {
+            List<String> row = dataRows.get(i);
+
+            // 检查第十列是否为空（索引为9）
+            if (row.size() >= 10 && !row.get(9).trim().isEmpty()) {
+                // 使用一个Map来存储列名和值的对应关系
+                Map<String, String> rowMap = new HashMap<>();
+
+                for (int j = 0; j < row.size() && j < columnNames.size(); j++) {
+                    // 将列名和值放入Map中
+                    rowMap.put(columnNames.get(j), row.get(j));
+                }
+
+                // 将这个Map添加到过滤后的数据行列表中
+                filteredRows.add(rowMap);
+            }
+        }
+
+        return filteredRows;
     }
 
 

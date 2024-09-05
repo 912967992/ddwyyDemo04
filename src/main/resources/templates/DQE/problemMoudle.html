@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQE问题点模块</title>
+    <!-- 引入字体图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- 引入外部CSS文件 -->
+    <link rel="stylesheet" href="/css/commonDQEMoudle.css">
+
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
+
+
+</head>
+<body>
+
+
+<div class="header-container">
+    <div class="title">问题点模块</div>
+    <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+</div>
+
+<!-- 搜索框区域 -->
+<div class="search-container">
+    <form id="searchForm" class="search-form">
+        <!-- 问题点id -->
+        <div class="input-group">
+            <label for="test_issues_id">问题点ID:</label>
+            <input type="text" id="test_issues_id" placeholder="例如CM111 111">
+        </div>
+
+        <!-- 大小编码 -->
+        <div class="input-group">
+            <label for="fullModelSearch">大小编码:</label>
+            <input type="text" id="fullModelSearch" placeholder="大小编码">
+        </div>
+
+        <!-- 样品阶段 -->
+        <div class="input-group">
+            <label for="sampleStageSearch">样品阶段:</label>
+            <select id="sampleStageSearch">
+                <option value=""></option>
+                <option value="大货样">大货样</option>
+                <option value="功能样">功能样</option>
+                <option value="竞品">竞品</option>
+                <option value="预研">预研</option>
+            </select>
+        </div>
+
+        <!-- 版本 -->
+        <div class="input-group">
+            <label for="versionSearch">版本:</label>
+            <input type="text" id="versionSearch" placeholder="版本">
+        </div>
+
+        <!-- 芯片方案 -->
+        <div class="input-group">
+            <label for="chipSolutionSearch">芯片方案:</label>
+            <input type="text" id="chipSolutionSearch" placeholder="芯片方案">
+        </div>
+
+
+        <!-- 测试人员 -->
+        <div class="input-group">
+            <label for="testerSearch">测试人员:</label>
+            <input type="text" id="testerSearch" placeholder="测试人员">
+        </div>
+
+        <!-- 测试平台 -->
+        <div class="input-group">
+            <label for="testPlatformSearch">测试平台:</label>
+            <input type="text" id="testPlatformSearch" placeholder="测试平台">
+        </div>
+
+        <!-- 测试设备 -->
+        <div class="input-group">
+            <label for="testDeviceSearch">测试设备:</label>
+            <input type="text" id="testDeviceSearch" placeholder="测试设备">
+        </div>
+
+        <!-- 其他设备 -->
+        <div class="input-group">
+            <label for="otherDeviceSearch">其他设备:</label>
+            <input type="text" id="otherDeviceSearch" placeholder="其他设备">
+        </div>
+
+        <!-- 缺陷等级 (下拉菜单) -->
+        <div class="input-group">
+            <label for="defectLevelSearch">缺陷等级:</label>
+            <select id="defectLevelSearch">
+                <option value="">所有等级</option>
+                <option value="严重">严重</option>
+                <option value="中等">中等</option>
+                <option value="轻微">轻微</option>
+            </select>
+        </div>
+
+        <!-- 当前状态 -->
+        <div class="input-group">
+            <label for="currentStatusSearch">当前状态:</label>
+            <input type="text" id="currentStatusSearch" placeholder="当前状态">
+        </div>
+
+        <!-- 分析责任人 -->
+        <div class="input-group">
+            <label for="responsiblePersonSearch">分析责任人:</label>
+            <input type="text" id="responsiblePersonSearch" placeholder="分析责任人">
+        </div>
+
+        <!-- 备注 -->
+        <div class="input-group">
+            <label for="remarkSearch">备注:</label>
+            <input type="text" id="remarkSearch" placeholder="备注">
+        </div>
+
+
+        <!-- 历史版本 ID -->
+        <div class="input-group">
+            <label for="historyIdSearch">历史版本 ID:</label>
+            <input type="number" id="historyIdSearch" placeholder="历史版本 ID">
+        </div>
+
+        <!-- 样品 ID -->
+        <div class="input-group">
+            <label for="sampleIdSearch">样品 ID:</label>
+            <input type="number" id="sampleIdSearch" placeholder="样品 ID">
+        </div>
+
+        <!-- 问题点 -->
+        <div class="input-group">
+            <label for="problemSearch">问题点:</label>
+            <input type="text" id="problemSearch" placeholder="问题点">
+        </div>
+
+        <!-- 报告日期 (时间范围选择) -->
+        <div class="input-group date-range">
+            <label>报告的问题点日期:</label>
+            <input type="date" id="problemTimeStart" placeholder="开始日期">
+            <input type="date" id="problemTimeEnd" placeholder="结束日期">
+        </div>
+
+
+        <!-- 创建时间 (时间范围选择) -->
+        <div class="input-group date-range">
+            <label>测试人员提交时间:</label>
+            <input type="date" id="createdAtStart" placeholder="开始日期">
+            <input type="date" id="createdAtEnd" placeholder="结束日期">
+        </div>
+
+
+        <!-- 搜索按钮 -->
+        <button type="submit">搜索</button>
+
+
+    </form>
+</div>
+
+<!-- 表格容器 -->
+<div class="problemtable_container">
+    <!-- 这里是表格的占位符 -->
+    <!-- 实际表格内容可以通过 JavaScript 动态生成 -->
+</div>
+
+
+
+
+
+
+
+
+
+
+<!-- 下方固定按钮 -->
+<div class="btn-container">
+    <hr class="divider"> <!-- 按钮上方的横线 -->
+    <!-- 主页按钮 -->
+    <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
+    <!-- 搜索资源库按钮 -->
+    <button class="btn" id="cloudBtn"><i class="fas fa-cloud"></i></button>
+    <!-- 个人界面按钮 -->
+    <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
+</div>
+
+<style>
+
+
+</style>
+
+
+
+</body>
+</html>

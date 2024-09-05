@@ -3,6 +3,7 @@ package com.lu.ddwyydemo04.Service;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
 import com.lu.ddwyydemo04.pojo.Samples;
+import com.lu.ddwyydemo04.pojo.TestIssues;
 import com.lu.ddwyydemo04.pojo.TotalData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,20 @@ public class TestManIndexService {
 
     public int deleteFilepath(String filepath){
         return testManDao.deleteFilepath(filepath);
+    }
+
+    //提取问题点的相关服务层
+    //通过大小编码，版本，送样次数，是否高频，来返回sample_id
+    public int querySampleId(String filepath){
+        return testManDao.querySampleId(filepath);
+    }
+
+    public int insertTestIssues(TestIssues testIssues){
+        return testManDao.insertTestIssues(testIssues);
+    }
+
+    public int queryHistoryid(int sample_id){
+        return testManDao.queryHistoryid(sample_id);
     }
 
 

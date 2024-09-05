@@ -236,4 +236,81 @@
         DELETE FROM samples WHERE filepath = #{filepath}
     </delete>
 
+
+
+<!-- 下边是提取问题点的相关模块-->
+    <select id="querySampleId" resultType="int">
+        SELECT sample_id FROM samples
+        WHERE
+            filepath = #{filepath}
+    </select>
+
+    <insert id="insertTestIssues" parameterType="map">
+        INSERT INTO test_issues (
+            full_model,
+            sample_stage,
+            version,
+            chip_solution,
+            problem_time,
+            tester,
+            test_platform,
+            test_device,
+            other_device,
+            problem,
+            problem_image_or_video,
+            reproduction_method,
+            recovery_method,
+            reproduction_probability,
+            defect_level,
+            current_status,
+            comparison_with_previous,
+            dqe_and_development_confirm,
+            improvement_plan,
+            responsible_person,
+            post_improvement_risk,
+            next_version_regression_test,
+            remark,
+            created_at,
+            sample_id,
+            history_id
+        ) VALUES (
+                     #{full_model},
+                     #{sample_stage},
+                     #{version},
+                     #{chip_solution},
+                     #{problem_time},
+                     #{tester},
+                     #{test_platform},
+                     #{test_device},
+                     #{other_device},
+                     #{problem},
+                     #{problem_image_or_video},
+                     #{reproduction_method},
+                     #{recovery_method},
+                     #{reproduction_probability},
+                     #{defect_level},
+                     #{current_status},
+                     #{comparison_with_previous},
+                     #{dqe_and_development_confirm},
+                     #{improvement_plan},
+                     #{responsible_person},
+                     #{post_improvement_risk},
+                     #{next_version_regression_test},
+                     #{remark},
+                     #{created_at},
+                     #{sample_id},
+                     #{history_id}
+                 )
+    </insert>
+
+
+    <select id="queryHistoryid" resultType="int">
+        SELECT COALESCE(MAX(history_id), 0) + 1
+        FROM test_issues
+        WHERE sample_id = #{sample_id}
+    </select>
+
+
+
+
 </mapper>
