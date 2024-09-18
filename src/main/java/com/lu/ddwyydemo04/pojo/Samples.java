@@ -21,7 +21,7 @@ public class Samples {
     private LocalDateTime create_time;
     private LocalDateTime finish_time;
     private String result_judge;
-    private Integer signed;
+//    private Integer signed;
     private String test_Overseas;
     private String sample_schedule;
     private String sample_DQE;
@@ -161,13 +161,13 @@ public class Samples {
         this.result_judge = result_judge;
     }
 
-    public Integer getSigned() {
-        return signed;
-    }
+//    public Integer getSigned() {
+//        return signed;
+//    }
 
-    public void setSigned(Integer signed) {
-        this.signed = signed;
-    }
+//    public void setSigned(Integer signed) {
+//        this.signed = signed;
+//    }
 
     public String getTest_Overseas() {
         return test_Overseas;
@@ -342,7 +342,7 @@ public class Samples {
                 ", create_time=" + create_time +
                 ", finish_time=" + finish_time +
                 ", result_judge='" + result_judge + '\'' +
-                ", signed=" + signed +
+//                ", signed=" + signed +
                 ", test_Overseas='" + test_Overseas + '\'' +
                 ", sample_schedule='" + sample_schedule + '\'' +
                 ", sample_DQE='" + sample_DQE + '\'' +

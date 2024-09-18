@@ -10,12 +10,6 @@ public class TestIssues {
     // 主键，自增字段
     private Long id;
 
-    // 产品大编码
-    private String sample_model;
-
-    // 产品小编码
-    private String sample_coding;
-
     // 完整编码(大小编码)
     private String full_model;
 
@@ -93,7 +87,16 @@ public class TestIssues {
     // 关联的样品ID
     private int sample_id;
 
-    // Getters 和 Setters 省略，可以通过 IDE 自动生成
+    private String final_status;
+    private String modifier;
+    private LocalDateTime modified_time;
+
+    private String dqe_status;
+    private String dqe_comments;
+    private LocalDateTime dqe_reviewed_at;
+    private String rd_status;
+    private String rd_comments;
+    private LocalDateTime rd_reviewed_at;
 
     public Long getId() {
         return id;
@@ -101,22 +104,6 @@ public class TestIssues {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getSample_model() {
-        return sample_model;
-    }
-
-    public void setSample_model(String sample_model) {
-        this.sample_model = sample_model;
-    }
-
-    public String getSample_coding() {
-        return sample_coding;
-    }
-
-    public void setSample_coding(String sample_coding) {
-        this.sample_coding = sample_coding;
     }
 
     public String getFull_model() {
@@ -325,5 +312,119 @@ public class TestIssues {
 
     public void setSample_id(int sample_id) {
         this.sample_id = sample_id;
+    }
+
+    public String getFinal_status() {
+        return final_status;
+    }
+
+    public void setFinal_status(String final_status) {
+        this.final_status = final_status;
+    }
+
+    public String getModifier() {
+        return modifier;
+    }
+
+    public void setModifier(String modifier) {
+        this.modifier = modifier;
+    }
+
+    public LocalDateTime getModified_time() {
+        return modified_time;
+    }
+
+    public void setModified_time(LocalDateTime modified_time) {
+        this.modified_time = modified_time;
+    }
+
+    public String getDqe_status() {
+        return dqe_status;
+    }
+
+    public void setDqe_status(String dqe_status) {
+        this.dqe_status = dqe_status;
+    }
+
+    public String getDqe_comments() {
+        return dqe_comments;
+    }
+
+    public void setDqe_comments(String dqe_comments) {
+        this.dqe_comments = dqe_comments;
+    }
+
+    public LocalDateTime getDqe_reviewed_at() {
+        return dqe_reviewed_at;
+    }
+
+    public void setDqe_reviewed_at(LocalDateTime dqe_reviewed_at) {
+        this.dqe_reviewed_at = dqe_reviewed_at;
+    }
+
+    public String getRd_status() {
+        return rd_status;
+    }
+
+    public void setRd_status(String rd_status) {
+        this.rd_status = rd_status;
+    }
+
+    public String getRd_comments() {
+        return rd_comments;
+    }
+
+    public void setRd_comments(String rd_comments) {
+        this.rd_comments = rd_comments;
+    }
+
+    public LocalDateTime getRd_reviewed_at() {
+        return rd_reviewed_at;
+    }
+
+    public void setRd_reviewed_at(LocalDateTime rd_reviewed_at) {
+        this.rd_reviewed_at = rd_reviewed_at;
+    }
+
+    @Override
+    public String toString() {
+        return "TestIssues{" +
+                "id=" + id +
+                ", full_model='" + full_model + '\'' +
+                ", sample_stage='" + sample_stage + '\'' +
+                ", version='" + version + '\'' +
+                ", chip_solution='" + chip_solution + '\'' +
+                ", problem_time='" + problem_time + '\'' +
+                ", tester='" + tester + '\'' +
+                ", test_platform='" + test_platform + '\'' +
+                ", test_device='" + test_device + '\'' +
+                ", other_device='" + other_device + '\'' +
+                ", problem='" + problem + '\'' +
+                ", problem_image_or_video='" + problem_image_or_video + '\'' +
+                ", reproduction_method='" + reproduction_method + '\'' +
+                ", recovery_method='" + recovery_method + '\'' +
+                ", reproduction_probability='" + reproduction_probability + '\'' +
+                ", defect_level='" + defect_level + '\'' +
+                ", current_status='" + current_status + '\'' +
+                ", comparison_with_previous='" + comparison_with_previous + '\'' +
+                ", dqe_and_development_confirm='" + dqe_and_development_confirm + '\'' +
+                ", improvement_plan='" + improvement_plan + '\'' +
+                ", responsible_person='" + responsible_person + '\'' +
+                ", post_improvement_risk='" + post_improvement_risk + '\'' +
+                ", next_version_regression_test='" + next_version_regression_test + '\'' +
+                ", remark='" + remark + '\'' +
+                ", created_at=" + created_at +
+                ", history_id=" + history_id +
+                ", sample_id=" + sample_id +
+                ", final_status='" + final_status + '\'' +
+                ", modifier='" + modifier + '\'' +
+                ", modified_time=" + modified_time +
+                ", dqe_status='" + dqe_status + '\'' +
+                ", dqe_comments='" + dqe_comments + '\'' +
+                ", dqe_reviewed_at=" + dqe_reviewed_at +
+                ", rd_status='" + rd_status + '\'' +
+                ", rd_comments='" + rd_comments + '\'' +
+                ", rd_reviewed_at=" + rd_reviewed_at +
+                '}';
     }
 }

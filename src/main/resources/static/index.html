@@ -43,8 +43,9 @@
                 // alert('姓名: ' + response.username + '，职位：' + response.job + '  ，你好！');
                 alert('姓名: ' + response.username + '  ，你好！');
 
-                if (response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅" || response.username === "卢健") {
-                    // if(response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅"){
+                if (response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅"
+                ||response.username === "黄家灿" ||response.username === "荣成彧") {
+                // if(response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅"|| response.username === "卢健"){
                     window.location.href = '/DQEIndex';
                 } else {
                     // 重定向到首页

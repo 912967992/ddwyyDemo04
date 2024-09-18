@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.DQE.DQEDao">
+
+    <select id="searchTestissues" resultType="TestIssues">
+        select * from test_issues
+    </select>
+
+    <select id="selectTestIssues" resultType="TestIssues">
+        SELECT * FROM test_issues
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectTestIssuesFromSampleid" resultType="TestIssues">
+        SELECT * FROM test_issues
+        WHERE sample_id =#{sampleId}
+
+    </select>
+
+
+    <select id="searchSamplesDQE" resultType="Samples">
+        select * from samples
+    </select>
+
+
+
+</mapper>

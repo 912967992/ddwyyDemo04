@@ -1,6 +1,18 @@
 /* 父容器样式 */
 .title-container {
-    text-align: center;
+    /*text-align: center;*/
+
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 让主内容居中 */
+    position: relative; /* 使子元素能够绝对定位 */
+}
+
+#announcement-btn {
+    position: absolute; /* 绝对定位 */
+    left: 0; /* 靠左对齐 */
+    padding: 5px 10px;
+    cursor: pointer;
 }
 
 /* 标题样式 */

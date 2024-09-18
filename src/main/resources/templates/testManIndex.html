@@ -21,8 +21,29 @@
     <meta name="wpk-bid" content="dta_1_3078576183">
 
 <div class="title-container">
+    <button id="announcement-btn">查看公告</button>
     <div class="title">主页</div>
 </div>
+
+
+    <!-- 更新日志面板 -->
+    <div id="log-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>更新日志</h2>
+            <p>2024.09.11<br>
+                ！！！更新问题点汇总工作表，将测试设备改成显示设备。<br>
+                2024.09.07：<br>
+            1.新增主页UI供应商展示；--龙运需求<br>
+                2.解决签名经过保存按钮还不能实现替换的bug。--蓝明城发现<br>
+                3.解决创建报告填单-主控芯片字数太长导致无法保存的bug,现在可以输入65,535个字符。--李智龙发现<br>
+                4.解决产品名称有部分字符导致无法保存的bug，特殊字符会强制转换为"_"。--张锐发现<br>
+                待解决bug：1.xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，下版本解决。--龙运发现
+
+
+            </p>
+        </div>
+    </div>
 
 
 <!-- 数据统计区域 -->
@@ -456,7 +477,10 @@
             var questStats = $('#questStats').val();
 
             // 清理sample_name，替换特殊字符
-            sample_name = sample_name.replace(/[\/\\]/g, "_");
+            // sample_name = sample_name.replace(/[\/\\]/g, "_");
+            // 扩展正则表达式以替换所有非法字符
+            sample_name = sample_name.replace(/[\/\\:*?"<>|\t]/g, "_");
+
 
             var planfinish_time = $('#planfinish_time').val();
 
@@ -797,7 +821,9 @@
 
         document.getElementById('edit_sample_name').addEventListener('input', function(e) {
             // this.value = this.value.replace(/[\\\/]/g, '_');
-            this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
+            // this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
+            // 清理 sample_name，替换所有 Windows 文件名中的非法字符
+            this.value = this.value.replace(/[\/\\:*?"<>|\t]/g, "_");
         });
 
         // 因为手机端需要有“T”才可以在前端展示这个数据，不然会显示空
@@ -1036,7 +1062,8 @@
             event.preventDefault(); // 阻止表单默认提交行为
             // 先获取sample_name的值并清理它
             var edit_sample_name = $('#edit_sample_name').val();
-            edit_sample_name = edit_sample_name.replace(/[\/\\]/g, "_");
+            // edit_sample_name = edit_sample_name.replace(/[\/\\]/g, "_");
+            edit_sample_name = edit_sample_name.replace(/[\/\\:*?"<>|\t]/g, "_");
 
             // 更新sample_name的值
             $('#edit_sample_name').val(edit_sample_name);
@@ -1140,7 +1167,8 @@
                 table += '</tr>';
                 table += '<tr>';
                 table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';
-                table += '<th colspan="4" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
+                table += '<th colspan="2" title="供应商' + product.supplier + ', 供应商' + product.supplier + '">' + '供应商：' + '' + product.supplier +  '</th>';
+                table += '<th colspan="2" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
                 table += '</tr>';
                 table += '</thead>';
                 table += '</table>';
@@ -1406,7 +1434,7 @@
     // 为sample_name输入框添加事件监听器
     document.getElementById('sample_name').addEventListener('input', function(e) {
         // this.value = this.value.replace(/[\\\/]/g, '_');
-        this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
+        this.value = this.value.replace(/[\/\\:*?"<>|\t]/g, "_");
     });
 
     document.getElementById('model').addEventListener('input', function(e) {
@@ -1527,6 +1555,29 @@
 
 
     }
+
+
+    // 获取元素
+    const announcementBtn = document.getElementById('announcement-btn');
+    const logModal = document.getElementById('log-modal');
+    const closeBtn = document.querySelector('.close-btn');
+
+    // 点击按钮显示面板
+    announcementBtn.addEventListener('click', () => {
+        logModal.style.display = 'block';
+    });
+
+    // 点击关闭按钮隐藏面板
+    closeBtn.addEventListener('click', () => {
+        logModal.style.display = 'none';
+    });
+
+    // 点击模态框外部隐藏面板
+    window.addEventListener('click', (event) => {
+        if (event.target == logModal) {
+            logModal.style.display = 'none';
+        }
+    });
 
 
 </script>

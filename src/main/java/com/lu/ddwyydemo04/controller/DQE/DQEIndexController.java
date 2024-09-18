@@ -1,4 +1,4 @@
-package com.lu.ddwyydemo04.controller;
+package com.lu.ddwyydemo04.controller.DQE;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

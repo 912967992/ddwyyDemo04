@@ -80,7 +80,71 @@ public class ExcelShowService {
 
 
     //这是未修改前的，用于点击工作表按钮之后获取该工作表的数据返回的
-    public List<List<Object>> getSheetData(@RequestParam String sheetName,String file_path) {
+//    public List<List<Object>>  getSheetData(@RequestParam String sheetName,String file_path) {
+//        List<List<Object>> sheetData = new ArrayList<>();
+//        try (InputStream is = new FileInputStream(file_path)) {
+//            Workbook workbook = WorkbookFactory.create(is);
+//            Sheet sheet = workbook.getSheet(sheetName);
+//            if (sheet != null) {
+//                // 获取合并区域的列表
+//                List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
+//                Drawing<?> drawing = sheet.createDrawingPatriarch();
+//
+//
+//                int lastRowNum = sheet.getLastRowNum();
+//
+//                int col_width = 0;
+//
+//                for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
+//                    Row row = sheet.getRow(rowNum);
+//                    List<Object> rowData = new ArrayList<>();
+//                    if (row != null) {
+//                        for (int colNum = 0; colNum < row.getLastCellNum(); colNum++) {
+//                            Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+//                            // 检查单元格的颜色
+//                            String colorStr = getColorAsString(cell);
+//                            String color = "";
+//
+//
+//                            // 检查颜色是否为蓝色,蓝色的为测试项
+////                            if ("0070C0".equals(colorStr)) {
+//                            if ("000000".equals(colorStr)) {
+//                                // 检查单元格是否在合并区域内
+//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+//                                color = "black";
+//
+//                                //获取cell的字符宽度
+//                                col_width = getCellWidth(cell,sheet,colNum);
+//
+//                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
+//
+////                            }else if ("7030A0".equals(colorStr) || "FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测试结果
+//                            }else if ("FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测
+//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+//
+//                                color = "red";
+//
+//                                //获取cell的字符宽度
+//                                col_width = getCellWidth(cell,sheet,colNum);
+//                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
+//                            }
+//                        }
+//                    }
+//                    // 即使行数据为空也添加到sheetData中
+//                    if (!rowData.isEmpty()) {
+//                        sheetData.add(rowData);
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            logger.error("读取文件失败", file_path, e);
+//            throw new ExcelOperationException(500, "读取文件失败");
+//        }
+//        return sheetData;
+//    }
+
+    //20240917:限制列数解析最大为100，行数则如果连续10行为空则停止解析往下一个工作表
+    public List<List<Object>> getSheetData(@RequestParam String sheetName, String file_path) {
         List<List<Object>> sheetData = new ArrayList<>();
         try (InputStream is = new FileInputStream(file_path)) {
             Workbook workbook = WorkbookFactory.create(is);
@@ -90,49 +154,76 @@ public class ExcelShowService {
                 List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
                 Drawing<?> drawing = sheet.createDrawingPatriarch();
 
-
-                int lastRowNum = sheet.getLastRowNum();
-
+                // 检查 lastRowNum 是否为 -1，如果是则设为 0
+                int lastRowNum = sheet.getLastRowNum() == -1 ? 0 : sheet.getLastRowNum();
                 int col_width = 0;
+                int maxCols = 100; // 最大列数限制
+
+                int emptyRowCount = 0; // 空行计数器
 
                 for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
                     Row row = sheet.getRow(rowNum);
                     List<Object> rowData = new ArrayList<>();
+
                     if (row != null) {
-                        for (int colNum = 0; colNum < row.getLastCellNum(); colNum++) {
+                        // 如果 row.getLastCellNum() 为 -1，表示没有单元格，设置为 0
+                        int lastCellNum = row.getLastCellNum() == -1 ? 0 : Math.min(row.getLastCellNum(), maxCols);
+
+                        boolean isRowEmpty = true; // 标记当前行是否为空
+
+                        for (int colNum = 0; colNum < lastCellNum; colNum++) {
                             Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                            // 检查单元格的颜色
                             String colorStr = getColorAsString(cell);
                             String color = "";
 
+                            // 如果单元格有内容，标记此行不为空
+                            if (cell.getCellType() != CellType.BLANK) {
+                                isRowEmpty = false;
+                            }
 
-                            // 检查颜色是否为蓝色,蓝色的为测试项
-//                            if ("0070C0".equals(colorStr)) {
+                            // 检查颜色是否为黑色，处理黑色单元格
                             if ("000000".equals(colorStr)) {
-                                // 检查单元格是否在合并区域内
                                 CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
                                 color = "black";
 
-                                //获取cell的字符宽度
-                                col_width = getCellWidth(cell,sheet,colNum);
+                                // 获取cell的字符宽度
+                                col_width = getCellWidth(cell, sheet, colNum);
 
-                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
+                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
 
-//                            }else if ("7030A0".equals(colorStr) || "FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测试结果
-                            }else if ("FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测
+                            } else if ("FF0000".equals(colorStr)) { // 处理红色单元格
                                 CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-
                                 color = "red";
 
-                                //获取cell的字符宽度
-                                col_width = getCellWidth(cell,sheet,colNum);
-                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
+                                col_width = getCellWidth(cell, sheet, colNum);
+                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
                             }
                         }
-                    }
-                    // 即使行数据为空也添加到sheetData中
-                    if (!rowData.isEmpty()) {
-                        sheetData.add(rowData);
+
+                        // 如果整行为空，则增加空行计数
+                        if (isRowEmpty) {
+                            emptyRowCount++;
+                        } else {
+                            emptyRowCount = 0; // 如果当前行不为空，重置空行计数
+                        }
+
+                        // 如果连续 10 行为空，跳出循环
+                        if (emptyRowCount >= 10) {
+                            break;
+                        }
+
+                        // 即使行数据为空也添加到sheetData中
+                        if (!rowData.isEmpty()) {
+                            sheetData.add(rowData);
+                        }
+                    } else {
+                        // 如果行对象本身为空，也计为空行
+                        emptyRowCount++;
+
+                        // 如果连续 10 行为空，跳出循环
+                        if (emptyRowCount >= 10) {
+                            break;
+                        }
                     }
                 }
             }

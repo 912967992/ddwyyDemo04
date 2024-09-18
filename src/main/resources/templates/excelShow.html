@@ -63,7 +63,7 @@
         <div>
             <h3>已选择设备<span class="close">&times;</span></h3>
             <div id="selectedDevices" ></div>
-            <button id="selectAllButton">全选</button>
+            <button id="selectAllButton">全选复制</button>
             <button id="clearSelectionButton">清空选择</button>
         </div>
         <div>
@@ -307,8 +307,9 @@
                 row: row,
                 column: column,
                 value: value
-
             };
+            // 使用 alert 打印 collectData[cellKey] 的值
+            // alert(JSON.stringify(collectData[cellKey], null, 2));
         }
 
         // 如果有 scrollHeight 并且超过默认行高，才添加到 collectData 和 pendingCollectData
@@ -604,181 +605,6 @@
     }
 
 
-    // // 页面加载完成后获取工作表名称
-    // window.onload = function () {
-    //     function getUUID(filepath) {
-    //         return fetch(`/getUUID`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({ filepath: filepath })
-    //         })
-    //             .then(response => response.text())
-    //             .then(data => {
-    //                 return data; // 返回获取到的uuid
-    //             })
-    //             .catch(error => {
-    //                 alert('getUUID失败');
-    //                 return null; // 返回null以便处理错误
-    //             });
-    //     }
-    //     function updateUUID(filepath,uuid) {
-    //         return fetch(`/updateUUID`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({ filepath: filepath,uuid: uuid })
-    //         })
-    //             .then(response => response.text())
-    //             .then(data => {
-    //                 if(data==="1"){
-    //                     console.log("更新UUID成功");
-    //                 }else {
-    //                     console.log("更新UUID失败");
-    //                 }
-    //             })
-    //             .catch(error => {
-    //                 alert("更新UUID出错");
-    //                 return null; // 返回null以便处理错误
-    //             });
-    //     }
-    //
-    //     function loadCollectData() {
-    //         const storageCollectData = `collectData_${filePath}`;
-    //         const storedData = localStorage.getItem(storageCollectData);
-    //         if (storedData) {
-    //             try {
-    //                 collectData = JSON.parse(storedData);
-    //             } catch (error) {
-    //                 console.error('Error parsing stored collectData:', error);
-    //                 collectData = {};
-    //             }
-    //         } else {
-    //             collectData = {};
-    //         }
-    //     }
-    //
-    //     // 获取返回按钮并添加点击事件监听器
-    //     var saveBtn =  document.getElementById('saveBtn');
-    //     document.getElementById('homeBtn').addEventListener('click', onHomeBtnClick);
-    //     // document.getElementById('saveBtn').addEventListener('click', onSaveBtnClick);
-    //
-    //     // 显示加载中提示
-    //     var loadingElement = document.getElementById('startloading');
-    //     loadingElement.style.display = 'block';
-    //
-    //     filePath = getQueryParam('filePath');
-    //
-    //     // 获取 filePath 参数并设置到 <h2> 元素中
-    //     var fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
-    //     // 更新 <h2> 元素的内容为文件名
-    //     var filePathDisplayElement = document.getElementById('filepathDisplay');
-    //     filePathDisplayElement.textContent = `当前文件：${fileName}`;
-    //
-    //     uuidStorage = localStorage.getItem("uuid_");
-    //     storageKey = `sheetData_${filePath}`;
-    //
-    //     // 使用getUUID方法并进行uuidStorage比较
-    //     getUUID(filePath).then(uuidMysql => {
-    //         if (uuidMysql) {
-    //             if (uuidMysql === uuidStorage) {
-    //                 // storageKey = `sheetData_${filePath}`;
-    //                 const cachedData = localStorage.getItem(storageKey);
-    //
-    //                 if (cachedData) {
-    //                     allSheetData = JSON.parse(cachedData);
-    //                     updateSpecialCells(allSheetData);
-    //                     getSheetNames();
-    //                     loadCollectData();
-    //                     loadingElement.style.display = 'none';
-    //                     saveBtn.addEventListener('click', onSaveBtnClick);
-    //                     functionBtnClick();
-    //                     DeviceListBtnClick();
-    //
-    //                     // var currentUrl = window.location.href;
-    //                     // showModalWithMessage(currentUrl);
-    //                 } else {
-    //                     getAllSheetData().then(() => {
-    //                         loadingElement.style.display = 'none';
-    //                         saveBtn.addEventListener('click', onSaveBtnClick);
-    //                         functionBtnClick();
-    //                         DeviceListBtnClick();
-    //                         updateUUID(filePath,uuidStorage);
-    //                     }).catch(error => {
-    //                         console.error('Error loading sheet data:', error);
-    //                         loadingElement.style.display = 'none';
-    //                     });
-    //                 }
-    //
-    //
-    //             } else {
-    //                 getAllSheetData().then(() => {
-    //                     loadingElement.style.display = 'none';
-    //                     saveBtn.addEventListener('click', onSaveBtnClick);
-    //                     functionBtnClick();
-    //                     DeviceListBtnClick();
-    //                     updateUUID(filePath,uuidStorage);
-    //                 }).catch(error => {
-    //                     console.error('Error loading sheet data:', error);
-    //                     loadingElement.style.display = 'none';
-    //
-    //                 });
-    //             }
-    //         }else{
-    //             getAllSheetData().then(() => {
-    //                 loadingElement.style.display = 'none';
-    //                 saveBtn.addEventListener('click', onSaveBtnClick);
-    //                 functionBtnClick();
-    //                 DeviceListBtnClick();
-    //                 updateUUID(filePath,uuidStorage);
-    //             }).catch(error => {
-    //                 console.error('Error loading sheet data:', error);
-    //                 loadingElement.style.display = 'none';
-    //
-    //             });
-    //         }
-    //     });
-    //
-    //
-    //
-    //
-    //
-    //
-    //     //配置jsapi
-    //     var baseUrl = window.location.origin + window.location.pathname;
-    //     // 使用 Fetch API 发送请求
-    //     fetch(`/getJsapiConfig?url=${encodeURIComponent(baseUrl)}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         }
-    //     })
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error(`HTTP error! Status: ${response.status}`);
-    //             }
-    //             return response.json();
-    //         })
-    //         .then(config => {
-    //             dd.config({
-    //                 agentId: config.agentId,
-    //                 corpId: config.corpId,
-    //                 timeStamp: config.timeStamp,
-    //                 nonceStr: config.nonceStr,
-    //                 signature: config.signature,
-    //                 jsApiList: config.jsApiList
-    //             });
-    //         })
-    //         .catch(error => {
-    //             console.error('Fetch 请求失败:', error);
-    //         });
-    //
-    //
-    //
-    // };
-
     window.onload = function () {
         function getJson(filepath) {
             return fetch(`/getJson`, {
@@ -880,9 +706,11 @@
                         if (jsonData && jsonData.length > 0) {
                             // 如果 JSON 文件存在并且数据有效
                             allSheetData = jsonData;
+                            loadCollectData();
+
                             updateSpecialCells(allSheetData);
                             getSheetNames();
-                            loadCollectData();
+
                             loadingElement.style.display = 'none';
                             saveBtn.addEventListener('click', onSaveBtnClick);
                             functionBtnClick();

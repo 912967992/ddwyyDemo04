@@ -198,7 +198,6 @@ public class testManIndexController {
     @PostMapping("/testManIndex/getjumpFilepath")
     @ResponseBody
     public String getjumpFilepath(@RequestBody Map<String, Object> data){
-
         String model = (String) data.get("model");
         String coding = (String) data.get("coding");
         String category = (String) data.get("category");
@@ -427,9 +426,24 @@ public class testManIndexController {
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = now.format(formatter);
+
+            String problem = getProblemFromJson(filepath,model,coding,category,version,sample_frequency,big_species,small_species,high_frequency,questStats);
+
+            // 检查问题是否包含缺少列的错误
+            if (problem.startsWith("缺少列:")) {
+                response.put("status", "error");
+                response.put("message", problem); // 返回缺少列的错误信息
+                logger.error("提交文件失败：" + filepath + "，" + problem);
+                return response;
+            }else if(problem.startsWith("需要进入页面查看问题点是否存在才可提交")){
+                response.put("status", "error");
+                response.put("message", problem); // 返回缺少列的错误信息
+                logger.error("提交文件失败：" + filepath + "，" + problem);
+                return response;
+            }
+
             testManIndexService.finishTestWithoutTime(schedule,model,coding,category,version,formattedDateTime,big_species,small_species,high_frequency,sample_frequency,questStats);
 
-            String problen = getProblemFromJson(filepath,model,coding,category,version,sample_frequency,big_species,small_species,high_frequency,questStats);
             response.put("message", "文件提交成功，接下来请审核！");
             logger.info("提交文件："+filepath);
 
@@ -454,6 +468,13 @@ public class testManIndexController {
         String fileName = file.getName();
         String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
         String jsonFilePath = jsonpath + File.separator + baseName + ".json";
+
+        // 检查JSON文件是否存在
+        File jsonFile = new File(jsonFilePath);
+        if (!jsonFile.exists()) {
+            return "需要进入页面查看问题点是否存在才可提交"; // 返回错误信息
+        }
+
 
         try {
             // 创建ObjectMapper实例
@@ -512,12 +533,29 @@ public class testManIndexController {
 
             List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
 
-// 遍历并打印 filteredRows 中的所有数据
-//            for (Map<String, String> rowMap : filteredRows) {
-//                for (Map.Entry<String, String> entry : rowMap.entrySet()) {
-//                    System.out.println(entry.getKey() + ": " + entry.getValue());
-//                }
-//                System.out.println("----------"); // 用于分隔不同的行
+            // 定义需要的列名
+            List<String> requiredColumns = Arrays.asList(
+                    "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
+                    "显示设备", "其他设备", "问题点", "问题视频或图片", "复现手法", "恢复方法",
+                    "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品", "DQE&研发确认",
+                    "改善对策（研发回复）", "分析责任人", "改善后风险", "下一版回归测试", "备注"
+            );
+
+            // 检查缺少的列名
+            Set<String> missingColumns = new HashSet<>();
+            for (Map<String, String> rowMap : filteredRows) {
+                for (String column : requiredColumns) {
+                    if (!rowMap.containsKey(column)) {
+                        missingColumns.add(column);
+                    }
+                }
+            }
+
+            // 如果有缺少的列名，返回错误信息
+            if (!missingColumns.isEmpty()) {
+                return "缺少列: " + String.join(", ", missingColumns); // 返回缺少列的错误信息
+            }
+
 
             // 获取当前时间
             LocalDateTime now = LocalDateTime.now();
@@ -545,7 +583,7 @@ public class testManIndexController {
                 String problem_time = rowMap.get("日期"); //此数据是问题点工作表里的只填日期的数据，所以我设置数据库里字段是varchar(8)
                 String tester = rowMap.get("测试人员");
                 String test_platform = rowMap.get("测试平台");
-                String test_device = rowMap.get("测试设备");
+                String test_device = rowMap.get("显示设备");
                 String other_device = rowMap.get("其他设备");
                 String problem = rowMap.get("问题点");
                 String problem_image_or_video = rowMap.get("问题视频或图片");
@@ -562,9 +600,10 @@ public class testManIndexController {
                 String next_version_regression_test = rowMap.get("下一版回归测试");
                 String remark = rowMap.get("备注");
 
-                testIssues.setFull_model(full_model);
+                String real_full_model = model + " "+ coding;
+                testIssues.setFull_model(real_full_model); //因为完整编码测试人员填写的可能不一致，所以这里强制用数据库的编码就保证一致
                 testIssues.setSample_stage(sample_stage);
-                testIssues.setVersion(version);//这里的问题点版本不能用测试人员写的版本，要强制用测试的实际版本,用户用的是上一版的问题点，验证之后也必须改为本版本才对，不然我这里会产生上一版的问题点多出来
+                testIssues.setVersion(issue_version);
                 testIssues.setChip_solution(chip_solution);
                 testIssues.setProblem_time(problem_time);
                 testIssues.setTester(tester);
