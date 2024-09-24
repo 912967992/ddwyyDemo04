@@ -32,10 +32,14 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +66,13 @@ public class testManIndexController {
     private String jsonpath;
 
     private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
+
+    // 上班时间和下班时间定义
+    private static final LocalTime MORNING_START = LocalTime.of(9, 0);
+    private static final LocalTime MORNING_END = LocalTime.of(12, 0);
+    private static final LocalTime AFTERNOON_START = LocalTime.of(13, 30);
+    private static final LocalTime AFTERNOON_END = LocalTime.of(18, 30);
+    private static final double WORK_HOURS_PER_DAY = 8.5;
 
 
     @GetMapping("/testManIndex") // 处理页面跳转请求
@@ -190,7 +201,8 @@ public class testManIndexController {
         }else if (sort.equals("desc")){
             return testManIndexService.searchSamplesByDesc(username,keyword);
         }else{
-            return testManIndexService.searchSamples(username,keyword);
+//            return testManIndexService.searchSamples(username,keyword);
+            return testManIndexService.searchSamplesByDesc(username,keyword);
         }
 
     }
@@ -281,6 +293,7 @@ public class testManIndexController {
     @PostMapping("/testManIndex/updateSamples")
     @ResponseBody
     public Map<String, Object> updateSamples(
+            @RequestParam("edit_sample_id") int sample_id,
             @RequestParam("edit_model") String editModel,
             @RequestParam("edit_coding") String editCoding,
             @RequestParam("edit_category") String editCategory,
@@ -305,7 +318,6 @@ public class testManIndexController {
             @RequestParam("edit_sample_leader") String editSampleleader,
             @RequestParam("tester") String tester
             ) {
-
         Map<String, Object> response = new HashMap<>();
         try {
 
@@ -337,6 +349,20 @@ public class testManIndexController {
             sample.setHigh_frequency(high_frequency);
 
             sample.setQuestStats(questStats);
+
+            LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
+
+            // 使用ISO_LOCAL_DATE_TIME来解析带T的格式
+            LocalDateTime planfinishTime = LocalDateTime.parse(editPlanfinishTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+
+            double planWorkDays = calculateWorkDays(createTime,planfinishTime,0);
+            // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
+            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
+            System.out.println("adjustedWorkDays:"+adjustedWorkDays);;
+            sample.setPlanTestDuration(adjustedWorkDays);
+
+
             //如果有更新产品名称则需要更新文件名
             String old_name = testManIndexService.querySample_name(sample);
             String oldFilePath = testManIndexService.queryFilepath(sample);
@@ -407,18 +433,20 @@ public class testManIndexController {
         String filepath = request.get("filepath");
         String model = request.get("model");
         String coding = request.get("coding");
-        String category = request.get("category");
-        String version = request.get("version");
+
         String schedule = request.get("schedule");
-        String sample_frequencyStr = request.get("sample_frequency");
+        String userInput = request.get("restDays");
+        String sample_idStr = request.get("sample_id");
+        int sample_id = Integer.parseInt(sample_idStr);
 
-        String big_species = request.get("big_species");
-        String small_species = request.get("small_species");
-        String high_frequency = request.get("high_frequency");
-
-        String questStats = request.get("questStats");
-
-        int sample_frequency =  Integer.parseInt(sample_frequencyStr.trim());
+    // 判断是否存在 restDays 参数
+        double restDays = 0.0; // 默认值为 0
+        if (userInput != null && !userInput.trim().isEmpty()) {
+            // 存在输入值，尝试解析
+            restDays = parseRestDays(userInput);
+        } else {
+            System.out.println("未提供 restDays 参数，使用默认值 0.0");
+        }
 
         if (schedule.equals("0")){
             schedule = "1";
@@ -427,7 +455,7 @@ public class testManIndexController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = now.format(formatter);
 
-            String problem = getProblemFromJson(filepath,model,coding,category,version,sample_frequency,big_species,small_species,high_frequency,questStats);
+            String problem = getProblemFromJson(filepath,model,coding);
 
             // 检查问题是否包含缺少列的错误
             if (problem.startsWith("缺少列:")) {
@@ -440,16 +468,34 @@ public class testManIndexController {
                 response.put("message", problem); // 返回缺少列的错误信息
                 logger.error("提交文件失败：" + filepath + "，" + problem);
                 return response;
+            }else if(problem.startsWith("工作表'测试问题点汇总'不存在！提交失败，请检查。")){
+                response.put("status", "error");
+                response.put("message", problem); // 返回缺少列的错误信息
+                logger.error("提交文件失败：" + filepath + "，" + problem);
+                return response;
             }
 
-            testManIndexService.finishTestWithoutTime(schedule,model,coding,category,version,formattedDateTime,big_species,small_species,high_frequency,sample_frequency,questStats);
 
-            response.put("message", "文件提交成功，接下来请审核！");
-            logger.info("提交文件："+filepath);
+            testManIndexService.finishTestWithoutTime(schedule,formattedDateTime,sample_id);
+
+            LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
+            LocalDateTime planFinishTime =  testManIndexService.queryPlanFinishTime(sample_id);
+
+            double planWorkDays = calculateWorkDays(createTime,planFinishTime,restDays);
+            // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
+            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
+
+            double workDays = calculateWorkDays(createTime,now,restDays);
+            int setDuration = testManIndexService.setDuration(adjustedWorkDays,workDays,sample_id);
+            if(setDuration==1){
+                logger.info("提交文件："+filepath + ",测试时长："+workDays + ",预计完成时长："+adjustedWorkDays);
+            }
+
+            response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为："+workDays + "天。");
 
         }else if(schedule.equals("1")){
             schedule = "0";
-            testManIndexService.finishTest(schedule,model,coding,category,version,big_species,small_species,high_frequency,sample_frequency,questStats);
+            testManIndexService.finishTest(schedule,sample_id);
             response.put("message", "文件撤回成功，请重新提交！");
             logger.info("撤回审核成功："+filepath);
         }
@@ -460,9 +506,8 @@ public class testManIndexController {
         return response;
     }
 
-    private String getProblemFromJson(String filepath,String model,String coding,String category,
-                                      String version,Integer sample_frequency,String big_species,
-                                      String small_species,String high_frequency,String questStats){
+
+    private String getProblemFromJson(String filepath,String model,String coding){
         // 获取文件名并去除扩展名
         File file = new File(filepath);
         String fileName = file.getName();
@@ -474,6 +519,7 @@ public class testManIndexController {
         if (!jsonFile.exists()) {
             return "需要进入页面查看问题点是否存在才可提交"; // 返回错误信息
         }
+        boolean foundSheet = false; // 标志变量，初始为 false
 
 
         try {
@@ -486,6 +532,7 @@ public class testManIndexController {
             // 定义目标sheetName
             String targetSheetName = "测试问题点汇总";
 
+
             // 用于存储所有数据行
             List<List<String>> dataRows = new ArrayList<>();
 
@@ -497,6 +544,9 @@ public class testManIndexController {
                             // 筛选sheetName为目标名称的数据
                             List<JsonNode> matchedNodes = getMatchedNodes(innerArrayNode, targetSheetName);
 
+                            if (!matchedNodes.isEmpty()) {
+                                foundSheet = true; // 找到目标工作表
+                            }
                             // 提取所有数据行
                             for (JsonNode node : matchedNodes) {
                                 if (node.has("row") && node.has("column")) {
@@ -529,6 +579,11 @@ public class testManIndexController {
                         }
                     }
                 }
+            }
+
+            // 如果目标工作表没有找到，则返回相应信息
+            if (!foundSheet) {
+                return "工作表'测试问题点汇总'不存在！提交失败，请检查。"; // 返回错误信息
             }
 
             List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
@@ -903,6 +958,82 @@ public class testManIndexController {
             return "An error occurred while deleting the JSON file.";
         }
     }
+
+
+    //计算测试时长testDuration
+    // 计算上班时间内的小时数，并换算成工作天数
+    // 计算工作天数，只计算工作时间段（早9到12点，下午1:30到6:30）
+    // 计算工作天数，只计算工作时间段（早9到12点，下午1:30到6:30）
+    public static double calculateWorkDays(LocalDateTime createTime, LocalDateTime finishTime, double restDays) {
+        // 计算两个日期之间的总工作小时数
+        double totalWorkHours = 0;
+        LocalDateTime currentDateTime = createTime;
+
+        while (currentDateTime.toLocalDate().isBefore(finishTime.toLocalDate()) || !currentDateTime.isAfter(finishTime)) {
+            // 计算当天工作时间
+            LocalDateTime endOfDay = currentDateTime.toLocalDate().atTime(18, 30);
+            LocalDateTime startOfDay = currentDateTime.toLocalDate().atTime(9, 0);
+
+            // 如果当天已经超过了完成时间，则调整结束时间
+            if (finishTime.isBefore(endOfDay)) {
+                endOfDay = finishTime;
+            }
+
+            // 计算早上时间段
+            LocalDateTime endMorning = currentDateTime.toLocalDate().atTime(12, 0);
+            LocalDateTime effectiveEndMorning = (finishTime.isBefore(endMorning) ? finishTime : endMorning);
+
+            if (currentDateTime.isBefore(effectiveEndMorning)) {
+                totalWorkHours += calculateTimeInPeriod(currentDateTime, effectiveEndMorning);
+            }
+
+            // 计算下午时间段
+            LocalDateTime startAfternoon = currentDateTime.toLocalDate().atTime(13, 30);
+            LocalDateTime effectiveStartAfternoon = (currentDateTime.isBefore(startAfternoon) ? startAfternoon : currentDateTime);
+            LocalDateTime endAfternoon = currentDateTime.toLocalDate().atTime(18, 30);
+
+            if (finishTime.isBefore(endAfternoon)) {
+                endAfternoon = finishTime;
+            }
+
+            if (effectiveStartAfternoon.isBefore(endAfternoon)) {
+                totalWorkHours += calculateTimeInPeriod(effectiveStartAfternoon, endAfternoon);
+            }
+
+            // 移动到第二天
+            currentDateTime = currentDateTime.toLocalDate().plusDays(1).atStartOfDay().plusHours(9);
+        }
+
+        // 将总工作时间转换为工作天数
+        double workDays = totalWorkHours / 8;
+
+        // 减去休息天数
+        workDays -= restDays;
+
+        // 保留一位小数
+        return Math.max(Math.round(workDays * 10) / 10.0, 0); // 确保返回值不小于0
+    }
+
+    private static double calculateTimeInPeriod(LocalDateTime startTime, LocalDateTime endTime) {
+        // 计算两个时间点之间的小时数
+        long minutes = ChronoUnit.MINUTES.between(startTime, endTime);
+        return Math.max(0, minutes / 60.0);
+    }
+
+    //将字符串转换为double类型
+    public static double parseRestDays(String restDays) throws IllegalArgumentException {
+        // 使用正则表达式来验证输入是否是有效的数字（整数或 0.5 的倍数）
+        String regex = "^(0|[1-9][0-9]*)(\\.5)?$";
+        if (!Pattern.matches(regex, restDays)) {
+            throw new IllegalArgumentException("无效的休息天数输入！");
+        }
+
+        // 将输入字符串转换为 double
+        return Double.parseDouble(restDays);
+    }
+
+
+
 
 
 }

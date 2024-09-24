@@ -60,20 +60,20 @@ public class TestManIndexService {
         testManDao.updateSampleTeamWork(sample);
     }
 
-    public void finishTest(String schedule,String model,String coding,String category,String version,String big_species,String small_species,String high_frequency,int sample_frequency,
-                           String questStats){
-        testManDao.finishTest(schedule,model,coding,category,version,big_species,small_species,high_frequency,sample_frequency,questStats);
+    public void finishTest(String schedule,int sample_id){
+        testManDao.finishTest(schedule,sample_id);
     }
-    public void finishTestWithoutTime(String schedule,String model,String coding,String category,String version,String finish_time,
-                                      String big_species,String small_species,String high_frequency,int sample_frequency,String questStats){
-        testManDao.finishTestWithoutTime(schedule,model,coding,category,version,finish_time,big_species,small_species,high_frequency,sample_frequency,questStats);
+    public void finishTestWithoutTime(String schedule,String finish_time,int sample_id){
+
+        testManDao.finishTestWithoutTime(schedule,finish_time,sample_id);
     }
 
 
 
-//    public String queryFinishtime(String model, String coding, String category, String version,String big_species,String small_species,String high_frequency){
-//        return testManDao.queryFinishtime(model,coding,category,version,big_species,small_species,high_frequency);
-//    }
+    public LocalDateTime  queryCreateTime(int sample_id){
+        return testManDao.queryCreateTime(sample_id);
+    }
+
     public String queryTester_teamwork(Samples sample){
         return testManDao.queryTester_teamwork(sample);
     }
@@ -107,6 +107,12 @@ public class TestManIndexService {
     public int queryHistoryid(int sample_id){
         return testManDao.queryHistoryid(sample_id);
     }
+    public int setDuration(double planWorkDays,double workDays,int sample_id){
+        return testManDao.setDuration(planWorkDays,workDays,sample_id);
+    }
 
+    public LocalDateTime  queryPlanFinishTime(int sample_id){
+        return testManDao.queryPlanFinishTime(sample_id);
+    }
 
 }

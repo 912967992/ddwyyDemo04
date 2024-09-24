@@ -5,17 +5,6 @@
     padding: 10px;
 }
 
-/*#headerContainer h2 {*/
-/*    display: flex;*/
-/*    align-items: center; !* 确保按钮与标题内容垂直居中 *!*/
-/*    margin: 0; !* 移除h2的默认外边距 *!*/
-/*}*/
-
-/*#headerContainer h2 span {*/
-/*    display: block;*/
-/*    padding-top: 10px; !* 向下移动工作表内容文本 *!*/
-/*}*/
-
 .homeBtn {
     padding: 8px 16px; /* 为按钮添加适当的内边距 */
     text-align: center; /* 文字居中 */
@@ -90,25 +79,7 @@
 .sheetButton.clicked {
     background-color: #2ba245; /* 点击时的颜色 */
 }
-/*table {*/
-/*    border-collapse: collapse;*/
-/*    width: 100%;*/
-/*    border: 2px solid #2ba245; !* 设置表格的边框 *!*/
-/*}*/
 
-/*th, td {*/
-/*    border: 1.5px solid  #696969; !* 设置单元格的边框 *!*/
-/*    text-align: left;*/
-/*    padding: 8px;*/
-/*    min-height: 60px;*/
-/*    font-size: 12px;*/
-/*    min-width: 30px;*/
-/*    width: auto; !* 自动调整宽度以适应内容 *!*/
-/*    max-width: 300px;*/
-/*}*/
-/*th {*/
-/*    background-color: #f2f2f2;*/
-/*}*/
 table {
     border-collapse: collapse;
     width: 100%;
@@ -122,6 +93,11 @@ th, td {
     padding: 8px;
     font-size: 12px;
     width: auto;
+
+    /*0923试试看会不会换行*/
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal; /* 确保文本正常换行 */
 }
 
 th {
@@ -144,6 +120,7 @@ th {
 .content-editable {
     word-wrap: break-word;
     overflow-wrap: break-word;
+    /*color: #ce1515; !* 如果需要，可以设置文字颜色为红色，以便与绿色背景形成对比 *!*/
 }
 
 
@@ -190,7 +167,6 @@ th {
 }
 
 /*!* 添加或修改CSS文件中的内容 *!*/
-/*.content-editable {*/
 .bubble {
     position: absolute;
     display: none;
@@ -356,3 +332,24 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+
+/*冻结窗格*/
+.frozen-column {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background-color: #fff;
+}
+
+.frozen-row {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background-color: #fff;
+}
+
+.frozen-corner {
+    z-index: 4;
+}
+

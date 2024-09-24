@@ -30,21 +30,13 @@ public interface TestManDao {
 
     public void updateSampleTeamWork(Samples sample);
 
-    public void finishTest(@Param("sample_schedule")String sample_schedule,@Param("sample_model")String sample_model,
-                           @Param("sample_coding")String sample_coding,@Param("sample_category")String sample_category,
-                           @Param("version")String version,@Param("big_species")String big_species,@Param("small_species")String small_species,
-                           @Param("high_frequency")String high_frequency,@Param("sample_frequency")int sample_frequency,
-                           @Param("questStats")String questStats);
-    public void finishTestWithoutTime(@Param("sample_schedule")String sample_schedule,@Param("sample_model")String sample_model,
-                           @Param("sample_coding")String sample_coding,@Param("sample_category")String sample_category,
-                           @Param("version")String version,@Param("finish_time")String finish_time,
-                                      @Param("big_species")String big_species,@Param("small_species")String small_species,@Param("high_frequency")String high_frequency,@Param("sample_frequency")int sample_frequency,
-                                      @Param("questStats")String questStats);
+    public void finishTest(@Param("sample_schedule")String sample_schedule,@Param("sample_id")int sample_id);
+
+    public void finishTestWithoutTime(@Param("sample_schedule")String sample_schedule,@Param("finish_time")String finish_time,
+                                      @Param("sample_id")int sample_id);
 
 
-    public String queryFinishtime(@Param("sample_model")String sample_model,
-                                         @Param("sample_coding")String sample_coding, @Param("sample_category")String sample_category,
-                                         @Param("version")String version,@Param("big_species")String big_species,@Param("small_species")String small_species,@Param("high_frequency")String high_frequency);
+    public LocalDateTime  queryCreateTime(@Param("sample_id")int sample_id);
     public String querySample_name(Samples sample);
 
     public String queryFilepath(Samples sample);
@@ -62,6 +54,16 @@ public interface TestManDao {
 
 
     public int queryHistoryid(@Param("sample_id") int sample_id);
+    public int setDuration(@Param("planTestDuration") double planTestDuration,@Param("testDuration") double testDuration,
+                           @Param("sample_id") int sample_id);
+
+
+    public LocalDateTime  queryPlanFinishTime(@Param("sample_id")int sample_id);
+
+
+    public List<Samples> searchSampleTestMan(@Param("keyword") String keyword,
+                                             @Param("problemTimeStart")String problemTimeStart,
+                                             @Param("problemTimeEnd")String problemTimeEnd);
 
 
 }

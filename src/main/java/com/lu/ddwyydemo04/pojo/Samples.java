@@ -46,6 +46,8 @@ public class Samples {
     private String high_frequency;//是否高频：是/否
 
     private String questStats; //任务属性
+    private double testDuration; //实际测试时长
+    private double planTestDuration; //预计测试时长
 
     public Integer getSample_id() {
         return sample_id;
@@ -324,6 +326,22 @@ public class Samples {
         this.questStats = questStats;
     }
 
+    public double getTestDuration() {
+        return testDuration;
+    }
+
+    public void setTestDuration(double testDuration) {
+        this.testDuration = testDuration;
+    }
+
+    public double getPlanTestDuration() {
+        return planTestDuration;
+    }
+
+    public void setPlanTestDuration(double planTestDuration) {
+        this.planTestDuration = planTestDuration;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -361,6 +379,8 @@ public class Samples {
                 ", small_species ='" + small_species + '\'' +
                 ", high_frequency ='" + high_frequency + '\'' +
                 ", questStats ='" + questStats + '\'' +
+                ", testDuration ='" + testDuration + '\'' +
+                ", planTestDuration ='" + planTestDuration + '\'' +
                 '}';
     }
 }

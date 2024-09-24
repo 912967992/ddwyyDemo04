@@ -9,11 +9,7 @@ import java.util.Map;
 
 @Repository
 public interface QuestDao {
-    public List<QuestData> getQuestById(@Param("id") String id);
 
     public Map<String,Integer> getindexPanel(@Param("name") String name);
 
-    public List<QuestData> getQuestPanel();
-
-    public List<QuestData> searchQuest(@Param("keyword") String keyword,@Param("category") String category,@Param("stage") String stage);
 }

@@ -37,6 +37,7 @@
 <div id="functionContainer" class="bubble" style="display:none;">
     <button id="gapFillBtn">一键填空</button>
     <button id="replaceBtn">替换</button>
+    <button id="colorChangeBtn">颜色切换</button>
 </div>
 
 <!-- 隐藏的填空容器 -->
@@ -53,6 +54,15 @@
     <input type="text" id="replaceOutput" placeholder="替换后的值充值">
     <div class="button-container">
         <button id="startReplaceBtn">替换</button>
+    </div>
+</div>
+
+<div id="colorContainer" class="bubble" style="display:none;">
+    <div class="button-container">
+        <!-- 红色按钮 -->
+        <button id="setRedColorBtn" style="background-color: red; color: white;">红色字体</button>
+        <!-- 黑色按钮 -->
+        <button id="setBlackColorBtn" style="background-color: black; color: white;">黑色字体</button>
     </div>
 </div>
 
@@ -141,6 +151,11 @@
     let supplier;
     let tester;
 
+    //  点击事件记录点击的位置
+    let selectedRow = null;
+    let selectedColumn = null;
+    let selectedValue = null;
+
     function getLocalStoreSpecial(){
         DQE = localStorage.getItem(`DQE_`);
         Developer = localStorage.getItem(`Developer_`);
@@ -209,7 +224,7 @@
     });
 
 
-    // 定时保存函数
+
     function saveData() {
         if (Object.keys(collectData).length === 0) {
             return;
@@ -306,7 +321,8 @@
                 sheetName: sheetName,
                 row: row,
                 column: column,
-                value: value
+                value: value,
+                color: color
             };
             // 使用 alert 打印 collectData[cellKey] 的值
             // alert(JSON.stringify(collectData[cellKey], null, 2));
@@ -506,13 +522,32 @@
                         cell.appendChild(selectContainer);
                         cell.contentEditable = false;
                     } else if ((cellData.value && cellData.value.includes('.png')) || (cellData.value && cellData.value.includes('上传图片'))) {
-                        cell.textContent = cellData.value;
-                        cell.contentEditable = false;
-                        cell.style.cursor = 'pointer';
+                        // 创建一个 div 容器来包裹文本和图片
+                        const contentContainer = document.createElement('div');
+                        contentContainer.style.display = 'flex';
+                        contentContainer.style.flexDirection = 'column'; // 纵向排列
 
-                        cell.style.overflow = 'hidden';
-                        cell.style.whiteSpace = 'nowrap';
-                        cell.style.textOverflow = 'ellipsis';
+                        // 添加文本
+                        const textNode = document.createElement('span');
+                        textNode.textContent = cellData.value;
+                        textNode.style.cursor = 'pointer';
+                        textNode.style.overflow = 'hidden';
+                        textNode.style.whiteSpace = 'nowrap';
+                        textNode.style.textOverflow = 'ellipsis';
+
+                        contentContainer.appendChild(textNode);
+
+                        // 创建图片
+                        const img = document.createElement('img');
+                        img.src = cellData.value.replace(/#/g, '%23') + '?t=' + new Date().getTime(); // 添加时间戳
+                        img.style.maxWidth = '25%'; // 将图片最大宽度设为单元格的 100%
+                        img.style.maxHeight = '25%'; // 将图片最大高度设为单元格的 100%
+                        img.style.objectFit = 'contain'; // 保持图片比例不失真，使用 'contain' 确保图片保持比例并适应单元格
+
+                        contentContainer.appendChild(img);
+                        cell.appendChild(contentContainer); // 将容器添加到单元格
+
+                        cell.contentEditable = false;
 
                         cell.addEventListener('click', () => {
                             showModal(cellData.value, cellData.row, cellData.column, event);
@@ -566,6 +601,22 @@
                         cell.innerText = cellData.value || '';
                         cell.contentEditable = true;
                         cell.classList.add('content-editable');
+
+                        // 添加样式，设置居中靠左
+                        cell.style.textAlign = 'left';       // 水平居左
+                        cell.style.verticalAlign = 'middle'; // 垂直居中
+
+                        // 单元格点击记录点击位置事件
+                        cell.addEventListener('click', function() {
+                            let cell = event.target;
+                            // 记录当前点击单元格的行和列
+                            // 获取单元格的 row 和 column 值
+                            selectedRow = cell.getAttribute('data-row');
+                            selectedColumn = cell.getAttribute('data-column');
+                            selectedValue = cell.innerText;
+
+                        });
+
                         cell.addEventListener('input', handleCellInput);
                         cell.addEventListener('paste', handleCellPaste);
                     }
@@ -574,21 +625,24 @@
 
                     if (cellData.color === "black") {
                         cell.style.backgroundColor = "#f0f0f0";
-                        cell.style.whiteSpace = "nowrap";
+                        // cell.style.whiteSpace = "nowrap";
                         // let col_width = cell.getAttribute('data-col_width') - 15;
                         cell.style.maxWidth = col_width + 'px';
                         cell.style.width = col_width + 'px';
+                        cell.style.minWidth = col_width + 'px';
                     } else if (cellData.color === "red") {
                         if (cell.querySelector('select')) {
                             cell.style.backgroundColor = "#fff"; // 设置为白色
                         } else {
-                            cell.style.backgroundColor = "#f54646"; // 设置为红色
+                            // cell.style.backgroundColor = "#f54646"; // 设置为红色
+                            cell.style.color = "#f54646"; // 设置字体颜色为红色
                         }
                         // cell.style.backgroundColor = "#f54646";
-                        cell.style.whiteSpace = "nowrap";
+                        // cell.style.whiteSpace = "nowrap";
 
                         cell.style.maxWidth = col_width + 'px';
                         cell.style.width = col_width + 'px';
+                        cell.style.minWidth = col_width + 'px';
                     }
                     row.appendChild(cell);
                 });
@@ -619,7 +673,6 @@
                     return data; // 返回获取到的uuid
                 })
                 .catch(error => {
-                    alert('getJson');
                     return null; // 返回null以便处理错误
                 });
         }
@@ -1018,6 +1071,16 @@
                             alert(error);
                         } else {
                             alert("图片正在上传，请稍等云端提示。");
+
+                            // 查找并更新表格中的图片
+                            const cell = document.querySelector(`[data-row="${row}"][data-column="${column}"]`); // 假设你使用 data-row 和 data-column 来标记单元格
+                            if (cell) {
+                                const cellImg = cell.querySelector('img');
+                                if (cellImg) {
+                                    cellImg.src = imageUrl.replace(/#/g, '%23') + '?t=' + new Date().getTime(); // 添加时间戳来确保图片刷新
+                                }
+                            }
+
                             const rowIndex = sheetData.findIndex(rowData => rowData.some(cell => cell.row === row));
                             if (rowIndex !== -1) {
                                 const columnIndex = sheetData[rowIndex].findIndex(cell => cell.column === column);
@@ -1082,17 +1145,22 @@
 
     function handleCellInput(event) {
         let cell = event.target;
+
         // 设置默认行高
         // const defaultHeight = 100;  //设置单元格行高为70磅，在这里70磅也就是96这里，所以设个默认值100，超出100则需要加个scrollHeight进editedData然后接下来去增加xlsx行高
         const originalValue = cell.innerText;  // 获取单元格的新值
         const target_row = cell.getAttribute('data-row');
         const target_column = cell.getAttribute('data-column');
+        const target_color = cell.getAttribute('data-color');
+
+        //20240924新增设置红色和黑色的功能按钮
+        selectedValue = originalValue;
 
         // 记录当前高度
         const currentHeight = cell.scrollHeight;
 
         // 更新 collectData，只记录最后一次的变化
-        updateCollectData(selectedSheetName, parseInt(target_row, 10), parseInt(target_column, 10), originalValue, currentHeight);
+        updateCollectData(selectedSheetName, parseInt(target_row, 10), parseInt(target_column, 10), originalValue, currentHeight ,null,null,null, target_color);
 
     }
 
@@ -1394,9 +1462,11 @@
         var functionContainer = document.getElementById('functionContainer');
         var gapFillContainer = document.getElementById('gapFillContainer');
         var replaceContainer = document.getElementById('replaceContainer');
+        var colorContainer = document.getElementById("colorContainer");
         functionBtn.addEventListener('click', function() {
             gapFillContainer.style.display = 'none';
             replaceContainer.style.display = 'none';
+            colorContainer.style.display = 'none';
             toggleFunctionContainer();
         });
 
@@ -1408,6 +1478,12 @@
             // 在此处添加替换按钮的逻辑
             showReplaceContainer();
         });
+
+        document.getElementById('colorChangeBtn').addEventListener('click', function() {
+            // 在此处添加替换按钮的逻辑
+            showColorContainer();
+        });
+
 
         document.getElementById('cancelBtn').addEventListener('click', function() {
             var value = document.getElementById('gapFillInput').value;
@@ -1451,6 +1527,17 @@
             replaceContainer.style.display = 'block';
         }
 
+        function showColorContainer(){
+            functionContainer.style.display = 'none';
+            var button = document.getElementById('functionBtn'); // 使用 functionBtn 作为参考点
+            var rect = button.getBoundingClientRect();
+
+            colorContainer.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            colorContainer.style.left = (rect.left + rect.width / 2) + 'px';
+            colorContainer.style.transform = 'translateX(-50%)';
+            colorContainer.style.display = 'block';
+        }
+
         document.getElementById('startReplaceBtn').addEventListener('click', function() {
             var replaceInput = document.getElementById('replaceInput').value;
             var replaceOutput = document.getElementById('replaceOutput').value;
@@ -1487,6 +1574,81 @@
             // document.getElementById('gapFillContainer').style.display = 'none';
         });
 
+        document.getElementById('setRedColorBtn').addEventListener('click', function() {
+            setRed();
+            // replaceContainer.style.display = 'none';
+        });
+
+        document.getElementById('setBlackColorBtn').addEventListener('click', function() {
+            setBlack();
+            // replaceContainer.style.display = 'none';
+        });
+
+        function setRed() {
+            // 确保已经选择了行、列和单元格的值
+            if (selectedRow !== null && selectedColumn !== null && selectedValue !== null) {
+                // 在 sheetData 中找到对应的单元格
+                const targetRow = sheetData.find(row => row.some(cell => cell.row == selectedRow));
+
+                if (targetRow) {
+                    const targetCell = targetRow.find(cell => cell.column == selectedColumn);
+
+                    if (targetCell) {
+                        // 设置单元格的颜色为红色
+                        targetCell.color = 'red';
+
+                        // 更新 collectData 以保存变更
+                        updateCollectData(selectedSheetName, parseInt(selectedRow, 10), parseInt(selectedColumn, 10), selectedValue, null, null, null,null, 'red');
+
+                        // 更新 allSheetData 和 sheetData
+                        updateSheetData(allSheetData, sheetData, collectData);
+
+                        // 重新渲染表格
+                        renderSheetTable();
+                    } else {
+                        console.log('找不到指定列的单元格');
+                    }
+                } else {
+                    console.log('找不到指定行的单元格');
+                }
+            } else {
+                console.log('尚未选择单元格');
+            }
+        }
+
+        function setBlack() {
+            // 确保已经选择了行、列和单元格的值
+            if (selectedRow !== null && selectedColumn !== null && selectedValue !== null) {
+                // 在 sheetData 中找到对应的单元格
+                const targetRow = sheetData.find(row => row.some(cell => cell.row == selectedRow));
+
+                if (targetRow) {
+                    const targetCell = targetRow.find(cell => cell.column == selectedColumn);
+
+                    if (targetCell) {
+                        // 设置单元格的颜色为红色
+                        targetCell.color = 'black';
+
+                        // 更新 collectData 以保存变更
+                        updateCollectData(selectedSheetName, parseInt(selectedRow, 10), parseInt(selectedColumn, 10), selectedValue, null, null, null,null, 'black');
+
+                        // 更新 allSheetData 和 sheetData
+                        updateSheetData(allSheetData, sheetData, collectData);
+
+                        // 重新渲染表格
+                        renderSheetTable();
+                    } else {
+                        console.log('找不到指定列的单元格');
+                    }
+                } else {
+                    console.log('找不到指定行的单元格');
+                }
+            } else {
+                console.log('尚未选择单元格');
+            }
+        }
+
+
         document.addEventListener('click', function(event) {
             var target = event.target;
             if (!functionContainer.contains(target) && !functionBtn.contains(target)) {
@@ -1498,6 +1660,9 @@
             if (!replaceContainer.contains(target) && !document.getElementById('replaceBtn').contains(target)) {
                 replaceContainer.style.display = 'none';
             }
+            // if (!colorContainer.contains(target) && !document.getElementById('colorChangeBtn').contains(target)) {
+            //     colorContainer.style.display = 'none';
+            // }
         });
     }
 

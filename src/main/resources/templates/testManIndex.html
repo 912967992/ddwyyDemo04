@@ -30,15 +30,25 @@
     <div id="log-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>更新日志</h2>
-            <p>2024.09.11<br>
-                ！！！更新问题点汇总工作表，将测试设备改成显示设备。<br>
+            <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，将测试设备改成显示设备。)</span></h2>
+            <p>
+                2024.9.19:<br>
+                1. 主页默认改为降序，最近时间创建的报告排在最上方。 --肖龙生发现<br>
+                2. 修改产品信息加上*号展示为必填项。--肖龙生建议<br>
+                3. 报告内容格式在程序解析后为居中靠左--黄兰姣需求<br>
+                4. 解析文件限制最大的列数100，行数则如果连续10行为空则停止往下解析。(防止文件右方和下方出现太多空格加载冗余)<br>
+                5. 新增字段测试时长和预计测试时长，在UI展示。<br>
+                6. 解决bug: xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，已解决，现在对浮点数类型不进行小数点限制。--龙运发现<br>
+                7. 提交报告的时候新增对缺少”测试问题点汇总“工作表的提示，方便找到提交失败的问题。<br>
+                8. 设置逾期判断，从2024.9.23号0点创建的文件开始计算。<br>
+                9. 可以查看各组员报告用时情况，可以导出为一份xlsx文件。
+
+                <br>
                 2024.09.07：<br>
-            1.新增主页UI供应商展示；--龙运需求<br>
-                2.解决签名经过保存按钮还不能实现替换的bug。--蓝明城发现<br>
-                3.解决创建报告填单-主控芯片字数太长导致无法保存的bug,现在可以输入65,535个字符。--李智龙发现<br>
-                4.解决产品名称有部分字符导致无法保存的bug，特殊字符会强制转换为"_"。--张锐发现<br>
-                待解决bug：1.xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，下版本解决。--龙运发现
+                1. 新增主页UI供应商展示；--龙运需求<br>
+                2. 解决签名经过保存按钮还不能实现替换的bug。--蓝明城发现<br>
+                3. 解决创建报告填单-主控芯片字数太长导致无法保存的bug,现在可以输入65,535个字符。--李智龙发现<br>
+                4. 解决产品名称有部分字符导致无法保存的bug，特殊字符会强制转换为"_"。--张锐发现<br>
 
 
             </p>
@@ -119,6 +129,7 @@
                 <option value="功能样">功能样</option>
                 <option value="竞品">竞品</option>
                 <option value="预研">预研</option>
+                <option value="选品">选品</option>
             </select>
             <!--新增任务属性字段20240709-->
             <label for="questStats">任务属性:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -185,7 +196,7 @@
     <!-- 主页按钮 -->
     <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
     <!-- 搜索资源库按钮 -->
-    <button class="btn" id="cloudBtn"><i class="fas fa-cloud"></i></button>
+    <button class="btn" id="cloudBtn" onclick="location.href='/durationTable?dd_orientation=landscape'"><i class="fas fa-cloud"></i></button>
     <!-- 个人界面按钮 -->
     <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
 </div>
@@ -240,26 +251,28 @@
     const username = sessionStorage.getItem('username');
     const corp_id = sessionStorage.getItem('corp_id');
 
+    function initData(){
+        // 从后端获取数据并更新页面内容
+        $.ajax({
+            url: '/data', // 向后端发起请求的接口地址
+            type: 'GET', // 请求方式
+            data: { 'username': username }, // 将 username 作为请求参数发送
+            success: function(data) {
+                // 根据后端返回的数据更新页面内容
+                $('#testing').text('测试：' + data.testing);
+                $('#pending').text('审核：' + data.pending);
+                $('#completed').text('完成：' + data.completed);
+                $('#total').html('总数：' + data.total + '&nbsp;');
+                $('#overdue').html('逾期：<span class="biaoji">' + data.overdue + '&nbsp;'+ '</span>');
+                $('#danger').html('失责：<span class="biaoji">' + data.danger + '</span>');
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to retrieve data:', status, error);
+            }
+        });
+    }
 
-
-    // 从后端获取数据并更新页面内容
-    $.ajax({
-        url: '/data', // 向后端发起请求的接口地址
-        type: 'GET', // 请求方式
-        data: { 'username': username }, // 将 username 作为请求参数发送
-        success: function(data) {
-            // 根据后端返回的数据更新页面内容
-            $('#testing').text('测试：' + data.testing);
-            $('#pending').text('审核：' + data.pending);
-            $('#completed').text('完成：' + data.completed);
-            $('#total').html('总数：' + data.total + '&nbsp;');
-            $('#overdue').html('逾期：<span class="biaoji">' + data.overdue + '&nbsp;'+ '</span>');
-            $('#danger').html('失责：<span class="biaoji">' + data.danger + '</span>');
-        },
-        error: function(xhr, status, error) {
-            console.error('Failed to retrieve data:', status, error);
-        }
-    });
+    initData();
 
     // 下方三个按钮跳转页面
     const homeBtn = document.getElementById('homeBtn');
@@ -272,10 +285,6 @@
         window.location.href = '/home';
     });
 
-    $(cloudBtn).click(function() {
-        // 跳转到搜索资源库页面
-        window.location.href = '/cloud';
-    });
 
     $(profileBtn).click(function() {
         // 跳转到个人界面页面
@@ -695,6 +704,9 @@
                             </div>
                         </div>
                         <form id="fileEditForm">
+                        <label for="edit_sample_id">样品id:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <input type="text" id="edit_sample_id" name="edit_sample_id" required readonly style="background-color: #e87676;">
+
                             <label for="edit_model">大编码:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <input type="text" id="edit_model" name="edit_model" required readonly style="background-color: #e87676;">
                             <label for="edit_coding">小编码:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -720,24 +732,24 @@
                             <input type="text" id="edit_sample_quantity" name="edit_sample_quantity" required readonly style="background-color: #e87676;">
 
                             <label for="edit_sample_name">产品名称:</label>
-                            <input type="text" id="edit_sample_name" name="edit_sample_name" required placeholder="必填项，没有则填/"><br>
+                            <input type="text" id="edit_sample_name" name="edit_sample_name" required placeholder="必填项"><span style="color: red;">*</span><br>
                             <label for="edit_planfinish_time">预计完成时间:</label>
-                            <input type="datetime-local" id="edit_planfinish_time" name="edit_planfinish_time" required><br>
+                            <input type="datetime-local" id="edit_planfinish_time" name="edit_planfinish_time" required><span style="color: red;">*</span><br>
                             <label for="edit_chip_control">主控芯片:</label>
-                            <input type="text" id="edit_chip_control" name="edit_chip_control" ><br>
+                            <input type="text" id="edit_chip_control" name="edit_chip_control" ><span style="color: red;">*</span><br>
                             <label for="edit_version_software">软件版本:</label>
-                            <input type="text" id="edit_version_software" name="edit_version_software" ><br>
+                            <input type="text" id="edit_version_software" name="edit_version_software" ><span style="color: red;">*</span><br>
                             <label for="edit_version_hardware">硬件版本:</label>
-                            <input type="text" id="edit_version_hardware" name="edit_version_hardware" ><br>
+                            <input type="text" id="edit_version_hardware" name="edit_version_hardware" ><span style="color: red;">*</span><br>
                             <label for="edit_supplier">供应商:</label>
-                            <input type="text" id="edit_supplier" name="edit_supplier" ><br>
+                            <input type="text" id="edit_supplier" name="edit_supplier" ><span style="color: red;">*</span><br>
                             <label for="edit_test_Overseas">国内外测试选项:</label>
                             <select id="edit_test_Overseas" name="edit_test_Overseas" required >
                                 <option value="" selected>必填项</option>
                                 <option value="国内">国内</option>
                                 <option value="国外">国外</option>
                                 <option value="国内+国外">国内+国外</option>
-                            </select>
+                            </select><span style="color: red;">*</span>
 
                             <label for="edit_priority">优先级:</label>
                             <select id="edit_priority" name="edit_priority" required >
@@ -746,18 +758,18 @@
                                 <option value="优先">优先</option>
                                 <option value="同步">同步</option>
                                  <option value="普通">普通</option>
-                            </select>
+                            </select><span style="color: red;">*</span>
 
                             <label for="edit_sample_remark">备注:</label>
                             <input type="text" id="edit_sample_remark" name="edit_sample_remark" ><br>
 
                             <label for="edit_sample_DQE">DQE:</label>
-                            <input type="text" id="edit_sample_DQE" name="edit_sample_DQE" ><br>
+                            <input type="text" id="edit_sample_DQE" name="edit_sample_DQE" ><span style="color: red;">*</span><br>
                             <label for="edit_sample_Developer">电子工程师:</label>
-                            <input type="text" id="edit_sample_Developer" name="edit_sample_Developer" ><br>
+                            <input type="text" id="edit_sample_Developer" name="edit_sample_Developer" ><span style="color: red;">*</span><br>
 
                             <label for="edit_sample_leader">项目负责人:</label>
-                            <input type="text" id="edit_sample_leader" name="edit_sample_leader" ><br>
+                            <input type="text" id="edit_sample_leader" name="edit_sample_leader" ><span style="color: red;">*</span><br>
 
                             <label for="tester">当前测试者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <select id="tester" name="tester" >
@@ -792,6 +804,7 @@
         // 将模态框添加到页面主体中
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
+        document.getElementById('edit_sample_id').value = product.sample_id;
         // 使用产品数据填充模态框
         document.getElementById('edit_model').value = product.sample_model;
         document.getElementById('edit_coding').value = product.sample_coding;
@@ -1168,7 +1181,8 @@
                 table += '<tr>';
                 table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';
                 table += '<th colspan="2" title="供应商' + product.supplier + ', 供应商' + product.supplier + '">' + '供应商：' + '' + product.supplier +  '</th>';
-                table += '<th colspan="2" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
+                table += '<th colspan="1" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
+                table += '<th colspan="1" title="预计时长：' + product.planTestDuration + "实测时长"+ product.testDuration+'">' + "预计时长：" + product.planTestDuration +"天" +" " + "实测时长：" + product.testDuration +"天" + '</th>';
                 table += '</tr>';
                 table += '</thead>';
                 table += '</table>';
@@ -1189,6 +1203,7 @@
                     'data-small_species="' + product.small_species + '" ' +
                     'data-high_frequency="' + product.high_frequency + '" ' +
                     'data-sample_schedule="' + product.sample_schedule + '" ' +
+                    'data-sample_id="' + product.sample_id + '" ' +
                     'data-queststats="' + product.questStats + '">提交</a>';
 
 
@@ -1223,13 +1238,14 @@
                     var high_frequency = $(this).data('high_frequency');
 
                     var questStats = $(this).data('queststats');  // 确保获取questStats数据
+                    var sample_id  = $(this).data('sample_id');
 
                     if(schedule===0) {
                         var confirmation = confirm("你确定要提交" + filepath + "吗？");
-                        finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats);
+                        finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats,sample_id);
                     }else if(schedule === 1){
                         var confirmation = confirm(filepath+"待审核中，你确定要撤回吗?");
-                        finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats);
+                        finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats,sample_id);
                     }else if(schedule === 2){
                         alert(filepath+"已完成，不用再提交了！");
                     }
@@ -1381,8 +1397,32 @@
         }
     }
 
-    function finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats){
+    function finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats,sample_id){
         if (confirmation) {
+            if(schedule===0){
+                // 用户点击了确认，询问休息天数
+                var restDaysInput = prompt("请输入期间休息天数（只能写0.5，1.5，或者整数1）：", "0");
+                // 验证用户输入的休息天数是否为有效的数字
+                if (restDaysInput === null) {
+                    // 用户取消了输入
+                    return;
+                }
+                // 使用正则表达式检查是否是有效的数字（整数或小数，最多一个小数点，且是0.5的倍数）
+                var numberPattern = /^(0|[1-9]\d*)(\.\d)?$/;
+                var restDays = parseFloat(restDaysInput);
+                if (!numberPattern.test(restDaysInput) || (restDays % 0.5 !== 0)) {
+                    // 如果输入的不是有效的数字或不是0.5的倍数，则提示用户并返回
+                    alert("请输入一个有效的休息天数！例如：0.5, 1, 1.5");
+                    return;
+                }
+                if (restDays < 0) {
+                    // 进一步验证是否为非负数字
+                    alert("请输入一个有效的休息天数！");
+                    return;
+                }
+            }
+
+
             //用户点击了确认
             $.ajax({
                 url: '/testManIndex/finishTest', // 控制器的路径
@@ -1399,12 +1439,17 @@
                     small_species: small_species,
                     high_frequency: high_frequency,
                     sample_frequency: sample_frequency,
-                    questStats: questStats
+                    questStats: questStats,
+                    sample_id:sample_id,
+                    restDays: restDays // 添加用户输入的休息天数
                 }), // 发送到服务器的JSON数据
                 success: function(response) {
                     // 这里处理成功的回调，比如提示用户或者更新UI
                     alert(response.message);
-                    window.location.href = '/testManIndex';
+                    // window.location.href = '/testManIndex';
+                    // 从后端获取数据并更新页面内容
+                    initData();
+                    performSearch();
 
                 },
                 error: function(xhr, status, error) {

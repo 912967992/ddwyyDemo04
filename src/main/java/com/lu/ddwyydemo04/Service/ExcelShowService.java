@@ -39,6 +39,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 
@@ -79,70 +83,6 @@ public class ExcelShowService {
     }
 
 
-    //这是未修改前的，用于点击工作表按钮之后获取该工作表的数据返回的
-//    public List<List<Object>>  getSheetData(@RequestParam String sheetName,String file_path) {
-//        List<List<Object>> sheetData = new ArrayList<>();
-//        try (InputStream is = new FileInputStream(file_path)) {
-//            Workbook workbook = WorkbookFactory.create(is);
-//            Sheet sheet = workbook.getSheet(sheetName);
-//            if (sheet != null) {
-//                // 获取合并区域的列表
-//                List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
-//                Drawing<?> drawing = sheet.createDrawingPatriarch();
-//
-//
-//                int lastRowNum = sheet.getLastRowNum();
-//
-//                int col_width = 0;
-//
-//                for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
-//                    Row row = sheet.getRow(rowNum);
-//                    List<Object> rowData = new ArrayList<>();
-//                    if (row != null) {
-//                        for (int colNum = 0; colNum < row.getLastCellNum(); colNum++) {
-//                            Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-//                            // 检查单元格的颜色
-//                            String colorStr = getColorAsString(cell);
-//                            String color = "";
-//
-//
-//                            // 检查颜色是否为蓝色,蓝色的为测试项
-////                            if ("0070C0".equals(colorStr)) {
-//                            if ("000000".equals(colorStr)) {
-//                                // 检查单元格是否在合并区域内
-//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-//                                color = "black";
-//
-//                                //获取cell的字符宽度
-//                                col_width = getCellWidth(cell,sheet,colNum);
-//
-//                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
-//
-////                            }else if ("7030A0".equals(colorStr) || "FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测试结果
-//                            }else if ("FF0000".equals(colorStr)){ //检查颜色是否绿色或者红色，为测
-//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-//
-//                                color = "red";
-//
-//                                //获取cell的字符宽度
-//                                col_width = getCellWidth(cell,sheet,colNum);
-//                                getRowData(mergedRegion,cell,drawing,sheetName,rowNum,colNum,rowData,color,col_width,file_path);
-//                            }
-//                        }
-//                    }
-//                    // 即使行数据为空也添加到sheetData中
-//                    if (!rowData.isEmpty()) {
-//                        sheetData.add(rowData);
-//                    }
-//                }
-//            }
-//        } catch (IOException e) {
-//            logger.error("读取文件失败", file_path, e);
-//            throw new ExcelOperationException(500, "读取文件失败");
-//        }
-//        return sheetData;
-//    }
-
     //20240917:限制列数解析最大为100，行数则如果连续10行为空则停止解析往下一个工作表
     public List<List<Object>> getSheetData(@RequestParam String sheetName, String file_path) {
         List<List<Object>> sheetData = new ArrayList<>();
@@ -173,6 +113,7 @@ public class ExcelShowService {
 
                         for (int colNum = 0; colNum < lastCellNum; colNum++) {
                             Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
                             String colorStr = getColorAsString(cell);
                             String color = "";
 
@@ -321,43 +262,11 @@ public class ExcelShowService {
             estimatedPixelWidth += scaleNum*25;
         }
 
-//        System.out.println(getCellValue(cell)+estimatedPixelWidth);
+
         return estimatedPixelWidth;
     }
 
 
-
-// 此方法只认第一列的图片，如果图片不是在第一列则解析不到
-//    private List<Object> getRowData(CellRangeAddress mergedRegion,Cell cell,Drawing<?> drawing,String sheetName,int rowNum,int colNum,List<Object> rowData,String color,int col_width,String filepath){
-//        if (mergedRegion != null) {
-//            // 如果是合并区域的左上角单元格，则添加合并信息
-//            if (cell.getRowIndex() == mergedRegion.getFirstRow() && cell.getColumnIndex() == mergedRegion.getFirstColumn()) {
-//                if (drawing instanceof XSSFDrawing && ((XSSFDrawing) drawing).getShapes().stream().anyMatch(s -> s instanceof XSSFPicture && ((XSSFPicture) s).getClientAnchor().getCol1() == cell.getColumnIndex() && ((XSSFPicture) s).getClientAnchor().getRow1() == cell.getRowIndex())) { // 检查单元格是否包含图片，并且单元格颜色标记为蓝色、绿色或红色
-//                    //锚点：图片只认第一个最接近左边的第一个单元格，其他的统一认为不是图片的锚点！所以只有该图片的锚点（小的单元格）才能进这个方法
-//                    String imageLink = saveImageFromCell(cell, drawing, sheetName, rowNum, mergedRegion.getFirstColumn(),filepath);
-//                    rowData.add(new MergedCellInfo(sheetName,imageLink,mergedRegion.getLastRow() - mergedRegion.getFirstRow() + 1, mergedRegion.getLastColumn() - mergedRegion.getFirstColumn() + 1,rowNum,colNum,color,col_width));
-//                }else{
-//                    rowData.add(new MergedCellInfo(sheetName,getCellValue(cell), mergedRegion.getLastRow() - mergedRegion.getFirstRow() + 1, mergedRegion.getLastColumn() - mergedRegion.getFirstColumn() + 1, rowNum, colNum,color,col_width));
-//                }
-//
-//            }else if (drawing instanceof XSSFDrawing && ((XSSFDrawing) drawing).getShapes().stream().anyMatch(s -> s instanceof XSSFPicture && ((XSSFPicture) s).getClientAnchor().getCol1() == cell.getColumnIndex() && ((XSSFPicture) s).getClientAnchor().getRow1() == cell.getRowIndex())) { // 检查单元格是否包含图片，并且单元格颜色标记为蓝色、绿色或红色
-//                //锚点：图片只认第一个最接近左边的第一个单元格，其他的统一认为不是图片的锚点！所以只有该图片的锚点（小的单元格）才能进这个方法
-//                String imageLink = saveImageFromCell(cell, drawing, sheetName, rowNum, mergedRegion.getFirstColumn(),filepath);
-//                MergedCellInfo lastItem = (MergedCellInfo) rowData.get(rowData.size()-1);
-//                lastItem.setValue(imageLink);
-//            }
-//        } else {
-//            // 非合并单元格，添加单元格值
-//            if (drawing instanceof XSSFDrawing && ((XSSFDrawing) drawing).getShapes().stream().anyMatch(s -> s instanceof XSSFPicture && ((XSSFPicture) s).getClientAnchor().getCol1() == cell.getColumnIndex() && ((XSSFPicture) s).getClientAnchor().getRow1() == cell.getRowIndex())) { // 检查单元格是否包含图片，并且单元格颜色标记为蓝色、绿色或红色
-//                //锚点：图片只认第一个最接近左边的第一个单元格，其他的统一认为不是图片的锚点！所以只有该图片的锚点（小的单元格）才能进这个方法
-//                String imageLink = saveImageFromCell(cell, drawing, sheetName, rowNum, colNum,filepath);
-//                rowData.add(new MergedCellInfo(sheetName,imageLink,1,1,rowNum,colNum,color,col_width));
-//            }else{
-//                rowData.add(new MergedCellInfo(sheetName,getCellValue(cell), 1, 1, rowNum, colNum,color,col_width));
-//            }
-//        }
-//        return rowData;
-//    }
 
     private List<Object> getRowData(CellRangeAddress mergedRegion,Cell cell,Drawing<?> drawing,String sheetName,int rowNum,int colNum,List<Object> rowData,String color,int col_width,String filepath){
 
@@ -493,23 +402,51 @@ public class ExcelShowService {
     }
 
 
+//    private String getCellValue(Cell cell) {
+//        if (cell == null) {
+//            return "";
+//        }
+//        DecimalFormat df = new DecimalFormat("#");
+//        switch (cell.getCellType()) {
+//            case STRING:
+//                return cell.getStringCellValue();
+//            case NUMERIC://这里的处理是为了让解析的时候不自动转换为日期形式：2.0240527E7
+//                if (DateUtil.isCellDateFormatted(cell)) {
+//                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+//                    return sdf.format(cell.getDateCellValue());
+//                } else {
+//                    return df.format(cell.getNumericCellValue());
+//                }
+//            case BOOLEAN:
+//                return Boolean.toString(cell.getBooleanCellValue());
+//            case BLANK:
+//                return "";
+//            default:
+//                return "";
+//        }
+//    }
+
+    //解决小数点被保留位整数的bug
     private String getCellValue(Cell cell) {
         if (cell == null) {
             return "";
         }
-        DecimalFormat df = new DecimalFormat("#");
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
-            case NUMERIC://这里的处理是为了让解析的时候不自动转换为日期形式：2.0240527E7
+            case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
                     return sdf.format(cell.getDateCellValue());
                 } else {
-                    return df.format(cell.getNumericCellValue());
+                    // 使用 Double.toString() 直接返回数值字符串，保留所有小数位
+                    return Double.toString(cell.getNumericCellValue());
                 }
             case BOOLEAN:
                 return Boolean.toString(cell.getBooleanCellValue());
+            case FORMULA:
+                // 处理公式，获取公式结果
+                return getFormulaValue(cell);
             case BLANK:
                 return "";
             default:
@@ -517,92 +454,25 @@ public class ExcelShowService {
         }
     }
 
-//    public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
-//        FileInputStream fileInputStream = null;
-//        FileOutputStream fileOutputStream = null;
-//        try {
-//
-//            // 获取文件输入流并创建工作簿
-//            fileInputStream = new FileInputStream(filePath);
-//            XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
-//
-//            // 处理单元格数据
-//            for (Map.Entry<String, Map<String, Object>> entry : cellData.entrySet()) {
-//                Map<String, Object> cellDetails = entry.getValue();
-//                String sheetName = (String) cellDetails.get("sheetName");
-//                int row = (int) cellDetails.get("row");
-//                int column = (int) cellDetails.get("column");
-//                String value = (String) cellDetails.get("value");
-//
-//                Sheet sheet = workbook.getSheet(sheetName);
-//                if (sheet == null) {
-//                    continue;
-//                }
-//
-//                Row sheetRow = sheet.getRow(row);
-//                if (sheetRow == null) {
-//                    sheetRow = sheet.createRow(row);
-//                }
-//
-//                Cell cell = sheetRow.getCell(column, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-//                if (cell == null) {
-//                    cell = sheetRow.createCell(column);
-//                }
-//
-//                if (value.startsWith("/imageDirectory/")) {
-//                    deleteImageFromCell(sheet, row, column);
-//                    insertImageToCell(workbook, sheet, value, row, column);
-//                    cell.setCellValue("");
-//                } else {
-//                    if ("NG".equals(value) || "FAIL".equals(value) || "×".equals(value)) {
-//                        setCellFontColor(cell, "FF0000");
-//                    } else {
-//                        setCellFontColor(cell, "7030A0");
-//                    }
-//                    cell.setCellValue(value);
-//                }
-//
-//                if (cellDetails.containsKey("scrollHeight")) {
-//                    float scrollHeight = ((Number) cellDetails.get("scrollHeight")).floatValue();
-//                    sheetRow.setHeightInPoints(scrollHeight);
-//                }
-//            }
-//
-//            // 关闭文件输入流
-//            fileInputStream.close();
-//            fileInputStream = null;
-//
-//            // 使用文件输出流写入内容,如果有进程占用，则这里会报错，所以在这里要用try
-//            // 尝试获取文件输出流写入内容
-//            try {
-//                fileOutputStream = new FileOutputStream(filePath);
-//                workbook.write(fileOutputStream);
-//
-//                // 关闭工作簿和文件输出流
-//                workbook.close();
-//                fileOutputStream.close();
-//
-//                return "{\"status\": \"saved\"}";
-//            } catch (IOException e) {
-//                return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "{\"status\": \"locked\", \"message\": \"文件正在被另一个进程使用\"}";
-//        } finally {
-//            try {
-//
-//                if (fileInputStream != null) {
-//                    fileInputStream.close();
-//                }
-//                if (fileOutputStream != null) {
-//                    fileOutputStream.close();
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+    private String getFormulaValue(Cell cell) {
+        switch (cell.getCachedFormulaResultType()) {
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                    return sdf.format(cell.getDateCellValue());
+                } else {
+                    return Double.toString(cell.getNumericCellValue());
+                }
+            case STRING:
+                return cell.getStringCellValue();
+            case BOOLEAN:
+                return Boolean.toString(cell.getBooleanCellValue());
+            case ERROR:
+                return "ERROR";  // 处理错误情况
+            default:
+                return "";
+        }
+    }
 
     public String saveEditedCell(String filePath, Map<String, Map<String, Object>> cellData) {
         System.out.println("进来保存方法里了");
@@ -645,6 +515,8 @@ public class ExcelShowService {
                 int column = (int) cellDetails.get("column");
                 String value = (String) cellDetails.get("value");
 
+                String color = (String) cellDetails.get("color");
+
                 Sheet sheet = workbook.getSheet(sheetName);
                 if (sheet == null) {
                     continue;
@@ -665,9 +537,9 @@ public class ExcelShowService {
                     insertImageToCell(workbook, sheet, value, row, column);
                     cell.setCellValue("");
                 } else {
-                    if ("NG".equals(value) || "FAIL".equals(value) || "×".equals(value)) {
+                    if ("NG".equals(value) || "FAIL".equals(value) || "×".equals(value)|| "red".equals(color)) {
                         setCellFontColor(cell, "FF0000");
-                    } else {
+                    }else {
                         setCellFontColor(cell, "000000");
                     }
                     cell.setCellValue(value);
@@ -987,6 +859,11 @@ public class ExcelShowService {
         newStyle.cloneStyleFrom(originalStyle); // 复制当前单元格样式
         newStyle.setFont(font); // 设置新的字体颜色
 
+        // 设置居中格式,20240923 修改保存的时候单元格自动换行
+        newStyle.setAlignment(HorizontalAlignment.CENTER); // 水平居中
+        newStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直居中
+        newStyle.setWrapText(true); // 允许自动换行
+
         cell.setCellStyle(newStyle); // 应用新样式到单元格
     }
 
@@ -1235,7 +1112,24 @@ public class ExcelShowService {
     public int insertSample(String tester, String filepath, String model, String coding, String category, String version, String sample_name, String  planfinish_time,String create_time,String sample_schedule,int sample_frequency,int sample_quantity,
                             String big_species,String small_species,String high_frequency,String questStats) {
         String full_model = model + " " + coding;
-        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
+
+        // 定义日期时间格式
+        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // 定义匹配 '2024-09-20T18:43' 格式的日期时间格式
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+
+        // 解析字符串为 LocalDateTime
+        LocalDateTime createDateTime = LocalDateTime.parse(create_time, formatter1);
+        LocalDateTime planFinishDateTime = LocalDateTime.parse(planfinish_time, formatter2);
+
+        double planTestDuration = calculateWorkDays(createDateTime,planFinishDateTime,0);
+        // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
+        double adjustedWorkDays = Math.ceil(planTestDuration * 2) / 2;
+
+        System.out.println("adjustedWorkDays:"+adjustedWorkDays);
+
+        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,adjustedWorkDays);
     }
 
     public List<String> querySample(String model,String coding,String high_frequency){
@@ -1274,5 +1168,66 @@ public class ExcelShowService {
             return new ArrayList<>();
         }
     }
+
+    //计算测试时长testDuration
+    // 计算上班时间内的小时数，并换算成工作天数
+    // 计算工作天数，只计算工作时间段（早9到12点，下午1:30到6:30）
+    // 计算工作天数，只计算工作时间段（早9到12点，下午1:30到6:30）
+    public static double calculateWorkDays(LocalDateTime createTime, LocalDateTime finishTime, double restDays) {
+        // 计算两个日期之间的总工作小时数
+        double totalWorkHours = 0;
+        LocalDateTime currentDateTime = createTime;
+
+        while (currentDateTime.toLocalDate().isBefore(finishTime.toLocalDate()) || !currentDateTime.isAfter(finishTime)) {
+            // 计算当天工作时间
+            LocalDateTime endOfDay = currentDateTime.toLocalDate().atTime(18, 30);
+            LocalDateTime startOfDay = currentDateTime.toLocalDate().atTime(9, 0);
+
+            // 如果当天已经超过了完成时间，则调整结束时间
+            if (finishTime.isBefore(endOfDay)) {
+                endOfDay = finishTime;
+            }
+
+            // 计算早上时间段
+            LocalDateTime endMorning = currentDateTime.toLocalDate().atTime(12, 0);
+            LocalDateTime effectiveEndMorning = (finishTime.isBefore(endMorning) ? finishTime : endMorning);
+
+            if (currentDateTime.isBefore(effectiveEndMorning)) {
+                totalWorkHours += calculateTimeInPeriod(currentDateTime, effectiveEndMorning);
+            }
+
+            // 计算下午时间段
+            LocalDateTime startAfternoon = currentDateTime.toLocalDate().atTime(13, 30);
+            LocalDateTime effectiveStartAfternoon = (currentDateTime.isBefore(startAfternoon) ? startAfternoon : currentDateTime);
+            LocalDateTime endAfternoon = currentDateTime.toLocalDate().atTime(18, 30);
+
+            if (finishTime.isBefore(endAfternoon)) {
+                endAfternoon = finishTime;
+            }
+
+            if (effectiveStartAfternoon.isBefore(endAfternoon)) {
+                totalWorkHours += calculateTimeInPeriod(effectiveStartAfternoon, endAfternoon);
+            }
+
+            // 移动到第二天
+            currentDateTime = currentDateTime.toLocalDate().plusDays(1).atStartOfDay().plusHours(9);
+        }
+
+        // 将总工作时间转换为工作天数
+        double workDays = totalWorkHours / 8;
+
+        // 减去休息天数
+        workDays -= restDays;
+
+        // 保留一位小数
+        return Math.max(Math.round(workDays * 10) / 10.0, 0); // 确保返回值不小于0
+    }
+
+    private static double calculateTimeInPeriod(LocalDateTime startTime, LocalDateTime endTime) {
+        // 计算两个时间点之间的小时数
+        long minutes = ChronoUnit.MINUTES.between(startTime, endTime);
+        return Math.max(0, minutes / 60.0);
+    }
+
 
 }
