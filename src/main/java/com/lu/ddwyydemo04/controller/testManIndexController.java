@@ -364,9 +364,9 @@ public class testManIndexController {
 
 
             //如果有更新产品名称则需要更新文件名
-            String old_name = testManIndexService.querySample_name(sample);
+            String old_name = testManIndexService.querySample_name(sample_id);
             String oldFilePath = testManIndexService.queryFilepath(sample);
-            String oldtester = testManIndexService.queryTester(sample); //已经添加questStats,20240709
+            String oldtester = testManIndexService.queryTester(sample_id); //已经添加questStats,20240709
 
 
             if(!Objects.equals(oldtester, tester)){
@@ -405,7 +405,7 @@ public class testManIndexController {
             }
 
             //如果有更改当前测试人，则需要添加共同测试人
-            String tester_teamwork = testManIndexService.queryTester_teamwork(sample);
+            String tester_teamwork = testManIndexService.queryTester_teamwork(sample_id);
             boolean containsName = tester_teamwork.contains(tester);
             if(containsName){
                 testManIndexService.updateSample(sample);
@@ -1032,7 +1032,11 @@ public class testManIndexController {
         return Double.parseDouble(restDays);
     }
 
-
+    @GetMapping("/testManProfile") // 处理页面跳转请求
+    public String loginTestManProfile() {
+        // 返回跳转页面的视图名称
+        return "testManProfile";
+    }
 
 
 

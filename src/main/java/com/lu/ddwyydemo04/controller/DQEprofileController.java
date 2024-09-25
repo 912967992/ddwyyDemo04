@@ -11,15 +11,9 @@ import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
 
-import javax.servlet.http.HttpSession;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +38,7 @@ public class DQEprofileController {
     @GetMapping("/DQEprofile") // 处理页面跳转请求
     public String loginProfile() {
         // 返回跳转页面的视图名称
-        return "DQEprofile";
+        return "DQE/DQEprofile";
     }
 
 

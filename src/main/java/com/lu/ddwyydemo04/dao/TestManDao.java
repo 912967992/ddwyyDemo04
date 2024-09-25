@@ -37,13 +37,13 @@ public interface TestManDao {
 
 
     public LocalDateTime  queryCreateTime(@Param("sample_id")int sample_id);
-    public String querySample_name(Samples sample);
+    public String querySample_name(int sample_id);
 
     public String queryFilepath(Samples sample);
 
-    public String queryTester_teamwork(Samples sample);
+    public String queryTester_teamwork(int sample_id);
 
-    public String queryTester(Samples sample);
+    public String queryTester(int sample_id);
 
     public int deleteFilepath(String filepath);//根据文件删除sample数据库的数据
 
@@ -63,7 +63,9 @@ public interface TestManDao {
 
     public List<Samples> searchSampleTestMan(@Param("keyword") String keyword,
                                              @Param("problemTimeStart")String problemTimeStart,
-                                             @Param("problemTimeEnd")String problemTimeEnd);
+                                             @Param("problemTimeEnd")String problemTimeEnd,
+                                             @Param("problemFinishStart")String problemFinishStart,
+                                             @Param("problemFinishEnd")String problemFinishEnd);
 
 
 }

@@ -138,8 +138,8 @@
         // 表单提交时触发搜索
         let isSearching = false; // 添加一个标志来控制搜索状态
 
-            $('.search-form').on('submit', function(event) {
-                event.preventDefault(); // 防止表单的默认提交行为
+        $('.search-form').on('submit', function(event) {
+            event.preventDefault(); // 防止表单的默认提交行为
             if (!isSearching) { // 如果当前没有进行搜索
                 isSearching = true; // 设置为正在搜索
                 performSearch(); // 执行搜索
@@ -439,18 +439,18 @@
     // 添加点击事件监听器
     $(homeBtn).click(function() {
         // 跳转到主页
-        window.location.href = '/home';
+        window.location.href = '/DQEIndex';
     });
 
     $(cloudBtn).click(function() {
-        let userRole = 'testMan'; // 示例角色，可以动态获取
+        let userRole = 'DQE'; // 示例角色，可以动态获取
         // 跳转到搜索资源库页面
-        window.location.href = `/durationTable?dd_orientation=landscape&role=${encodedRole}`;
+        window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
     });
 
     $(profileBtn).click(function() {
         // 跳转到个人界面页面
-        window.location.href = '/testManProfile';
+        window.location.href = '/DQEprofile';
     });
 
     function editClickBtn(data){

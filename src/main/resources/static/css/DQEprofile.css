@@ -71,9 +71,9 @@ body {
 }
 .upload-download-container {
     margin: 0 auto;
-    width: 200px;
+    width: 500px;
 }
-.upload-btn,.download-btn{
+.upload-btn,.download-btn ,.skipDQE-btn{
     background-color: #4CAF50;
     border: none;
     color: white;

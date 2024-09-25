@@ -1,8 +1,19 @@
 #headerContainer {
+    /*display: flex;*/
+    /*justify-content: space-between;*/
+    /*align-items: center; !* 确保所有子项在交叉轴上居中 *!*/
+    /*padding: 10px;*/
+
     display: flex;
     justify-content: space-between;
-    align-items: center; /* 确保所有子项在交叉轴上居中 */
+    align-items: center;
     padding: 10px;
+    position: sticky; /* 让按钮容器冻结在顶部 */
+    top: 0; /* 固定在页面顶部 */
+    z-index: 10; /* 保证按钮容器在表格冻结行之上 */
+    background-color: #fff; /* 保持背景色 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加阴影提升视觉效果 */
+
 }
 
 .homeBtn {
@@ -335,21 +346,39 @@ button:hover {
 
 
 /*冻结窗格*/
+/* 冻结列 */
 .frozen-column {
     position: sticky;
     left: 0;
-    z-index: 2;
+    z-index: 5; /* 确保它在内容上方，但低于按钮容器 */
     background-color: #fff;
 }
 
 .frozen-row {
     position: sticky;
-    top: 0;
-    z-index: 3;
+    top: 100px; /* 确保冻结行位于按钮容器的下方 */
+    z-index: 4;
     background-color: #fff;
+
+
 }
 
 .frozen-corner {
-    z-index: 4;
+    z-index: 6;
 }
 
+/* 确保冻结的行和列的高度和宽度与非冻结部分一致 */
+.sync-height-row {
+    height: auto; /* 确保冻结行的高度自适应 */
+}
+
+.sync-height-column {
+    width: auto; /* 确保冻结列的宽度自适应 */
+}
+
+/* 防止被遮挡的内容超出单元格 */
+.sync-height-table td, .sync-height-table th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

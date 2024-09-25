@@ -74,20 +74,20 @@ public class TestManIndexService {
         return testManDao.queryCreateTime(sample_id);
     }
 
-    public String queryTester_teamwork(Samples sample){
-        return testManDao.queryTester_teamwork(sample);
+    public String queryTester_teamwork(int sample_id){
+        return testManDao.queryTester_teamwork(sample_id);
     }
 
-    public String querySample_name(Samples sample){
-        return testManDao.querySample_name(sample);
+    public String querySample_name(int sample_id){
+        return testManDao.querySample_name(sample_id);
     }
 
     public String queryFilepath(Samples sample){
         return testManDao.queryFilepath(sample);
     }
 
-    public String queryTester(Samples sample){
-        return testManDao.queryTester(sample);
+    public String queryTester(int sample_id){
+        return testManDao.queryTester(sample_id);
     }
 
     public int deleteFilepath(String filepath){

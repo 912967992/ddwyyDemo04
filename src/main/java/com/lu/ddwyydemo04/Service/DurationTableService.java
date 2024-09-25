@@ -12,8 +12,9 @@ public class DurationTableService {
     @Autowired
     private TestManDao testManDao;
 
-    public List<Samples> searchSampleTestMan(String keyword,String problemTimeStart,String problemTimeEnd){
-        return testManDao.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd);
+    public List<Samples> searchSampleTestMan(String keyword,String problemTimeStart,String problemTimeEnd,
+                                             String problemFinishStart,String problemFinishEnd){
+        return testManDao.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd,problemFinishStart, problemFinishEnd);
     }
 
 }

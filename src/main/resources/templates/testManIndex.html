@@ -21,7 +21,7 @@
     <meta name="wpk-bid" content="dta_1_3078576183">
 
 <div class="title-container">
-    <button id="announcement-btn">查看公告</button>
+    <button id="announcement-btn">查看公告(v1.0)</button>
     <div class="title">主页</div>
 </div>
 
@@ -31,7 +31,14 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，将测试设备改成显示设备。)</span></h2>
-            <p>
+            <p>2024.09.24：<br>
+                1.超出宽度自动换行<br>
+                2.图片在单元格展示 --黄兰姣建议<br>
+                3.类别新增一个选品 --蓝明城建议<br>
+                4.修改公式不展示正确值的bug --陈昱菲发现<br>
+                5.新增功能按钮-黑色红色字体 --黄兰姣建议<br>
+                6.新增功能按钮-冻结窗格    --程奕阳建议<br>
+                <br>
                 2024.9.19:<br>
                 1. 主页默认改为降序，最近时间创建的报告排在最上方。 --肖龙生发现<br>
                 2. 修改产品信息加上*号展示为必填项。--肖龙生建议<br>
@@ -41,7 +48,7 @@
                 6. 解决bug: xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，已解决，现在对浮点数类型不进行小数点限制。--龙运发现<br>
                 7. 提交报告的时候新增对缺少”测试问题点汇总“工作表的提示，方便找到提交失败的问题。<br>
                 8. 设置逾期判断，从2024.9.23号0点创建的文件开始计算。<br>
-                9. 可以查看各组员报告用时情况，可以导出为一份xlsx文件。
+                9. 可以查看各组员报告用时情况，可以导出为一份xlsx文件。<br>
 
                 <br>
                 2024.09.07：<br>
@@ -196,7 +203,7 @@
     <!-- 主页按钮 -->
     <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
     <!-- 搜索资源库按钮 -->
-    <button class="btn" id="cloudBtn" onclick="location.href='/durationTable?dd_orientation=landscape'"><i class="fas fa-cloud"></i></button>
+    <button class="btn" id="cloudBtn" ><i class="fas fa-cloud"></i></button>
     <!-- 个人界面按钮 -->
     <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
 </div>
@@ -283,6 +290,12 @@
     $(homeBtn).click(function() {
         // 跳转到主页
         window.location.href = '/home';
+    });
+
+    $(cloudBtn).click(function() {
+        let userRole = 'testMan'; // 示例角色，可以动态获取
+        // 跳转到搜索资源库页面
+        window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
     });
 
 

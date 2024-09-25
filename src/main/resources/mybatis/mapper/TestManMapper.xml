@@ -182,14 +182,7 @@
     <select id="querySample_name" resultType="String">
         SELECT sample_name FROM samples
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            questStats = #{questStats}
+            sample_id =#{sample_id}
     </select>
 
     <select id="queryFilepath" resultType="String">
@@ -209,28 +202,14 @@
     <select id="queryTester_teamwork" resultType="String">
         SELECT tester_teamwork FROM samples
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            questStats = #{questStats}
+                sample_id =#{sample_id}
     </select>
 
 
     <select id="queryTester" resultType="String">
         SELECT tester FROM samples
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            questStats = #{questStats}
+            sample_id =#{sample_id}
     </select>
 
     <delete id="deleteFilepath" parameterType="String">
@@ -320,9 +299,7 @@
             sample_id =#{sample_id}
     </update>
 
-<!--    <select id="searchSampleTestMan" resultType="Samples">-->
-<!--        select * from samples-->
-<!--    </select>-->
+
     <select id="searchSampleTestMan" resultType="Samples">
         SELECT * FROM samples
         WHERE
@@ -337,7 +314,9 @@
         priority LIKE CONCAT('%', #{keyword}, '%') OR
         questStats LIKE CONCAT('%', #{keyword}, '%'))
         AND (#{problemTimeStart} IS NULL OR create_time >= #{problemTimeStart})
-        AND (#{problemTimeEnd} IS NULL OR create_time &lt;= #{problemTimeEnd});
+        AND (#{problemTimeEnd} IS NULL OR create_time &lt;= #{problemTimeEnd})
+        AND (#{problemFinishStart} IS NULL OR finish_time >= #{problemFinishStart})
+        AND (#{problemFinishEnd} IS NULL OR finish_time &lt;= #{problemFinishEnd});
 
     </select>
 

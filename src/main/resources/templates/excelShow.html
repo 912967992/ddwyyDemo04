@@ -38,6 +38,7 @@
     <button id="gapFillBtn">一键填空</button>
     <button id="replaceBtn">替换</button>
     <button id="colorChangeBtn">颜色切换</button>
+    <button id="freezePaneBtn">冻结窗格</button>
 </div>
 
 <!-- 隐藏的填空容器 -->
@@ -63,6 +64,15 @@
         <button id="setRedColorBtn" style="background-color: red; color: white;">红色字体</button>
         <!-- 黑色按钮 -->
         <button id="setBlackColorBtn" style="background-color: black; color: white;">黑色字体</button>
+    </div>
+</div>
+
+
+<div id="freezePaneContainer" class="bubble" style="display:none;">
+    <input type="number" id="freezeRowsInput" placeholder="冻结的行数" min="0">
+    <input type="number" id="freezeColumnsInput" placeholder="冻结的列数" min="0">
+    <div class="button-container">
+        <button id="setFreezePaneBtn">设置冻结窗格</button>
     </div>
 </div>
 
@@ -488,7 +498,7 @@
 
 
     // 渲染表格
-    function renderSheetTable() {
+    function renderSheetTable(freezeRows = 0, freezeColumns = 0) {
         const sheetTableContainer = document.getElementById('sheetTableContainer');
         sheetTableContainer.innerHTML = '';
         if (sheetData.length > 0) {
@@ -619,6 +629,17 @@
 
                         cell.addEventListener('input', handleCellInput);
                         cell.addEventListener('paste', handleCellPaste);
+                    }
+
+                    // 冻结逻辑
+                    if (columnIndex < freezeColumns) {
+                        cell.classList.add('frozen-column');
+                    }
+                    if (rowIndex < freezeRows) {
+                        cell.classList.add('frozen-row');
+                    }
+                    if (rowIndex < freezeRows && columnIndex < freezeColumns) {
+                        cell.classList.add('frozen-corner');
                     }
 
                     let col_width = cell.getAttribute('data-col_width') - 15;
@@ -920,6 +941,9 @@
         selectContainer.style.justifyContent = 'center'; // 水平居中
         selectContainer.style.alignItems = 'center'; // 垂直居中
         selectContainer.style.height = '100%'; // 占满单元格高度
+
+        selectContainer.style.position = 'relative'; // 确保位置正确
+        selectContainer.style.zIndex = '1'; // 确保在冻结行下方
 
         selectContainer.appendChild(select);
         select.value = value;
@@ -1463,10 +1487,12 @@
         var gapFillContainer = document.getElementById('gapFillContainer');
         var replaceContainer = document.getElementById('replaceContainer');
         var colorContainer = document.getElementById("colorContainer");
+        var freezePaneContainer = document.getElementById("freezePaneContainer");
         functionBtn.addEventListener('click', function() {
             gapFillContainer.style.display = 'none';
             replaceContainer.style.display = 'none';
             colorContainer.style.display = 'none';
+            freezePaneContainer.style.display = 'none';
             toggleFunctionContainer();
         });
 
@@ -1483,6 +1509,13 @@
             // 在此处添加替换按钮的逻辑
             showColorContainer();
         });
+
+        document.getElementById('freezePaneBtn').addEventListener('click', function() {
+            // 在此处添加替换按钮的逻辑
+            showfreezePaneContainer();
+        });
+
+
 
 
         document.getElementById('cancelBtn').addEventListener('click', function() {
@@ -1537,6 +1570,18 @@
             colorContainer.style.transform = 'translateX(-50%)';
             colorContainer.style.display = 'block';
         }
+        function showfreezePaneContainer(){
+            functionContainer.style.display = 'none';
+            var button = document.getElementById('functionBtn'); // 使用 functionBtn 作为参考点
+            var rect = button.getBoundingClientRect();
+
+            freezePaneContainer.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            freezePaneContainer.style.left = (rect.left + rect.width / 2) + 'px';
+            freezePaneContainer.style.transform = 'translateX(-50%)';
+            freezePaneContainer.style.display = 'block';
+        }
+
+
 
         document.getElementById('startReplaceBtn').addEventListener('click', function() {
             var replaceInput = document.getElementById('replaceInput').value;
@@ -1647,6 +1692,15 @@
                 console.log('尚未选择单元格');
             }
         }
+
+        document.getElementById('setFreezePaneBtn').addEventListener('click', function() {
+            // 获取输入框的值
+            const freezeRows = document.getElementById('freezeRowsInput').value;
+            const freezeColumns = document.getElementById('freezeColumnsInput').value;
+
+            // 您可以在这里调用 renderSheetTable 函数来设置冻结窗格
+            renderSheetTable(Number(freezeRows), Number(freezeColumns));
+        });
 
 
         document.addEventListener('click', function(event) {

@@ -33,9 +33,14 @@ public class durationTableController {
 
 
     @GetMapping("/durationTable") // 处理页面跳转请求
-    public String loginCloud() {
-        // 返回跳转页面的视图名称
-        return "durationTable";
+    public String loginCloud(String role) {
+        System.out.println(role);
+        if(role.equals("DQE")){
+            return "DQE/durationTableDQE";
+        }else{
+            return "durationTable";
+        }
+
     }
 
 
@@ -52,7 +57,9 @@ public class durationTableController {
     public List<Samples> searchSampleTestMan(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "problemTimeStart", required = false) String problemTimeStart,
-            @RequestParam(value = "problemTimeEnd", required = false) String problemTimeEnd
+            @RequestParam(value = "problemTimeEnd", required = false) String problemTimeEnd,
+            @RequestParam(value = "problemFinishStart", required = false) String problemFinishStart,
+            @RequestParam(value = "problemFinishEnd", required = false) String problemFinishEnd
     ) {
         // 处理空字符串，转换为 null
         if (problemTimeStart != null && problemTimeStart.isEmpty()) {
@@ -61,8 +68,16 @@ public class durationTableController {
         if (problemTimeEnd != null && problemTimeEnd.isEmpty()) {
             problemTimeEnd = null;
         }
+        if (problemFinishStart != null && problemFinishStart.isEmpty()) {
+            problemFinishStart = null;
+        }
+        if (problemFinishEnd != null && problemFinishEnd.isEmpty()) {
+            problemFinishEnd = null;
+        }
+        System.out.println("problemFinishStart:"+problemFinishStart);
+        System.out.println("problemFinishEnd:"+problemFinishEnd);
 
-        List<Samples> resultSamples = durationTableService.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd);
+        List<Samples> resultSamples = durationTableService.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd, problemFinishStart, problemFinishEnd);
         return resultSamples;
     }
 
