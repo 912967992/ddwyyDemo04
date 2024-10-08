@@ -34,7 +34,7 @@
 
             <button class="upload-btn" id="uploadBtn" style="display: none;">上传模板</button>
 
-            <button class="skipDQE-btn" id="skipDQEBtn" style="display: none;">切换到DQE页面</button>
+            <button class="skipDQE-btn" id="skipDQEBtn" style="display: none;">切换到测试人员页面</button>
         </div>
     </div>
 
@@ -167,7 +167,7 @@
 
             // 点击关闭按钮或模态框外部区域关闭模态框
             skipDQEBtn.onclick = function() {
-                window.location.href = '/DQEIndex';
+                window.location.href = '/testManIndex';
             }
 
             // 检查职位信息中是否包含 "DQE"，根据条件显示按钮

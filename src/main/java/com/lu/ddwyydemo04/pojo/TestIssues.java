@@ -22,12 +22,6 @@ public class TestIssues {
     // 芯片方案
     private String chip_solution;
 
-    // 报告日期，格式为 'YYYYMMDD'
-    private String problem_time;
-
-    // 测试人员
-    private String tester;
-
     // 测试平台
     private String test_platform;
 
@@ -41,6 +35,10 @@ public class TestIssues {
 
     // 问题视频或图片路径
     private String problem_image_or_video;
+
+
+    // 报告日期，格式为 'YYYYMMDD'
+    private String problem_time;
 
     // 复现手法
     private String reproduction_method;
@@ -59,6 +57,10 @@ public class TestIssues {
 
     // 对比上一版或竞品
     private String comparison_with_previous;
+
+    // 测试人员
+    private String tester;
+
 
     // DQE & 研发确认
     private String dqe_and_development_confirm;
@@ -87,16 +89,8 @@ public class TestIssues {
     // 关联的样品ID
     private int sample_id;
 
-    private String final_status;
-    private String modifier;
-    private LocalDateTime modified_time;
 
-    private String dqe_status;
-    private String dqe_comments;
-    private LocalDateTime dqe_reviewed_at;
-    private String rd_status;
-    private String rd_comments;
-    private LocalDateTime rd_reviewed_at;
+
 
     public Long getId() {
         return id;
@@ -314,77 +308,6 @@ public class TestIssues {
         this.sample_id = sample_id;
     }
 
-    public String getFinal_status() {
-        return final_status;
-    }
-
-    public void setFinal_status(String final_status) {
-        this.final_status = final_status;
-    }
-
-    public String getModifier() {
-        return modifier;
-    }
-
-    public void setModifier(String modifier) {
-        this.modifier = modifier;
-    }
-
-    public LocalDateTime getModified_time() {
-        return modified_time;
-    }
-
-    public void setModified_time(LocalDateTime modified_time) {
-        this.modified_time = modified_time;
-    }
-
-    public String getDqe_status() {
-        return dqe_status;
-    }
-
-    public void setDqe_status(String dqe_status) {
-        this.dqe_status = dqe_status;
-    }
-
-    public String getDqe_comments() {
-        return dqe_comments;
-    }
-
-    public void setDqe_comments(String dqe_comments) {
-        this.dqe_comments = dqe_comments;
-    }
-
-    public LocalDateTime getDqe_reviewed_at() {
-        return dqe_reviewed_at;
-    }
-
-    public void setDqe_reviewed_at(LocalDateTime dqe_reviewed_at) {
-        this.dqe_reviewed_at = dqe_reviewed_at;
-    }
-
-    public String getRd_status() {
-        return rd_status;
-    }
-
-    public void setRd_status(String rd_status) {
-        this.rd_status = rd_status;
-    }
-
-    public String getRd_comments() {
-        return rd_comments;
-    }
-
-    public void setRd_comments(String rd_comments) {
-        this.rd_comments = rd_comments;
-    }
-
-    public LocalDateTime getRd_reviewed_at() {
-        return rd_reviewed_at;
-    }
-
-    public void setRd_reviewed_at(LocalDateTime rd_reviewed_at) {
-        this.rd_reviewed_at = rd_reviewed_at;
-    }
 
     @Override
     public String toString() {
@@ -416,15 +339,6 @@ public class TestIssues {
                 ", created_at=" + created_at +
                 ", history_id=" + history_id +
                 ", sample_id=" + sample_id +
-                ", final_status='" + final_status + '\'' +
-                ", modifier='" + modifier + '\'' +
-                ", modified_time=" + modified_time +
-                ", dqe_status='" + dqe_status + '\'' +
-                ", dqe_comments='" + dqe_comments + '\'' +
-                ", dqe_reviewed_at=" + dqe_reviewed_at +
-                ", rd_status='" + rd_status + '\'' +
-                ", rd_comments='" + rd_comments + '\'' +
-                ", rd_reviewed_at=" + rd_reviewed_at +
                 '}';
     }
 }

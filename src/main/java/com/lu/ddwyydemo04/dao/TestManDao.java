@@ -45,7 +45,8 @@ public interface TestManDao {
 
     public String queryTester(int sample_id);
 
-    public int deleteFilepath(String filepath);//根据文件删除sample数据库的数据
+    public int deleteFromTestIssues(int sample_id);//根据文件删除sample数据库的数据
+    public int deleteFromSamples(int sample_id);//根据文件删除sample数据库的数据
 
     //提取问题点相关
     public int querySampleId(String filepath);//根据文件删除sample数据库的数据
@@ -65,7 +66,8 @@ public interface TestManDao {
                                              @Param("problemTimeStart")String problemTimeStart,
                                              @Param("problemTimeEnd")String problemTimeEnd,
                                              @Param("problemFinishStart")String problemFinishStart,
-                                             @Param("problemFinishEnd")String problemFinishEnd);
+                                             @Param("problemFinishEnd")String problemFinishEnd,
+                                             @Param("sample_schedule")String sample_schedule);
 
 
 }

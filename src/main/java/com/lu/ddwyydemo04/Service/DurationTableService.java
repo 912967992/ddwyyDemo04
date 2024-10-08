@@ -13,8 +13,8 @@ public class DurationTableService {
     private TestManDao testManDao;
 
     public List<Samples> searchSampleTestMan(String keyword,String problemTimeStart,String problemTimeEnd,
-                                             String problemFinishStart,String problemFinishEnd){
-        return testManDao.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd,problemFinishStart, problemFinishEnd);
+                                             String problemFinishStart,String problemFinishEnd,String sample_schedule){
+        return testManDao.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd,problemFinishStart, problemFinishEnd,sample_schedule);
     }
 
 }

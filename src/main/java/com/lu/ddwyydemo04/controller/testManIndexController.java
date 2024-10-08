@@ -323,6 +323,7 @@ public class testManIndexController {
 
             // 调用服务类的方法来更新样品信息
             Samples sample = new Samples();
+            sample.setSample_id(sample_id);
             sample.setSample_model(editModel);
             sample.setSample_coding(editCoding);
             sample.setSample_category(editCategory);
@@ -744,12 +745,15 @@ public class testManIndexController {
 
 
 
-    @PostMapping("/testManIndex/deleteFilepath")
+    @PostMapping("/testManIndex/deleteSampleAndIssues")
     @ResponseBody
     public Map<String, Object> deleteFilepath(@RequestBody Map<String, String> request){
         Map<String, Object> response = new HashMap<>();
         String filepath = request.get("filepath");
+        String sample_id = request.get("sample_id");
+        int sampleId = Integer.parseInt(sample_id);
 
+        logger.info("删除json文件sample_id："+sampleId);
         logger.info("删除json文件："+filepath);
         //删除文件夹里的文件,后续要备份则需要在这里增加备份到别的路径的处理
         try {
@@ -760,8 +764,9 @@ public class testManIndexController {
 
             // 如果需要备份，可以在这里添加备份的代码
             // backupFile(fileToDeletePath);
-            int deleteJudge = testManIndexService.deleteFilepath(filepath);
-            if(deleteJudge==1){
+            int deleteJudge = testManIndexService.deleteFromTestIssues(sampleId);
+            int deleteJudge2 = testManIndexService.deleteFromSamples(sampleId);
+            if(deleteJudge2==1){
                 // 返回成功响应
                 response.put("oldFilePath",filepath);
                 response.put("status", "success");

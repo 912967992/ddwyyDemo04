@@ -90,8 +90,12 @@ public class TestManIndexService {
         return testManDao.queryTester(sample_id);
     }
 
-    public int deleteFilepath(String filepath){
-        return testManDao.deleteFilepath(filepath);
+    public int deleteFromTestIssues(int sample_id){
+        return testManDao.deleteFromTestIssues(sample_id);
+    }
+
+    public int deleteFromSamples(int sample_id){
+        return testManDao.deleteFromSamples(sample_id);
     }
 
     //提取问题点的相关服务层

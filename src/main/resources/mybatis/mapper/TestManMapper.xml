@@ -107,14 +107,7 @@
             sample_remark = #{sample_remark},
             planTestDuration = #{planTestDuration}
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            questStats = #{questStats}
+            sample_id =#{sample_id}
     </update>
 
     <update id="updateSampleTeamWork" parameterType="Samples">
@@ -137,14 +130,7 @@
             sample_remark = #{sample_remark},
             planTestDuration = #{planTestDuration}
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            questStats = #{questStats}
+            sample_id =#{sample_id}
     </update>
 
     <update id="finishTest" >
@@ -212,9 +198,13 @@
             sample_id =#{sample_id}
     </select>
 
-    <delete id="deleteFilepath" parameterType="String">
-        DELETE FROM samples WHERE filepath = #{filepath}
+    <delete id="deleteFromTestIssues">
+        DELETE FROM test_issues WHERE sample_id = #{sampleId}
     </delete>
+    <delete id="deleteFromSamples">
+        DELETE FROM samples WHERE sample_id = #{sampleId}
+    </delete>
+
 
 
 
@@ -306,18 +296,21 @@
         (#{keyword} IS NULL OR
         sample_model LIKE CONCAT('%', #{keyword}, '%') OR
         sample_coding LIKE CONCAT('%', #{keyword}, '%') OR
-        sample_name LIKE CONCAT('%', #{keyword}, '%') OR
         full_model LIKE CONCAT('%', #{keyword}, '%') OR
+        sample_name LIKE CONCAT('%', #{keyword}, '%') OR
+        sample_category LIKE CONCAT('%', #{keyword}, '%') OR
+        version LIKE CONCAT('%', #{keyword}, '%') OR
         supplier LIKE CONCAT('%', #{keyword}, '%') OR
         big_species LIKE CONCAT('%', #{keyword}, '%') OR
         small_species LIKE CONCAT('%', #{keyword}, '%') OR
         priority LIKE CONCAT('%', #{keyword}, '%') OR
-        questStats LIKE CONCAT('%', #{keyword}, '%'))
+        questStats LIKE CONCAT('%', #{keyword}, '%')) OR
+        tester LIKE CONCAT('%', #{keyword}, '%'))
         AND (#{problemTimeStart} IS NULL OR create_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR create_time &lt;= #{problemTimeEnd})
         AND (#{problemFinishStart} IS NULL OR finish_time >= #{problemFinishStart})
-        AND (#{problemFinishEnd} IS NULL OR finish_time &lt;= #{problemFinishEnd});
-
+        AND (#{problemFinishEnd} IS NULL OR finish_time &lt;= #{problemFinishEnd})
+        AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule});
     </select>
 
 </mapper>

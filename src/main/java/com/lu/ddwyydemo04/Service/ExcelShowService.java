@@ -45,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //此服务层主要用于填写测试报告页面的详细功能方法！
 @Service
@@ -84,115 +85,240 @@ public class ExcelShowService {
 
 
     //20240917:限制列数解析最大为100，行数则如果连续10行为空则停止解析往下一个工作表
-    public List<List<Object>> getSheetData(@RequestParam String sheetName, String file_path) {
+//    public List<List<Object>> getSheetData(@RequestParam String sheetName, String file_path) {
+//        List<List<Object>> sheetData = new ArrayList<>();
+//        try (InputStream is = new FileInputStream(file_path)) {
+//            Workbook workbook = WorkbookFactory.create(is);
+//            Sheet sheet = workbook.getSheet(sheetName);
+//            if (sheet != null) {
+//                // 获取合并区域的列表
+//                List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
+//                Drawing<?> drawing = sheet.createDrawingPatriarch();
+//
+//                // 检查 lastRowNum 是否为 -1，如果是则设为 0
+//                int lastRowNum = sheet.getLastRowNum() == -1 ? 0 : sheet.getLastRowNum();
+//                int col_width = 0;
+//                int maxCols = 100; // 最大列数限制
+//
+//                int emptyRowCount = 0; // 空行计数器
+//
+//                for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
+//                    Row row = sheet.getRow(rowNum);
+//                    List<Object> rowData = new ArrayList<>();
+//
+//                    if (row != null) {
+//                        // 如果 row.getLastCellNum() 为 -1，表示没有单元格，设置为 0
+//                        int lastCellNum = row.getLastCellNum() == -1 ? 0 : Math.min(row.getLastCellNum(), maxCols);
+//
+//                        boolean isRowEmpty = true; // 标记当前行是否为空
+//
+//                        for (int colNum = 0; colNum < lastCellNum; colNum++) {
+//                            Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+//
+//                            String colorStr = getColorAsString(cell);
+//                            String color = "";
+//
+//                            // 如果单元格有内容，标记此行不为空
+//                            if (cell.getCellType() != CellType.BLANK) {
+//                                isRowEmpty = false;
+//                            }
+//
+//                            System.out.println(sheetName + ","+rowNum + "," + colNum);
+//                            if(sheetName.equals("封面")&&rowNum==31&&colNum==0){
+//                                System.out.println(sheetName + ","+rowNum + "," + colNum);
+//                                System.out.println(getCellValue(cell));
+//                            }
+//
+//                            // 检查颜色是否为黑色，处理黑色单元格
+//                            if ("000000".equals(colorStr)) {
+//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+//                                color = "black";
+//
+//                                // 获取cell的字符宽度
+//                                col_width = getCellWidth(cell, sheet, colNum);
+//
+//                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
+//
+//                            } else if ("FF0000".equals(colorStr)) { // 处理红色单元格
+//                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+//                                color = "red";
+//
+//                                col_width = getCellWidth(cell, sheet, colNum);
+//                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
+//                            }
+//                        }
+//
+//                        // 如果整行为空，则增加空行计数
+//                        if (isRowEmpty) {
+//                            emptyRowCount++;
+//                        } else {
+//                            emptyRowCount = 0; // 如果当前行不为空，重置空行计数
+//                        }
+//
+//                        // 如果连续 10 行为空，跳出循环
+//                        if (emptyRowCount >= 10) {
+//                            break;
+//                        }
+//
+//                        // 即使行数据为空也添加到sheetData中
+//                        if (!rowData.isEmpty()) {
+//                            sheetData.add(rowData);
+//                        }
+//                    } else {
+//                        // 如果行对象本身为空，也计为空行
+//                        emptyRowCount++;
+//
+//                        // 如果连续 10 行为空，跳出循环
+//                        if (emptyRowCount >= 10) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            logger.error("读取文件失败", file_path, e);
+//            throw new ExcelOperationException(500, "读取文件失败");
+//        }
+//
+//        // 将 "封面" 工作表的数据写入 TXT 文件,调试用
+////        if ("封面".equals(sheetName)) {
+////            try (BufferedWriter writer = new BufferedWriter(new FileWriter("封面Data.txt"))) {
+////                for (List<Object> row : sheetData) {
+////                    writer.write(row.stream().map(Object::toString).collect(Collectors.joining(",")));
+////                    writer.newLine();
+////                }
+////            } catch (IOException e) {
+////                logger.error("保存文件失败", e);
+////                throw new ExcelOperationException(500, "保存文件失败");
+////            }
+////        }
+//        return sheetData;
+//    }
+
+    //传workbook防止内存泄漏
+    public List<List<Object>> getSheetData(String sheetName, Workbook workbook,String file_path) {
         List<List<Object>> sheetData = new ArrayList<>();
-        try (InputStream is = new FileInputStream(file_path)) {
-            Workbook workbook = WorkbookFactory.create(is);
-            Sheet sheet = workbook.getSheet(sheetName);
-            if (sheet != null) {
-                // 获取合并区域的列表
-                List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
-                Drawing<?> drawing = sheet.createDrawingPatriarch();
+        Sheet sheet = workbook.getSheet(sheetName); // 直接使用传入的 workbook
+        if (sheet != null) {
+            // 获取合并区域的列表
+            List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
+            Drawing<?> drawing = sheet.createDrawingPatriarch();
 
-                // 检查 lastRowNum 是否为 -1，如果是则设为 0
-                int lastRowNum = sheet.getLastRowNum() == -1 ? 0 : sheet.getLastRowNum();
-                int col_width = 0;
-                int maxCols = 100; // 最大列数限制
+            int lastRowNum = sheet.getLastRowNum() == -1 ? 0 : sheet.getLastRowNum();
+            int col_width = 0;
+            int maxCols = 100; // 最大列数限制
 
-                int emptyRowCount = 0; // 空行计数器
+            int emptyRowCount = 0; // 空行计数器
 
-                for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
-                    Row row = sheet.getRow(rowNum);
-                    List<Object> rowData = new ArrayList<>();
+            for (int rowNum = 0; rowNum <= lastRowNum; rowNum++) {
+                Row row = sheet.getRow(rowNum);
+                List<Object> rowData = new ArrayList<>();
 
-                    if (row != null) {
-                        // 如果 row.getLastCellNum() 为 -1，表示没有单元格，设置为 0
-                        int lastCellNum = row.getLastCellNum() == -1 ? 0 : Math.min(row.getLastCellNum(), maxCols);
+                if (row != null) {
+                    int lastCellNum = row.getLastCellNum() == -1 ? 0 : Math.min(row.getLastCellNum(), maxCols);
+                    boolean isRowEmpty = true; // 标记当前行是否为空
 
-                        boolean isRowEmpty = true; // 标记当前行是否为空
+                    for (int colNum = 0; colNum < lastCellNum; colNum++) {
+                        Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        String colorStr = getColorAsString(cell);
+                        String color = "";
 
-                        for (int colNum = 0; colNum < lastCellNum; colNum++) {
-                            Cell cell = row.getCell(colNum, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                            String colorStr = getColorAsString(cell);
-                            String color = "";
-
-                            // 如果单元格有内容，标记此行不为空
-                            if (cell.getCellType() != CellType.BLANK) {
-                                isRowEmpty = false;
-                            }
-
-                            // 检查颜色是否为黑色，处理黑色单元格
-                            if ("000000".equals(colorStr)) {
-                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-                                color = "black";
-
-                                // 获取cell的字符宽度
-                                col_width = getCellWidth(cell, sheet, colNum);
-
-                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
-
-                            } else if ("FF0000".equals(colorStr)) { // 处理红色单元格
-                                CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
-                                color = "red";
-
-                                col_width = getCellWidth(cell, sheet, colNum);
-                                getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
-                            }
+                        if (cell.getCellType() != CellType.BLANK) {
+                            isRowEmpty = false;
                         }
 
-                        // 如果整行为空，则增加空行计数
-                        if (isRowEmpty) {
-                            emptyRowCount++;
-                        } else {
-                            emptyRowCount = 0; // 如果当前行不为空，重置空行计数
+                        if ("000000".equals(colorStr)) {
+                            CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+                            color = "black";
+                            col_width = getCellWidth(cell, sheet, colNum);
+                            getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width, file_path);
+                        } else if ("FF0000".equals(colorStr)) {
+                            CellRangeAddress mergedRegion = getMergedRegion(cell, mergedRegions);
+                            color = "red";
+                            col_width = getCellWidth(cell, sheet, colNum);
+                            getRowData(mergedRegion, cell, drawing, sheetName, rowNum, colNum, rowData, color, col_width ,file_path);
                         }
+                    }
 
-                        // 如果连续 10 行为空，跳出循环
-                        if (emptyRowCount >= 10) {
-                            break;
-                        }
-
-                        // 即使行数据为空也添加到sheetData中
-                        if (!rowData.isEmpty()) {
-                            sheetData.add(rowData);
-                        }
-                    } else {
-                        // 如果行对象本身为空，也计为空行
+                    if (isRowEmpty) {
                         emptyRowCount++;
+                    } else {
+                        emptyRowCount = 0;
+                    }
 
-                        // 如果连续 10 行为空，跳出循环
-                        if (emptyRowCount >= 10) {
-                            break;
-                        }
+                    if (emptyRowCount >= 10) {
+                        break;
+                    }
+
+                    if (!rowData.isEmpty()) {
+                        sheetData.add(rowData);
+                    }
+                } else {
+                    emptyRowCount++;
+                    if (emptyRowCount >= 10) {
+                        break;
                     }
                 }
             }
-        } catch (IOException e) {
-            logger.error("读取文件失败", file_path, e);
-            throw new ExcelOperationException(500, "读取文件失败");
         }
         return sheetData;
     }
 
+//    public List<List<List<Object>>> getAllSheetData(String filepath) {
+//        List<List<List<Object>>> allSheetData = new ArrayList<>();
+//        try (InputStream is = new FileInputStream(filepath)) {
+//            Workbook workbook = WorkbookFactory.create(is);
+//            int numberOfSheets = workbook.getNumberOfSheets();
+//            for (int i = 0; i < numberOfSheets; i++) {
+////                Sheet sheet = workbook.getSheetAt(i);
+//                String sheetName = workbook.getSheetName(i); // 获取工作表名字
+//                System.out.println("sheetName111:"+sheetName);
+//                List<List<Object>> sheetData = getSheetData(sheetName, filepath); // 调用 getSheetData 方法
+//                allSheetData.add(sheetData);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        //将解析好的数据保存为一份json文件
+//        saveDataAsJson(allSheetData, filepath);
+//
+//        // 打印 allSheetData 到 TXT 文件
+////        printDataToTxt(allSheetData, "output.txt");
+//        return allSheetData;
+//    }
 
     public List<List<List<Object>>> getAllSheetData(String filepath) {
         List<List<List<Object>>> allSheetData = new ArrayList<>();
         try (InputStream is = new FileInputStream(filepath)) {
-            Workbook workbook = WorkbookFactory.create(is);
+            Workbook workbook = WorkbookFactory.create(is); // 创建一次 Workbook
             int numberOfSheets = workbook.getNumberOfSheets();
             for (int i = 0; i < numberOfSheets; i++) {
-//                Sheet sheet = workbook.getSheetAt(i);
                 String sheetName = workbook.getSheetName(i); // 获取工作表名字
-                List<List<Object>> sheetData = getSheetData(sheetName, filepath); // 调用 getSheetData 方法
+                System.out.println("解析了工作表名字:" + sheetName);
+                List<List<Object>> sheetData = getSheetData(sheetName, workbook, filepath); // 将 workbook 传入
                 allSheetData.add(sheetData);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //将解析好的数据保存为一份json文件
+        // 将解析好的数据保存为一份json文件
         saveDataAsJson(allSheetData, filepath);
         return allSheetData;
+    }
+
+    //打印allSheetData调试用
+    private void printDataToTxt(List<List<List<Object>>> allSheetData, String outputFilePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+            for (List<List<Object>> sheet : allSheetData) {
+                for (List<Object> row : sheet) {
+                    writer.write(row.toString()); // 将每行数据写入文件
+                    writer.newLine(); // 换行
+                }
+                writer.newLine(); // 每个工作表之间添加空行
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     //将allSheetData转换成json文件保存到jsonpath路径下
@@ -358,73 +484,93 @@ public class ExcelShowService {
         return null;
     }
 
-    private String saveImageFromCell(Cell cell, Drawing<?> drawing, String sheetName, int rowIndex, int columnIndex,String filepath,Integer  finalCurrentCol) {
+//    private String saveImageFromCell(Cell cell, Drawing<?> drawing, String sheetName, int rowIndex, int columnIndex,String filepath,Integer  finalCurrentCol) {
+//        try {
+//            // 检查单元格是否包含图片
+//            for (Shape shape : drawing) {
+//                if (shape instanceof Picture) {
+//                    Picture picture = (Picture) shape;
+//                    ClientAnchor anchor = picture.getClientAnchor();
+//
+//                    if (finalCurrentCol == anchor.getCol1() && cell.getRowIndex() == anchor.getRow1()) {
+//
+//                        // 获取图片数据
+//                        byte[] pictureData = picture.getPictureData().getData();
+//
+//                        int lastIndex = filepath.lastIndexOf('\\');
+//                        String fileName = filepath.substring(lastIndex + 1);
+//
+//                        // 生成图片文件名
+//                        String imageName = fileName + "_" + sheetName + "_" + rowIndex + "_" + columnIndex + ".png";
+//
+//                        // 检查并创建目录
+//                        if (!Files.exists(getImageLocationC())) {
+//                            Files.createDirectories(getImageLocationC());
+//                        }
+//
+//                        // 检查文件是否已存在
+//                        Path imagePathC = getImageLocationC().resolve(imageName);
+//                            // 保存图片到C盘目录
+//                        Files.write(imagePathC, pictureData);
+//                        // 返回图片文件路径（保持路径格式不变）
+//                        return "/imageDirectory/" + imageName;
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return "";
+//
+//    }
+
+    //20240926 因为龙运有一个US355 80150_功能样_A1_第1次送样_USB-C_M TO USB-C_M Gen2 240W 黑色编织网数线(铝壳款) 里边的140W功能测试的10，3会导致
+//    报错空指针，找不到原因，要么创建副本就好，要么就是换成下边的方法，下边的方法会直接将报错的空指针跳过绘制成空的单元格！
+    private String saveImageFromCell(Cell cell, Drawing<?> drawing, String sheetName, int rowIndex, int columnIndex, String filepath, Integer finalCurrentCol) {
         try {
             // 检查单元格是否包含图片
             for (Shape shape : drawing) {
                 if (shape instanceof Picture) {
                     Picture picture = (Picture) shape;
+
+                    // 确保 picture 和其相关的 anchor 不为 null
                     ClientAnchor anchor = picture.getClientAnchor();
 
-//                    if (cell.getColumnIndex() == anchor.getCol1() && cell.getRowIndex() == anchor.getRow1()) {
-                    if (finalCurrentCol == anchor.getCol1() && cell.getRowIndex() == anchor.getRow1()) {
-//                    if (isImageInColumn && cell.getRowIndex() == anchor.getRow1()) {
-                        // 获取图片数据
-                        byte[] pictureData = picture.getPictureData().getData();
+                    if (anchor != null && finalCurrentCol == anchor.getCol1() && cell.getRowIndex() == anchor.getRow1()) {
+                        // 增加对 picture.getPictureData() 的空指针检查
+                        if (picture.getPictureData() != null) {
+                            byte[] pictureData = picture.getPictureData().getData();
 
-                        int lastIndex = filepath.lastIndexOf('\\');
-                        String fileName = filepath.substring(lastIndex + 1);
+                            int lastIndex = filepath.lastIndexOf('\\');
+                            String fileName = filepath.substring(lastIndex + 1);
 
-                        // 生成图片文件名
-                        String imageName = fileName + "_" + sheetName + "_" + rowIndex + "_" + columnIndex + ".png";
+                            // 生成图片文件名
+                            String imageName = fileName + "_" + sheetName + "_" + rowIndex + "_" + columnIndex + ".png";
 
-                        // 检查并创建目录
-                        if (!Files.exists(getImageLocationC())) {
-                            Files.createDirectories(getImageLocationC());
+                            // 检查并创建目录
+                            if (!Files.exists(getImageLocationC())) {
+                                Files.createDirectories(getImageLocationC());
+                            }
+
+                            // 保存图片到指定目录
+                            Path imagePathC = getImageLocationC().resolve(imageName);
+                            Files.write(imagePathC, pictureData);
+
+                            // 返回图片文件路径
+                            return "/imageDirectory/" + imageName;
                         }
-
-                        // 检查文件是否已存在
-                        Path imagePathC = getImageLocationC().resolve(imageName);
-//                        if (!Files.exists(imagePathC)) {
-                            // 保存图片到C盘目录
-                        Files.write(imagePathC, pictureData);
-//                        }
-                        // 返回图片文件路径（保持路径格式不变）
-                        return "/imageDirectory/" + imageName;
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException e) {
+            // 处理空指针异常以确保继续执行
+            e.printStackTrace();
         }
         return "";
-
     }
 
-
-//    private String getCellValue(Cell cell) {
-//        if (cell == null) {
-//            return "";
-//        }
-//        DecimalFormat df = new DecimalFormat("#");
-//        switch (cell.getCellType()) {
-//            case STRING:
-//                return cell.getStringCellValue();
-//            case NUMERIC://这里的处理是为了让解析的时候不自动转换为日期形式：2.0240527E7
-//                if (DateUtil.isCellDateFormatted(cell)) {
-//                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-//                    return sdf.format(cell.getDateCellValue());
-//                } else {
-//                    return df.format(cell.getNumericCellValue());
-//                }
-//            case BOOLEAN:
-//                return Boolean.toString(cell.getBooleanCellValue());
-//            case BLANK:
-//                return "";
-//            default:
-//                return "";
-//        }
-//    }
 
     //解决小数点被保留位整数的bug
     private String getCellValue(Cell cell) {
@@ -439,21 +585,24 @@ public class ExcelShowService {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
                     return sdf.format(cell.getDateCellValue());
                 } else {
-                    // 使用 Double.toString() 直接返回数值字符串，保留所有小数位
-                    return Double.toString(cell.getNumericCellValue());
+                    double numericValue = cell.getNumericCellValue();
+                    // 检查是否为整数
+                    if (numericValue == Math.floor(numericValue)) {
+                        return String.valueOf((int) numericValue); // 转换为整数格式
+                    } else {
+                        return Double.toString(numericValue); // 保留小数
+                    }
                 }
             case BOOLEAN:
                 return Boolean.toString(cell.getBooleanCellValue());
             case FORMULA:
-                // 处理公式，获取公式结果
-                return getFormulaValue(cell);
+                return getFormulaValue(cell); // 处理公式
             case BLANK:
                 return "";
             default:
                 return "";
         }
     }
-
     private String getFormulaValue(Cell cell) {
         switch (cell.getCachedFormulaResultType()) {
             case NUMERIC:

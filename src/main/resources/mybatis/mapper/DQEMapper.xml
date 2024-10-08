@@ -15,11 +15,17 @@
     </select>
 
     <select id="selectTestIssuesFromSampleid" resultType="TestIssues">
-        SELECT * FROM test_issues
-        WHERE sample_id =#{sampleId}
-
+        SELECT *
+        FROM test_issues
+        WHERE sample_id = #{sampleId}
+          AND created_by = 'tester'
+          AND history_id = (
+            SELECT MAX(history_id)
+            FROM test_issues
+            WHERE sample_id = #{sampleId}
+              AND created_by = 'tester'
+        )
     </select>
-
 
     <select id="searchSamplesDQE" resultType="Samples">
         select * from samples

@@ -41,6 +41,16 @@
             <input type="date" id="problemFinishEnd" placeholder="完成日期结束">
         </div>
 
+        <div class="input-group">
+            <label for="sample_schedule">样品进度:</label>
+            <select id="sample_schedule" name="sample_schedule">
+                <option value="">选择进度</option>
+                <option value="0">测试中</option>
+                <option value="1">待审核</option>
+                <option value="2">已完成</option>
+            </select>
+        </div>
+
 
         <!-- 搜索按钮 -->
         <button type="submit">搜索</button>
@@ -153,6 +163,7 @@
             var problemTimeEnd = $('#problemTimeEnd').val();
             var problemFinishStart = $('#problemFinishStart').val();
             var problemFinishEnd = $('#problemFinishEnd').val();
+            var sample_schedule = $('#sample_schedule').val();
 
             // 构建查询参数
             var formData = {
@@ -160,7 +171,8 @@
                 problemTimeStart: problemTimeStart,
                 problemTimeEnd: problemTimeEnd,
                 problemFinishStart: problemFinishStart,
-                problemFinishEnd: problemFinishEnd
+                problemFinishEnd: problemFinishEnd,
+                sample_schedule: sample_schedule
             };
 
             // 发起 AJAX 请求

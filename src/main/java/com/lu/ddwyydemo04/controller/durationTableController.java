@@ -59,7 +59,8 @@ public class durationTableController {
             @RequestParam(value = "problemTimeStart", required = false) String problemTimeStart,
             @RequestParam(value = "problemTimeEnd", required = false) String problemTimeEnd,
             @RequestParam(value = "problemFinishStart", required = false) String problemFinishStart,
-            @RequestParam(value = "problemFinishEnd", required = false) String problemFinishEnd
+            @RequestParam(value = "problemFinishEnd", required = false) String problemFinishEnd,
+            @RequestParam(value = "sample_schedule", required = false) String sample_schedule
     ) {
         // 处理空字符串，转换为 null
         if (problemTimeStart != null && problemTimeStart.isEmpty()) {
@@ -74,10 +75,16 @@ public class durationTableController {
         if (problemFinishEnd != null && problemFinishEnd.isEmpty()) {
             problemFinishEnd = null;
         }
+        if (sample_schedule != null && sample_schedule.isEmpty()) {
+            sample_schedule = null;
+        }
+
         System.out.println("problemFinishStart:"+problemFinishStart);
         System.out.println("problemFinishEnd:"+problemFinishEnd);
+        System.out.println("sample_schedule:"+sample_schedule);
 
-        List<Samples> resultSamples = durationTableService.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd, problemFinishStart, problemFinishEnd);
+        List<Samples> resultSamples = durationTableService.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd, problemFinishStart, problemFinishEnd,
+                sample_schedule);
         return resultSamples;
     }
 

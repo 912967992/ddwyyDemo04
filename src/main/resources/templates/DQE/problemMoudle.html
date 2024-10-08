@@ -526,13 +526,13 @@
             pagination.appendChild(lastPageButton);
 
             // Create the '编辑' button
-            const editButton = document.createElement('button');
-            editButton.textContent = '编辑';
-            editButton.classList.add('edit-button'); // 为按钮添加样式类
-            editButton.addEventListener('click', () => {
-                editClickBtn();
-            });
-            pagination.appendChild(editButton);
+            // const editButton = document.createElement('button');
+            // editButton.textContent = '编辑';
+            // editButton.classList.add('edit-button'); // 为按钮添加样式类
+            // editButton.addEventListener('click', () => {
+            //     editClickBtn();
+            // });
+            // pagination.appendChild(editButton);
 
             // Remove the previous pagination and add the new one
             const existingPagination = container.querySelector('.pagination');
@@ -574,6 +574,209 @@
             });
         }
 
+        // function editClickBtn(sampleId) {
+        //     fetch('/problemMoudle/editClickBtn', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(sampleId)
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('网络响应错误');
+        //             }
+        //             return response.json();
+        //         })
+        //         .then(data => {
+        //             const modal = document.getElementById('testIssuesModal');
+        //             const contentDiv = document.getElementById('testIssuesContent');
+        //
+        //             // 清空之前的内容
+        //             contentDiv.innerHTML = '';
+        //
+        //             // 创建一个表格容器
+        //             const table = document.createElement('table');
+        //             table.className = 'data-table';
+        //
+        //             // 创建列名行
+        //             const headerRow = document.createElement('tr');
+        //             headerRow.className = 'header-row';
+        //             const attributes = [
+        //                 { label: 'ID', field: 'id' },
+        //                 { label: '完整型号', field: 'full_model' },
+        //                 { label: '样品阶段', field: 'sample_stage' },
+        //                 { label: '版本', field: 'version' },
+        //                 { label: '芯片方案', field: 'chip_solution' },
+        //                 { label: '测试平台', field: 'test_platform' },
+        //                 { label: '显示设备', field: 'test_device' },
+        //                 { label: '其他设备', field: 'other_device' },
+        //                 { label: '问题描述', field: 'problem' },
+        //                 { label: '问题图片', field: 'problem_image' },
+        //                 { label: '问题时间', field: 'problem_time' },
+        //                 { label: '复现方法', field: 'reproduction_method' },
+        //                 { label: '恢复方法', field: 'recovery_method' },
+        //                 { label: '复现概率', field: 'reproduction_probability' },
+        //                 { label: '缺陷等级', field: 'defect_level' },
+        //                 { label: '当前状态', field: 'current_status' },
+        //                 { label: '对比上一版或竞品', field: 'comparison' },
+        //                 { label: '测试人员', field: 'tester' },
+        //                 { label: 'DQE&研发确认', field: 'dqe_confirm' },
+        //                 { label: '改善对策（研发回复）', field: 'improvement_plan' },
+        //                 { label: '分析责任人', field: 'responsible_person' },
+        //                 { label: '改善后风险', field: 'post_improvement_risk' },
+        //                 { label: '下一版回归测试', field: 'next_regression_test' },
+        //                 { label: '备注', field: 'remark' },
+        //                 { label: '创建时间', field: 'created_at' },
+        //                 { label: '历史ID', field: 'history_id' },
+        //                 { label: '最终状态', field: 'final_status' },
+        //                 { label: 'DQE确认状态', field: 'dqe_confirm_status' },
+        //                 { label: 'DQE评论', field: 'dqe_comment' },
+        //                 { label: 'DQE审核时间', field: 'dqe_review_time' }
+        //             ];
+        //
+        //             attributes.forEach((attr, index) => {
+        //                 const headerCell = document.createElement('th');
+        //                 headerCell.className = `header-cell header-cell-${index + 1}`;
+        //
+        //                 // 创建可滚动的 div
+        //                 const headerDiv = document.createElement('div');
+        //                 headerDiv.textContent = attr.label; // 显示 label
+        //
+        //
+        //                 // 启用拖拽滚动
+        //                 enableDragScroll(headerDiv);
+        //
+        //                 headerCell.appendChild(headerDiv);
+        //                 headerRow.appendChild(headerCell);
+        //             });
+        //
+        //             // 将列名行添加到表格
+        //             table.appendChild(headerRow);
+        //
+        //             data.forEach(item => {
+        //                 // 创建值行
+        //                 const valueRow = document.createElement('tr');
+        //                 valueRow.className = 'value-row';
+        //
+        //                 attributes.forEach((attr, index) => {
+        //                     const valueCell = document.createElement('td');
+        //                     valueCell.className = `value-cell value-cell-${index + 1}`;
+        //
+        //                     // 创建可滚动的 div
+        //                     const valueDiv = document.createElement('div');
+        //
+        //                     // const value = item[attr.field];
+        //
+        //                     // 根据索引选择属性值
+        //                     const value = Object.values(item)[index];
+        //
+        //                     if (index === 9) { // 问题图片处理
+        //                         // 处理图片的列
+        //                         // ...（省略图片处理的代码）
+        //                     } else {
+        //                         const span = document.createElement('span');
+        //                         span.textContent = value || '无';
+        //
+        //                         // 点击后变为输入框
+        //                         span.addEventListener('click', function () {
+        //                             const input = document.createElement('input');
+        //                             input.type = 'text';
+        //                             input.value = value || '';
+        //
+        //                             input.addEventListener('blur', function () {
+        //                                 const newValue = input.value || '无';
+        //                                 span.textContent = newValue;
+        //
+        //                                 // 根据字段名更新对应值
+        //                                 item[attr.field] = newValue;
+        //
+        //                                 valueDiv.replaceChild(span, input);
+        //                             });
+        //
+        //                             valueDiv.replaceChild(input, span);
+        //                             input.focus();
+        //                         });
+        //
+        //                         valueDiv.appendChild(span);
+        //                     }
+        //
+        //                     // 启用拖拽滚动
+        //                     enableDragScroll(valueDiv);
+        //
+        //                     valueCell.appendChild(valueDiv);
+        //                     valueRow.appendChild(valueCell);
+        //                 });
+        //
+        //                 // 将值行加入表格
+        //                 table.appendChild(valueRow);
+        //             });
+        //
+        //             // 将表格添加到模态框内容容器
+        //             contentDiv.appendChild(table);
+        //
+        //             // 创建保存按钮
+        //             const saveButton = document.createElement('button');
+        //             saveButton.textContent = '保存修改';
+        //             saveButton.className = 'save-button'; // 你可以在 CSS 中定义样式
+        //
+        //             // 添加保存按钮到模态框的底部
+        //             contentDiv.appendChild(saveButton);
+        //
+        //             // 为保存按钮绑定点击事件
+        //             saveButton.addEventListener('click', function () {
+        //                 saveChanges(data);
+        //             });
+        //
+        //             // 显示模态框
+        //             modal.style.display = 'block';
+        //
+        //             // 关闭模态框的事件监听
+        //             document.addEventListener('keydown', function (event) {
+        //                 if (event.key === 'Escape') {
+        //                     modal.style.display = 'none';
+        //                 }
+        //             });
+        //         })
+        //         .catch(error => {
+        //             console.error('提交失败:', error);
+        //             alert('提交失败，请检查网络连接或稍后重试。');
+        //         });
+        //
+        //     const modal = document.getElementById('testIssuesModal');
+        //     const span = document.getElementsByClassName('close')[0];
+        //
+        //     span.onclick = function() {
+        //         modal.style.display = 'none';
+        //     };
+        // }
+        //
+        // // 保存修改的函数
+        // function saveChanges(data) {
+        //     console.log('要发送的数据:', JSON.stringify(data)); // 查看发送的数据
+        //     fetch('/problemMoudle/saveAllData', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(data) // 发送 JSON 数组
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('网络响应错误');
+        //             }
+        //             return response.text(); // 返回文本响应
+        //         })
+        //         .then(responseText => {
+        //             console.log('保存成功:', responseText); // 打印成功消息
+        //             alert('保存成功');
+        //         })
+        //         .catch(error => {
+        //             console.error('提交失败:', error);
+        //             alert('提交失败，请检查网络连接或稍后重试。');
+        //         });
+        // }
+
         function editClickBtn(sampleId) {
             fetch('/problemMoudle/editClickBtn', {
                 method: 'POST',
@@ -599,186 +802,140 @@
                     const table = document.createElement('table');
                     table.className = 'data-table';
 
+                    // 创建列名行
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'header-row';
+                    const attributes = [
+                        { label: 'ID', field: 'id' },
+                        { label: '完整型号', field: 'full_model' },
+                        { label: '样品阶段', field: 'sample_stage' },
+                        { label: '版本', field: 'version' },
+                        { label: '芯片方案', field: 'chip_solution' },
+                        { label: '测试平台', field: 'test_platform' },
+                        { label: '显示设备', field: 'test_device' },
+                        { label: '其他设备', field: 'other_device' },
+                        { label: '问题描述', field: 'problem' },
+                        { label: '问题图片', field: 'problem_image' },
+                        { label: '问题时间', field: 'problem_time' },
+                        { label: '复现方法', field: 'reproduction_method' },
+                        { label: '恢复方法', field: 'recovery_method' },
+                        { label: '复现概率', field: 'reproduction_probability' },
+                        { label: '缺陷等级', field: 'defect_level' },
+                        { label: '当前状态', field: 'current_status' },
+                        { label: '对比上一版或竞品', field: 'comparison' },
+                        { label: '测试人员', field: 'tester' },
+                        { label: 'DQE&研发确认', field: 'dqe_confirm' },
+                        { label: '改善对策（研发回复）', field: 'improvement_plan' },
+                        { label: '分析责任人', field: 'responsible_person' },
+                        { label: '改善后风险', field: 'post_improvement_risk' },
+                        { label: '下一版回归测试', field: 'next_regression_test' },
+                        { label: '备注', field: 'remark' },
+                        { label: '创建时间', field: 'created_at' },
+                        { label: '历史ID', field: 'history_id' },
+                        { label: '最终状态', field: 'final_status' },
+                        { label: 'DQE确认状态', field: 'dqe_confirm_status' },
+                        { label: 'DQE评论', field: 'dqe_comment' },
+                        { label: 'DQE审核时间', field: 'dqe_review_time' }
+                    ];
+
+                    attributes.forEach((attr, index) => {
+                        const headerCell = document.createElement('th');
+                        headerCell.className = `header-cell header-cell-${index + 1}`;
+
+                        // 创建可滚动的 div
+                        const headerDiv = document.createElement('div');
+                        headerDiv.textContent = attr.label; // 显示 label
+                        enableDragScroll(headerDiv);
+                        headerCell.appendChild(headerDiv);
+                        headerRow.appendChild(headerCell);
+                    });
+
+                    // 将列名行添加到表格
+                    table.appendChild(headerRow);
+
+                    // 存储被修改的数据行
+                    let modifiedData = [];
+
                     data.forEach(item => {
-                        const attributes = [
-                            { label: 'ID', value: item.id },
-                            { label: '完整型号', value: item.full_model },
-                            { label: '样品阶段', value: item.sample_stage },
-                            { label: '版本', value: item.version },
-                            { label: '测试平台', value: item.test_platform },
-                            { label: '显示设备', value: item.test_device },
-                            { label: '其他设备', value: item.other_device },
-                            { label: '问题描述', value: item.problem },
-                            { label: '问题图片', value: item.problem_image_or_video },
-                            { label: '问题时间', value: item.problem_time },
-                            { label: '复现方法', value: item.reproduction_method },
-                            { label: '恢复方法', value: item.recovery_method },
-                            { label: '复现概率', value: item.reproduction_probability },
-                            { label: '缺陷等级', value: item.defect_level || '无' },
-                            { label: '当前状态', value: item.current_status || '无' },
-                            { label: '对比上一版或竞品', value: item.comparison_with_previous || '无' },
-                            { label: '测试人员', value: item.tester },
-                            { label: 'DQE&研发确认', value: item.dqe_and_development_confirm || '无' },
-                            { label: '改善对策（研发回复）', value: item.improvement_plan || '无' },
-                            { label: '分析责任人', value: item.responsible_person || '无' },
-                            { label: '改善后风险', value: item.post_improvement_risk || '无' },
-                            { label: '下一版回归测试', value: item.next_version_regression_test || '无' },
-                            { label: '备注', value: item.remark || '无' },
-                            { label: '创建时间', value: item.created_at || '无' },
-                            { label: '历史ID', value: item.history_id || '无' },
-                            { label: '最终状态', value: item.final_status || '无' },
-                            { label: 'DQE确认状态', value: item.dqe_status || '无' },
-                            { label: 'DQE评论', value: item.dqe_comments || '无' },
-                            { label: 'DQE审核时间', value: item.dqe_reviewed_at || '无' }
-                        ];
-
-                        // 创建列名行
-                        const headerRow = document.createElement('tr');
-                        headerRow.className = 'header-row';
-                        attributes.forEach((attr, index) => {
-                            const headerCell = document.createElement('th');
-                            headerCell.className = `header-cell header-cell-${index + 1}`;
-
-                            // 创建可滚动的 div
-                            const headerDiv = document.createElement('div');
-                            headerDiv.textContent = attr.label;
-
-                            // 启用拖拽滚动
-                            enableDragScroll(headerDiv);
-
-                            headerCell.appendChild(headerDiv);
-                            headerRow.appendChild(headerCell);
-                        });
-
                         // 创建值行
                         const valueRow = document.createElement('tr');
                         valueRow.className = 'value-row';
+
                         attributes.forEach((attr, index) => {
                             const valueCell = document.createElement('td');
                             valueCell.className = `value-cell value-cell-${index + 1}`;
 
                             // 创建可滚动的 div
                             const valueDiv = document.createElement('div');
+                            const value = item[attr.field];
 
-                            // 判断是否是“问题图片”列，并且是否包含 /imageDirectory/
-                            // 判断是否是“问题图片”列，并且是否包含 /imageDirectory/
-                            if (index === 8) {
-                                if (attr.value === "上传图片") {
-                                    const placeholder = document.createElement('div');
-                                    placeholder.textContent = '/';
-                                    placeholder.style.fontSize = '16px'; // 设置字体大小
-                                    placeholder.style.color = '#999'; // 设置颜色
-                                    placeholder.style.cursor = 'default'; // 光标显示为默认状态
-                                    valueDiv.appendChild(placeholder);
-                                } else if (attr.value.includes('/imageDirectory/')) {
-                                    const img = document.createElement('img');
-                                    img.src = attr.value.replace(/#/g, '%23') + '?t=' + new Date().getTime(); // 添加时间戳防止缓存
-                                    img.style.maxWidth = '100px'; // 设置图片显示的最大宽度
-                                    img.style.maxHeight = '80px'; // 设置图片显示的最大高度
-                                    img.style.cursor = 'pointer'; // 鼠标悬停显示为点击手型
-                                    img.addEventListener('click', () => {
-                                        // 创建模态框
-                                        const modal = document.createElement('div');
-                                        modal.className = 'image-modal';
-                                        modal.style.position = 'fixed';
-                                        modal.style.top = '0';
-                                        modal.style.left = '0';
-                                        modal.style.width = '100%';
-                                        modal.style.height = '100%';
-                                        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                                        modal.style.display = 'flex';
-                                        modal.style.justifyContent = 'center';
-                                        modal.style.alignItems = 'center';
-                                        modal.style.zIndex = '1000'; // 确保模态框在最上层
+                            if (index === 9) { // 问题图片处理
+                                // 处理图片的列
+                                // ...（省略图片处理的代码）
+                            } else {
+                                const span = document.createElement('span');
+                                span.textContent = value || '无';
 
-                                        // 创建放大的图片
-                                        const largeImg = document.createElement('img');
-                                        largeImg.src = img.src;
-                                        largeImg.style.maxWidth = '90%';
-                                        largeImg.style.maxHeight = '90%';
-                                        largeImg.style.border = '5px solid #fff';
-                                        largeImg.style.borderRadius = '10px';
-                                        largeImg.style.transform = 'scale(1)'; // 初始缩放比例
-                                        largeImg.style.transition = 'transform 0.2s ease'; // 平滑过渡效果
+                                // 点击后变为输入框
+                                span.addEventListener('click', function () {
+                                    const textarea = document.createElement('textarea');
+                                    textarea.value = value || '';
 
-                                        // 添加缩放功能
-                                        let scale = 1;
-                                        const zoomSpeed = 0.1;
+                                    // 设置 textarea 的宽度和高度
+                                    // textarea.style.width = '300px';  // 设置宽度，可以根据需求调整
+                                    textarea.style.height = '50px';  // 设置高度，可以根据需求调整
 
-                                        // 缩放功能
-                                        function zoom(event) {
-                                            event.preventDefault();
-                                            const delta = event.deltaY < 0 ? 1 : -1;
-                                            scale += delta * zoomSpeed;
-                                            scale = Math.min(Math.max(0.5, scale), 5); // 限制缩放范围
-                                            largeImg.style.transform = `scale(${scale})`;
+                                    textarea.addEventListener('blur', function () {
+                                        const newValue = textarea.value || '无';
+                                        span.textContent = newValue;
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (newValue !== value) {
+                                            item[attr.field] = newValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
                                         }
 
-                                        // 添加鼠标滚轮缩放功能
-                                        modal.addEventListener('wheel', zoom);
-
-                                        // 触控设备缩放（手势）
-                                        modal.addEventListener('touchstart', (event) => {
-                                            if (event.touches.length === 2) {
-                                                const [touch1, touch2] = event.touches;
-                                                const initialDistance = Math.sqrt(
-                                                    Math.pow(touch2.clientX - touch1.clientX, 2) +
-                                                    Math.pow(touch2.clientY - touch1.clientY, 2)
-                                                );
-
-                                                function handleTouchMove(event) {
-                                                    if (event.touches.length === 2) {
-                                                        const [newTouch1, newTouch2] = event.touches;
-                                                        const newDistance = Math.sqrt(
-                                                            Math.pow(newTouch2.clientX - newTouch1.clientX, 2) +
-                                                            Math.pow(newTouch2.clientY - newTouch1.clientY, 2)
-                                                        );
-                                                        scale *= newDistance / initialDistance;
-                                                        scale = Math.min(Math.max(1, scale), 5); // 限制缩放范围
-                                                        largeImg.style.transform = `scale(${scale})`;
-                                                    }
-                                                }
-
-                                                modal.addEventListener('touchmove', handleTouchMove, { passive: false });
-
-                                                modal.addEventListener('touchend', () => {
-                                                    modal.removeEventListener('touchmove', handleTouchMove);
-                                                }, { once: true });
-                                            }
-                                        });
-
-                                        // 关闭模态框
-                                        modal.addEventListener('click', () => {
-                                            document.body.removeChild(modal);
-                                        });
-
-                                        modal.appendChild(largeImg);
-                                        document.body.appendChild(modal);
+                                        valueDiv.replaceChild(span, textarea);
                                     });
-                                    valueDiv.appendChild(img);
-                                } else {
-                                    valueDiv.textContent = attr.value;
-                                }
-                            } else {
-                                valueDiv.textContent = attr.value;
+
+                                    valueDiv.replaceChild(textarea, span);
+                                    textarea.focus();
+                                });
+
+                                valueDiv.appendChild(span);
                             }
-                            // 启用拖拽滚动
+
                             enableDragScroll(valueDiv);
 
                             valueCell.appendChild(valueDiv);
                             valueRow.appendChild(valueCell);
                         });
 
-                        // 将列名行和值行依次加入表格
-                        table.appendChild(headerRow);
                         table.appendChild(valueRow);
                     });
 
-                    // 将表格添加到模态框内容容器
                     contentDiv.appendChild(table);
 
-                    // 显示模态框
+                    // 创建保存按钮
+                    const saveButton = document.createElement('button');
+                    saveButton.textContent = '保存修改';
+                    saveButton.className = 'save-button';
+
+                    contentDiv.appendChild(saveButton);
+
+                    saveButton.addEventListener('click', function () {
+                        saveChanges(modifiedData); // 只发送修改的数据
+                    });
+
                     modal.style.display = 'block';
+
+                    document.addEventListener('keydown', function (event) {
+                        if (event.key === 'Escape') {
+                            modal.style.display = 'none';
+                        }
+                    });
                 })
                 .catch(error => {
                     console.error('提交失败:', error);
@@ -790,10 +947,41 @@
 
             span.onclick = function() {
                 modal.style.display = 'none';
+            };
+        }
+
+// 保存修改的函数
+        function saveChanges(modifiedData) {
+            if (modifiedData.length === 0) {
+                alert('没有修改的内容需要保存。');
+                return;
             }
 
-
+            console.log('要发送的数据:', JSON.stringify(modifiedData)); // 查看发送的数据
+            fetch('/problemMoudle/saveAllData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(modifiedData) // 只发送修改的 JSON 数组
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.text(); // 返回文本响应
+                })
+                .then(responseText => {
+                    console.log('保存成功:', responseText); // 打印成功消息
+                    alert('保存成功');
+                })
+                .catch(error => {
+                    console.error('提交失败:', error);
+                    alert('提交失败，请检查网络连接或稍后重试。');
+                });
         }
+
+
 
 
     });

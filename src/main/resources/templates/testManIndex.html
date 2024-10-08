@@ -31,7 +31,10 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，将测试设备改成显示设备。)</span></h2>
-            <p>2024.09.24：<br>
+            <p>2024.09.27<br>
+                1.将提交按钮改成灵活变动的状态：提交，撤回，完结<br>
+                <br>
+                2024.09.24：<br>
                 1.超出宽度自动换行<br>
                 2.图片在单元格展示 --黄兰姣建议<br>
                 3.类别新增一个选品 --蓝明城建议<br>
@@ -301,7 +304,7 @@
 
     $(profileBtn).click(function() {
         // 跳转到个人界面页面
-        window.location.href = '/DQEprofile';
+        window.location.href = '/testManProfile';
     });
 
     $(document).ready(function () {
@@ -1200,6 +1203,17 @@
                 table += '</thead>';
                 table += '</table>';
 
+                // 创建下拉菜单按钮, 根据sample_schedule动态设置按钮文本
+                var buttonLabel = '';
+                if (product.sample_schedule === "0") {
+                    buttonLabel = '提交';
+                } else if (product.sample_schedule ===  "1") {
+                    buttonLabel = '撤回';
+                } else if (product.sample_schedule === "2") {
+                    buttonLabel = '完结';
+                }
+
+
                 // // 创建下拉菜单按钮,注意：data-...：右边的字段会强制转为小写，所以在获取属性的时候记得也要用小写！
                 var dropdown = '<div class="dropdown">';
                 dropdown += '<button class="dropbtn">操作</button>';
@@ -1217,11 +1231,12 @@
                     'data-high_frequency="' + product.high_frequency + '" ' +
                     'data-sample_schedule="' + product.sample_schedule + '" ' +
                     'data-sample_id="' + product.sample_id + '" ' +
-                    'data-queststats="' + product.questStats + '">提交</a>';
+                    'data-queststats="' + product.questStats + '">' + buttonLabel + '</a>';
+
 
 
                 dropdown += '<a href="#" class="forward-btn" data-filepath="' + product.filepath + '">转发</a>';
-                dropdown += '<a href="#" class="delete-btn" data-filepath="' + product.filepath + '">删除</a>';
+                dropdown += '<a href="#" class="delete-btn" data-filepath="' + product.filepath +  '" data-sample_id="' + product.sample_id + '">删除</a>';
                 dropdown += '</div>';
                 dropdown += '</div>';
 
@@ -1260,7 +1275,7 @@
                         var confirmation = confirm(filepath+"待审核中，你确定要撤回吗?");
                         finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats,sample_id);
                     }else if(schedule === 2){
-                        alert(filepath+"已完成，不用再提交了！");
+                        alert(filepath+"已完结，不用再提交了！");
                     }
 
                 });
@@ -1345,15 +1360,16 @@
 
                 $('.table-container').off('click', '.delete-btn').on('click', '.delete-btn', function() {
                     var filepath = $(this).data('filepath');
+                    var sample_id = $(this).data('sample_id');
                     // 弹出确认对话框
                     var confirmation = confirm("你确定要删除"+ filepath +"吗？此操作会将文件和记录删除且不可逆");
                     if (confirmation) {
                         //用户点击了确认
                         $.ajax({
-                            url: '/testManIndex/deleteFilepath', // 控制器的路径
+                            url: '/testManIndex/deleteSampleAndIssues', // 控制器的路径
                             type: 'POST', // 或者 'GET'，取决于你的需求
                             contentType: 'application/json',
-                            data: JSON.stringify({ filepath: filepath }), // 发送到服务器的JSON数据
+                            data: JSON.stringify({ filepath: filepath,sample_id: sample_id }), // 发送到服务器的JSON数据
                             success: async function(response) {
                                 await sendLogToServer(response.message);
                                 await clearStorage(response)
