@@ -1,17 +1,12 @@
 package com.lu.ddwyydemo04.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
-import com.dingtalk.api.request.OapiGetJsapiTicketRequest;
-import com.dingtalk.api.request.OapiGettokenRequest;
-import com.dingtalk.api.request.OapiUserGetuserinfoRequest;
-import com.dingtalk.api.request.OapiV2UserGetRequest;
-import com.dingtalk.api.response.OapiGetJsapiTicketResponse;
-import com.dingtalk.api.response.OapiGettokenResponse;
-import com.dingtalk.api.response.OapiUserGetuserinfoResponse;
-import com.dingtalk.api.response.OapiV2UserGetResponse;
+import com.dingtalk.api.request.*;
+import com.dingtalk.api.response.*;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.JsapiTicketService;
 import com.taobao.api.ApiException;
@@ -22,10 +17,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Controller
@@ -81,25 +80,43 @@ public class DingTalkH5Controller {
             System.out.println("name:"+username);
 
             //提取职位,"测试专员"
-            String job = extractParamOfResult(infoRsp.getBody(),"title");
-            System.out.println("job:"+job);
+//            String job = extractParamOfResult(infoRsp.getBody(),"title");
+//            System.out.println("job:"+job);
 
             //提取部门id,"523459714"是电子测试组的编号
             String departmentId = extractDepartmentIds(infoRsp.getBody());
             System.out.println("departmentIds:"+departmentId);
 
+
+
+            // 将 infoRsp.getBody() 保存到带有用户名的 txt 文件
+//            String fileName = "userInfoResponse_" + username + ".txt";
+//            try (FileWriter writer = new FileWriter(fileName)) {
+//                writer.write(infoRsp.getBody());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
+            DingTalkClient clientDept = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/v2/department/listparentbyuser");
+            OapiV2DepartmentListparentbyuserRequest reqDept = new OapiV2DepartmentListparentbyuserRequest();
+            reqDept.setUserid(userid);
+            OapiV2DepartmentListparentbyuserResponse rspDept = clientDept.execute(reqDept, accessToken);
+            String responseDeptBody = rspDept.getBody();
+
+            // 调用方法检查部门
+            String job = checkParentDepartment(responseDeptBody,username);
+            System.out.println(job);
+            result.put("job", job);
+
             //将想要返回的结果保存起来
             result.put("userId", userid);
             result.put("username", username);
-            result.put("job", job);
+//            result.put("job", job);
             result.put("departmentId", departmentId);
             result.put("corp_id",corpid);
             result.put("templatespath",templatespath);
             result.put("imagepath",imagepath);
             result.put("savepath",savepath);
-
-
-
 
         } else {
             // 发生错误时返回错误信息
@@ -127,7 +144,6 @@ public class DingTalkH5Controller {
             return "";
         }
     }
-
 
 
     //提取部门id
@@ -180,6 +196,7 @@ public class DingTalkH5Controller {
         config.put("nonceStr", nonceStr);
         config.put("signature", signature);
         config.put("jsApiList", Arrays.asList("device.base.getUUID","biz.navigation.close","biz.contact.choose","biz.cspace.chooseSpaceDir","biz.ding.create","biz.cspace.saveFile","runtime.permission.requestAuthCode","biz.util.downloadFile")); // 只需要使用选择联系人的JSAPI
+
 
         System.out.println("config:" + config);
 
@@ -240,5 +257,50 @@ public class DingTalkH5Controller {
 
         return urlBuffer.toString();
     }
+
+    //20241025：此方法是用来提取部门的主列表里是否包含某个部门id来判定是什么部门的
+
+    public String checkParentDepartment(String jsonResponse,String username) {
+        // 解析 JSON 响应
+        JSONObject response = JSON.parseObject(jsonResponse);
+        System.out.println("response:"+response);
+        String job = "";
+        // 检查 errcode 是否为 0
+        if (response.getInteger("errcode") == 0) {
+            JSONObject result = response.getJSONObject("result");
+            List<JSONObject> parentList = result.getJSONArray("parent_list").toJavaList(JSONObject.class);
+
+            // 遍历所有的父部门列表
+            for (JSONObject parent : parentList) {
+                List<Long> parentDeptIdList = parent.getJSONArray("parent_dept_id_list").toJavaList(Long.class);
+
+                // 检查部门 ID 并打印相应的信息
+                if (parentDeptIdList.contains(62712385L)) {
+                    System.out.println("产品研发部");
+                    job = "rd";
+                }
+                if (parentDeptIdList.contains(63652303L)) {
+                    System.out.println("品质工程部");
+//                    if (parentDeptIdList.contains(523459714L) && !username.equals("卢健")) {
+                    if (parentDeptIdList.contains(523459714L) ) {
+                        System.out.println("有电子测试组，是测试技术员");
+                        job = "tester";  // 设置为 "tester"，并优先返回
+                        break;  // 找到后可选择立即返回
+                    }else{
+                        job = "DQE";
+                    }
+                }
+            }
+        } else {
+            System.out.println("请求失败: " + response.getString("errmsg"));
+        }
+        return job;
+    }
+
+    private boolean isExcludedUsername(String username) {
+        return username.equals("卢健");
+//        return username.equals("邓小英") || username.equals("胡雪梅") ;
+    }
+
 
 }

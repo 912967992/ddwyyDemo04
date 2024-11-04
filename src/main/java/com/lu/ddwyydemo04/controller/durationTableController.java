@@ -85,6 +85,7 @@ public class durationTableController {
 
         List<Samples> resultSamples = durationTableService.searchSampleTestMan(keyword, problemTimeStart, problemTimeEnd, problemFinishStart, problemFinishEnd,
                 sample_schedule);
+        System.out.println("resultSamples:"+resultSamples);
         return resultSamples;
     }
 
@@ -99,7 +100,7 @@ public class durationTableController {
 
             // 创建列标题
             Row headerRow = sheet.createRow(0);
-            String[] columns = {"ID", "创建时间", "预计完成时间", "实际完成时间", "预计测试时长", "实测时长", "测试人员", "完整编码", "样品阶段", "版本", "样品名称"  ,"样品进度"};
+            String[] columns = {"ID", "创建时间", "预计完成时间", "实际完成时间", "预计测试时长", "实测时长", "测试人员", "完整编码", "样品阶段","大类","小类", "版本", "样品名称"  ,"样品进度"};
 
 
             // 创建样式
@@ -148,9 +149,11 @@ public class durationTableController {
                         case 6: value = item.get("tester"); break;
                         case 7: value = item.get("full_model"); break;
                         case 8: value = item.get("sample_category"); break;
-                        case 9: value = item.get("version"); break;
-                        case 10: value = item.get("sample_name"); break;
-                        case 11:
+                        case 9: value = item.get("big_species"); break;
+                        case 10: value = item.get("small_species"); break;
+                        case 11: value = item.get("version"); break;
+                        case 12: value = item.get("sample_name"); break;
+                        case 13:
                             String scheduleValueStr = (String) item.get("sample_schedule");
                             if (scheduleValueStr != null) {
                                 switch (scheduleValueStr) {

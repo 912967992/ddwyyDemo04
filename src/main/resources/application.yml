@@ -18,9 +18,9 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 200MB
-      max-request-size: 200MB
-#      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
 
 
 
@@ -36,11 +36,14 @@ server:
     session:
       timeout: 8h  # 设置会话超时时间为8小时
   tomcat:
-    max-swallow-size: 50MB
+    max-swallow-size: 100MB  # 增加文件上传限制
+    max-http-form-post-size: 100MB
     connection-timeout: 20000
     max-http-header-size: 65536
     max-threads: 200
     accept-count: 100
+
+
 
 
 
@@ -72,9 +75,11 @@ file:
     savepath: C:/ddwyy-lj/savepath
     imagepath: C:/ddwyy-lj/imageDirectory
     jsonpath: C:/ddwyy-lj/jsonpath
+    issuespath: C:/ddwyy-lj/issuespath
 #    研发质量管理系统
 #    templatespath: Z:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
 #    savepath: Z:/ddwyy-lj/savepath
 #    imagepath: Z:/ddwyy-lj/imageDirectory
 #    jsonpath: Z:/ddwyy-lj/jsonpath
+#    issuespath: Z:/ddwyy-lj/issuespath
 

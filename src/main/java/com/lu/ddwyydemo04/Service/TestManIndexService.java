@@ -1,13 +1,30 @@
 package com.lu.ddwyydemo04.Service;
 
+import com.dingtalk.api.DefaultDingTalkClient;
+import com.dingtalk.api.DingTalkClient;
+import com.dingtalk.api.request.OapiCspaceAddToSingleChatRequest;
+import com.dingtalk.api.request.OapiFileUploadChunkRequest;
+import com.dingtalk.api.request.OapiFileUploadTransactionRequest;
+import com.dingtalk.api.response.OapiCspaceAddToSingleChatResponse;
+import com.dingtalk.api.response.OapiFileUploadChunkResponse;
+import com.dingtalk.api.response.OapiFileUploadTransactionResponse;
+import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TestIssues;
 import com.lu.ddwyydemo04.pojo.TotalData;
+import com.taobao.api.ApiException;
+import com.taobao.api.FileItem;
+import com.taobao.api.internal.util.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +37,8 @@ public class TestManIndexService {
 
     @Autowired
     private TestManDao testManDao;
+
+    private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
 
     public Map<String, Integer> getindexPanel(String name){
         return questDao.getindexPanel(name);
@@ -118,5 +137,90 @@ public class TestManIndexService {
     public LocalDateTime  queryPlanFinishTime(int sample_id){
         return testManDao.queryPlanFinishTime(sample_id);
     }
+
+    public String getMediaId(String filepath,String access_token,String agentid) throws Exception {
+        File file = new File(filepath);
+        long fileSize = file.length(); // 获取文件大小
+
+        // 计算分块数
+        long chunkSize = 7 * 1024 * 1024; // 7MB
+        long chunkNumbers = (fileSize + chunkSize - 1) / chunkSize; // 计算分块数
+
+        DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/file/upload/transaction");
+        OapiFileUploadTransactionRequest request = new OapiFileUploadTransactionRequest();
+        request.setAgentId(agentid);
+        request.setFileSize(fileSize);
+        request.setChunkNumbers(chunkNumbers);
+        request.setHttpMethod("GET");
+        OapiFileUploadTransactionResponse response = client.execute(request,access_token);
+        String uploadId = response.getUploadId();
+        System.out.println("chunkNumbers:"+chunkNumbers);
+        System.out.println("response.getBody():"+response.getBody());
+
+//        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+
+        RandomAccessFile randomAccessFile = null;
+        try {
+            randomAccessFile = new RandomAccessFile(file, "r");
+            for (long i = 0; i < chunkNumbers; i++) {
+                long startByte = i * chunkSize;
+                byte[] chunkData = new byte[(int) Math.min(chunkSize, fileSize - startByte)];
+                randomAccessFile.seek(startByte);
+                randomAccessFile.readFully(chunkData);
+
+                // 准备上传请求
+                OapiFileUploadChunkRequest chunkRequest = new OapiFileUploadChunkRequest();
+                chunkRequest.setAgentId(agentid);
+                chunkRequest.setUploadId(uploadId);
+                chunkRequest.setChunkSequence(i + 1); // 分块序号从1开始
+
+                DingTalkClient chunkClient = new DefaultDingTalkClient("https://oapi.dingtalk.com/file/upload/chunk?"+ WebUtils.buildQuery(chunkRequest.getTextParams(),"utf-8"));
+
+                chunkRequest = new OapiFileUploadChunkRequest();
+                // 设置文件内容
+                FileItem fileItem = new FileItem("chunk" + i, chunkData);
+                chunkRequest.setFile(fileItem);
+
+                // 发送上传请求
+                OapiFileUploadChunkResponse chunkResponse = chunkClient.execute(chunkRequest, access_token);
+            }
+        } finally {
+            if (randomAccessFile != null) {
+                try {
+                    randomAccessFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        DingTalkClient transClient = new DefaultDingTalkClient("https://oapi.dingtalk.com/file/upload/transaction");
+        OapiFileUploadTransactionRequest transRequest = new OapiFileUploadTransactionRequest();
+        transRequest.setAgentId(agentid);
+        transRequest.setFileSize(fileSize);
+        transRequest.setChunkNumbers(chunkNumbers);
+        transRequest.setUploadId(uploadId);
+        transRequest.setHttpMethod("GET");
+        OapiFileUploadTransactionResponse transResponse = transClient.execute(transRequest,access_token);
+        System.out.println("transResponse:"+transResponse.getBody());
+
+        return transResponse.getMediaId();
+    }
+
+    public void sendDingFileToUser(String accesstoken,String filename,String media_id,String userid,String agentid) throws ApiException, IOException {
+        OapiCspaceAddToSingleChatRequest request = new OapiCspaceAddToSingleChatRequest();
+        request.setAgentId(agentid);
+        request.setUserid(userid);
+        request.setMediaId(media_id);
+        request.setFileName(filename);
+        DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/cspace/add_to_single_chat?"+WebUtils.buildQuery(request.getTextParams(),"utf-8"));
+        OapiCspaceAddToSingleChatResponse response = client.execute(request, accesstoken);
+        logger.info("sendDingFileToUser successfully."+response.getBody());
+    }
+
+
+
+
+
 
 }

@@ -18,18 +18,291 @@
         SELECT *
         FROM test_issues
         WHERE sample_id = #{sampleId}
-          AND created_by = 'tester'
-          AND history_id = (
-            SELECT MAX(history_id)
-            FROM test_issues
-            WHERE sample_id = #{sampleId}
-              AND created_by = 'tester'
-        )
+          AND (
+                (created_by = 'tester' AND history_id = (
+                    SELECT MAX(history_id)
+                    FROM test_issues
+                    WHERE sample_id = #{sampleId}
+                      AND created_by = 'tester'
+                ))
+                OR created_by != 'tester'
+            )
     </select>
 
     <select id="searchSamplesDQE" resultType="Samples">
-        select * from samples
+        SELECT * FROM samples
+        WHERE
+         (#{sample_id} IS NULL OR sample_id = #{sample_id})
+        AND (#{full_model} IS NULL OR full_model LIKE CONCAT('%', #{full_model}, '%'))
+        AND (#{questStats} IS NULL OR questStats = #{questStats})
+        AND (#{sample_category} IS NULL OR sample_category = #{sample_category})
+        AND (#{version} IS NULL OR version = #{version})
+        AND (#{big_species} IS NULL OR big_species = #{big_species})
+        AND (#{small_species} IS NULL OR small_species = #{small_species})
+        AND (#{supplier} IS NULL OR supplier = #{supplier})
+        AND (#{test_Overseas} IS NULL OR test_Overseas = #{test_Overseas})
+        AND (#{sample_DQE} IS NULL OR sample_DQE = #{sample_DQE})
+        AND (#{sample_Developer} IS NULL OR sample_Developer = #{sample_Developer})
+        AND (#{tester} IS NULL OR tester = #{tester})
+        AND (#{priority} IS NULL OR priority = #{priority})
+        AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule})
+        AND (#{result_judge} IS NULL OR result_judge = #{result_judge})
+        AND (#{problemTimeStart} IS NULL OR finish_time >= #{problemTimeStart})
+        AND (#{problemTimeEnd} IS NULL OR finish_time &lt; DATE_ADD(#{problemTimeEnd}, INTERVAL 1 DAY))
+
     </select>
+
+
+
+
+
+    <select id="addNewRow" resultType="Map">
+        SELECT s.full_model, s.sample_category, s.version,
+               ti.max_history_id
+        FROM samples s
+                 INNER JOIN (
+            SELECT sample_id, MAX(history_id) AS max_history_id
+            FROM test_issues
+            WHERE created_by = 'tester'
+            GROUP BY sample_id
+        ) ti ON s.sample_id = ti.sample_id
+        WHERE s.sample_id = #{sampleId}
+
+    </select>
+
+    <select id="addNewRowHistroyidZero" resultType="Map">
+        SELECT full_model, sample_category, version
+        FROM samples s
+        WHERE sample_id = #{sampleId}
+
+    </select>
+
+
+
+
+    <select id="searchTestIssuesHistroyidFromId" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(history_id), 0) AS max_history_id
+        FROM test_issues
+        WHERE sample_id = #{sampleId};
+    </select>
+
+
+    <insert id="insertTestIssues" parameterType="TestIssues">
+        INSERT INTO test_issues (
+            full_model, sample_stage, version, chip_solution, test_platform,
+            test_device, other_device, problem,
+            problem_time, reproduction_method, recovery_method, reproduction_probability,
+            defect_level, current_status, comparison_with_previous, tester,
+            dqe_and_development_confirm, improvement_plan, responsible_person,
+            post_improvement_risk, next_version_regression_test, remark,
+            created_at, history_id, sample_id, created_by,
+            dqe_confirm,dqe_review_at,dqe,rd_confirm,rd_review_at,rd,
+            modifier,modify_at
+        ) VALUES (
+                     #{full_model}, #{sample_stage}, #{version}, #{chip_solution}, #{test_platform},
+                     #{test_device}, #{other_device}, #{problem},
+                     #{problem_time}, #{reproduction_method}, #{recovery_method},
+                     #{reproduction_probability}, #{defect_level}, #{current_status},
+                     #{comparison_with_previous}, #{tester}, #{dqe_and_development_confirm},
+                     #{improvement_plan}, #{responsible_person}, #{post_improvement_risk},
+                     #{next_version_regression_test}, #{remark}, #{created_at},
+                     #{history_id}, #{sample_id}, #{created_by},
+                     #{dqe_confirm},#{dqe_review_at},#{dqe},#{rd_confirm},#{rd_review_at},#{rd},
+                     #{modifier},#{modify_at}
+                 );
+    </insert>
+
+    <update id="updateTestIssues" parameterType="TestIssues">
+        UPDATE test_issues
+        SET
+            full_model = #{full_model},
+            sample_stage = #{sample_stage},
+            version = #{version},
+            chip_solution = #{chip_solution},
+            test_platform = #{test_platform},
+            test_device = #{test_device},
+            other_device = #{other_device},
+            problem = #{problem},
+            problem_time = #{problem_time},
+            reproduction_method = #{reproduction_method},
+            recovery_method = #{recovery_method},
+            reproduction_probability = #{reproduction_probability},
+            defect_level = #{defect_level},
+            current_status = #{current_status},
+            comparison_with_previous = #{comparison_with_previous},
+            tester = #{tester},
+            dqe_and_development_confirm = #{dqe_and_development_confirm},
+            improvement_plan = #{improvement_plan},
+            responsible_person = #{responsible_person},
+            post_improvement_risk = #{post_improvement_risk},
+            next_version_regression_test = #{next_version_regression_test},
+            remark = #{remark},
+            created_at = #{created_at},
+            history_id = #{history_id},
+            sample_id = #{sample_id},
+            created_by = #{created_by},
+            dqe_confirm = #{dqe_confirm},
+            dqe_review_at = #{dqe_review_at},
+            dqe = #{dqe},
+            rd_confirm = #{rd_confirm},
+            rd_review_at = #{rd_review_at},
+            rd = #{rd},
+            modifier = #{modifier},
+            modify_at = #{modify_at}
+        WHERE
+            id = #{id}
+    </update>
+
+    <delete id="deleteProblemById" parameterType="Long">
+        DELETE FROM test_issues
+        WHERE id = #{id}
+    </delete>
+
+    <update id="uploadImage" parameterType="map">
+        UPDATE test_issues
+        SET problem_image_or_video = #{problem_image_or_video}
+        WHERE id = #{id}
+    </update>
+
+    <select id="searchScheduleAndResultJudge" parameterType="String" resultType="java.util.HashMap">
+        SELECT sample_schedule, result_judge, sample_DQE, sample_Developer, tester, rd_result_judge FROM samples WHERE sample_id = #{sample_id}
+    </select>
+
+
+    <update id="updateSampleWithSchAndResult">
+        UPDATE samples
+        <set>
+            sample_schedule = #{sample_schedule},
+            <if test="job == 'DQE' and selectedOption != null">
+                result_judge = #{selectedOption},
+            </if>
+            <if test="job == 'rd' and selectedOption != null">
+                rd_result_judge = #{selectedOption},
+            </if>
+        </set>
+        WHERE sample_id = #{sample_id}
+    </update>
+
+
+    <select id="getFilePathBySampleId" resultType="String">
+        SELECT filepath FROM samples
+        WHERE sample_id = #{sample_id}
+    </select>
+
+    <select id="querySamples" resultType="Samples">
+        SELECT * FROM samples WHERE sample_id = #{sample_id}
+    </select>
+
+
+    <select id="queryWarnDays" resultType="String">
+        SELECT warn_Days FROM setting
+        WHERE setting_role = #{setting_role}
+    </select>
+
+
+<!--    定时任务。每天12点去获取userid并覆盖-->
+    <insert id="insertOrUpdateUser" parameterType="com.lu.ddwyydemo04.pojo.User">
+        INSERT INTO users (userId, username, deptId, majorDeptId, departmentName, position)
+        VALUES (#{userId}, #{username}, #{deptId}, #{majorDeptId}, #{departmentName}, #{position})
+            ON DUPLICATE KEY UPDATE
+                                 username = #{username},
+                                 deptId = #{deptId},
+                                 majorDeptId = #{majorDeptId},
+                                 departmentName = #{departmentName},
+                                 position = #{position}
+    </insert>
+
+
+    <select id="getUserIdByName" resultType="String">
+        SELECT userId FROM users
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insertTaskNode" parameterType="com.lu.ddwyydemo04.pojo.TaskNode">
+        INSERT INTO task_nodes (sample_id, node_number, task_id, status_value, create_time, warn_time, isOverdue)
+        VALUES (#{sample_id}, #{node_number}, #{task_id}, #{status_value}, #{create_time}, #{warn_time}, #{isOverdue})
+    </insert>
+
+
+    <update id="updatePreviousNodes">
+    UPDATE task_nodes
+    SET status_value = #{status_value}, isOverdue = false
+    WHERE node_number &lt; #{node_number} AND sample_id = #{sample_id};
+    </update>
+
+
+    <select id="selectTaskId" resultType="java.lang.Long">
+        SELECT task_id FROM task_nodes
+        WHERE sample_id = #{sample_id}
+    </select>
+
+    <update id="updateSetting" parameterType="map">
+        UPDATE setting
+        SET warn_days = #{warn_days}
+        WHERE setting_role = #{setting_role}
+    </update>
+
+
+    <!-- 节点进度表第一次超时查询方法 -->
+    <select id="findOnceOverdueSampleIds" resultType="map" parameterType="java.time.LocalDateTime">
+        SELECT id,sample_id, node_number,create_time,warn_time
+        FROM task_nodes
+        WHERE node_number &lt; 4
+        AND isOverdue IS NULL
+        AND warn_time &lt; #{currentTime}
+        AND notify_once IS NULL
+    </select>
+
+    <!-- 节点进度表第二次DQE超时查询方法 -->
+    <select id="findSecondOverdueSampleIdsDQE" resultType="map" parameterType="java.time.LocalDateTime">
+        SELECT id,sample_id, node_number, create_time, warn_time
+        FROM task_nodes
+        WHERE (node_number = 1 OR node_number = 3)
+          AND isOverdue IS NULL
+          AND warn_time &lt; #{currentTime}
+          AND notify_once = 1
+          AND notify_second IS NULL
+    </select>
+
+    <select id="findSecondOverdueSampleIdsRD" resultType="map" parameterType="java.time.LocalDateTime">
+        SELECT id,sample_id, node_number, create_time, warn_time
+        FROM task_nodes
+        WHERE node_number = 2
+          AND isOverdue IS NULL
+          AND warn_time &lt; #{currentTime}
+          AND notify_once = 1
+          AND notify_second IS NULL
+    </select>
+
+    <update id="updateTaskNodesOnce">
+        UPDATE task_nodes
+        SET notify_once = 1,
+            notify_once_time = #{currentTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateTaskNodesSecond">
+        UPDATE task_nodes
+        SET notify_second = 1,
+         notify_second_time = #{currentTime}
+        WHERE id =#{id}
+    </update>
+
+    <select id="findFirstOverdueSamplesOnce" resultType="com.lu.ddwyydemo04.pojo.TaskNode" >
+        SELECT *
+        FROM task_nodes
+        WHERE notify_once = 1
+
+
+    </select>
+
+    <select id="findSecondOverdueSamplesSecond" resultType="com.lu.ddwyydemo04.pojo.TaskNode" >
+        SELECT *
+        FROM task_nodes
+        WHERE notify_second = 1
+
+    </select>
+
 
 
 

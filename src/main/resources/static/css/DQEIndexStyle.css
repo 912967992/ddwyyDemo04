@@ -1,4 +1,114 @@
- /*主容器 */
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+
+/* 按钮样式 */
+/* 按钮容器的垂直排列 */
+#buttonContainer {
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+    align-items: flex-start; /* 按钮左对齐 */
+    gap: 10px; /* 控制按钮间距 */
+}
+
+#configButton, #configButton2 ,#viewOverdueButton{
+    background-color: #4CAF50; /* 绿色背景 */
+    color: white; /* 白色字体 */
+    padding: 10px 20px; /* 内边距 */
+    border: none; /* 去掉边框 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 鼠标指针 */
+    font-size: 16px; /* 字体大小 */
+    margin: 5px; /* 按钮之间的间距 */
+}
+
+#configButton:hover, #configButton2:hover, #viewOverdueButton {
+    background-color: #45a049; /* 悬停时更深的绿色 */
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding-top: 60px;
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #4CAF50; /* 绿色边框 */
+    border-radius: 10px; /* 圆角 */
+    width: 80%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: #4CAF50; /* 悬停时变为绿色 */
+    text-decoration: none;
+    cursor: pointer;
+}
+h2 {
+    color: #4CAF50; /* 标题颜色 */
+}
+.input-group {
+    display: flex; /* 使用 flexbox 布局 */
+    align-items: center; /* 垂直居中 */
+    margin-top: 10px; /* 上边距 */
+}
+label {
+    color: #333; /* 标签颜色 */
+    margin-right: 10px; /* 标签右边距 */
+}
+input[type="number"] {
+    padding: 10px; /* 内边距 */
+    border: 1px solid #4CAF50; /* 绿色边框 */
+    border-radius: 5px; /* 圆角 */
+    width: 100px; /* 输入框宽度 */
+    margin-bottom: 10px; /* 下边距 */
+}
+#saveButton {
+    background-color: #4CAF50; /* 绿色背景 */
+    color: white; /* 白色字体 */
+    padding: 10px 15px; /* 内边距 */
+    border: none; /* 去掉边框 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 鼠标指针 */
+}
+#saveButton:hover {
+    background-color: #45a049; /* 悬停时更深的绿色 */
+}
+
+
+/*主容器 */
 .main-container {
     display: flex;
     flex-direction: column;

@@ -1,18 +1,44 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
+import com.dingtalk.api.DefaultDingTalkClient;
+import com.dingtalk.api.DingTalkClient;
+import com.dingtalk.api.request.OapiCspaceAddRequest;
+import com.dingtalk.api.response.OapiCspaceAddResponse;
+import com.dingtalk.api.response.OapiV2DepartmentListsubResponse;
+import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
-import com.lu.ddwyydemo04.dao.DQE.DQEDao;
+import com.lu.ddwyydemo04.Service.TestManIndexService;
+import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.pojo.Samples;
+import com.lu.ddwyydemo04.pojo.TaskNode;
 import com.lu.ddwyydemo04.pojo.TestIssues;
+import com.taobao.api.ApiException;
+import org.apache.poi.ss.formula.functions.T;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import java.time.format.DateTimeParseException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +47,21 @@ public class DQEproblemMoudleController {
     @Autowired
     private DQEproblemMoudleService dqeproblemMoudleService;
 
+    @Autowired
+    private TestManIndexService testManIndexService;
+
+    @Autowired
+    private AccessTokenService accessTokenService;
+    private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
+
+    @Value("${file.storage.issuespath}")
+    private String issuespath;
+
+    @Value("${file.storage.imagepath}")
+    private String imagepath;
+
+    @Value("${dingtalk.agentid}")
+    private String agentid;
 
     @GetMapping("/problemMoudle/searchTestissues") // 处理页面跳转请求
     @ResponseBody
@@ -30,32 +71,202 @@ public class DQEproblemMoudleController {
         return resultTestissues;
     }
 
-    @PostMapping("/problemMoudle/editClickBtn") // 处理页面跳转请求
+    @GetMapping("/problemMoudle/editClickBtn") // 处理页面跳转请求
     @ResponseBody
-    public List<TestIssues> editClickBtn(@RequestBody int sampleId) {
+    public List<TestIssues> editClickBtn(@RequestParam int sampleId) {
 
-        List<TestIssues> selectTestissues = dqeproblemMoudleService.selectTestIssuesFromSampleid(sampleId);
+        List<TestIssues> editTestissues = dqeproblemMoudleService.selectTestIssuesFromSampleid(sampleId);
+        System.out.println("editClickBtn获取到数据了:");
 
-        // 示例: 返回一个简单的响应
-        return selectTestissues;
+        return editTestissues;
     }
 
-    @GetMapping("/problemMoudle/searchSamplesDQE") // 处理页面跳转请求
+    @GetMapping("/problemMoudle/searchSamplesDQE")
     @ResponseBody
-    public List<Samples> searchSamplesDQE() {
-        List<Samples> resultSamples = dqeproblemMoudleService.searchSamplesDQE();
-        System.out.println(resultSamples);
-        return resultSamples;
+    public List<Samples> searchSamplesDQE(@RequestParam(required = false) String sample_id,
+                                         @RequestParam(required = false) String full_model,
+                                         @RequestParam(required = false) String questStats,
+                                         @RequestParam(required = false) String sample_category,
+                                         @RequestParam(required = false) String version,
+                                         @RequestParam(required = false) String big_species,
+                                         @RequestParam(required = false) String small_species,
+                                         @RequestParam(required = false) String supplier,
+                                         @RequestParam(required = false) String test_Overseas,
+                                         @RequestParam(required = false) String sample_DQE,
+                                         @RequestParam(required = false) String sample_Developer,
+                                         @RequestParam(required = false) String tester,
+                                         @RequestParam(required = false) String priority,
+                                         @RequestParam(required = false) String sample_schedule,
+                                         @RequestParam(required = false) String result_judge,
+                                         @RequestParam(required = false) String problemTimeStart,
+                                         @RequestParam(required = false) String problemTimeEnd) {
+
+        // 将空字符串转换为 null
+        sample_id = (sample_id != null && !sample_id.isEmpty()) ? sample_id : null;
+        full_model = (full_model != null && !full_model.isEmpty()) ? full_model : null;
+        questStats = (questStats != null && !questStats.isEmpty()) ? questStats : null;
+        sample_category = (sample_category != null && !sample_category.isEmpty()) ? sample_category : null;
+        version = (version != null && !version.isEmpty()) ? version : null;
+        big_species = (big_species != null && !big_species.isEmpty()) ? big_species : null;
+        small_species = (small_species != null && !small_species.isEmpty()) ? small_species : null;
+        supplier = (supplier != null && !supplier.isEmpty()) ? supplier : null;
+        test_Overseas = (test_Overseas != null && !test_Overseas.isEmpty()) ? test_Overseas : null;
+        sample_DQE = (sample_DQE != null && !sample_DQE.isEmpty()) ? sample_DQE : null;
+        sample_Developer = (sample_Developer != null && !sample_Developer.isEmpty()) ? sample_Developer : null;
+        tester = (tester != null && !tester.isEmpty()) ? tester : null;
+        priority = (priority != null && !priority.isEmpty()) ? priority : null;
+        sample_schedule = (sample_schedule != null && !sample_schedule.isEmpty()) ? sample_schedule : null;
+        result_judge = (result_judge != null && !result_judge.isEmpty()) ? result_judge : null;
+        problemTimeStart = (problemTimeStart != null && !problemTimeStart.isEmpty()) ? problemTimeStart : null;
+        problemTimeEnd = (problemTimeEnd != null && !problemTimeEnd.isEmpty()) ? problemTimeEnd : null;
+
+        List<Samples> samples = dqeproblemMoudleService.searchSamplesDQE(sample_id, full_model, questStats, sample_category, version,
+                big_species, small_species, supplier, test_Overseas,
+                sample_DQE, sample_Developer, tester, priority,
+                sample_schedule, result_judge, problemTimeStart, problemTimeEnd);
+//        System.out.println(samples);
+
+        return samples;
     }
+
+    @GetMapping("/problemMoudle/addNewRow") // 处理页面跳转请求
+    @ResponseBody
+    public Map<String, Object> addNewRow(@RequestParam int sampleId) {
+        System.out.println("addNewRow的sampleId:"+sampleId);
+        int max_history_id = dqeproblemMoudleService.searchTestIssuesHistroyidFromId(sampleId);
+        System.out.println("max_history_id:"+max_history_id);
+
+        Map<String, Object> sample;
+
+        if(max_history_id==0){
+            sample = dqeproblemMoudleService.addNewRowHistroyidZero(sampleId);
+            sample.put("max_history_id", max_history_id);
+
+        }else{
+            sample = dqeproblemMoudleService.addNewRow(sampleId);
+        }
+
+        // 生成当前时间的字符串格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String currentTime = LocalDateTime.now().format(formatter);
+
+        // 添加 created_at 字段
+        sample.put("created_at", currentTime);
+        System.out.println(sample);
+
+//        // 打印 SQL 语句返回的字段
+//        for (Map<String, Object> sample : samples) {
+//            System.out.println("full_model: " + sample.get("full_model"));
+//            System.out.println("sample_category: " + sample.get("sample_category"));
+//            System.out.println("version: " + sample.get("version"));
+//            System.out.println("max_history_id: " + sample.get("max_history_id"));
+//        }
+
+
+        // 直接返回查询结果（不需要再转换或提取）
+        return sample;
+    }
+
 
     //问题点模块保存问题点修改的方法
-    @PostMapping("/problemMoudle/saveAllData")
+    @PostMapping("/problemMoudle/saveChanges")
     @ResponseBody
-    public ResponseEntity<String> saveAllData(@RequestBody List<Map<String, Object>> allData) {
+    public ResponseEntity<String> saveChanges(@RequestBody List<Map<String, Object>> allData,@RequestParam("sampleId") int sampleId,
+                                              @RequestParam("username") String username,@RequestParam("job") String job) {
         try {
             System.out.println("接收到的数据量: " + allData.size()); // 打印接收到的数据量
+
             for (Map<String, Object> row : allData) {
                 System.out.println("处理行数据: " + row); // 打印每一行的数据
+                // 创建 TestIssue 对象并填充数据
+                TestIssues issue = new TestIssues();
+                issue.setFull_model((String) row.get("full_model"));
+                issue.setSample_stage((String) row.get("sample_stage"));
+                issue.setVersion((String) row.get("version"));
+                issue.setChip_solution((String) row.get("chip_solution"));
+                issue.setTest_platform((String) row.get("test_platform"));
+                issue.setTest_device((String) row.get("test_device"));
+                issue.setOther_device((String) row.get("other_device"));
+                issue.setProblem((String) row.get("problem"));
+
+//                issue.setProblem_image_or_video((String) row.get("problem_image_or_video"));
+                issue.setProblem_time((String) row.get("problem_time"));
+                issue.setReproduction_method((String) row.get("reproduction_method"));
+                issue.setRecovery_method((String) row.get("recovery_method"));
+                issue.setReproduction_probability((String) row.get("reproduction_probability"));
+                issue.setDefect_level((String) row.get("defect_level"));
+                issue.setCurrent_status((String) row.get("current_status"));
+                issue.setComparison_with_previous((String) row.get("comparison_with_previous"));
+                issue.setTester((String) row.get("tester"));
+                issue.setDqe_and_development_confirm((String) row.get("dqe_and_development_confirm"));
+                issue.setImprovement_plan((String) row.get("improvement_plan"));
+                issue.setResponsible_person((String) row.get("responsible_person"));
+                issue.setPost_improvement_risk((String) row.get("post_improvement_risk"));
+                issue.setNext_version_regression_test((String) row.get("next_version_regression_test"));
+                issue.setRemark((String) row.get("remark"));
+
+                String createdAtString = (String) row.get("created_at");
+                // 将字符串转换为 LocalDateTime
+                LocalDateTime createdAt = replaceT(createdAtString);
+                issue.setCreated_at(createdAt);
+
+                String dqe_confirm = (String) row.get("dqe_confirm");
+                issue.setDqe_confirm(dqe_confirm);
+
+                String dqe_review_atAsString =  (String) row.get("dqe_review_at");
+                LocalDateTime dqe_review_at = replaceT(dqe_review_atAsString);
+                issue.setDqe_review_at(dqe_review_at);
+                issue.setDqe((String) row.get("dqe"));
+
+
+                String rd_confirm = (String) row.get("rd_confirm");
+                issue.setRd_confirm(rd_confirm);
+
+                String rd_review_atAsString =  (String) row.get("rd_review_at");
+                LocalDateTime rd_review_at = replaceT(rd_review_atAsString);
+                issue.setRd_review_at(rd_review_at);
+                issue.setRd((String) row.get("rd"));
+
+                if(job.equals("DQE")){
+                    // 检查 dqe_confirm 和 rd_confirm
+                    if ("确认".equals(issue.getDqe_confirm())) {
+                        issue.setDqe_review_at(LocalDateTime.now()); // 设置当前时间
+                        issue.setDqe(username);
+                    }
+                }else if(job.equals("rd")){
+                    if ("确认".equals(rd_confirm)) {
+                        issue.setRd_review_at(LocalDateTime.now()); // 设置当前时间
+                        issue.setRd(username);
+                    }
+
+                }
+
+
+                issue.setHistory_id((Integer) row.get("history_id"));
+                issue.setSample_id(sampleId);
+                issue.setCreated_by((String) row.get("created_by"));
+
+                //新增dqe和rd意见等信息
+                issue.setDqe_confirm((String) row.get("dqe_confirm"));
+
+                issue.setRd_confirm((String) row.get("rd_confirm"));
+
+                issue.setModifier(username);
+                issue.setModify_at(LocalDateTime.now());
+
+                // 其他字段可以继续填充...
+                Integer id = (Integer) row.get("id");
+                if (id != null) {
+
+                    issue.setId(id.longValue()); // 将 Integer 转换为 Long
+                    dqeproblemMoudleService.updateTestIssues(issue);
+                } else {
+
+                    dqeproblemMoudleService.insertTestIssues(issue);
+                }
+
+//                System.out.println("saveChanges接受到的issues："+issue);
+
             }
 
             return ResponseEntity.ok("保存成功"); // 返回成功消息
@@ -66,6 +277,643 @@ public class DQEproblemMoudleController {
     }
 
 
+    private LocalDateTime replaceT(String createdAtString){
+        System.out.println("createdAtString:"+createdAtString);
+        if (createdAtString == null || createdAtString.isEmpty()) {
+            return null; // 返回 null
+        }
+
+        // 替换 'T' 为 ' ' 并处理两种日期格式
+        createdAtString = createdAtString.replace("T", " ");
+
+        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+
+        // 尝试解析两种格式
+        try {
+            return LocalDateTime.parse(createdAtString, formatter1);
+        } catch (DateTimeParseException e) {
+            // 如果第一种格式失败，尝试第二种格式
+            return LocalDateTime.parse(createdAtString, formatter2);
+        }
+    }
+
+
+
+    @GetMapping("/problemMoudle/deleteProblemById/{id}/{username}")
+    @ResponseBody
+    public ResponseEntity<String> deleteProblemById(@PathVariable Long id, @PathVariable String username) {
+        boolean deleted = dqeproblemMoudleService.deleteProblemById(id);
+        if (deleted) {
+            logger.info("用户 " + username + " 删除 id 为 " + id + " 的问题点成功");
+            return ResponseEntity.ok("问题点删除成功");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("问题点未找到");
+        }
+    }
+
+    @PostMapping("/problemMoudle/uploadImage")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("sampleId") String sampleId,
+            @RequestParam("id") Long issueid
+    ) {
+        System.out.println("靳开来了uploadImage");
+        System.out.println("sampleId：" + sampleId);
+        System.out.println("file：" + file);
+        System.out.println("id：" + issueid);
+        try {
+            // 检查文件是否为空
+            if (file.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "文件不能为空");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // 文件保存路径
+            String fileName = sampleId + "_" + issueid + "." + getFileExtension(file.getOriginalFilename());
+            File destinationFile = new File(issuespath + File.separator + fileName);
+
+            // 保存文件
+            file.transferTo(destinationFile);
+
+            String sqlFileName = "/" + "issuespath" + "/" + fileName;
+            System.out.println("sqlFileName:" + sqlFileName);
+
+            int uploadImageJudge = dqeproblemMoudleService.uploadImage(issueid, sqlFileName);
+            if (uploadImageJudge > 0) {
+                logger.info("序号为" + issueid + "的问题点更新图片路径为" + sqlFileName);
+            } else {
+                logger.info("序号为" + issueid + "的问题点更新图片路径为" + sqlFileName + "失败");
+            }
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "图片上传成功，序号为: "+ issueid + "的问题点更新图片路径为" + sqlFileName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "文件上传失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+
+    // 获取文件扩展名的辅助方法
+    private String getFileExtension(String fileName) {
+        if (fileName.lastIndexOf(".") > 0) {
+            return fileName.substring(fileName.lastIndexOf(".") + 1);
+        }
+        return "";
+    }
+
+    @PostMapping("/problemMoudle/processConfirm/{sampleId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> processConfirm(@PathVariable String sampleId) {
+        Map<String, String> result = dqeproblemMoudleService.searchScheduleAndResultJudge(sampleId);
+
+        return ResponseEntity.ok(result);
+    }
+
+
+
+    // 待DQE审核进来的流程确认方法
+    @PostMapping("/problemMoudle/updateSchedule")
+    @ResponseBody
+    public ResponseEntity<String> updateSchedule(@RequestBody Map<String, String> request) throws ApiException {
+        String sampleSchedule = request.get("sample_schedule");
+        String sampleId = request.get("sample_id");
+        String statusBarBgColor = request.get("statusBarBgColor");
+        String selectedOption = request.get("selectedOption");
+        String isReceiverTester = request.get("isReceiverTester");
+
+        String job = request.get("job");
+        String sender = request.get("sender");
+        String receiver = request.get("receiver");
+
+//        绿色 0xFF78C06E，红色 0xFFF65E5E，橙色 0xFFFF9D46
+        String statusBg ="0xFF78C06E";
+
+        Long dept_id = null;
+        String setting_role = "";
+
+        //62712385 -->产品研发部，523528658 --> 电子DQE组， 523459714 --》电子测试组
+        if(job.equals("DQE")){
+            if(sampleSchedule.equals("2")){ //下一步是待研发审核
+                dept_id = Long.parseLong("62712385");
+                setting_role = "rdManager";
+
+
+            }else if(sampleSchedule.equals("4")){  //下一步是已完成,这里应该是要发送OA给研发和测试人员两个，但是此时不需要警示时间了，所以这里用okManager
+                if(isReceiverTester!=null){
+                    if(isReceiverTester.equals("true")){
+                        dept_id = Long.parseLong("523459714");
+                    }
+                }else{
+                    dept_id = Long.parseLong("62712385");
+                }
+
+                setting_role = "okManager";
+
+
+            }
+        }else if(job.equals("rd")){
+            dept_id = Long.parseLong("523528658");
+            setting_role = "dqeManager";
+        }else if(job.equals("tester")){
+            dept_id = Long.parseLong("523528658");
+            setting_role = "dqeManager";
+        }
+
+
+        List<Samples> sampleList = dqeproblemMoudleService.querySamples(sampleId);
+        // 检查列表是否为空并获取第一条记录
+        Samples sample = sampleList.isEmpty() ? null : sampleList.get(0);
+
+        if(sample!=null){
+            sample.setSample_schedule(sampleSchedule);
+        }
+
+        //从数据库获取警示时间设置的天数
+        String notify_days_str = dqeproblemMoudleService.queryWarnDays(setting_role);
+        int notify_days;
+        try {
+            notify_days = Integer.parseInt(notify_days_str);
+        } catch (NumberFormatException e) {
+            // 处理转换失败的情况，例如设置一个默认值或抛出异常
+            notify_days = 0; // 默认值
+        }
+
+        // 更新 schedule
+        int isUpdated = dqeproblemMoudleService.updateSampleWithSchAndResult(sampleId, sampleSchedule, job, selectedOption);
+        if(isUpdated>0){
+            System.out.println("isUpdated状态修改成功");
+            if(selectedOption!=null){
+                if(sample!=null){
+                    if(job.equals("DQE")){
+                        sample.setResult_judge(selectedOption);
+                    }else if(job.equals("rd")){
+                        sample.setRd_result_judge(selectedOption);
+                    }
+                }
+
+            }
+
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // 获取当前时间并格式化为字符串
+        LocalDateTime notifyTime = LocalDateTime.now();
+        String notify_time = notifyTime.format(formatter);
+        System.out.println("notify_time: " + notify_time);
+
+        // 计算 warn_time
+        String warn_time = null;
+        if (notify_days > 0) {
+            LocalDateTime warnTime = notifyTime.plusDays(notify_days);
+            warn_time = warnTime.format(formatter);
+            System.out.println("warn_time: " + warn_time);
+        }
+
+        Long task_id  = accessTokenService.findUserIdByUsernameInDeptHierarchy(receiver , sample ,statusBarBgColor,sender,
+                notify_time,warn_time);
+
+        // 如果找到匹配的用户ID，执行更新逻辑，否则返回失败消息
+        if (task_id != null) {
+            TaskNode taskNode = new TaskNode();
+            taskNode.setTask_id(task_id);
+            taskNode.setSample_id(Integer.parseInt(sampleId));
+            taskNode.setNode_number(sampleSchedule);
+            taskNode.setStatus_value("测试进度："+accessTokenService.returnSchedule(sampleSchedule));
+            taskNode.setCreate_time(notify_time);
+            taskNode.setWarn_time(warn_time);
+
+            //插入新节点之前先通过sampleSchedule>1则证明有之前的节点，则需要先对旧节点进行更新
+            if(Integer.parseInt(sampleSchedule)>1){
+                int updatePreviousNodes = accessTokenService.updatePreviousNodes(taskNode);
+                if(updatePreviousNodes>0){
+                    logger.info(sampleId+"的旧节点更新成功");
+                }
+                // 处理逻辑，首先获取所有的 task_id
+                List<Long> taskIds = accessTokenService.selectTaskId(sampleId);
+                System.out.println("taskIds:"+taskIds);
+                for(Long taskId:taskIds){
+                    // 更新状态栏信息，用for循环把所有的节点的task_id状态栏都更新为最新
+                    String updateStatusBar = accessTokenService.updateStatusBar(taskId,sampleSchedule,statusBg,sample);
+                    logger.info("更新之前的节点返回信息:"+updateStatusBar);
+                }
+
+            }
+
+            // 暂停2秒
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                // 可以根据需要处理 InterruptedException
+            }
+
+            // 插入新节点到数据库
+            int insertTaskNode = accessTokenService.insertTaskNode(taskNode);
+
+            String getSchedule = accessTokenService.getOASchedule(task_id);
+
+            if (getSchedule.equals("ok")) {
+                return ResponseEntity.ok("进度更新成功！OA消息已发送给 " + receiver);
+            } else {
+                return ResponseEntity.status(400).body("Failed to update schedule");
+            }
+        } else {
+            logger.info(sampleId+"的消息发送失败");
+            return ResponseEntity.status(404).body("已进入下一个流程，但是未找到与 \" + receiver +\" 匹配的用户，无法发送OA消息通知");
+        }
+    }
+
+
+//    @PostMapping("/problemMoudle/exportProblemXlsx")
+//    @ResponseBody
+//    public void exportProblemXlsx(@RequestBody List<TestIssues> issues, HttpServletResponse response) throws IOException {
+//        // 创建 Excel 工作簿
+//        Workbook workbook = new XSSFWorkbook();
+//        Sheet sheet = workbook.createSheet("问题点");
+//
+//        // 创建一个样式，用于居中对齐
+//        CellStyle centeredStyle = workbook.createCellStyle();
+//        centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+//        centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+//
+//        // 设置边框
+//        centeredStyle.setBorderTop(BorderStyle.THIN);
+//        centeredStyle.setBorderBottom(BorderStyle.THIN);
+//        centeredStyle.setBorderLeft(BorderStyle.THIN);
+//        centeredStyle.setBorderRight(BorderStyle.THIN);
+//
+//        // 设置列宽和行高
+//        for (int i = 0; i < 33; i++) {
+//            sheet.setColumnWidth(i, 20 * 256); // 设置列宽
+//        }
+//
+//        // 创建表头
+//        Row headerRow = sheet.createRow(0);
+//        headerRow.setHeightInPoints(50); // 设置表头行高
+//        String[] headers = {
+//                "ID", "DQE确认", "DQE意见信息", "研发确认", "研发意见信息",
+//                "完整型号", "样品阶段", "版本", "芯片方案", "测试平台",
+//                "显示设备", "其他设备", "问题描述", "问题图片", "问题时间",
+//                "复现方法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
+//                "对比上一版或竞品", "提出人", "DQE&研发确认", "改善对策（研发回复）",
+//                "分析责任人", "改善后风险", "下一版回归测试", "备注", "创建时间",
+//                "历史ID", "问题点创建者", "最后一次改动者", "改动时间"
+//        };
+//
+//        // 创建表头并应用居中样式
+//        for (int i = 0; i < headers.length; i++) {
+//            Cell cell = headerRow.createCell(i);
+//            cell.setCellValue(headers[i]);
+//            cell.setCellStyle(centeredStyle); // 设置表头居中对齐
+//        }
+//
+//        // 填充数据
+//        int rowNum = 1;
+//        for (TestIssues issue : issues) {
+//            Row row = sheet.createRow(rowNum++);
+//            row.setHeightInPoints(50); // 设置每行行高
+//
+//            // 填充单元格内容并统一应用居中样式
+//            createCell(row, 0, issue.getId(), centeredStyle);
+//            createCell(row, 1, issue.getDqe_confirm(), centeredStyle);
+//            createCell(row, 2, issue.getDqe_review_at() != null ? issue.getDqe_review_at().toString() + ", " + issue.getDqe() : issue.getDqe(), centeredStyle);
+//            createCell(row, 3, issue.getRd_confirm(), centeredStyle);
+//            createCell(row, 4, issue.getRd_review_at() != null ? issue.getRd_review_at().toString() + ", " + issue.getRd() : issue.getRd(), centeredStyle);
+//            createCell(row, 5, issue.getFull_model(), centeredStyle);
+//            createCell(row, 6, issue.getSample_stage(), centeredStyle);
+//            createCell(row, 7, issue.getVersion(), centeredStyle);
+//            createCell(row, 8, issue.getChip_solution(), centeredStyle);
+//            createCell(row, 9, issue.getTest_platform(), centeredStyle);
+//            createCell(row, 10, issue.getTest_device(), centeredStyle);
+//            createCell(row, 11, issue.getOther_device(), centeredStyle);
+//            createCell(row, 12, issue.getProblem(), centeredStyle);
+//
+//            // 处理问题图片
+//            String problemImage = issue.getProblem_image_or_video();
+//            if (problemImage != null && (problemImage.contains("/imageDirectory/") || problemImage.contains("/issuespath/"))) {
+//                String filePath;
+//                if (problemImage.contains("/imageDirectory/")) {
+//                    filePath = imagepath + problemImage.replace("imageDirectory/", "");
+//                } else {
+//                    filePath = issuespath + problemImage.replace("issuespath/", "");
+//                }
+//
+//                // 读取图片文件并插入
+//                try (InputStream is = new FileInputStream(filePath);
+//                     ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+//                    byte[] buffer = new byte[1024];
+//                    int bytesRead;
+//                    while ((bytesRead = is.read(buffer)) != -1) {
+//                        baos.write(buffer, 0, bytesRead);
+//                    }
+//                    // 将图片添加到工作簿中
+//                    String imageFormat = problemImage.substring(problemImage.lastIndexOf(".") + 1);
+//                    int pictureType;
+//                    if ("png".equalsIgnoreCase(imageFormat)) {
+//                        pictureType = Workbook.PICTURE_TYPE_PNG;
+//                    } else if ("jpeg".equalsIgnoreCase(imageFormat) || "jpg".equalsIgnoreCase(imageFormat)) {
+//                        pictureType = Workbook.PICTURE_TYPE_JPEG;
+//                    } else {
+//                        throw new IllegalArgumentException("Unsupported image format: " + imageFormat);
+//                    }
+//                    int pictureIndex = workbook.addPicture(baos.toByteArray(), pictureType);
+//                    Drawing<?> drawing = sheet.createDrawingPatriarch();
+//                    // 创建图片锚点
+//                    ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, (short) 13, rowNum - 1, (short) 14, rowNum);
+//                    // 插入图片
+//                    drawing.createPicture(anchor, pictureIndex);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    createCell(row, 13, "图片加载失败", centeredStyle);
+//                }
+//            } else {
+//                createCell(row, 13, problemImage, centeredStyle);
+//            }
+//
+//            createCell(row, 14, issue.getProblem_time(), centeredStyle);
+//            createCell(row, 15, issue.getReproduction_method(), centeredStyle);
+//            createCell(row, 16, issue.getRecovery_method(), centeredStyle);
+//            createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
+//            createCell(row, 18, issue.getDefect_level(), centeredStyle);
+//            createCell(row, 19, issue.getCurrent_status(), centeredStyle);
+//            createCell(row, 20, issue.getComparison_with_previous(), centeredStyle);
+//            createCell(row, 21, issue.getTester(), centeredStyle);
+//            createCell(row, 22, issue.getDqe_and_development_confirm(), centeredStyle);
+//            createCell(row, 23, issue.getImprovement_plan(), centeredStyle);
+//            createCell(row, 24, issue.getResponsible_person(), centeredStyle);
+//            createCell(row, 25, issue.getPost_improvement_risk(), centeredStyle);
+//            createCell(row, 26, issue.getNext_version_regression_test(), centeredStyle);
+//            createCell(row, 27, issue.getRemark(), centeredStyle);
+//            createCell(row, 28, issue.getCreated_at() != null ? issue.getCreated_at().toString() : "", centeredStyle);
+//            createCell(row, 29, issue.getHistory_id(), centeredStyle);
+//            createCell(row, 30, issue.getCreated_by(), centeredStyle);
+//            createCell(row, 31, issue.getModifier(), centeredStyle);
+//            createCell(row, 32, issue.getModify_at() != null ? issue.getModify_at().toString() : "", centeredStyle);
+//        }
+//
+//        // 创建文件名
+//        TestIssues firstIssue = issues.get(0);
+//        String fileName = String.format("%s_%s_%s问题点.xlsx",
+//                firstIssue.getFull_model(),
+//                firstIssue.getSample_stage(),
+//                firstIssue.getVersion()
+//                ); // 将时间戳加入文件名
+//        System.out.println("fileName:"+fileName);
+//
+//        // 对文件名进行编码
+//        try {
+//            fileName = URLEncoder.encode(fileName, "UTF-8");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+//
+//        // 设置响应头
+//        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+//
+//
+//        // 写入 Excel 文件到响应
+//        workbook.write(response.getOutputStream());
+//        workbook.close();
+//    }
+
+    @PostMapping("/problemMoudle/exportProblemXlsx")
+    @ResponseBody
+    public Map<String, String> exportProblemXlsx(@RequestBody Map<String, List<TestIssues>> request,
+                                                 @RequestParam("dirId") String dirId,
+                                                 @RequestParam("spaceId") String spaceId,
+                                                 @RequestParam("receiverId") String receiverId,
+                                                 @RequestParam("authCode") String authCode) throws IOException {
+        List<TestIssues> issues = request.get("issues"); // 从 Map 中获取 issues
+        System.out.println("issues:"+issues);
+        Map<String, String> response = new HashMap<>();
+
+        // 创建 Excel 工作簿
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("问题点");
+
+        // 创建一个样式，用于居中对齐
+        CellStyle centeredStyle = workbook.createCellStyle();
+        centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+        centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        // 设置边框
+        centeredStyle.setBorderTop(BorderStyle.THIN);
+        centeredStyle.setBorderBottom(BorderStyle.THIN);
+        centeredStyle.setBorderLeft(BorderStyle.THIN);
+        centeredStyle.setBorderRight(BorderStyle.THIN);
+
+        // 设置列宽和行高
+        for (int i = 0; i < 33; i++) {
+            sheet.setColumnWidth(i, 20 * 256); // 设置列宽
+        }
+
+        // 创建表头
+        Row headerRow = sheet.createRow(0);
+        headerRow.setHeightInPoints(50); // 设置表头行高
+        String[] headers = {
+                "ID", "DQE确认", "DQE意见信息", "研发确认", "研发意见信息",
+                "完整型号", "样品阶段", "版本", "芯片方案", "测试平台",
+                "显示设备", "其他设备", "问题描述", "问题图片", "问题时间",
+                "复现方法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
+                "对比上一版或竞品", "提出人", "DQE&研发确认", "改善对策（研发回复）",
+                "分析责任人", "改善后风险", "下一版回归测试", "备注", "创建时间",
+                "历史ID", "问题点创建者", "最后一次改动者", "改动时间"
+        };
+
+        // 创建表头并应用居中样式
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(centeredStyle);
+        }
+
+        // 填充数据
+        int rowNum = 1;
+        for (TestIssues issue : issues) {
+            Row row = sheet.createRow(rowNum++);
+            row.setHeightInPoints(50); // 设置每行行高
+            createCell(row, 0, issue.getId(), centeredStyle);
+            createCell(row, 1, issue.getDqe_confirm(), centeredStyle);
+            createCell(row, 2, issue.getDqe_review_at() != null ? issue.getDqe_review_at().toString() + ", " + issue.getDqe() : issue.getDqe(), centeredStyle);
+            createCell(row, 3, issue.getRd_confirm(), centeredStyle);
+            createCell(row, 4, issue.getRd_review_at() != null ? issue.getRd_review_at().toString() + ", " + issue.getRd() : issue.getRd(), centeredStyle);
+            createCell(row, 5, issue.getFull_model(), centeredStyle);
+            createCell(row, 6, issue.getSample_stage(), centeredStyle);
+            createCell(row, 7, issue.getVersion(), centeredStyle);
+            createCell(row, 8, issue.getChip_solution(), centeredStyle);
+            createCell(row, 9, issue.getTest_platform(), centeredStyle);
+            createCell(row, 10, issue.getTest_device(), centeredStyle);
+            createCell(row, 11, issue.getOther_device(), centeredStyle);
+            createCell(row, 12, issue.getProblem(), centeredStyle);
+            // 处理问题图片（略去具体实现）
+
+            // 处理问题图片
+            String problemImage = issue.getProblem_image_or_video();
+            if (problemImage != null && (problemImage.contains("/imageDirectory/") || problemImage.contains("/issuespath/"))) {
+                String filePath;
+                if (problemImage.contains("/imageDirectory/")) {
+                    filePath = imagepath + problemImage.replace("imageDirectory/", "");
+                } else {
+                    filePath = issuespath + problemImage.replace("issuespath/", "");
+                }
+
+                // 读取图片文件并插入
+                try (InputStream is = new FileInputStream(filePath);
+                     ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        baos.write(buffer, 0, bytesRead);
+                    }
+                    // 将图片添加到工作簿中
+                    String imageFormat = problemImage.substring(problemImage.lastIndexOf(".") + 1);
+                    int pictureType;
+                    if ("png".equalsIgnoreCase(imageFormat)) {
+                        pictureType = Workbook.PICTURE_TYPE_PNG;
+                    } else if ("jpeg".equalsIgnoreCase(imageFormat) || "jpg".equalsIgnoreCase(imageFormat)) {
+                        pictureType = Workbook.PICTURE_TYPE_JPEG;
+                    } else {
+                        throw new IllegalArgumentException("Unsupported image format: " + imageFormat);
+                    }
+                    int pictureIndex = workbook.addPicture(baos.toByteArray(), pictureType);
+                    Drawing<?> drawing = sheet.createDrawingPatriarch();
+                    // 创建图片锚点
+                    ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, (short) 13, rowNum - 1, (short) 14, rowNum);
+                    // 插入图片
+                    drawing.createPicture(anchor, pictureIndex);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    createCell(row, 13, "图片加载失败", centeredStyle);
+                }
+            } else {
+                createCell(row, 13, problemImage, centeredStyle);
+            }
+
+            createCell(row, 14, issue.getProblem_time(), centeredStyle);
+            createCell(row, 15, issue.getReproduction_method(), centeredStyle);
+            createCell(row, 16, issue.getRecovery_method(), centeredStyle);
+            createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
+            createCell(row, 18, issue.getDefect_level(), centeredStyle);
+            createCell(row, 19, issue.getCurrent_status(), centeredStyle);
+            createCell(row, 20, issue.getComparison_with_previous(), centeredStyle);
+            createCell(row, 21, issue.getTester(), centeredStyle);
+            createCell(row, 22, issue.getDqe_and_development_confirm(), centeredStyle);
+            createCell(row, 23, issue.getImprovement_plan(), centeredStyle);
+            createCell(row, 24, issue.getResponsible_person(), centeredStyle);
+            createCell(row, 25, issue.getPost_improvement_risk(), centeredStyle);
+            createCell(row, 26, issue.getNext_version_regression_test(), centeredStyle);
+            createCell(row, 27, issue.getRemark(), centeredStyle);
+            createCell(row, 28, issue.getCreated_at() != null ? issue.getCreated_at().toString() : "", centeredStyle);
+            createCell(row, 29, issue.getHistory_id(), centeredStyle);
+            createCell(row, 30, issue.getCreated_by(), centeredStyle);
+            createCell(row, 31, issue.getModifier(), centeredStyle);
+            createCell(row, 32, issue.getModify_at() != null ? issue.getModify_at().toString() : "", centeredStyle);
+        }
+
+        // 创建文件名
+        TestIssues firstIssue = issues.get(0);
+        String fileName = String.format("%s_%s_%s问题点.xlsx",
+                firstIssue.getFull_model(),
+                firstIssue.getSample_stage(),
+                firstIssue.getVersion()
+        );
+
+        // 保存到临时文件
+        String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + fileName;
+        try (FileOutputStream fileOut = new FileOutputStream(tempFilePath)) {
+            workbook.write(fileOut);
+        } finally {
+            workbook.close();
+        }
+
+        // 上传文件到钉盘
+        try {
+            String accessToken = accessTokenService.getAccessToken();
+            String media_id = testManIndexService.getMediaId(tempFilePath, accessToken,agentid);
+            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/cspace/add");
+            OapiCspaceAddRequest req = new OapiCspaceAddRequest();
+            req.setAgentId(agentid);
+            req.setCode(authCode);
+            req.setFolderId(dirId);
+            req.setMediaId(media_id);
+            req.setSpaceId(spaceId);
+            req.setName(fileName);
+            req.setOverwrite(true);
+            req.setHttpMethod("GET");
+            OapiCspaceAddResponse rsp = client.execute(req, accessToken);
+            logger.info("Response from DingTalk cspace add: {}", rsp.getBody());
+
+            // 发送钉盘文件给用户
+            testManIndexService.sendDingFileToUser(accessToken, fileName, media_id, receiverId,agentid);
+
+            response.put("status", "发送成功");
+            response.put("filePath", tempFilePath); // 返回临时文件路径
+            response.put("fileName", fileName); // 返回文件名
+
+            logger.info("exportProblemXlsx successfully.");
+        } catch (ApiException e) {
+            e.printStackTrace();
+            response.put("status", "发送失败");
+            logger.info("exportProblemXlsx fail.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return response;
+    }
+
+
+
+    // 辅助方法用于创建单元格并设置样式
+    private void createCell(Row row, int columnIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(columnIndex);
+        if (value instanceof String) {
+            cell.setCellValue((String) value);
+        } else if (value instanceof Integer) {
+            cell.setCellValue((Integer) value);
+        } else if (value instanceof Double) {
+            cell.setCellValue((Double) value);
+        } else {
+            cell.setCellValue(value != null ? value.toString() : "");
+        }
+        cell.setCellStyle(style); // 应用样式
+    }
+
+
+    @GetMapping("/problemMoudle/getFilePath")
+    @ResponseBody
+    public ResponseEntity<?> getFilePath(@RequestParam String sampleId) {
+        try {
+            // 从数据库获取文件路径
+            String filePath = dqeproblemMoudleService.getFilePathBySampleId(sampleId);
+            System.out.println("filePath:"+filePath);
+
+            if (filePath != null) {
+                // 从 filePath 提取文件名
+                String fileName = filePath.substring(filePath.lastIndexOf("\\") + 1);
+
+
+                // 返回文件路径和文件名
+                Map<String, String> response = new HashMap<>();
+                response.put("filePath", filePath);  // 文件路径
+                response.put("fileName", fileName);  // 文件名
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文件未找到");
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // 打印异常信息
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器错误");
+        }
+    }
 
 
 

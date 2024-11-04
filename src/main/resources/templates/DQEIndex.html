@@ -21,8 +21,51 @@
 
 
     <div class="title-container">
-        <div class="title">DQE主页</div>
+        <div class="title" id="indexTitle">主页</div>
     </div>
+
+    <div id="buttonContainer"></div>
+
+    <!-- 管理配置模态框 -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">配置选项</h2>
+            <div class="input-group">
+                <label for="warningDays" id="warningLabel">警示天数：</label>
+                <input type="number" id="warningDays" value="2" min="0">
+            </div>
+            <button id="saveButton">保存</button>
+        </div>
+    </div>
+
+    <!-- 超时项目模态框 -->
+    <div id="overdueModal" class="modal">
+        <div class="modal-content">
+            <span class="close overdue-close">&times;</span>
+            <h2>超时项目列表</h2>
+            <table id="overdueTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>样品ID</th>
+                    <th>节点编号</th>
+                    <th>任务ID</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th>警告时间</th>
+                    <th>是否超时</th>
+                    <th>一次通知</th>
+                    <th>第一次通知时间</th>
+                    <th>二次通知</th>
+                    <th>第二次通知时间</th>
+                </tr>
+                </thead>
+                <tbody id="overdueProjectList"></tbody>
+            </table>
+        </div>
+    </div>
+
 
     <div class="main-container">
         <div class="dashboard" onclick="location.href='/dataBoard'">
@@ -59,10 +102,31 @@
 
 <script>
 
+    //调试用
+    // const username = "钟海龙";
+    // const job = "rd";
+
+    // 将数据保存到 localStorage
+    const username = localStorage.getItem('username');
+    const job = localStorage.getItem('job');
+    console.log(username)
+
+
     // 下方三个按钮跳转页面
     const homeBtn = document.getElementById('homeBtn');
     const cloudBtn = document.getElementById('cloudBtn');
     const profileBtn = document.getElementById('profileBtn');
+
+    const indexTitle = document.getElementById('indexTitle');
+    if (job === "DQE") {
+        indexTitle.textContent = "DQE主页";
+    } else if (job === "rd") {
+        indexTitle.textContent = "研发主页";
+    }else{
+        indexTitle.textContent = "未知角色的主页";
+    }
+
+
     // 添加点击事件监听器
     $(homeBtn).click(function() {
         // 跳转到主页
@@ -79,6 +143,132 @@
         // 跳转到个人界面页面
         window.location.href = '/DQEprofile';
     });
+
+
+    const buttonContainer = document.getElementById("buttonContainer");
+    const modal = document.getElementById("configModal");
+    const configTitle = document.getElementById("modalTitle");
+    const warningLabel = document.getElementById("warningLabel");
+
+    if (job === "DQE" && username ==="张华" ) {
+        buttonContainer.innerHTML = `
+            <button id="configButton" data-type="DQE">DQE管理配置</button>
+            <button id="viewOverdueButton">查看超时项目</button>`;
+    } else if (job === "rd" || username === "钟海龙") {
+    // } else if (job === "rd" && (username === "钟海龙" || username === "张波")) {
+        buttonContainer.innerHTML = `
+            <button id="configButton" data-type="研发">研发管理配置</button>
+            <button id="viewOverdueButton">查看超时项目</button>`;
+    }
+
+    const btn = document.getElementById("configButton");
+    btn.onclick = function() {
+        const configType = this.getAttribute("data-type");
+        configTitle.textContent = `${configType}配置选项`;
+        warningLabel.textContent = `${configType}警示天数：`;
+        modal.style.display = "block";
+    }
+
+    const span = document.getElementsByClassName("close")[0];
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    document.getElementById("saveButton").onclick = function() {
+        const warningDays = document.getElementById("warningDays").value;
+        if (warningDays < 0) {
+            alert("请输入一个非负整数！");
+        } else {
+            // 假设有一个变量 role 用于存储角色信息
+            const role = job; // 这里假设 job 变量存储当前角色，例如 "DQE" 或 "RD"
+
+            // 准备要发送的数据
+            const data = {
+                warningDays: warningDays,
+                role: role
+            };
+
+            // 发送请求到后端
+            fetch('/DQEIndex/saveWarningDays', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("警示天数已保存为：" + warningDays);
+                        modal.style.display = "none";
+                    } else {
+                        alert("保存失败，请稍后再试！");
+                    }
+                })
+                .catch(error => {
+                    console.error("发生错误:", error);
+                    alert("保存过程中发生错误！");
+                });
+        }
+    }
+
+    // 超时项目模态框
+    const overdueModal = document.getElementById("overdueModal");
+    const overdueButton = document.getElementById("viewOverdueButton");
+    const overdueClose = document.getElementsByClassName("overdue-close")[0];
+    const overdueProjectList = document.getElementById("overdueProjectList");
+
+    overdueButton.onclick = function() {
+        fetch('/DQEIndex/getOverdueSample') // 假设后端API为 /getOverdueProjects
+            .then(response => response.json())
+            .then(data => {
+                // 清空之前的内容
+                overdueProjectList.innerHTML = '';
+
+                // 填充数据到表格
+                data.forEach(taskNode => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${taskNode.id}</td>
+                        <td>${taskNode.sample_id}</td>
+                        <td>${taskNode.node_number}</td>
+                        <td>${taskNode.task_id}</td>
+                        <td>${taskNode.status_value}</td>
+                        <td>${taskNode.create_time}</td>
+                        <td>${taskNode.warn_time}</td>
+                        <td>${taskNode.isOverdue !== null ? taskNode.isOverdue : '否'}</td>
+                        <td>${taskNode.notify_once}</td>
+                        <td>${taskNode.notify_once_time}</td>
+                        <td>${taskNode.notify_second}</td>
+                        <td>${taskNode.notify_second_time}</td>
+                    `;
+                    overdueProjectList.appendChild(row);
+                });
+                overdueModal.style.display = "block"; // 显示模态框
+            })
+            .catch(error => console.error("获取超时项目列表时出错:", error));
+    };
+
+    overdueClose.onclick = function() {
+        overdueModal.style.display = "none";
+    };
+
+    window.onclick = function(event) {
+        if (event.target == overdueModal) {
+            overdueModal.style.display = "none";
+        }
+        if (event.target == configModal) {
+            configModal.style.display = "none";
+        }
+    };
+
+
 </script>
 
 

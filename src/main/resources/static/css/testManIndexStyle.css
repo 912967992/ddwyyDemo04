@@ -36,7 +36,7 @@
     padding: 5px;
     font-size: 13px;
     color: #333;
-    z-index: 1000;
+    /*z-index: 2;*/
     position: relative; /* 改为相对定位，便于居中 */
 }
 
@@ -299,7 +299,7 @@
     justify-content: space-around;
     padding: 10px; /* 按钮容器的内边距，可根据需要调整 */
     box-sizing: border-box; /* 让 padding 不影响元素的宽度 */
-    z-index: 1000; /* 确保按钮在其他内容之上 */
+    /*z-index: 1000; !* 确保按钮在其他内容之上 *!*/
 
 
 
@@ -320,7 +320,7 @@
 .modal {
     display: none; /* 默认隐藏 */
     position: fixed;
-    z-index: 1001;
+    z-index: 500;
     left: 0;
     top: 0;
     width: 100%;
@@ -400,7 +400,7 @@
 .inputModal {
     display: none; /* 默认隐藏 */
     position: fixed;
-    z-index: 1001;
+    z-index: 501;
     left: 0;
     top: 0;
     width: 100%;
@@ -442,6 +442,7 @@
     margin-top: 20px; /* 按钮容器的顶部外边距 */
 }
 /* 跳转按钮样式 */
+#viewProblemBtn,
 #replaceButton,
 #jumpButton {
     padding: 8px 16px; /* 增加内边距 */
@@ -575,4 +576,188 @@
 
 
 
+}
+
+
+/*  2024.10.31在测试人员页面新增查看问题点按钮*/
+/* 编辑按钮模态框 */
+.problemModal {
+    display: none; /* 默认隐藏 */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.problemModal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* 关闭按钮样式 */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 表格样式 */
+.problem-container {
+    overflow-x: auto; /* 启用横向滚动 */
+    width: 100%;      /* 固定宽度 */
+    max-height: 70vh; /* 设置最大高度以适应模态框 */
+}
+
+
+.problem-table {
+    width: 100%;              /* 让表格宽度自适应 */
+    border-collapse: collapse; /* 合并边框 */
+    font-size: 12px;         /* 调整表格内字体大小 */
+
+}
+
+.header-row {
+    height: 30px; /* 调整列标题行高度 */
+}
+
+.header-cell {
+    background-color: #a97d49; /* 列标题背景色 */
+    position: sticky; /* 固定标题 */
+    top: 0; /* 固定在顶部 */
+    z-index: 10; /* 确保在其他内容上方 */
+    font-size: 12px; /* 调整列标题字体大小 */
+    padding: 5px; /* 为列标题添加内边距 */
+    max-width: 150px; /* 限制列标题单元格宽度 */
+    overflow: hidden; /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 超出部分用省略号表示 */
+    white-space: nowrap; /* 防止换行 */
+}
+
+.value-cell {
+    white-space: nowrap; /* 防止换行 */
+    padding: 5px; /* 为单元格添加内边距 */
+    max-width: 150px; /* 限制单元格宽度 */
+    overflow: auto; /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 超出部分用省略号表示 */
+}
+
+.value-cell::-webkit-scrollbar {
+    height: 8px; /* 设置滚动条高度 */
+    width: 8px;  /* 设置滚动条宽度 */
+}
+
+.value-cell::-webkit-scrollbar-thumb {
+    background: #888; /* 滚动条颜色 */
+    border-radius: 6px; /* 圆角 */
+}
+
+.value-cell::-webkit-scrollbar-thumb:hover {
+    background: #555; /* 鼠标悬停时滚动条颜色 */
+}
+
+.value-cell::-webkit-scrollbar-track {
+    background: #f1f1f1; /* 滚动条轨道背景 */
+}
+
+.image-modal {
+    display: none; /* 初始状态隐藏 */
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border: 5px solid #fff;
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+/* 当模态框显示时，使 display: flex 生效 */
+.image-modal.active {
+    display: flex; /* 通过添加active类显示模态框 */
+}
+.problem-table img {
+    cursor: pointer;
+}
+
+.header-row {
+    background-color: #ffffff;
+}
+
+.header-cell {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.value-cell {
+    padding: 10px;
+    border: 1px solid #a97d49;
+}
+
+
+.save-button,.add-button , .select-all-button, .process-confirm-button{
+    background-color: green; /* 绿色背景 */
+    color: white; /* 字体颜色为白色 */
+    border-radius: 10px; /* 边框圆润 */
+    padding: 8px 15px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    white-space: pre-wrap; /* 保留换行符分两行显示 */
+    border: none; /* 去掉按钮边框 */
+    cursor: pointer; /* 鼠标悬停时显示手型图标 */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* 添加过渡效果 */
+
+    margin-right: 15px; /* 添加右间隔 */
+}
+
+.export-button,.exportFile-button{
+    background-color: #a97d49; /* 绿色背景 */
+    color: white; /* 字体颜色为白色 */
+    border-radius: 10px; /* 边框圆润 */
+    padding: 8px 15px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    white-space: pre-wrap; /* 保留换行符分两行显示 */
+    border: none; /* 去掉按钮边框 */
+    cursor: pointer; /* 鼠标悬停时显示手型图标 */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* 添加过渡效果 */
+
+    margin-right: 15px; /* 添加右间隔 */
+}
+
+
+/* 悬停时的样式 */
+.save-button:hover, .add-button:hover {
+    background-color: #4CAF50; /* 悬停时更亮的绿色 */
+}
+
+
+/* 点击时的样式 */
+.save-button:active, .add-button:active {
+    background-color: #388E3C; /* 点击时更深的绿色 */
+    transform: scale(0.95); /* 点击时按钮稍微缩小 */
 }

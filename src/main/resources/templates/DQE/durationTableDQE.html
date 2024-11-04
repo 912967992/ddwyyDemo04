@@ -17,6 +17,10 @@
 </head>
 <body>
 
+<div class="title-container">
+    <div class="title" id="indexTitle">实验室测试进度</div>
+</div>
+
 
 <div class="search-container">
     <form class="search-form">
@@ -228,7 +232,7 @@
 
             const headers = [
                 "ID","创建时间", "预计完成时间", "实际完成时间", "预计测试时长","实测时长", "测试人员",
-                "完整编码", "样品阶段", "版本","样品名称","样品进度"
+                "完整编码", "样品阶段", "大类", "小类", "版本","样品名称","样品进度"
 
             ];
 
@@ -250,7 +254,8 @@
                 const cells = [
                     item.sample_id,  item.create_time,  item.planfinish_time,item.finish_time,
                     item.planTestDuration ,item.testDuration,  item.tester,
-                    item.full_model, item.sample_category, item.version,item.sample_name,
+                    item.full_model, item.sample_category, item.big_species,item.small_species,
+                    item.version,item.sample_name,
                     item.sample_schedule
 
                 ];

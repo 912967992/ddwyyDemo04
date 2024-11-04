@@ -49,6 +49,8 @@ public class Samples {
     private double testDuration; //实际测试时长
     private double planTestDuration; //预计测试时长
 
+    private String rd_result_judge;
+
     public Integer getSample_id() {
         return sample_id;
     }
@@ -342,6 +344,14 @@ public class Samples {
         this.planTestDuration = planTestDuration;
     }
 
+    public String getRd_result_judge() {
+        return rd_result_judge;
+    }
+
+    public void setRd_result_judge(String rd_result_judge) {
+        this.rd_result_judge = rd_result_judge;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -381,6 +391,7 @@ public class Samples {
                 ", questStats ='" + questStats + '\'' +
                 ", testDuration ='" + testDuration + '\'' +
                 ", planTestDuration ='" + planTestDuration + '\'' +
+                ", rd_result_judge ='" + rd_result_judge + '\'' +
                 '}';
     }
 }

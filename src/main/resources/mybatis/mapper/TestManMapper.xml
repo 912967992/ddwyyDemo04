@@ -21,20 +21,23 @@
 <!--        t.testing = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}),-->
 <!--        t.pending = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}),-->
 <!--        t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '2' AND s.tester = #{name}),-->
-<!--        t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name} AND (-->
+<!--        t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}-->
+<!--        AND s.create_time >= '2024-09-23 00:00:00'  &lt;!&ndash; 从2024-09-23 00:00:00开始筛选 &ndash;&gt;-->
+<!--        AND (-->
 <!--        (s.finish_time IS NULL AND NOW() > s.planfinish_time) OR-->
 <!--        (s.finish_time IS NOT NULL AND s.planfinish_time &lt; s.finish_time))),-->
 <!--        t.danger = (SELECT COUNT(*) FROM samples s WHERE s.danger IS NOT NULL AND s.danger != '' AND s.tester = #{name})-->
 <!--        WHERE t.name = #{name}-->
 <!--    </update>-->
+
     <update id="updateTotal" parameterType="String">
         UPDATE total t
         SET
         t.testing = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}),
-        t.pending = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}),
-        t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '2' AND s.tester = #{name}),
+        t.pending = (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '1' OR s.sample_schedule = '2') AND s.tester = #{name}),
+        t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '3' AND s.tester = #{name}),
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
-        AND s.create_time >= '2024-09-23 00:00:00'  <!-- 从2024-09-23 00:00:00开始筛选 -->
+        AND s.create_time >= '2024-09-23 00:00:00'
         AND (
         (s.finish_time IS NULL AND NOW() > s.planfinish_time) OR
         (s.finish_time IS NOT NULL AND s.planfinish_time &lt; s.finish_time))),
@@ -304,7 +307,7 @@
         big_species LIKE CONCAT('%', #{keyword}, '%') OR
         small_species LIKE CONCAT('%', #{keyword}, '%') OR
         priority LIKE CONCAT('%', #{keyword}, '%') OR
-        questStats LIKE CONCAT('%', #{keyword}, '%')) OR
+        questStats LIKE CONCAT('%', #{keyword}, '%') OR
         tester LIKE CONCAT('%', #{keyword}, '%'))
         AND (#{problemTimeStart} IS NULL OR create_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR create_time &lt;= #{problemTimeEnd})

@@ -89,7 +89,23 @@ public class TestIssues {
     // 关联的样品ID
     private int sample_id;
 
+    private String created_by;
 
+    private String dqe_confirm;
+
+    private LocalDateTime dqe_review_at;
+
+    private String dqe;
+
+    private String rd_confirm;
+
+    private LocalDateTime rd_review_at;
+
+    private String rd;
+
+    private String modifier;
+
+    private LocalDateTime modify_at;
 
 
     public Long getId() {
@@ -308,6 +324,77 @@ public class TestIssues {
         this.sample_id = sample_id;
     }
 
+    public String getCreated_by() {
+        return created_by;
+    }
+
+    public void setCreated_by(String created_by) {
+        this.created_by = created_by;
+    }
+
+    public String getDqe_confirm() {
+        return dqe_confirm;
+    }
+
+    public void setDqe_confirm(String dqe_confirm) {
+        this.dqe_confirm = dqe_confirm;
+    }
+
+    public LocalDateTime getDqe_review_at() {
+        return dqe_review_at;
+    }
+
+    public void setDqe_review_at(LocalDateTime dqe_review_at) {
+        this.dqe_review_at = dqe_review_at;
+    }
+
+    public String getDqe() {
+        return dqe;
+    }
+
+    public void setDqe(String dqe) {
+        this.dqe = dqe;
+    }
+
+    public String getRd_confirm() {
+        return rd_confirm;
+    }
+
+    public void setRd_confirm(String rd_confirm) {
+        this.rd_confirm = rd_confirm;
+    }
+
+    public LocalDateTime getRd_review_at() {
+        return rd_review_at;
+    }
+
+    public void setRd_review_at(LocalDateTime rd_review_at) {
+        this.rd_review_at = rd_review_at;
+    }
+
+    public String getRd() {
+        return rd;
+    }
+
+    public void setRd(String rd) {
+        this.rd = rd;
+    }
+
+    public String getModifier() {
+        return modifier;
+    }
+
+    public void setModifier(String modifier) {
+        this.modifier = modifier;
+    }
+
+    public LocalDateTime getModify_at() {
+        return modify_at;
+    }
+
+    public void setModify_at(LocalDateTime modify_at) {
+        this.modify_at = modify_at;
+    }
 
     @Override
     public String toString() {
@@ -339,6 +426,15 @@ public class TestIssues {
                 ", created_at=" + created_at +
                 ", history_id=" + history_id +
                 ", sample_id=" + sample_id +
+                ", created_by=" + created_by +
+                ", dqe_confirm=" + dqe_confirm +
+                ", dqe_review_at=" + dqe_review_at +
+                ", dqe=" + dqe +
+                ", rd_confirm=" + rd_confirm +
+                ", rd_review_at=" + rd_review_at +
+                ", rd=" + rd +
+                ", modifier=" + modifier +
+                ", modify_at=" + modify_at +
                 '}';
     }
 }

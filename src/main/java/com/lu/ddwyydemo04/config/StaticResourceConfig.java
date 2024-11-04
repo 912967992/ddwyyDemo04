@@ -10,12 +10,21 @@ public class StaticResourceConfig implements WebMvcConfigurer {
     @Value("${file.storage.imagepath}")
     private String imagepath;
 
+    @Value("${file.storage.issuespath}")
+    private String issuespath;
+
+    @Value("${file.storage.savepath}")
+    private String savepath;
+
     //确保Spring Boot应用程序正确配置了静态资源服务，以便能够访问到存储在本地的图片文件。在Spring Boot的配置类中添加如下配置：
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 //        registry.addResourceHandler("/imageDirectory/**")
-//                .addResourceLocations("file:C:/imageDirectory/");
+//                .addResourceLocations("file:"+imagepath +"/");
         registry.addResourceHandler("/imageDirectory/**")
-                .addResourceLocations("file:"+imagepath +"/");
+                .addResourceLocations("file:" + imagepath + "/");
+        registry.addResourceHandler("/issuespath/**")
+                .addResourceLocations("file:" + issuespath + "/");
+
     }
 }

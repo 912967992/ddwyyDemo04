@@ -40,12 +40,14 @@
                 sessionStorage.setItem('templatespath', response.templatespath);
                 sessionStorage.setItem('savepath', response.savepath);
                 sessionStorage.setItem('imagepath', response.imagepath);
-                // alert('姓名: ' + response.username + '，职位：' + response.job + '  ，你好！');
-                alert('姓名: ' + response.username + '  ，你好！');
 
-                if (response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅"
-                ||response.username === "黄家灿" ||response.username === "荣成彧") {
-                // if(response.job.includes("DQE") || response.username === "邓小英" || response.username === "胡雪梅"|| response.username === "卢健"){
+                localStorage.setItem("username", response.username);
+                localStorage.setItem("job", response.job);
+                localStorage.setItem("corp_id", response.corp_id);
+                // alert('姓名: ' + response.username + '，职位：' + response.job + '  ，你好！');
+                alert('姓名: ' + response.username + '，角色：'+ response.job+'  ，你好！');
+
+                if (response.job.includes("DQE") || response.job.includes("rd")) {
                     window.location.href = '/DQEIndex';
                 } else {
                     // 重定向到首页

@@ -36,7 +36,7 @@
     width: 100%;
     height: 1px;
     background-color: #2ba245;
-    z-index: 500;
+    /*z-index: 500;*/
 }
 
 .btn-container {
@@ -47,7 +47,7 @@
     justify-content: space-around;
     padding: 10px;
     box-sizing: border-box;
-    z-index: 1000;
+    /*z-index: 1000;*/
 }
 
 .btn {
@@ -230,17 +230,6 @@
     margin: 0 5px; /* Add margin between buttons */
 }
 
-.edit-button {
-    margin-left: auto; /* Move the button 100px to the right */
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
 
 /* 手机端样式 */
 @media (max-width: 768px) {
@@ -314,75 +303,64 @@
 }
 
 /* 表格样式 */
-.data-table {
-    border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed; /* 确保列宽一致 */
+.table-container {
     overflow-x: auto; /* 启用横向滚动 */
-    display: block; /* 确保表格内内容可滚动 */
-    white-space: nowrap; /* 禁止表格内容自动换行 */
-    max-width: 100%; /* 限制最大宽度 */
+    width: 100%;      /* 固定宽度 */
+    max-height: 70vh; /* 设置最大高度以适应模态框 */
 }
 
-/* 表头和单元格样式 */
-.header-row, .value-row {
-    display: table-row; /* 保持行的展示方式 */
+.data-table {
+    width: 100%;              /* 让表格宽度自适应 */
+    border-collapse: collapse; /* 合并边框 */
+    font-size: 12px;         /* 调整表格内字体大小 */
+
 }
 
-.header-cell, .value-cell {
-    padding: 5px;
-    border: 1px solid #ddd;
-    text-align: center;
-    max-width: 200px; /* 设置最大宽度 */
-    overflow: hidden; /* 超出隐藏 */
-    text-overflow: ellipsis; /* 省略号表示超出内容 */
-    white-space: nowrap; /* 防止自动换行 */
-    position: relative;
-    font-size: 10px;
+.header-row {
+    height: 30px; /* 调整列标题行高度 */
 }
 
-/* 添加拖拽滚动功能 */
-.header-cell > div, .value-cell > div {
-    overflow-x: auto; /* 启用内部滚动 */
-    cursor: grab; /* 设置光标为抓取手 */
-    max-width: 200px; /* 保持最大宽度200px */
+.header-cell {
+    background-color: #a97d49; /* 列标题背景色 */
+    position: sticky; /* 固定标题 */
+    top: 0; /* 固定在顶部 */
+    z-index: 10; /* 确保在其他内容上方 */
+    font-size: 12px; /* 调整列标题字体大小 */
+    padding: 5px; /* 为列标题添加内边距 */
+    max-width: 150px; /* 限制列标题单元格宽度 */
+    overflow: hidden; /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 超出部分用省略号表示 */
+    white-space: nowrap; /* 防止换行 */
 }
 
-/* 特定列宽度调整 */
-.header-cell-10, .value-cell-10,
-.header-cell-11, .value-cell-11,
-.header-cell-12, .value-cell-12 {
-    max-width: 300px; /* 特定列最大宽度设置为300px */
+.value-cell {
+    white-space: nowrap; /* 防止换行 */
+    padding: 5px; /* 为单元格添加内边距 */
+    max-width: 150px; /* 限制单元格宽度 */
+    overflow: auto; /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 超出部分用省略号表示 */
 }
 
-/* 调整滚动条的样式 */
-.header-cell > div::-webkit-scrollbar,
-.value-cell > div::-webkit-scrollbar {
-    height: 4px; /* 将滚动条的高度减少为4px */
-    width: 4px; /* 设置垂直滚动条的宽度 */
+.value-cell::-webkit-scrollbar {
+    height: 8px; /* 设置滚动条高度 */
+    width: 8px;  /* 设置滚动条宽度 */
 }
 
-.header-cell > div::-webkit-scrollbar-thumb,
-.value-cell > div::-webkit-scrollbar-thumb {
-    background-color: #888; /* 滚动条的颜色 */
-    border-radius: 3px; /* 滚动条的圆角 */
+.value-cell::-webkit-scrollbar-thumb {
+    background: #888; /* 滚动条颜色 */
+    border-radius: 6px; /* 圆角 */
 }
 
-.header-cell > div::-webkit-scrollbar-track,
-.value-cell > div::-webkit-scrollbar-track {
-    background: #f1f1f1; /* 滚动条背景色 */
+.value-cell::-webkit-scrollbar-thumb:hover {
+    background: #555; /* 鼠标悬停时滚动条颜色 */
 }
 
-/* 鼠标悬停时滚动条样式 */
-.header-cell > div::-webkit-scrollbar-thumb:hover,
-.value-cell > div::-webkit-scrollbar-thumb:hover {
-    background: #555; /* 鼠标悬停时滚动条的颜色 */
+.value-cell::-webkit-scrollbar-track {
+    background: #f1f1f1; /* 滚动条轨道背景 */
 }
 
-/* 图片的默认样式 */
-/* 模态框样式 */
 .image-modal {
-    display: flex;
+    display: none; /* 初始状态隐藏 */
     justify-content: center;
     align-items: center;
     background: rgba(0, 0, 0, 0.8);
@@ -402,12 +380,16 @@
     transition: transform 0.2s ease;
 }
 
+/* 当模态框显示时，使 display: flex 生效 */
+.image-modal.active {
+    display: flex; /* 通过添加active类显示模态框 */
+}
 .data-table img {
     cursor: pointer;
 }
 
 .header-row {
-    background-color: #f1f1f1;
+    background-color: #ffffff;
 }
 
 .header-cell {
@@ -418,5 +400,125 @@
 
 .value-cell {
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #a97d49;
+}
+
+
+.save-button,.add-button , .select-all-button, .process-confirm-button{
+    background-color: green; /* 绿色背景 */
+    color: white; /* 字体颜色为白色 */
+    border-radius: 10px; /* 边框圆润 */
+    padding: 8px 15px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    white-space: pre-wrap; /* 保留换行符分两行显示 */
+    border: none; /* 去掉按钮边框 */
+    cursor: pointer; /* 鼠标悬停时显示手型图标 */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* 添加过渡效果 */
+
+    margin-right: 15px; /* 添加右间隔 */
+}
+
+.export-button,.exportFile-button{
+    background-color: #a97d49; /* 绿色背景 */
+    color: white; /* 字体颜色为白色 */
+    border-radius: 10px; /* 边框圆润 */
+    padding: 8px 15px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    white-space: pre-wrap; /* 保留换行符分两行显示 */
+    border: none; /* 去掉按钮边框 */
+    cursor: pointer; /* 鼠标悬停时显示手型图标 */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* 添加过渡效果 */
+
+    margin-right: 15px; /* 添加右间隔 */
+}
+
+
+/* 悬停时的样式 */
+.save-button:hover, .add-button:hover {
+    background-color: #4CAF50; /* 悬停时更亮的绿色 */
+}
+
+
+/* 点击时的样式 */
+.save-button:active, .add-button:active {
+    background-color: #388E3C; /* 点击时更深的绿色 */
+    transform: scale(0.95); /* 点击时按钮稍微缩小 */
+}
+
+
+
+
+/* 流程确认的模态框 */
+.confirmModal {
+    display: block; /* 显示模态框 */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* 背景透明，稍微深一些 */
+}
+
+.confirmModal-content {
+    background-color: #ffffff; /* 改为纯白背景 */
+    margin: 10% auto; /* 调整边距 */
+    padding: 20px;
+    border-radius: 8px; /* 圆角效果 */
+    border: 1px solid #ccc; /* 轻微的边框 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+    width: 80%; /* 可以调整模态框的宽度 */
+    max-width: 500px; /* 设置最大宽度 */
+}
+
+.confirmModal-header, .confirmModal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px; /* 添加下边距 */
+}
+
+.confirmModal-header h5 {
+    margin: 0; /* 去掉默认的 margin */
+    font-size: 18px; /* 设置标题字体大小 */
+    color: #333; /* 设置标题颜色 */
+}
+
+.confirmModal-body {
+    margin-bottom: 15px; /* 为下拉框和按钮留出空间 */
+}
+
+#finalResult {
+    width: 100%; /* 使下拉框宽度占满可用空间 */
+    padding: 10px; /* 添加内边距 */
+    font-size: 16px; /* 增加字体大小 */
+    border-radius: 5px; /* 圆角效果 */
+    border: 1px solid #ccc; /* 边框样式 */
+}
+
+.confirmModal-footer button {
+    background-color: #007bff; /* 按钮背景色 */
+    color: white; /* 按钮字体颜色 */
+    border: none; /* 去掉边框 */
+    padding: 10px 15px; /* 添加内边距 */
+    border-radius: 5px; /* 圆角效果 */
+    cursor: pointer; /* 鼠标指针效果 */
+}
+
+.confirmModal-footer button:hover {
+    background-color: #0056b3; /* 悬停时的背景色 */
+}
+
+
+.loading-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 1000;
+    border-radius: 5px;
 }
