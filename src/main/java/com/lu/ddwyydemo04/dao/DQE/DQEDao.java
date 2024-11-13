@@ -1,11 +1,8 @@
 package com.lu.ddwyydemo04.dao.DQE;
 
 
-import com.lu.ddwyydemo04.pojo.Samples;
-import com.lu.ddwyydemo04.pojo.TaskNode;
-import com.lu.ddwyydemo04.pojo.TestIssues;
+import com.lu.ddwyydemo04.pojo.*;
 
-import com.lu.ddwyydemo04.pojo.User;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +34,7 @@ public interface DQEDao {
             @Param("priority") String priority,
             @Param("sample_schedule") String sample_schedule,
             @Param("result_judge") String result_judge,
+            @Param("rd_result_judge") String rd_result_judge,
             @Param("problemTimeStart") String  problemTimeStart,
             @Param("problemTimeEnd") String problemTimeEnd);
     public Map<String, Object> addNewRow(@Param("sampleId") int sampleId);
@@ -87,4 +85,19 @@ public interface DQEDao {
     List<Map<String, Object>> findSecondOverdueSampleIdsRD(@Param("currentTime") LocalDateTime currentTime);
 
     List<TaskNode> findFirstOverdueSamplesOnce();
+    List<TaskNode> getRecentNotifications();
+    List<Samples> selectFromSampleId(@Param("sample_id")int selectFromSampleId);
+
+    String getWarningDaysByManager(@Param("manager")String manager);
+
+    Boolean updateOverdueReason(@Param("id")String id, @Param("overdueReason")String overdueReason);
+
+    int saveSys(SystemInfo systemInfo);
+
+    List<Map<String, Object>> countDefectLevelsBySampleId(@Param("sampleId") int sampleId);
+
+    int updatepProblemCounts(@Param("sample_id") int sample_id,@Param("problemCounts") String problemCounts);
+
+    int deleteTaskNodeBefore(@Param("sample_id") int sample_id);
+
 }

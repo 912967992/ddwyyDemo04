@@ -101,6 +101,11 @@
             <version>1.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.im4java</groupId>
+            <artifactId>im4java</artifactId>
+            <version>1.4.0</version>
+        </dependency>
 
 
         <!--        <dependency>-->

@@ -16,6 +16,9 @@ import com.taobao.api.ApiException;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.im4java.core.ConvertCmd;
+import org.im4java.core.IM4JavaException;
+import org.im4java.core.IMOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +30,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -98,6 +105,7 @@ public class DQEproblemMoudleController {
                                          @RequestParam(required = false) String priority,
                                          @RequestParam(required = false) String sample_schedule,
                                          @RequestParam(required = false) String result_judge,
+                                         @RequestParam(required = false) String rd_result_judge,
                                          @RequestParam(required = false) String problemTimeStart,
                                          @RequestParam(required = false) String problemTimeEnd) {
 
@@ -117,13 +125,15 @@ public class DQEproblemMoudleController {
         priority = (priority != null && !priority.isEmpty()) ? priority : null;
         sample_schedule = (sample_schedule != null && !sample_schedule.isEmpty()) ? sample_schedule : null;
         result_judge = (result_judge != null && !result_judge.isEmpty()) ? result_judge : null;
+        // 最近更新的
+        rd_result_judge = (rd_result_judge != null && !rd_result_judge.isEmpty()) ? rd_result_judge : null;
         problemTimeStart = (problemTimeStart != null && !problemTimeStart.isEmpty()) ? problemTimeStart : null;
         problemTimeEnd = (problemTimeEnd != null && !problemTimeEnd.isEmpty()) ? problemTimeEnd : null;
 
         List<Samples> samples = dqeproblemMoudleService.searchSamplesDQE(sample_id, full_model, questStats, sample_category, version,
                 big_species, small_species, supplier, test_Overseas,
                 sample_DQE, sample_Developer, tester, priority,
-                sample_schedule, result_judge, problemTimeStart, problemTimeEnd);
+                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd);
 //        System.out.println(samples);
 
         return samples;
@@ -188,6 +198,7 @@ public class DQEproblemMoudleController {
                 issue.setTest_device((String) row.get("test_device"));
                 issue.setOther_device((String) row.get("other_device"));
                 issue.setProblem((String) row.get("problem"));
+                issue.setProblemCategory((String) row.get("problemCategory"));
 
 //                issue.setProblem_image_or_video((String) row.get("problem_image_or_video"));
                 issue.setProblem_time((String) row.get("problem_time"));
@@ -265,7 +276,17 @@ public class DQEproblemMoudleController {
                     dqeproblemMoudleService.insertTestIssues(issue);
                 }
 
-//                System.out.println("saveChanges接受到的issues："+issue);
+                //20241111新增一个保存的时候统计好问题点数量并传到samples表里的problemNumber
+                List<Map<String, Object>> countDefectLevel = dqeproblemMoudleService.countDefectLevelsBySampleId(sampleId);
+//                System.out.println("countDefectLevel:"+countDefectLevel);
+                String problemCounts = dqeproblemMoudleService.formatDefectLevels(countDefectLevel);
+//                System.out.println("problemCounts:"+problemCounts);
+                // problemCounts打印出来: S:2 A:1 B:0 C:1 待确定:1
+
+                int updateProblemCounts = dqeproblemMoudleService.updatepProblemCounts(sampleId,problemCounts);
+                if(updateProblemCounts>0){
+                    System.out.println("updateProblemCounts更新成功");
+                }
 
             }
 
@@ -312,6 +333,53 @@ public class DQEproblemMoudleController {
         }
     }
 
+//    @PostMapping("/problemMoudle/uploadImage")
+//    @ResponseBody
+//    public ResponseEntity<Map<String, String>> uploadImage(
+//            @RequestParam("file") MultipartFile file,
+//            @RequestParam("sampleId") String sampleId,
+//            @RequestParam("id") Long issueid
+//    ) {
+//        System.out.println("靳开来了uploadImage");
+//        System.out.println("sampleId：" + sampleId);
+//        System.out.println("file：" + file);
+//        System.out.println("id：" + issueid);
+//        try {
+//            // 检查文件是否为空
+//            if (file.isEmpty()) {
+//                Map<String, String> response = new HashMap<>();
+//                response.put("message", "文件不能为空");
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//            }
+//
+//            // 文件保存路径
+//            String fileName = sampleId + "_" + issueid + "." + getFileExtension(file.getOriginalFilename());
+//            File destinationFile = new File(issuespath + File.separator + fileName);
+//
+//            // 保存文件
+//            file.transferTo(destinationFile);
+//
+//            String sqlFileName = "/" + "issuespath" + "/" + fileName;
+//            System.out.println("sqlFileName:" + sqlFileName);
+//
+//            int uploadImageJudge = dqeproblemMoudleService.uploadImage(issueid, sqlFileName);
+//            if (uploadImageJudge > 0) {
+//                logger.info("序号为" + issueid + "的问题点更新图片路径为" + sqlFileName);
+//            } else {
+//                logger.info("序号为" + issueid + "的问题点更新图片路径为" + sqlFileName + "失败");
+//            }
+//
+//            Map<String, String> response = new HashMap<>();
+//            response.put("message", "图片上传成功，序号为: "+ issueid + "的问题点更新图片路径为" + sqlFileName);
+//            return ResponseEntity.ok(response);
+//        } catch (Exception e) {
+//            Map<String, String> response = new HashMap<>();
+//            response.put("message", "文件上传失败: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
+
+    //新增imageMagick对HEIC文件转为png的方式
     @PostMapping("/problemMoudle/uploadImage")
     @ResponseBody
     public ResponseEntity<Map<String, String>> uploadImage(
@@ -319,7 +387,7 @@ public class DQEproblemMoudleController {
             @RequestParam("sampleId") String sampleId,
             @RequestParam("id") Long issueid
     ) {
-        System.out.println("靳开来了uploadImage");
+        System.out.println("进入 uploadImage");
         System.out.println("sampleId：" + sampleId);
         System.out.println("file：" + file);
         System.out.println("id：" + issueid);
@@ -331,14 +399,32 @@ public class DQEproblemMoudleController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
-            // 文件保存路径
-            String fileName = sampleId + "_" + issueid + "." + getFileExtension(file.getOriginalFilename());
-            File destinationFile = new File(issuespath + File.separator + fileName);
+            // 获取文件扩展名并判断是否为 HEIC
+            String fileExtension = getFileExtension(file.getOriginalFilename());
+            File destinationFile;
 
-            // 保存文件
-            file.transferTo(destinationFile);
+            if ("heic".equalsIgnoreCase(fileExtension)) {
+                // 如果是 HEIC 文件，则转换为 PNG
+                String fileName = sampleId + "_" + issueid + ".png"; // 输出文件名
+                destinationFile = new File(issuespath + File.separator + fileName);
 
-            String sqlFileName = "/" + "issuespath" + "/" + fileName;
+                // 保存文件到临时路径
+                File tempFile = new File(issuespath + File.separator + "temp_" + file.getOriginalFilename());
+                file.transferTo(tempFile);
+
+                // 使用 ImageMagick 转换 HEIC 为 PNG
+                convertHeicToPng(tempFile, destinationFile);
+                // 删除临时 HEIC 文件
+                tempFile.delete();
+            } else {
+                // 如果不是 HEIC 格式，直接保存文件
+                String fileName = sampleId + "_" + issueid + "." + fileExtension;
+                destinationFile = new File(issuespath + File.separator + fileName);
+                file.transferTo(destinationFile);
+            }
+
+            // 保存图片路径到数据库（假设是使用相同的文件路径）
+            String sqlFileName = "/" + "issuespath" + "/" + destinationFile.getName();
             System.out.println("sqlFileName:" + sqlFileName);
 
             int uploadImageJudge = dqeproblemMoudleService.uploadImage(issueid, sqlFileName);
@@ -358,14 +444,54 @@ public class DQEproblemMoudleController {
         }
     }
 
+    private void convertHeicToPng(File sourceFile, File destinationFile) throws IOException {
+        try {
+            // ImageMagick的命令行参数
+            String[] command = {"magick", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()};
 
-    // 获取文件扩展名的辅助方法
-    private String getFileExtension(String fileName) {
-        if (fileName.lastIndexOf(".") > 0) {
-            return fileName.substring(fileName.lastIndexOf(".") + 1);
+            // 执行 ImageMagick 命令
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.redirectErrorStream(true);  // 将错误流合并到标准输出
+
+            // 启动进程并等待执行
+            Process process = processBuilder.start();
+
+            // 获取输出信息
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+
+            // 等待进程结束并获取返回码
+            int exitCode = process.waitFor();
+
+            // 输出错误信息（如果有）
+            if (exitCode != 0) {
+                throw new IOException("ImageMagick 转换失败，错误信息: " + output.toString());
+            }
+
+            // 正常结束，输出转换结果
+            System.out.println("ImageMagick 转换成功: " + output.toString());
+
+        } catch (IOException | InterruptedException e) {
+            // 记录详细的异常信息
+            throw new IOException("ImageMagick 转换时出现异常: " + e.getMessage(), e);
         }
-        return "";
     }
+
+
+    private String getFileExtension(String fileName) {
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex == -1) {
+            return ""; // 没有扩展名
+        }
+        return fileName.substring(dotIndex + 1);
+    }
+
+
 
     @PostMapping("/problemMoudle/processConfirm/{sampleId}")
     @ResponseBody
@@ -471,6 +597,12 @@ public class DQEproblemMoudleController {
         String warn_time = null;
         if (notify_days > 0) {
             LocalDateTime warnTime = notifyTime.plusDays(notify_days);
+
+            // 如果 notifyTime 是星期五，则在 warnTime 上多加两天
+            if (notifyTime.getDayOfWeek() == DayOfWeek.FRIDAY) {
+                warnTime = warnTime.plusDays(2);
+            }
+
             warn_time = warnTime.format(formatter);
             System.out.println("warn_time: " + warn_time);
         }

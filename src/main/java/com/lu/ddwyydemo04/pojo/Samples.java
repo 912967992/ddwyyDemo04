@@ -50,6 +50,7 @@ public class Samples {
     private double planTestDuration; //预计测试时长
 
     private String rd_result_judge;
+    private String problemCounts;
 
     public Integer getSample_id() {
         return sample_id;
@@ -352,6 +353,14 @@ public class Samples {
         this.rd_result_judge = rd_result_judge;
     }
 
+    public String getProblemCounts() {
+        return problemCounts;
+    }
+
+    public void setProblemCounts(String problemCounts) {
+        this.problemCounts = problemCounts;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -367,10 +376,11 @@ public class Samples {
                 ", version='" + version + '\'' +
                 ", test_number='" + test_number + '\'' +
                 ", supplier='" + supplier + '\'' +
+                ", big_species='" + big_species + '\'' +
+                ", small_species='" + small_species + '\'' +
                 ", create_time=" + create_time +
                 ", finish_time=" + finish_time +
                 ", result_judge='" + result_judge + '\'' +
-//                ", signed=" + signed +
                 ", test_Overseas='" + test_Overseas + '\'' +
                 ", sample_schedule='" + sample_schedule + '\'' +
                 ", sample_DQE='" + sample_DQE + '\'' +
@@ -378,20 +388,19 @@ public class Samples {
                 ", tester='" + tester + '\'' +
                 ", tester_teamwork='" + tester_teamwork + '\'' +
                 ", planfinish_time='" + planfinish_time + '\'' +
-                ", danger='" + danger + '\'' +
                 ", filepath='" + filepath + '\'' +
+                ", danger='" + danger + '\'' +
                 ", sample_leader='" + sample_leader + '\'' +
                 ", priority='" + priority + '\'' +
-                ", sample_remark ='" + sample_remark + '\'' +
-                ", sample_frequency ='" + sample_frequency + '\'' +
-                ", sample_quantity ='" + sample_quantity + '\'' +
-                ", big_species ='" + big_species + '\'' +
-                ", small_species ='" + small_species + '\'' +
-                ", high_frequency ='" + high_frequency + '\'' +
-                ", questStats ='" + questStats + '\'' +
-                ", testDuration ='" + testDuration + '\'' +
-                ", planTestDuration ='" + planTestDuration + '\'' +
-                ", rd_result_judge ='" + rd_result_judge + '\'' +
+                ", sample_remark='" + sample_remark + '\'' +
+                ", sample_frequency=" + sample_frequency +
+                ", sample_quantity=" + sample_quantity +
+                ", high_frequency='" + high_frequency + '\'' +
+                ", questStats='" + questStats + '\'' +
+                ", testDuration=" + testDuration +
+                ", planTestDuration=" + planTestDuration +
+                ", rd_result_judge='" + rd_result_judge + '\'' +
+                ", problemCounts='" + problemCounts + '\'' +
                 '}';
     }
 }

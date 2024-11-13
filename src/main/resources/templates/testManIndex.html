@@ -33,6 +33,7 @@
             <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，将测试设备改成显示设备。)</span></h2>
             <p>2024.10.31<br>
                 1.打通测试报告审核签样流程：测试人员提交->DQE审核问题点->研发审核判定->DQE最终判定->返回通知测试及DQE判定结果。此过程中任何一方角色都可以同步查看修改问题点，并且有操作记录,每个流程节点都会有OA消息通知对应人。<br>
+                2. 测试报告文件名加上任务属性，不然会有与其他文件冲突的风险。  --赵爽发现<br>
                 <br>
                 2.新增《查看问题点》按钮，用于测试人员测试已上传的问题点（跟展示给DQE和研发的一致），此按钮位置在《替换报告》按钮左侧。 <br>
                 <br>
@@ -559,7 +560,7 @@
                         high_sign = "高频_";
                     }
 
-                    const newFileName = savepath.replace(/\//g, "\\") + "\\"  +model + " " + coding + "_" + category + "_" + version + "_第" +sample_frequency +"次送样_" + high_sign +sample_name + ".xlsx";
+                    const newFileName = savepath.replace(/\//g, "\\") + "\\"  +model + " " + coding + "_" + category + "_" + version + "_第" +sample_frequency +"次送样_" + high_sign + questStats + "_" +sample_name + ".xlsx";
 
                     if (filepaths.length > 0){
                         if(filepaths.length === 1 ){
@@ -1504,7 +1505,7 @@
                     const statusBarBgColor = "0xFF5E97F6";
                     // 这里处理成功的回调，比如提示用户或者更新UI
                     alert(response.message);
-                    if(dqe){
+                    if(dqe && response.message.includes("提交成功")){
                         updateSchedule("1",sample_id,dqe,statusBarBgColor,username,job);
                     }
                     // window.location.href = '/testManIndex';
@@ -1755,6 +1756,7 @@
                     { label: '显示设备', field: 'test_device' },
                     { label: '其他设备', field: 'other_device' },
                     { label: '问题描述', field: 'problem' },
+                    { label: '问题类别', field: 'problemCategory' },
                     { label: '问题图片', field: 'problem_image_or_video' },
                     { label: '问题时间', field: 'problem_time' },
                     { label: '复现方法', field: 'reproduction_method' },
@@ -1816,9 +1818,9 @@
                             value = item[attr.field];
                         }
                         console.log(value)
-                        if (index === 0 || index === 13 || index === 19 || index === 28
-                            || index === 29 || index ===30 || index === 31 || index === 32) { // 序号，问题图片,当前状态,创建时间,历史ID
-                            if(index === 13){
+                        if (index === 0 || index === 14 || index === 20 || index === 29
+                            || index ===31 || index === 32 || index === 33) { // 序号，问题图片,当前状态,创建时间,历史ID
+                            if(index === 14){
                                 if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
                                     // 判断是否为有效图片路径
                                     const img = document.createElement('img');
@@ -1864,7 +1866,7 @@
 
                                     valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
                                 }
-                            }else if(index === 19){
+                            }else if(index === 20){
                                 // 定义需要转换为下拉框的选项
                                 const validOptions = ['OPEN', 'CLOSED'];
 
@@ -1911,7 +1913,52 @@
                                 }else {
                                     createEditableSpan(value, item, attr, modifiedData, valueDiv);
                                 }
-                            }else if(index === 28 || index === 32){
+                            }else if(index === 19){
+                                // 定义需要转换为下拉框的等级选项
+                                const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+
+                                // 将传递过来的值转换为统一格式（大写）
+                                let normalizedValue = String(value).toUpperCase();
+
+                                // 如果输入的值在有效选项内，使用下拉框，否则直接显示原始值
+                                if (validOptions.includes(normalizedValue)) {
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        const selectedValue = select.value;
+                                        console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                                } else {
+                                    // 如果值不在有效选项范围内，则直接显示用户的原始值
+                                    createEditableSpan(value, item, attr, modifiedData, valueDiv);
+                                }
+                            }else if(index === 29 || index === 33){
                                 if(value){
                                     const valueText = document.createElement('div');
                                     valueText.textContent = value.replace("T"," ");
@@ -2189,7 +2236,17 @@
         span.addEventListener('click', function () {
             const textarea = document.createElement('textarea');
             textarea.style.height = '50px';  // 设置高度，可以根据需求调整
+            textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
+
+             textarea.style.minWidth = '120px';  // 设置最小宽度
             textarea.value = currentEditValue; // 使用当前编辑值
+
+            // 添加一些样式，避免选择区域不明显
+            textarea.style.outline = 'none';  // 去除焦点时的外边框
+            textarea.style.backgroundColor = 'white';  // 确保背景是白色
+            textarea.style.color = 'black';  // 确保文本颜色是黑色
+            textarea.style.border = '1px solid #ccc';  // 设置边框样式
+            textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
 
             // 监听失焦事件
             textarea.addEventListener('blur', function () {
@@ -2212,12 +2269,20 @@
 
             // 将 span 替换为 textarea
             valueDiv.replaceChild(textarea, span);
-            textarea.focus();
+            textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
+
+            // 不进行自动全选，允许用户自由选择文本
+            // 去掉全选的代码，避免覆盖用户的选择操作
+            // textarea.select();  // 不进行强制全选
+
+            // 监听用户选择的文本
+            textarea.addEventListener('select', function () {
+                console.log('用户选择的文本：', textarea.value.substring(textarea.selectionStart, textarea.selectionEnd));
+            });
         });
 
         valueDiv.appendChild(span);
     }
-
 
     function saveChanges(modifiedData,sampleId) {
         // if(!username){
@@ -2469,31 +2534,49 @@
                                     data: JSON.stringify(requestData), // 将对象序列化为 JSON
                                     success: function(response) {
                                         alert("发送成功");
+                                        // 成功后恢复按钮的状态
+                                        exportButton.disabled = false;
                                     },
                                     error: function(xhr, status, error) {
                                         alert('导出测试报告失败: ' + error);
+                                        // 失败后恢复按钮的状态
+                                        exportButton.disabled = false;
                                     }
                                 });
                             },
                             onFail: function(err) {
                                 alert('获取授权码失败：' + JSON.stringify(err));
                                 // hideLoading(); // 隐藏加载提示框
+                                // 失败后恢复按钮的状态
+                                exportButton.disabled = false;
                             }
                         });
                     },
                     fail: function(err) {
                         alert('选择目录失败：' + JSON.stringify(err));
                         // hideLoading(); // 隐藏加载提示框
+                        // 失败后恢复按钮的状态
+                        exportButton.disabled = false;
                     },
                     onCancel: function() {
                         alert('选择目录取消');
-                        // hideLoading(); // 隐藏加载提示框
+                        // 取消选择目录时恢复按钮的状态
+                        exportButton.disabled = false;
+                        return; // 在这里直接返回，阻止后续代码执行
                     }
                 });
             },
             onFail: function(err) {
                 alert("选择联系人出错" + err);
                 // hideLoading(); // 隐藏加载提示框
+                // 失败后恢复按钮的状态
+                exportButton.disabled = false;
+            },
+            onCancel: function() {
+                alert("选择联系人取消");
+                // 取消选择联系人时恢复按钮的状态
+                exportButton.disabled = false;
+                return; // 在这里直接返回，阻止后续代码执行
             }
         });
     }

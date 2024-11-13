@@ -20,6 +20,7 @@ public class TaskNode {
     private String notify_second;
 
     private String notify_second_time;
+    private String overdueReason;
     // Getters 和 Setters
     public int getId() {
         return id;
@@ -117,6 +118,14 @@ public class TaskNode {
         this.notify_second_time = notify_second_time;
     }
 
+    public String getOverdueReason() {
+        return overdueReason;
+    }
+
+    public void setOverdueReason(String overdueReason) {
+        this.overdueReason = overdueReason;
+    }
+
     @Override
     public String toString() {
         return "TaskNode{" +
@@ -132,6 +141,7 @@ public class TaskNode {
                 ", notify_once_time='" + notify_once_time + '\'' +
                 ", notify_second='" + notify_second + '\'' +
                 ", notify_second_time='" + notify_second_time + '\'' +
+                ", overdueReason='" + overdueReason + '\'' +
                 '}';
     }
 }

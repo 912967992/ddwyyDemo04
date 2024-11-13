@@ -179,7 +179,6 @@ public class DingTalkH5Controller {
     private Map<String, Object> generateJsapiConfig(String url) throws Exception {
         // 获取jsapi_ticket
         String jsapiTicket = jsapiTicketService.getJsapiTicket();
-        System.out.println("jsapiTicket:"+jsapiTicket);
 
         // 计算时间戳和随机字符串
         String timeStamp = Long.toString(System.currentTimeMillis() / 1000);
@@ -196,9 +195,6 @@ public class DingTalkH5Controller {
         config.put("nonceStr", nonceStr);
         config.put("signature", signature);
         config.put("jsApiList", Arrays.asList("device.base.getUUID","biz.navigation.close","biz.contact.choose","biz.cspace.chooseSpaceDir","biz.ding.create","biz.cspace.saveFile","runtime.permission.requestAuthCode","biz.util.downloadFile")); // 只需要使用选择联系人的JSAPI
-
-
-        System.out.println("config:" + config);
 
         return config;
     }
@@ -261,6 +257,11 @@ public class DingTalkH5Controller {
     //20241025：此方法是用来提取部门的主列表里是否包含某个部门id来判定是什么部门的
 
     public String checkParentDepartment(String jsonResponse,String username) {
+        // 如果用户名是黄家灿，直接设置 job 为 DQE 并返回
+        if ("黄家灿".equals(username) || "荣成彧".equals(username)) {
+            return "manager";
+        }
+
         // 解析 JSON 响应
         JSONObject response = JSON.parseObject(jsonResponse);
         System.out.println("response:"+response);
@@ -290,6 +291,24 @@ public class DingTalkH5Controller {
                         job = "DQE";
                     }
                 }
+
+                //20241105 新增一个产品经营部的job判定方法：
+                // 针对大部门 ID 为 62632390L 的情况
+                if (parentDeptIdList.contains(62632390L)) {
+                    System.out.println("产品经营部");
+
+                    // 检查是否属于耳机部门的两个指定 ID，并且排除特定用户
+                    if ((parentDeptIdList.contains(925840291L) || parentDeptIdList.contains(925828219L))
+                            && !username.equals("高玄英") && !username.equals("姜呈祥")) {
+                        job = "rd";
+                        System.out.println("耳机部门的用户，设为 RD");
+                        break;
+                    } else {
+                        job = "projectLeader";
+                        System.out.println("非耳机部门或特定用户，设为 Project Leader");
+                    }
+                }
+
             }
         } else {
             System.out.println("请求失败: " + response.getString("errmsg"));

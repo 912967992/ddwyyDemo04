@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>问题点模块</title>
+    <title>问题点模块（项目版）</title>
     <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
@@ -18,7 +18,7 @@
 
 
 <div class="header-container">
-    <div class="title">问题点模块</div>
+    <div class="title">问题点模块（项目版）</div>
     <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
 </div>
 
@@ -253,7 +253,6 @@
     <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
 </div>
 
-
 <script>
     // 存储已选中的 item.id 的数组
     let selectedIds = [];
@@ -266,23 +265,20 @@
     let currentProjectLeader;
 
     let globalFormData ;
-    // let isSearching = false;
+    let isSearching = false;
+
+    // const username = "卢健";
+    // const job = "projectLeader";
 
     //从本地缓存获取用户信息，为什么改成用本地缓存，是为了兼容苹果手机切换成横屏会丢失信息，sessionStorage不行
-    // const username = "黄家灿"
-    // let job = "manager";
-
     const username = localStorage.getItem("username");
-    let job = localStorage.getItem("job");
+    const job = localStorage.getItem("job");
     const corp_id = localStorage.getItem('corp_id');
 
-    if(job === "manager"){
-        // 这里是为了让manager级别的人能像DQE那样看到东西
-        job = "DQE";
-    }
 
     //调试用,job有以下几种：DQE,rd,projectLeader
-
+    // const username = "卢健"
+    // const job = "DQE";
 
     // 下方三个按钮跳转页面
     const homeBtn = document.getElementById('homeBtn');
@@ -413,31 +409,23 @@
         const pageSize = 15;
         let pages = []; // 用于存储分页数据
 
-        // isSearching = false;  //设置个间隔禁止用户连续点击搜索2s
+        isSearching = false;  //设置个间隔禁止用户连续点击搜索2s
 
         // 表单提交时触发搜索
-        // $('.search-form').on('submit', function(event) {
-        //     event.preventDefault(); // 防止表单的默认提交行为
-        //     if (!isSearching) {
-        //         isSearching = true; // 设置搜索状态为真
-        //         globalFormData  = $(this).serialize();
-        //
-        //         performSearch(globalFormData); // 执行搜索并传递表单数据
-        //
-        //         setTimeout(() => {
-        //             isSearching = false; // 重置搜索状态
-        //         }, 2000); // 设置间隔时间，例如2000毫秒
-        //     }
-        // });
         $('.search-form').on('submit', function(event) {
             event.preventDefault(); // 防止表单的默认提交行为
-            currentPage = 1;
+            if (!isSearching) {
+                isSearching = true; // 设置搜索状态为真
+                globalFormData  = $(this).serialize();
+                currentPage = 1;
 
-            globalFormData = $(this).serialize();  // 获取表单数据
+                performSearch(globalFormData); // 执行搜索并传递表单数据
 
-            performSearch(globalFormData);  // 执行搜索并传递表单数据
+                setTimeout(() => {
+                    isSearching = false; // 重置搜索状态
+                }, 2000); // 设置间隔时间，例如2000毫秒
+            }
         });
-
 
 
         function performSearch(formData) {
@@ -590,10 +578,8 @@
                         td.textContent = cellData || '';
                     }
 
-                    // 判断不是 "问题点数量" 时才添加点击事件
-                    if (headers[index] !== "问题点数量") {
-                        td.addEventListener('click', () => editClickBtn(item.sample_id));
-                    }
+                    // 为每个单元格添加点击事件，传递 item.sample_id
+                    td.addEventListener('click', () => editClickBtn(item.sample_id));
 
                     row.appendChild(td);
                 });
@@ -729,6 +715,14 @@
             });
         }
 
+        //生成一个不可编辑的
+        function createReadOnlySpan(value, valueDiv) {
+            const span = document.createElement('span');
+            span.textContent = value || '无';  // 如果没有数据，展示为 '无'
+
+            valueDiv.appendChild(span);
+        }
+
         function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
             const span = document.createElement('span');
             span.textContent = value || '无';  // 如果没有数据，展示为 '无'
@@ -740,17 +734,7 @@
             span.addEventListener('click', function () {
                 const textarea = document.createElement('textarea');
                 textarea.style.height = '50px';  // 设置高度，可以根据需求调整
-                textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
-
-                textarea.style.minWidth = '120px';  // 设置最小宽度
                 textarea.value = currentEditValue; // 使用当前编辑值
-
-                // 添加一些样式，避免选择区域不明显
-                textarea.style.outline = 'none';  // 去除焦点时的外边框
-                textarea.style.backgroundColor = 'white';  // 确保背景是白色
-                textarea.style.color = 'black';  // 确保文本颜色是黑色
-                textarea.style.border = '1px solid #ccc';  // 设置边框样式
-                textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
 
                 // 监听失焦事件
                 textarea.addEventListener('blur', function () {
@@ -773,21 +757,11 @@
 
                 // 将 span 替换为 textarea
                 valueDiv.replaceChild(textarea, span);
-                textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
-
-                // 不进行自动全选，允许用户自由选择文本
-                // 去掉全选的代码，避免覆盖用户的选择操作
-                // textarea.select();  // 不进行强制全选
-
-                // 监听用户选择的文本
-                textarea.addEventListener('select', function () {
-                    // console.log('用户选择的文本：', textarea.value.substring(textarea.selectionStart, textarea.selectionEnd));
-                });
+                textarea.focus();
             });
 
             valueDiv.appendChild(span);
         }
-
 
 
 
@@ -1082,8 +1056,8 @@
                                 value = item[attr.field];
                             }
 
-                            if (index === 0 || index === 14 || index === 20 || index === 29 || index === 19
-                                 || index ===31 || index === 32 || index === 33) { // 序号，问题图片,当前状态,创建时间,历史ID
+                            if (index === 0 || index === 14 || index === 20 || index === 29
+                                || index === 30 || index ===31 || index === 32 || index === 33) { // 序号，问题图片,当前状态,创建时间,历史ID
                                 if(index === 14){
                                     if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
                                         // 判断是否为有效图片路径
@@ -1112,117 +1086,34 @@
                                         uploadText.style.color = '#8a4e07';  // 设置文本颜色
 
                                         // 点击时触发选择文件的方法
-                                        uploadText.addEventListener('click', function () {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = 'image/*';  // 仅接受图片类型
-                                            // 选择文件后上传
-                                            input.addEventListener('change', function (event) {
-                                                const file = event.target.files[0];
-                                                if (file) {
-                                                    // 在这里调用上传文件的方法，并传入 sampleId
-                                                    uploadImage(file, sampleId , item.id,modifiedData);
-                                                }
-                                            });
-
-                                            input.click();  // 自动触发文件选择
-                                        });
+                                        // uploadText.addEventListener('click', function () {
+                                        //     const input = document.createElement('input');
+                                        //     input.type = 'file';
+                                        //     input.accept = 'image/*';  // 仅接受图片类型
+                                        //     // 选择文件后上传
+                                        //     input.addEventListener('change', function (event) {
+                                        //         const file = event.target.files[0];
+                                        //         if (file) {
+                                        //             // 在这里调用上传文件的方法，并传入 sampleId
+                                        //             uploadImage(file, sampleId , item.id,modifiedData);
+                                        //         }
+                                        //     });
+                                        //
+                                        //     input.click();  // 自动触发文件选择
+                                        // });
 
                                         valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
                                     }
                                 }else if(index === 20){
-                                    // 定义需要转换为下拉框的选项
-                                    const validOptions = ['OPEN', 'CLOSED'];
-
-                                    // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
-                                    let normalizedValue = String(value).toUpperCase();
-
+                                    // 将传递过来的值转换为统一格式，并检查是否需要转换 CLOSE 为 CLOSED
+                                    let normalizedValue = String(value || '').toUpperCase();
                                     if (normalizedValue === 'CLOSE') {
-                                        normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
+                                        normalizedValue = 'CLOSED';  // 自动将 CLOSE 转换为 CLOSED
                                     }
 
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 创建下拉框
-                                        const select = document.createElement('select');
-
-                                        // 创建下拉选项
-                                        validOptions.forEach(option => {
-                                            const optionElement = document.createElement('option');
-                                            optionElement.value = option;
-                                            optionElement.textContent = option;
-
-                                            // 设置默认选中的选项
-                                            if (normalizedValue === option) {
-                                                optionElement.selected = true;
-                                            }
-
-                                            select.appendChild(optionElement);
-                                        });
-
-                                        // 监听下拉框的变化事件
-                                        select.addEventListener('change', function () {
-                                            const selectedValue = select.value;
-                                            console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
-
-                                            // 如果新值和旧值不同，标记为已修改
-                                            if (selectedValue !== normalizedValue) {
-                                                item[attr.field] = selectedValue;
-                                                if (!modifiedData.includes(item)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
-
-                                        valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                    }else {
-                                        createEditableSpan(value, item, attr, modifiedData, valueDiv);
-                                    }
-                                }else if(index === 19){
-                                    // 定义需要转换为下拉框的等级选项
-                                    const validOptions = ['S', 'A', 'B', 'C', '待确定'];
-
-                                    // 将传递过来的值转换为统一格式（大写）
-                                    let normalizedValue = String(value).toUpperCase();
-
-                                    // 如果输入的值在有效选项内，使用下拉框，否则直接显示原始值
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 创建下拉框
-                                        const select = document.createElement('select');
-
-                                        // 创建下拉选项
-                                        validOptions.forEach(option => {
-                                            const optionElement = document.createElement('option');
-                                            optionElement.value = option;
-                                            optionElement.textContent = option;
-
-                                            // 设置默认选中的选项
-                                            if (normalizedValue === option) {
-                                                optionElement.selected = true;
-                                            }
-
-                                            select.appendChild(optionElement);
-                                        });
-
-                                        // 监听下拉框的变化事件
-                                        select.addEventListener('change', function () {
-                                            const selectedValue = select.value;
-                                            console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
-
-                                            // 如果新值和旧值不同，标记为已修改
-                                            if (selectedValue !== normalizedValue) {
-                                                item[attr.field] = selectedValue;
-                                                if (!modifiedData.includes(item)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
-
-                                        valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                    } else {
-                                        // 如果值不在有效选项范围内，则直接显示用户的原始值
-                                        createEditableSpan(value, item, attr, modifiedData, valueDiv);
-                                    }
-                                } else if(index === 29 || index === 33){
+                                    // 使用 createReadOnlySpan 显示状态值，如果为空字符串或其他空值则显示 '无'
+                                    createReadOnlySpan(normalizedValue || '无', valueDiv);
+                                }else if(index === 29 || index === 33){
                                     if(value){
                                         const valueText = document.createElement('div');
                                         valueText.textContent = value.replace("T"," ");
@@ -1235,25 +1126,25 @@
                                     valueText.textContent = (value !== undefined && value !== null) ? value : '无';
                                     valueText.style.color = '#2954e3'; // 设置不允许修改的列的字体颜色
 
-                                    valueText.addEventListener('click', () => {
-                                        const confirmation = confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`);
-                                        if (confirmation && username && username === item.tester) {
-                                            // 发送删除请求到控制层
-                                            fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
-                                                .then(response => {
-                                                    if (response.ok) {
-                                                        alert(`ID为${value}的问题点已成功删除`);
-                                                        // 可在此处更新界面，例如移除该问题点的显示
-                                                        editClickBtn(sampleId);
-                                                    } else {
-                                                        alert("删除失败，问题点未找到");
-                                                    }
-                                                })
-                                                .catch(error => console.error("请求失败:", error));
-                                        }else{
-                                            alert("不能删除不是自己提出的问题点");
-                                        }
-                                    });
+                                    // valueText.addEventListener('click', () => {
+                                    //     const confirmation = confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`);
+                                    //     if (confirmation && username && username === item.tester) {
+                                    //         // 发送删除请求到控制层
+                                    //         fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
+                                    //             .then(response => {
+                                    //                 if (response.ok) {
+                                    //                     alert(`ID为${value}的问题点已成功删除`);
+                                    //                     // 可在此处更新界面，例如移除该问题点的显示
+                                    //                     editClickBtn(sampleId);
+                                    //                 } else {
+                                    //                     alert("删除失败，问题点未找到");
+                                    //                 }
+                                    //             })
+                                    //             .catch(error => console.error("请求失败:", error));
+                                    //     }else{
+                                    //         alert("不能删除不是自己提出的问题点");
+                                    //     }
+                                    // });
 
                                     valueDiv.appendChild(valueText);
                                 } else {
@@ -1346,7 +1237,7 @@
                                 }
 
                             } else {
-                                createEditableSpan(value, item, attr, modifiedData, valueDiv);
+                                createReadOnlySpan(value,valueDiv)
                             }
 
                             enableDragScroll(valueDiv);
@@ -1363,130 +1254,130 @@
                     contentDiv.appendChild(tableContainer);
 
                     // 创建保存按钮
-                    const saveButton = document.createElement('button');
-                    saveButton.textContent = '保存\n修改'; // 使用换行符分两行显示文本
-                    saveButton.className = 'save-button'; // 添加类名
+                    // const saveButton = document.createElement('button');
+                    // saveButton.textContent = '保存\n修改'; // 使用换行符分两行显示文本
+                    // saveButton.className = 'save-button'; // 添加类名
+                    //
+                    // contentDiv.appendChild(saveButton);
 
-                    contentDiv.appendChild(saveButton);
-
-                    saveButton.addEventListener('click', function () {
-                        saveChanges(modifiedData,sampleId); // 只发送修改的数据
-                    });
+                    // saveButton.addEventListener('click', function () {
+                    //     saveChanges(modifiedData,sampleId); // 只发送修改的数据
+                    // });
 
                     // 创建新增问题按钮
-                    const addButton = document.createElement('button');
-                    addButton.textContent = '新增\n问题';
-                    addButton.className = 'add-button'; // 给新增问题按钮添加类名
-                    contentDiv.appendChild(addButton);
+                    // const addButton = document.createElement('button');
+                    // addButton.textContent = '新增\n问题';
+                    // addButton.className = 'add-button'; // 给新增问题按钮添加类名
+                    // contentDiv.appendChild(addButton);
 
                     // 新增问题按钮点击事件
-                    addButton.addEventListener('click', function () {
-                        addNewRow(sampleId,attributes,modifiedData,table);
-                    });
+                    // addButton.addEventListener('click', function () {
+                    //     addNewRow(sampleId,attributes,modifiedData,table);
+                    // });
 
                     // 创建全选确认按钮
-                    const selectAllButton = document.createElement('button');
-                    selectAllButton.textContent = '全选\n确认';
-                    selectAllButton.className = 'select-all-button'; // 给全选确认按钮添加类名
-                    contentDiv.appendChild(selectAllButton);
-                    // 全选确认按钮点击事件
-                    selectAllButton.addEventListener('click', function () {
-                        const checkboxes = document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"], .value-row input[type="checkbox"][data-rd="true"]');
-
-                        let allChecked = true; // 用于检查是否所有复选框都已选中
-
-                        checkboxes.forEach(checkbox => {
-                            if (!checkbox.checked) {
-                                allChecked = false; // 如果有未选中的复选框，则设置为 false
-                            }
-                        });
-
-                        // 如果所有复选框都已选中，则取消选择
-                        if (allChecked) {
-                            checkboxes.forEach(checkbox => {
-                                checkbox.checked = false; // 取消选中状态
-
-                                // 获取行数据
-                                const itemId = checkbox.closest('.value-row').querySelector('.value-cell.value-cell-1').textContent; // 获取 ID
-                                const item = modifiedData.find(existingItem => existingItem.id === itemId);
-
-                                if (item) {
-                                    const newValue = '未确认'; // 设置为未确认状态
-                                    if (newValue !== item[attr.field]) {
-                                        item[attr.field] = newValue; // 更新数据对象
-
-                                        // 确保 modifiedData 中没有重复项
-                                        if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
-                                            modifiedData.push(item); // 标记修改过的数据
-                                        }
-                                    }
-                                }
-
-                                // 触发复选框的变化事件
-                                const event = new Event('change');
-                                checkbox.dispatchEvent(event);
-                            });
-
-                        } else {
-                            // 如果不是所有复选框都已选中，则全部设置为确认
-                            checkboxes.forEach(checkbox => {
-                                checkbox.checked = true; // 设置复选框为选中状态
-
-                                // 获取行数据
-                                const itemId = checkbox.closest('.value-row').querySelector('.value-cell.value-cell-1').textContent; // 获取 ID
-                                const item = modifiedData.find(existingItem => existingItem.id === itemId);
-
-                                if (item) {
-                                    const newValue = '确认'; // 设置为确认状态
-                                    if (newValue !== item[attr.field]) {
-                                        item[attr.field] = newValue; // 更新数据对象
-
-                                        // 确保 modifiedData 中没有重复项
-                                        if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
-                                            modifiedData.push(item); // 标记修改过的数据
-                                        }
-                                    }
-                                }
-
-                                // 触发复选框的变化事件
-                                const event = new Event('change');
-                                checkbox.dispatchEvent(event);
-                            });
-                        }
-                    });
+                    // const selectAllButton = document.createElement('button');
+                    // selectAllButton.textContent = '全选\n确认';
+                    // selectAllButton.className = 'select-all-button'; // 给全选确认按钮添加类名
+                    // contentDiv.appendChild(selectAllButton);
+                    // // 全选确认按钮点击事件
+                    // selectAllButton.addEventListener('click', function () {
+                    //     const checkboxes = document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"], .value-row input[type="checkbox"][data-rd="true"]');
+                    //
+                    //     let allChecked = true; // 用于检查是否所有复选框都已选中
+                    //
+                    //     checkboxes.forEach(checkbox => {
+                    //         if (!checkbox.checked) {
+                    //             allChecked = false; // 如果有未选中的复选框，则设置为 false
+                    //         }
+                    //     });
+                    //
+                    //     // 如果所有复选框都已选中，则取消选择
+                    //     if (allChecked) {
+                    //         checkboxes.forEach(checkbox => {
+                    //             checkbox.checked = false; // 取消选中状态
+                    //
+                    //             // 获取行数据
+                    //             const itemId = checkbox.closest('.value-row').querySelector('.value-cell.value-cell-1').textContent; // 获取 ID
+                    //             const item = modifiedData.find(existingItem => existingItem.id === itemId);
+                    //
+                    //             if (item) {
+                    //                 const newValue = '未确认'; // 设置为未确认状态
+                    //                 if (newValue !== item[attr.field]) {
+                    //                     item[attr.field] = newValue; // 更新数据对象
+                    //
+                    //                     // 确保 modifiedData 中没有重复项
+                    //                     if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
+                    //                         modifiedData.push(item); // 标记修改过的数据
+                    //                     }
+                    //                 }
+                    //             }
+                    //
+                    //             // 触发复选框的变化事件
+                    //             const event = new Event('change');
+                    //             checkbox.dispatchEvent(event);
+                    //         });
+                    //
+                    //     } else {
+                    //         // 如果不是所有复选框都已选中，则全部设置为确认
+                    //         checkboxes.forEach(checkbox => {
+                    //             checkbox.checked = true; // 设置复选框为选中状态
+                    //
+                    //             // 获取行数据
+                    //             const itemId = checkbox.closest('.value-row').querySelector('.value-cell.value-cell-1').textContent; // 获取 ID
+                    //             const item = modifiedData.find(existingItem => existingItem.id === itemId);
+                    //
+                    //             if (item) {
+                    //                 const newValue = '确认'; // 设置为确认状态
+                    //                 if (newValue !== item[attr.field]) {
+                    //                     item[attr.field] = newValue; // 更新数据对象
+                    //
+                    //                     // 确保 modifiedData 中没有重复项
+                    //                     if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
+                    //                         modifiedData.push(item); // 标记修改过的数据
+                    //                     }
+                    //                 }
+                    //             }
+                    //
+                    //             // 触发复选框的变化事件
+                    //             const event = new Event('change');
+                    //             checkbox.dispatchEvent(event);
+                    //         });
+                    //     }
+                    // });
 
 
                     //新增一个流程确认的按钮
-                    const processConfirmButton = document.createElement('button');
-                    processConfirmButton.textContent = '流程\n确认'; // 按钮名称
-                    processConfirmButton.className = 'process-confirm-button'; // 给按钮添加类名
-                    contentDiv.appendChild(processConfirmButton);
-
-                    // 流程确认按钮点击事件
-                    processConfirmButton.addEventListener('click', async function () {
-                        const checkboxes = job==='DQE'
-                            ? document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"]')
-                            : document.querySelectorAll('.value-row input[type="checkbox"][data-rd="true"]');
-
-                        let allChecked = true; // 用于检查是否所有复选框都已选中
-
-                        checkboxes.forEach(checkbox => {
-                            if (!checkbox.checked) {
-                                allChecked = false; // 如果有未选中的复选框，则设置为 false
-                            }
-                        });
-
-                        if (allChecked) {
-
-                            // 在这里添加流程确认的逻辑，比如发送请求或更新状态，会先进行一次对问题点的保存
-                            processConfirm(sampleId, username);
-                            saveChanges(modifiedData, sampleId);
-
-                        } else {
-                            // 有未选中的复选框，提示用户
-                            alert('有问题点没有确认，清先确认才能让流程往下一个节点走。');
-                        }
-                    });
+                    // const processConfirmButton = document.createElement('button');
+                    // processConfirmButton.textContent = '流程\n确认'; // 按钮名称
+                    // processConfirmButton.className = 'process-confirm-button'; // 给按钮添加类名
+                    // contentDiv.appendChild(processConfirmButton);
+                    //
+                    // // 流程确认按钮点击事件
+                    // processConfirmButton.addEventListener('click', async function () {
+                    //     const checkboxes = job==='DQE'
+                    //         ? document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"]')
+                    //         : document.querySelectorAll('.value-row input[type="checkbox"][data-rd="true"]');
+                    //
+                    //     let allChecked = true; // 用于检查是否所有复选框都已选中
+                    //
+                    //     checkboxes.forEach(checkbox => {
+                    //         if (!checkbox.checked) {
+                    //             allChecked = false; // 如果有未选中的复选框，则设置为 false
+                    //         }
+                    //     });
+                    //
+                    //     if (allChecked) {
+                    //
+                    //         // 在这里添加流程确认的逻辑，比如发送请求或更新状态，会先进行一次对问题点的保存
+                    //         processConfirm(sampleId, username);
+                    //         saveChanges(modifiedData, sampleId);
+                    //
+                    //     } else {
+                    //         // 有未选中的复选框，提示用户
+                    //         alert('有问题点没有确认，清先确认才能让流程往下一个节点走。');
+                    //     }
+                    // });
 
 
                     // 新增一个导出问题点的按钮
@@ -1517,6 +1408,7 @@
                         exportFile(sampleId);
                     });
 
+
                     // ESC快捷键退出点击的模态框
                     modal.style.display = 'block';
 
@@ -1533,20 +1425,9 @@
                     // 关闭模态框的函数
                     const closeModal = () => {
                         modal.style.display = 'none';
-                        performSearch(globalFormData);
-                        // 只有在没有正在搜索时才执行搜索
-                        // if (!isSearching) {
-                        //     isSearching = true; // 设置搜索状态为真
-                        //     performSearch(globalFormData);
-                        //
-                        //     setTimeout(() => {
-                        //         isSearching = false; // 重置搜索状态
-                        //     }, 2000); // 设置间隔时间，例如2000毫秒
-                        // }
                         // 移除 ESC 键事件监听器
                         document.removeEventListener('keydown', handleEscapeKey);
                     };
-
 
                     const span = document.getElementsByClassName('close')[0];
                     span.onclick = closeModal;
@@ -1562,7 +1443,6 @@
                     isEditing = false; // 在请求完成后重置状态
                 });
         }
-
 
         function returnResult(result_judge){
             if (result_judge === "0") {
@@ -1731,6 +1611,9 @@
         }
 
 
+
+
+
         //、上传图片的方法
         function uploadImage(file, sampleId,id,modifiedData) {
             const formData = new FormData();
@@ -1819,7 +1702,7 @@
 
             // 点击图片时触发上传逻辑
             img.addEventListener('click', function () {
-                triggerImageUpload(imageSrc,sampleId,id,modifiedData,modal); // 触发上传方法
+                // triggerImageUpload(imageSrc,sampleId,id,modifiedData,modal); // 触发上传方法
             });
 
             // 将图片添加到模态框中
@@ -1852,14 +1735,14 @@
 
 // 保存修改的函数
         function saveChanges(modifiedData,sampleId) {
-            if(!username){
-                alert("用户名不存在，麻烦重新进入本应用!"); // 可选的警告提示
-                window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
-                return;
-            }
+            // if(!username){
+            //     alert("用户名不存在，麻烦重新进入本应用!"); // 可选的警告提示
+            //     window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
+            //     return;
+            // }
 
             if (modifiedData.length === 0) {
-                alert('系统已尝试保存，但未检测到需要修改的内容。');
+                alert('没有修改的内容需要保存。');
                 return;
             }
 
@@ -1889,7 +1772,20 @@
         }
 
 
+        exportButton.addEventListener('click', () => {
+            // 检查按钮是否已禁用
+            if (exportButton.disabled) {
+                return; // 如果已禁用，不执行后续代码
+            }
+
+            // 禁用按钮，防止重复点击
+            exportButton.disabled = true;
+            exportProblemXlsx(data, exportButton);
+        });
+
         function exportProblemXlsx(data, exportButton) {
+            console.log(data);
+
             // 选择联系人
             dd.biz.contact.choose({
                 multiple: false,
@@ -1971,6 +1867,7 @@
                 }
             });
         }
+
 
         function exportFile(sampleId) {
             // 首先通过 sampleId 获取文件路径

@@ -144,7 +144,7 @@ public class AccessTokenService {
 
         // 定义要发送的消息内容
         //下边这个链接很重要，OA消息发送的时候用户点击的话会跳转到工作台直接进入我的应用
-        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
+        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
 
 
 
@@ -460,13 +460,15 @@ public class AccessTokenService {
             int doubledDays_dqe = days_dqe * 2; // 计算两倍
             int days_rd = Integer.parseInt(notify_days_rd); // 将字符串转换为整数
             int doubledDays_rd = days_rd * 2; // 计算两倍
+//            System.out.println("doubledDays_dqe:"+doubledDays_dqe);
+//            System.out.println("doubledDays_rd:"+doubledDays_rd);
             // 计算 currentTime 减去 days_dqe 天数的时间点
-            LocalDateTime currentTimeSecondDQE = currentTime.minusDays(days_dqe);
-            System.out.println("currentTimeSecondDQE:"+currentTimeSecondDQE);
-            LocalDateTime currentTimeSecondRD = currentTime.minusDays(days_rd);
-            System.out.println("currentTimeSecondRD:"+currentTimeSecondRD);
+            LocalDateTime currentTimeSecondDQE = currentTime.minusDays(doubledDays_dqe);
+//            System.out.println("currentTimeSecondDQE:"+currentTimeSecondDQE);
+            LocalDateTime currentTimeSecondRD = currentTime.minusDays(doubledDays_rd);
+//            System.out.println("currentTimeSecondRD:"+currentTimeSecondRD);
 
-            // 查询节点进度表是否出现第一次超时，返回列表
+            // 查询节点进度表是否出现第二次超时，返回列表
             List<Map<String, Object>> secondOverdueSampleIdsAndNodesDQE = findSecondOverdueSampleIdsDQE(currentTimeSecondDQE);
             List<Map<String, Object>> secondOverdueSampleIdsAndNodesRD = findSecondOverdueSampleIdsRD(currentTimeSecondRD);
 
@@ -506,10 +508,10 @@ public class AccessTokenService {
                     receiver = "卢健";
                 }
                 Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString);
-                System.out.println("task_id_OSecond:"+task_id_OSecond);
+//                System.out.println("task_id_OSecond:"+task_id_OSecond);
                 int updateTaskNodesSecond = updateTaskNodesSecond(id, currentTime);
                 if(updateTaskNodesSecond>0){
-                    System.out.println("第二次超期的数据");
+                    System.out.println("第二次超期的数据更新数据库成功");
                 }
             }
 
@@ -521,9 +523,6 @@ public class AccessTokenService {
                 logger.info("没有发现d第二次超期的记录");
             }
 
-
-
-
         } catch (Exception e) {
             logger.error("执行定时数据库检查任务时出错: ", e);
         }
@@ -532,10 +531,9 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 30 0 * * ?") // 每天北京时间的 10:12
+    @Scheduled(cron = "0 10 2 * * ?") // 每天北京时间的 10:12
     public void refreshUserIds() throws ApiException {
-        //62632390是产品经营部,90070106L 是产品研发中心
-        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L,62632390L); // 示例大部门 ID
+        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L); // 示例大部门 ID
         List<User> allUsers = new ArrayList<>(); // 用于存放所有用户的列表
 
         for (Long targetDeptId : targetDeptIds) {
@@ -551,14 +549,21 @@ public class AccessTokenService {
             Long majorDeptId = user.getMajorDeptId(); // 获取大部门 ID
             Long deptId = user.getDeptId(); // 获取小部门 ID
 
-            if (user.getUsername().equals("卢健")) {
+            // 特殊条件设置：产品经营部的耳机组（925840291和925828219）中，除了高玄英和姜呈祥，其他人都设为 job=rd
+            if (majorDeptId.equals(62632390L) && (deptId.equals(925840291L) || deptId.equals(925828219L))) {
+                if (user.getUsername().equals("高玄英") || user.getUsername().equals("姜呈祥")) {
+                    user.setPosition("projectLeader");
+                } else {
+                    user.setPosition("rd");
+                }
+            } else if (user.getUsername().equals("卢健")) {
                 user.setPosition("DQE"); // 特殊条件：如果是卢健，则职位为 DQE
             } else if (majorDeptId.equals(62712385L)) { // 产品研发部
-                user.setPosition("RD");
+                user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
                 // 进一步检查是否在电子测试组
                 if (user.getDepartmentName() != null && user.getDepartmentName().equals("电子测试组")) {
-                    user.setPosition("Tester");
+                    user.setPosition("tester");
                 } else {
                     user.setPosition("DQE");
                 }
@@ -569,23 +574,41 @@ public class AccessTokenService {
             // 根据优先级决定存储
             if (userMap.containsKey(userId)) {
                 User existingUser = userMap.get(userId);
-                // 优先级：projectLeader = RD > Tester > DQE
-//                if (user.getPosition().equals("RD")) {
-                if (user.getPosition().equals("projectLeader") || user.getPosition().equals("RD")) {
+                // 优先级：projectLeader = rd > tester > DQE
+                if (user.getPosition().equals("projectLeader") || user.getPosition().equals("rd")) {
                     userMap.put(userId, user); // 新增或保留 RD
-                } else if (existingUser.getPosition().equals("DQE") && user.getPosition().equals("Tester")) {
-                    userMap.put(userId, user); // 覆盖为 Tester
+                } else if (existingUser.getPosition().equals("DQE") && user.getPosition().equals("tester")) {
+                    userMap.put(userId, user); // 覆盖为 tester
                 }
             } else {
                 userMap.put(userId, user); // 新增用户
             }
         }
 
+        // 手动插入指定的两位用户信息
+        User huangJiaCan = new User();
+        huangJiaCan.setUserId("026611696339815501");
+        huangJiaCan.setUsername("黄家灿");
+        huangJiaCan.setDeptId(63652303L);
+        huangJiaCan.setMajorDeptId(63652303L);
+        huangJiaCan.setDepartmentName("品质工程部");
+        huangJiaCan.setPosition("manager");
+
+        User rongChengYu = new User();
+        rongChengYu.setUserId("093738071833125882");
+        rongChengYu.setUsername("荣成彧");
+        rongChengYu.setDeptId(90070106L);
+        rongChengYu.setMajorDeptId(90070106L);
+        rongChengYu.setDepartmentName("产品研发中心");
+        rongChengYu.setPosition("manager");
+
+        userMap.put(huangJiaCan.getUserId(), huangJiaCan);
+        userMap.put(rongChengYu.getUserId(), rongChengYu);
+
         // 打印所有用户的配对和职位信息
         System.out.println("所有用户的配对列表及其职位: ");
         for (User user : userMap.values()) {
             System.out.println("用户ID: " + user.getUserId() + ", 用户名: " + user.getUsername() + ", 部门名称: " + user.getDepartmentName() + ", 职位: " + user.getPosition());
-
         }
 
         // 保存用户到数据库
@@ -593,6 +616,7 @@ public class AccessTokenService {
             dqeDao.insertOrUpdateUser(user); // 保存用户到数据库
         }
     }
+
 
 
     public String returnResult(String judge){
@@ -693,4 +717,9 @@ public class AccessTokenService {
     public List<Map<String, Object>> findSecondOverdueSampleIdsRD(LocalDateTime  currentTime){
         return dqeDao.findSecondOverdueSampleIdsRD(currentTime);
     }
+
+    public int deleteTaskNodeBefore(int sample_id){
+        return dqeDao.deleteTaskNodeBefore(sample_id);
+    }
+
 }

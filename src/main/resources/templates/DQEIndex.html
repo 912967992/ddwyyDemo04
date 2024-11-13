@@ -39,29 +39,74 @@
         </div>
     </div>
 
+    <!--新增三个切换角色职位的按钮便于调试-->
+    <!--新增三个切换角色职位的按钮-->
+    <div id="buttonsDiv">
+        <button id="dqeBtn">DQE</button>
+        <button id="rdBtn">rd</button>
+        <button id="projectBtn">项目</button>
+        <button id="managerBtn">经理级别以上</button>
+    </div>
+
+    <button id="viewOverdueButton">查看超时项目</button>
+
     <!-- 超时项目模态框 -->
     <div id="overdueModal" class="modal">
         <div class="modal-content">
             <span class="close overdue-close">&times;</span>
-            <h2>超时项目列表</h2>
+            <h3>超时项目列表</h3>
             <table id="overdueTable">
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>列表ID</th>
                     <th>样品ID</th>
-                    <th>节点编号</th>
-                    <th>任务ID</th>
-                    <th>状态</th>
+                    <th>超时节点</th>
+                    <th>当前进度</th>
                     <th>创建时间</th>
                     <th>警告时间</th>
-                    <th>是否超时</th>
-                    <th>一次通知</th>
-                    <th>第一次通知时间</th>
-                    <th>二次通知</th>
-                    <th>第二次通知时间</th>
+                    <th>第一次超时通知主管时间</th>
+                    <th>第二次超时通知经理时间</th>
+                    <th>大小编码</th>
+                    <th>大类</th>
+                    <th>小类</th>
+                    <th>类别</th>
+                    <th>版本</th>
+                    <th>任务属性</th>
+                    <th>节点负责人</th>
+                    <th>超期原因<br>(即填即存)</th>
                 </tr>
                 </thead>
                 <tbody id="overdueProjectList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 查看近期通知项目按钮 -->
+    <button id="viewRecentNotificationsButton">查看近期通知项目</button>
+    <!-- 近期通知项目模态框 -->
+    <div id="recentNotificationsModal" class="modal">
+        <div class="modal-content">
+            <span class="close recent-notifications-close">&times;</span>
+            <h2>近期通知项目列表</h2>
+            <table id="recentNotificationsTable">
+                <thead>
+                <tr>
+                    <th>列表ID</th>
+                    <th>样品ID</th>
+                    <th>通知节点</th>
+                    <th>当前进度</th>
+                    <th>创建时间</th>
+                    <th>超时预警时间</th>
+                    <th>大小编码</th>
+                    <th>大类</th>
+                    <th>小类</th>
+                    <th>类别</th>
+                    <th>版本</th>
+                    <th>任务属性</th>
+                    <th>节点负责人</th>
+                </tr>
+                </thead>
+                <tbody id="recentNotificationsProjectList"></tbody>
             </table>
         </div>
     </div>
@@ -75,16 +120,24 @@
                     <div class="bar bar2">50%</div>
                     <div class="bar bar3">90%</div>
                 </div>
-                <p>数据看板</p>
+                <p>数据看板（待开发）</p>
             </div>
         </div>
 
         <div class="grid-container">
             <div class="module" onclick="location.href='/projectSchedule'">项目<br>进度</div>
-            <div class="module" onclick="location.href='/problemMoudle?dd_orientation=landscape'">问题点<br>模块</div>
-            <div class="module" onclick="location.href='/sampleData'">样品<br>数据</div>
+            <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
+            <div class="module" onclick="location.href='/labModule'">实验室<br>模块</div>
             <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>
         </div>
+
+<!--        全是绿色 ， 原本的代码，但是现在-->
+<!--        <div class="grid-container">-->
+<!--            <div class="module" onclick="location.href='/projectSchedule'">项目<br>进度</div>-->
+<!--            <div class="module" onclick="location.href='/problemMoudle?dd_orientation=landscape'">问题点<br>模块</div>-->
+<!--            <div class="module" onclick="location.href='/sampleData'">样品<br>数据</div>-->
+<!--            <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>-->
+<!--        </div>-->
     </div>
 
 
@@ -100,32 +153,81 @@
     </div>
 
 
+
+
+
 <script>
 
+    let debounceTimer; // 定义一个定时器变量 , 用于防抖更新超期原因的
     //调试用
-    // const username = "钟海龙";
-    // const job = "rd";
+    // const username = "邓小英";
+    // let job = "DQE";
+
+    // const username = "张源";
+    // let job = "rd";
+    // const job = "projectLeader"
+
+    // const username = "黄家灿";
+    // const job = "DQE";
 
     // 将数据保存到 localStorage
-    const username = localStorage.getItem('username');
-    const job = localStorage.getItem('job');
-    console.log(username)
+    let username = localStorage.getItem('username');
+    let job = localStorage.getItem('job');
 
+    // 更新用户名和职位的函数
+    const buttonsDiv = document.getElementById('buttonsDiv');
 
-    // 下方三个按钮跳转页面
-    const homeBtn = document.getElementById('homeBtn');
-    const cloudBtn = document.getElementById('cloudBtn');
-    const profileBtn = document.getElementById('profileBtn');
+    // 更新用户名和职位的函数
+    function updateUserInfo(newJob) {
+        job = newJob;
+        localStorage.setItem('job', job);  // 更新 localStorage 中的职位信息
+        alert("当前职位: " + job);
+    }
+
+    // 如果用户名是 "卢健"，显示切换职位按钮
+    if (username === '卢健') {
+        buttonsDiv.style.display = 'block';  // 显示按钮
+    } else {
+        buttonsDiv.style.display = 'none';  // 隐藏按钮
+    }
+
+    // 为按钮添加点击事件，切换职位并更新 localStorage
+    document.getElementById('dqeBtn').addEventListener('click', function() {
+        updateUserInfo('DQE');
+    });
+    document.getElementById('rdBtn').addEventListener('click', function() {
+        updateUserInfo('rd');
+    });
+    document.getElementById('projectBtn').addEventListener('click', function() {
+        updateUserInfo('projectLeader');
+    });
+    document.getElementById('managerBtn').addEventListener('click', function() {
+        updateUserInfo('manager');
+    });
+
+    function redirectToPage() {
+        if (job === 'projectLeader') {
+            location.href = '/ProjectLeaderMoudle?dd_orientation=landscape';
+        } else {
+            location.href = '/problemMoudle?dd_orientation=landscape';
+        }
+    }
 
     const indexTitle = document.getElementById('indexTitle');
     if (job === "DQE") {
         indexTitle.textContent = "DQE主页";
     } else if (job === "rd") {
         indexTitle.textContent = "研发主页";
+    }else if (job === "projectLeader") {
+        indexTitle.textContent = "项目主页";
     }else{
-        indexTitle.textContent = "未知角色的主页";
+        indexTitle.textContent = "管理员角色的主页";
     }
 
+    // 下方三个按钮跳转页面
+    const homeBtn = document.getElementById('homeBtn');
+    const cloudBtn = document.getElementById('cloudBtn');
+    const profileBtn = document.getElementById('profileBtn');
 
     // 添加点击事件监听器
     $(homeBtn).click(function() {
@@ -146,39 +248,51 @@
 
 
     const buttonContainer = document.getElementById("buttonContainer");
-    const modal = document.getElementById("configModal");
+    const configModal = document.getElementById("configModal");
     const configTitle = document.getElementById("modalTitle");
     const warningLabel = document.getElementById("warningLabel");
+    const warningDaysInput = document.getElementById("warningDays"); // 定义 warningDaysInput
 
-    if (job === "DQE" && username ==="张华" ) {
+
+    if (username ==="张华" || username === "卢健" || username === "黄家灿" || username ==="荣成彧") {
         buttonContainer.innerHTML = `
-            <button id="configButton" data-type="DQE">DQE管理配置</button>
-            <button id="viewOverdueButton">查看超时项目</button>`;
-    } else if (job === "rd" || username === "钟海龙") {
+            <button id="configButton" data-type="DQE">DQE管理配置</button>`;
+
+    } else if (job === "rd" && username === "钟海龙") {
     // } else if (job === "rd" && (username === "钟海龙" || username === "张波")) {
         buttonContainer.innerHTML = `
-            <button id="configButton" data-type="研发">研发管理配置</button>
-            <button id="viewOverdueButton">查看超时项目</button>`;
+            <button id="configButton" data-type="研发">研发管理配置</button>`;
+
     }
 
     const btn = document.getElementById("configButton");
-    btn.onclick = function() {
-        const configType = this.getAttribute("data-type");
-        configTitle.textContent = `${configType}配置选项`;
-        warningLabel.textContent = `${configType}警示天数：`;
-        modal.style.display = "block";
+    if (btn) {
+        btn.onclick = async function () {
+            const configType = this.getAttribute("data-type");
+            configTitle.textContent = `${configType}配置选项`;
+            warningLabel.textContent = `${configType}警示天数：`;
+
+            // 从后端获取 `warningDays` 数据
+            try {
+                const response = await fetch(`/DQEIndex/getWarningDays?configType=${encodeURIComponent(configType)}`);
+                if (response.ok) {
+                    const warningDays = await response.json();
+                    // 将获取的 `warningDays` 值赋给输入框
+                    warningDaysInput.value = warningDays;
+                } else {
+                    console.error("Failed to fetch warning days");
+                }
+            } catch (error) {
+                console.error("Error fetching warning days:", error);
+            }
+            configModal.style.display = "block";
+        };
     }
 
     const span = document.getElementsByClassName("close")[0];
 
     span.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
+        configModal.style.display = "none";
     }
 
     document.getElementById("saveButton").onclick = function() {
@@ -206,7 +320,7 @@
                 .then(response => {
                     if (response.ok) {
                         alert("警示天数已保存为：" + warningDays);
-                        modal.style.display = "none";
+                        configModal.style.display = "none";
                     } else {
                         alert("保存失败，请稍后再试！");
                     }
@@ -224,39 +338,196 @@
     const overdueClose = document.getElementsByClassName("overdue-close")[0];
     const overdueProjectList = document.getElementById("overdueProjectList");
 
-    overdueButton.onclick = function() {
-        fetch('/DQEIndex/getOverdueSample') // 假设后端API为 /getOverdueProjects
+    // 判断用户的职位，如果是 projectLeader，则隐藏按钮
+    if (job === 'projectLeader') {
+        overdueButton.style.display = 'none';  // 隐藏按钮
+    } else {
+        overdueButton.style.display = 'block';  // 显示按钮
+    }
+
+    // 定义超时节点的值转换为描述的函数
+    function getNodeDescription(nodeNumber) {
+        switch (nodeNumber) {
+            case "1":
+                return "待DQE审核";
+            case "2":
+                return "待研发审核";
+            case "3":
+                return "待DQE判定";
+            case "4":
+                return "已完成";
+            default:
+                return ""; // 默认返回空字符串
+        }
+    }
+
+    overdueButton.onclick = function () {
+        fetch('/DQEIndex/getOverdueSample')
             .then(response => response.json())
             .then(data => {
                 // 清空之前的内容
                 overdueProjectList.innerHTML = '';
 
+                // 帮助函数：处理 null 值
+                const displayValue = (value) => value === null ? "" : value;
+
+                // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
+                const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧";
+
                 // 填充数据到表格
-                data.forEach(taskNode => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${taskNode.id}</td>
-                        <td>${taskNode.sample_id}</td>
-                        <td>${taskNode.node_number}</td>
-                        <td>${taskNode.task_id}</td>
-                        <td>${taskNode.status_value}</td>
-                        <td>${taskNode.create_time}</td>
-                        <td>${taskNode.warn_time}</td>
-                        <td>${taskNode.isOverdue !== null ? taskNode.isOverdue : '否'}</td>
-                        <td>${taskNode.notify_once}</td>
-                        <td>${taskNode.notify_once_time}</td>
-                        <td>${taskNode.notify_second}</td>
-                        <td>${taskNode.notify_second_time}</td>
+                data.forEach(combinedTaskNode => {
+                    const personInCharge = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number))
+                        ? combinedTaskNode.dqe
+                        : String(combinedTaskNode.taskNode.node_number) === "2"
+                            ? combinedTaskNode.rd ? combinedTaskNode.rd : ""
+                            : ""; // 默认值
+
+                    // 根据 Job 过滤数据
+                    let shouldDisplay = false;
+                    if (job === "DQE" || job === "manager") {
+                        // 如果 Job 是 DQE，则只展示 node_number 为 "1" 或 "3" 的数据
+                        shouldDisplay = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number));
+                    } else if (job === "rd") {
+                        // 如果 Job 是 rd，则只展示 node_number 为 "2" 的数据
+                        shouldDisplay = String(combinedTaskNode.taskNode.node_number) === "2";
+                    }
+
+                    // 如果是黄家灿或肖政文，则额外过滤 notify_second_time 不为空的数据
+                    if (isSpecialUser) {
+                        shouldDisplay = shouldDisplay && displayValue(combinedTaskNode.taskNode.notify_second_time) !== "";
+                    }
+
+                    // 只有在满足条件时才创建行
+                    if (shouldDisplay) {
+                        const row = document.createElement('tr');
+
+                        // 检查用户名是否匹配，允许用户编辑
+                        const overdueReasonContent = (personInCharge === username) ?
+                            `<input type="text" value="${displayValue(combinedTaskNode.taskNode.overdueReason)}"
+                             data-id="${combinedTaskNode.taskNode.id}"
+                             onblur="updateOverdueReason(this)"
+                             style="width: 100px;" />`
+                            : displayValue(combinedTaskNode.taskNode.overdueReason);
+
+
+
+                        // 使用 combinedTaskNode.taskNode 获取 TaskNode 的字段
+                        row.innerHTML = `
+                    <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
+                    <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
+                    <td class="red-text">${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td> <!-- 使用外部方法 -->
+                    <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
+                    <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
+                    <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
+                    <td>${displayValue(combinedTaskNode.taskNode.notify_once_time)}</td>
+                    <td>${displayValue(combinedTaskNode.taskNode.notify_second_time)}</td>
+                    <td>${displayValue(combinedTaskNode.fullModel)}</td> <!-- 这里是样本的字段 -->
+                    <td>${displayValue(combinedTaskNode.bigSpecial)}</td>
+                    <td>${displayValue(combinedTaskNode.smallSpecial)}</td>
+                    <td>${displayValue(combinedTaskNode.sampleCategory)}</td>
+                    <td>${displayValue(combinedTaskNode.version)}</td>
+                    <td>${displayValue(combinedTaskNode.questStats)}</td>
+                    <td>${displayValue(personInCharge)}</td> <!-- 添加负责人信息 -->
+                    <td>${overdueReasonContent}</td> <!-- 添加可编辑的 overdueReason -->
                     `;
-                    overdueProjectList.appendChild(row);
+                        overdueProjectList.appendChild(row);
+                    }
                 });
                 overdueModal.style.display = "block"; // 显示模态框
             })
             .catch(error => console.error("获取超时项目列表时出错:", error));
     };
 
+    // 更新 overdueReason 的方法
+    function updateOverdueReason(element) {
+        const id = element.dataset.id; // 从 data-id 获取任务ID
+        const newReason = element.value;
+        // 清除上一个定时器
+        clearTimeout(debounceTimer);
+
+        // 设置一个新的定时器
+        debounceTimer = setTimeout(() => {
+            console.log(id);
+            console.log(newReason);
+
+            fetch('/DQEIndex/updateOverdueReason', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${encodeURIComponent(id)}&overdueReason=${encodeURIComponent(newReason)}`,
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log("超时原因更新成功");
+                    } else {
+                        alert("超时原因更新失败");
+                    }
+                })
+                .catch(error => console.error("更新超时原因时出错:", error));
+        }, 5000); // 500 毫秒的防抖时间，可以根据需要调整
+    }
+
+
+
+
     overdueClose.onclick = function() {
         overdueModal.style.display = "none";
+    };
+
+
+    // 期通知项目按钮
+    const recentNotificationsModal = document.getElementById("recentNotificationsModal");
+    const recentNotificationsButton = document.getElementById("viewRecentNotificationsButton");
+    const recentNotificationsClose = document.getElementsByClassName("recent-notifications-close")[0];
+    const recentNotificationsProjectList = document.getElementById("recentNotificationsProjectList");
+    // 查看近期通知项目按钮点击事件
+    recentNotificationsButton.onclick = function () {
+        fetch(`/DQEIndex/getRecentNotifications?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                recentNotificationsProjectList.innerHTML = '';
+                const displayValue = (value) => value === null ? "" : value;
+
+                data.forEach(combinedTaskNode => {
+                    // 确定负责人
+                    let personInCharge = "";
+                    if (combinedTaskNode.taskNode.node_number === "1" || combinedTaskNode.taskNode.node_number === "3") {
+                        personInCharge = combinedTaskNode.dqe;
+                    } else if (combinedTaskNode.taskNode.node_number === "2") {
+                        personInCharge = combinedTaskNode.rd;
+                    } else if (combinedTaskNode.taskNode.node_number === "4") {
+                        personInCharge = combinedTaskNode.projectLeader;
+                    }
+
+                    // 如果负责人匹配用户名，则添加该行，否则跳过
+                    if (personInCharge === username) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
+                        <td>${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
+                        <td>${displayValue(combinedTaskNode.fullModel)}</td>
+                        <td>${displayValue(combinedTaskNode.bigSpecial)}</td>
+                        <td>${displayValue(combinedTaskNode.smallSpecial)}</td>
+                        <td>${displayValue(combinedTaskNode.sampleCategory)}</td>
+                        <td>${displayValue(combinedTaskNode.version)}</td>
+                        <td>${displayValue(combinedTaskNode.questStats)}</td>
+                        <td>${displayValue(personInCharge)}</td>
+                    `;
+                        recentNotificationsProjectList.appendChild(row);
+                    }
+                });
+                recentNotificationsModal.style.display = "block";
+            })
+            .catch(error => console.error("获取近期通知项目列表时出错:", error));
+    };
+
+    recentNotificationsClose.onclick = function() {
+        recentNotificationsModal.style.display = "none";
     };
 
     window.onclick = function(event) {
@@ -265,6 +536,9 @@
         }
         if (event.target == configModal) {
             configModal.style.display = "none";
+        }
+        if (event.target == recentNotificationsModal) {
+            recentNotificationsModal.style.display = "none";
         }
     };
 

@@ -32,25 +32,26 @@
     <select id="searchSamplesDQE" resultType="Samples">
         SELECT * FROM samples
         WHERE
-         (#{sample_id} IS NULL OR sample_id = #{sample_id})
+        (#{sample_id} IS NULL OR sample_id LIKE CONCAT('%', #{sample_id}, '%'))
         AND (#{full_model} IS NULL OR full_model LIKE CONCAT('%', #{full_model}, '%'))
-        AND (#{questStats} IS NULL OR questStats = #{questStats})
-        AND (#{sample_category} IS NULL OR sample_category = #{sample_category})
-        AND (#{version} IS NULL OR version = #{version})
-        AND (#{big_species} IS NULL OR big_species = #{big_species})
-        AND (#{small_species} IS NULL OR small_species = #{small_species})
-        AND (#{supplier} IS NULL OR supplier = #{supplier})
-        AND (#{test_Overseas} IS NULL OR test_Overseas = #{test_Overseas})
-        AND (#{sample_DQE} IS NULL OR sample_DQE = #{sample_DQE})
-        AND (#{sample_Developer} IS NULL OR sample_Developer = #{sample_Developer})
-        AND (#{tester} IS NULL OR tester = #{tester})
-        AND (#{priority} IS NULL OR priority = #{priority})
-        AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule})
-        AND (#{result_judge} IS NULL OR result_judge = #{result_judge})
+        AND (#{questStats} IS NULL OR questStats LIKE CONCAT('%', #{questStats}, '%'))
+        AND (#{sample_category} IS NULL OR sample_category LIKE CONCAT('%', #{sample_category}, '%'))
+        AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
+        AND (#{big_species} IS NULL OR big_species LIKE CONCAT('%', #{big_species}, '%'))
+        AND (#{small_species} IS NULL OR small_species LIKE CONCAT('%', #{small_species}, '%'))
+        AND (#{supplier} IS NULL OR supplier LIKE CONCAT('%', #{supplier}, '%'))
+        AND (#{test_Overseas} IS NULL OR test_Overseas LIKE CONCAT('%', #{test_Overseas}, '%'))
+        AND (#{sample_DQE} IS NULL OR sample_DQE LIKE CONCAT('%', #{sample_DQE}, '%'))
+        AND (#{sample_Developer} IS NULL OR sample_Developer LIKE CONCAT('%', #{sample_Developer}, '%'))
+        AND (#{tester} IS NULL OR tester LIKE CONCAT('%', #{tester}, '%'))
+        AND (#{priority} IS NULL OR priority LIKE CONCAT('%', #{priority}, '%'))
+        AND (#{sample_schedule} IS NULL OR sample_schedule LIKE CONCAT('%', #{sample_schedule}, '%'))
+        AND (#{result_judge} IS NULL OR result_judge LIKE CONCAT('%', #{result_judge}, '%'))
+        AND (#{rd_result_judge} IS NULL OR rd_result_judge LIKE CONCAT('%', #{rd_result_judge}, '%'))
         AND (#{problemTimeStart} IS NULL OR finish_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR finish_time &lt; DATE_ADD(#{problemTimeEnd}, INTERVAL 1 DAY))
-
     </select>
+
 
 
 
@@ -90,7 +91,7 @@
     <insert id="insertTestIssues" parameterType="TestIssues">
         INSERT INTO test_issues (
             full_model, sample_stage, version, chip_solution, test_platform,
-            test_device, other_device, problem,
+            test_device, other_device, problem,problemCategory,
             problem_time, reproduction_method, recovery_method, reproduction_probability,
             defect_level, current_status, comparison_with_previous, tester,
             dqe_and_development_confirm, improvement_plan, responsible_person,
@@ -100,7 +101,7 @@
             modifier,modify_at
         ) VALUES (
                      #{full_model}, #{sample_stage}, #{version}, #{chip_solution}, #{test_platform},
-                     #{test_device}, #{other_device}, #{problem},
+                     #{test_device}, #{other_device}, #{problem},#{problemCategory},
                      #{problem_time}, #{reproduction_method}, #{recovery_method},
                      #{reproduction_probability}, #{defect_level}, #{current_status},
                      #{comparison_with_previous}, #{tester}, #{dqe_and_development_confirm},
@@ -123,6 +124,7 @@
             test_device = #{test_device},
             other_device = #{other_device},
             problem = #{problem},
+            problemCategory = #{problemCategory},
             problem_time = #{problem_time},
             reproduction_method = #{reproduction_method},
             recovery_method = #{recovery_method},
@@ -165,7 +167,7 @@
     </update>
 
     <select id="searchScheduleAndResultJudge" parameterType="String" resultType="java.util.HashMap">
-        SELECT sample_schedule, result_judge, sample_DQE, sample_Developer, tester, rd_result_judge FROM samples WHERE sample_id = #{sample_id}
+        SELECT sample_schedule, result_judge, sample_DQE, sample_Developer, tester,sample_leader, rd_result_judge FROM samples WHERE sample_id = #{sample_id}
     </select>
 
 
@@ -276,14 +278,14 @@
 
     <update id="updateTaskNodesOnce">
         UPDATE task_nodes
-        SET notify_once = 1,
+        SET notify_once = 1, isOverdue = true,
             notify_once_time = #{currentTime}
         WHERE id = #{id}
     </update>
 
     <update id="updateTaskNodesSecond">
         UPDATE task_nodes
-        SET notify_second = 1,
+        SET notify_second = 1, isOverdue = true,
          notify_second_time = #{currentTime}
         WHERE id =#{id}
     </update>
@@ -303,6 +305,108 @@
 
     </select>
 
+
+    <select id="selectFromSampleId" resultType="com.lu.ddwyydemo04.pojo.Samples" >
+        SELECT *
+        FROM samples
+        WHERE sample_id = #{sample_id}
+
+    </select>
+
+    <select id="getWarningDaysByManager" resultType="String" >
+        SELECT warn_days
+        FROM setting
+        WHERE setting_role = #{manager}
+
+    </select>
+
+    <update id="updateOverdueReason">
+        UPDATE task_nodes SET overdueReason =#{overdueReason}
+        WHERE id =#{id}
+    </update>
+
+    <select id="getRecentNotifications" resultType="com.lu.ddwyydemo04.pojo.TaskNode" >
+        SELECT *
+        FROM task_nodes
+        WHERE isOverdue IS NULL
+        ORDER BY create_time DESC
+
+    </select>
+
+
+    <!-- 查询各等级的数量 -->
+    <select id="countDefectLevelsBySampleId" resultMap="defectLevelCountMap">
+        SELECT
+            CASE
+                WHEN defect_level_lower = 's' THEN 'S'
+                WHEN defect_level_lower = 'a' THEN 'A'
+                WHEN defect_level_lower = 'b' THEN 'B'
+                WHEN defect_level_lower = 'c' THEN 'C'
+                ELSE '待确定'
+                END AS defect_level_upper,
+            COUNT(*) AS count
+        FROM (
+            SELECT
+            CASE
+            WHEN LOWER(t.defect_level) IN ('s', 'a', 'b', 'c') THEN LOWER(t.defect_level)
+            WHEN t.defect_level IS NULL OR LOWER(t.defect_level) = 'pending' THEN '待确定'
+            ELSE '其他' -- 用于捕获不在预期范围的值
+            END AS defect_level_lower
+            FROM
+            test_issues t
+            LEFT JOIN (
+            SELECT
+            sample_id,
+            MAX(history_id) AS max_history_id
+            FROM
+            test_issues
+            WHERE
+            created_by = 'tester'
+            GROUP BY
+            sample_id
+            ) AS latest_tester_issue ON t.sample_id = latest_tester_issue.sample_id
+            AND t.history_id = latest_tester_issue.max_history_id
+            WHERE
+            t.sample_id = #{sampleId}
+            AND (t.created_by != 'tester' OR t.history_id = latest_tester_issue.max_history_id)
+            ) AS defect_levels
+        GROUP BY
+            defect_level_upper
+        ORDER BY
+            FIELD(defect_level_upper, 'S', 'A', 'B', 'C', '待确定');
+    </select>
+
+    <!-- 结果映射，返回 defect_level_upper 和 count -->
+    <resultMap id="defectLevelCountMap" type="map">
+        <result property="defect_level_upper" column="defect_level_upper"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
+
+
+
+
+
+    <!-- 插入系统信息 -->
+    <!-- 插入系统信息 -->
+    <insert id="saveSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
+        INSERT INTO system_info (version, installation_date, os_version,
+                                 architecture, computer_name, system_model, created_at)
+        VALUES (#{version}, #{installationDate}, #{osVersion},
+                #{architecture}, #{computerName}, #{systemModel}, NOW())
+    </insert>
+
+
+    <update id="updatepProblemCounts">
+        UPDATE samples SET problemCounts =#{problemCounts}
+        WHERE sample_id =#{sample_id}
+    </update>
+
+
+    <delete id="deleteTaskNodeBefore">
+        DELETE FROM task_nodes
+        WHERE sample_id = #{sample_id}
+    </delete>
 
 
 

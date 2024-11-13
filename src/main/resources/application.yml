@@ -31,6 +31,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
+#  8082是测试开发门户网站
+#  port: 8082
   port: 8080
   servlet:
     session:
@@ -65,6 +67,13 @@ dingtalk:
 #  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox
 #  corpid: ding39a9d20442a933ec35c2f4657eb6378f
 #  agentid: 3078576183
+#  apiToDingTalkUrl: https://api.dingtalk.com
+
+#  测试开发门户网站
+#  appKey: dingljsbvvtgiaofoa4l
+#  appSecret: 0ec5LzKuqQb1h8pqHptKa3CwANFb5JAi0n_UqygBg-326ElXbwjB55duwvxF3ifh
+#  corpid: ding39a9d20442a933ec35c2f4657eb6378f
+#  agentid: 3274959628
 #  apiToDingTalkUrl: https://api.dingtalk.com
 
 

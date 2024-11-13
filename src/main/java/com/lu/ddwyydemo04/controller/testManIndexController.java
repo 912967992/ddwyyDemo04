@@ -7,6 +7,7 @@ import com.dingtalk.api.response.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
+import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.FileData;
@@ -53,6 +54,9 @@ public class testManIndexController {
     @Autowired
     private AccessTokenService accessTokenService;
 
+    @Autowired
+    private DQEproblemMoudleService dqEproblemMoudleService;
+
     @Value("${dingtalk.agentid}")
     private String agentid;
 
@@ -84,7 +88,7 @@ public class testManIndexController {
 
 
 
-    @GetMapping("/data") // 定义一个GET请求的接口，路径为 /data
+    @GetMapping("/data") // 定义一个GET请求的接口，路径为 /data, 此方法是获取total逾期相关的
     @ResponseBody
     public Map<String, Integer> getData(@RequestParam(required = false) String username) {
         // 创建一个Map对象，存储测试中、待审核、已完成、总数、逾期和失责的数量
@@ -173,7 +177,7 @@ public class testManIndexController {
             return Collections.emptyList(); // 或者返回适当的错误响应
         } else {
             // 使用 username 查询数据
-            logger.info("getTestManPanel查询成功："+testManIndexService.getTestManPanel(username));
+            logger.info(username+"getTestManPanel查询成功：");
 
             return testManIndexService.getTestManPanel(username);
 
@@ -384,7 +388,7 @@ public class testManIndexController {
                 }
 
                 // 生成新的文件名字符串
-                String newFileName = savepath.replace("/","\\") + "\\" +editModel + " " + editCoding + "_" + editCategory + "_" + editVersion + "_第" + editsample_frequency + "次送样_" + high_sign  + editSampleName + ".xlsx";
+                String newFileName = savepath.replace("/","\\") + "\\" +editModel + " " + editCoding + "_" + editCategory + "_" + editVersion + "_第" + editsample_frequency + "次送样_" + high_sign + questStats + "_" + editSampleName + ".xlsx";
                 File newFile = new File(newFileName);
                 logger.info("尝试重命名文件：oldFilePath=" + oldFilePath + ", newFileName=" + newFileName);
 
@@ -494,8 +498,23 @@ public class testManIndexController {
 
             response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为："+workDays + "天。");
 
+            //20241111新增一个保存的时候统计好问题点数量并传到samples表里的problemNumber
+            List<Map<String, Object>> countDefectLevel = dqEproblemMoudleService.countDefectLevelsBySampleId(sample_id);
+            String problemCounts = dqEproblemMoudleService.formatDefectLevels(countDefectLevel);
+            // problemCounts打印出来: S:2 A:1 B:0 C:1 待确定:1
+
+            int updateProblemCounts = dqEproblemMoudleService.updatepProblemCounts(sample_id,problemCounts);
+            if(updateProblemCounts>0){
+                logger.info("updateProblemCounts更新成功:"+problemCounts);
+            }
+
         }else if(schedule.equals("1")){
             schedule = "0";
+            //撤回的时候把之前提交的节点信息丢掉，不然超时还是会通知
+            int deleteTaskNodeBefore = accessTokenService.deleteTaskNodeBefore(sample_id);
+            if(deleteTaskNodeBefore>0){
+                logger.info("删除"+sample_id+"之前的节点成功");
+            }
             testManIndexService.finishTest(schedule,sample_id);
             response.put("message", "文件撤回成功，请重新提交！");
             logger.info("撤回审核成功："+filepath);
@@ -592,7 +611,7 @@ public class testManIndexController {
             // 定义需要的列名
             List<String> requiredColumns = Arrays.asList(
                     "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
-                    "显示设备", "其他设备", "问题点", "问题视频或图片", "复现手法", "恢复方法",
+                    "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
                     "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品", "DQE&研发确认",
                     "改善对策（研发回复）", "分析责任人", "改善后风险", "下一版回归测试", "备注"
             );
@@ -642,6 +661,7 @@ public class testManIndexController {
                 String test_device = rowMap.get("显示设备");
                 String other_device = rowMap.get("其他设备");
                 String problem = rowMap.get("问题点");
+                String problemCategory = rowMap.get("问题类别");
                 String problem_image_or_video = rowMap.get("问题视频或图片");
                 String reproduction_method = rowMap.get("复现手法");
                 String recovery_method = rowMap.get("恢复方法");
@@ -667,6 +687,7 @@ public class testManIndexController {
                 testIssues.setTest_device(test_device);
                 testIssues.setOther_device(other_device);
                 testIssues.setProblem(problem);
+                testIssues.setProblemCategory(problemCategory);
                 testIssues.setProblem_image_or_video(problem_image_or_video);
                 testIssues.setReproduction_method(reproduction_method);
                 testIssues.setRecovery_method(recovery_method);

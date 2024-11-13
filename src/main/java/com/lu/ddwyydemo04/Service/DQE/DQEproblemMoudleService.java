@@ -3,6 +3,7 @@ package com.lu.ddwyydemo04.Service.DQE;
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TestIssues;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class DQEproblemMoudleService {
@@ -32,11 +34,11 @@ public class DQEproblemMoudleService {
     public List<Samples> searchSamplesDQE(String sample_id, String full_model, String questStats, String sample_category, String version,
                                           String big_species, String small_species, String supplier, String test_Overseas,
                                           String sample_DQE, String sample_Developer, String tester, String priority,
-                                          String sample_schedule, String result_judge, String problemTimeStart, String  problemTimeEnd){
+                                          String sample_schedule, String result_judge,String rd_result_judge, String problemTimeStart, String  problemTimeEnd){
         return dqeDao.searchSamplesDQE(sample_id, full_model, questStats, sample_category, version,
                 big_species, small_species, supplier, test_Overseas,
                 sample_DQE, sample_Developer, tester, priority,
-                sample_schedule, result_judge, problemTimeStart, problemTimeEnd);
+                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd);
     }
 
     public Map<String, Object> addNewRow(int sampleId){
@@ -94,6 +96,40 @@ public class DQEproblemMoudleService {
 
     public String queryWarnDays(String setting_role ){
         return dqeDao.queryWarnDays(setting_role);
+    }
+
+    public List<Map<String, Object>> countDefectLevelsBySampleId( int sampleId){
+        return dqeDao.countDefectLevelsBySampleId(sampleId);
+    }
+
+
+    public String formatDefectLevels(List<Map<String, Object>> countDefectLevel) {
+        // 创建一个预定义的缺陷等级映射，初始化为 0
+        Map<String, Integer> levelCounts = new HashMap<>();
+        levelCounts.put("S", 0);
+        levelCounts.put("A", 0);
+        levelCounts.put("B", 0);
+        levelCounts.put("C", 0);
+        levelCounts.put("待确定", 0);
+
+        // 遍历 countDefectLevel 列表，将每个等级的计数更新到 levelCounts 中
+        for (Map<String, Object> levelData : countDefectLevel) {
+            String level = (String) levelData.get("defect_level_upper");
+            Integer count = ((Number) levelData.get("count")).intValue();
+            levelCounts.put(level, count);
+        }
+
+        // 格式化输出字符串
+        return String.format("S:%d A:%d B:%d C:%d 待确定:%d",
+                levelCounts.get("S"),
+                levelCounts.get("A"),
+                levelCounts.get("B"),
+                levelCounts.get("C"),
+                levelCounts.get("待确定"));
+    }
+
+    public int updatepProblemCounts(int sampleId,String problemCounts){
+        return dqeDao.updatepProblemCounts(sampleId,problemCounts);
     }
 
 }

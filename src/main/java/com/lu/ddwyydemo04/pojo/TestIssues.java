@@ -32,6 +32,7 @@ public class TestIssues {
     private String other_device;
 
     private String problem;
+    private String problemCategory;
 
     // 问题视频或图片路径
     private String problem_image_or_video;
@@ -170,6 +171,14 @@ public class TestIssues {
 
     public void setProblem(String problem) {
         this.problem = problem;
+    }
+
+    public String getProblemCategory() {
+        return problemCategory;
+    }
+
+    public void setProblemCategory(String problemCategory) {
+        this.problemCategory = problemCategory;
     }
 
     public String getTest_platform() {
@@ -404,19 +413,20 @@ public class TestIssues {
                 ", sample_stage='" + sample_stage + '\'' +
                 ", version='" + version + '\'' +
                 ", chip_solution='" + chip_solution + '\'' +
-                ", problem_time='" + problem_time + '\'' +
-                ", tester='" + tester + '\'' +
                 ", test_platform='" + test_platform + '\'' +
                 ", test_device='" + test_device + '\'' +
                 ", other_device='" + other_device + '\'' +
                 ", problem='" + problem + '\'' +
+                ", problemCategory='" + problemCategory + '\'' +
                 ", problem_image_or_video='" + problem_image_or_video + '\'' +
+                ", problem_time='" + problem_time + '\'' +
                 ", reproduction_method='" + reproduction_method + '\'' +
                 ", recovery_method='" + recovery_method + '\'' +
                 ", reproduction_probability='" + reproduction_probability + '\'' +
                 ", defect_level='" + defect_level + '\'' +
                 ", current_status='" + current_status + '\'' +
                 ", comparison_with_previous='" + comparison_with_previous + '\'' +
+                ", tester='" + tester + '\'' +
                 ", dqe_and_development_confirm='" + dqe_and_development_confirm + '\'' +
                 ", improvement_plan='" + improvement_plan + '\'' +
                 ", responsible_person='" + responsible_person + '\'' +
@@ -426,14 +436,14 @@ public class TestIssues {
                 ", created_at=" + created_at +
                 ", history_id=" + history_id +
                 ", sample_id=" + sample_id +
-                ", created_by=" + created_by +
-                ", dqe_confirm=" + dqe_confirm +
+                ", created_by='" + created_by + '\'' +
+                ", dqe_confirm='" + dqe_confirm + '\'' +
                 ", dqe_review_at=" + dqe_review_at +
-                ", dqe=" + dqe +
-                ", rd_confirm=" + rd_confirm +
+                ", dqe='" + dqe + '\'' +
+                ", rd_confirm='" + rd_confirm + '\'' +
                 ", rd_review_at=" + rd_review_at +
-                ", rd=" + rd +
-                ", modifier=" + modifier +
+                ", rd='" + rd + '\'' +
+                ", modifier='" + modifier + '\'' +
                 ", modify_at=" + modify_at +
                 '}';
     }

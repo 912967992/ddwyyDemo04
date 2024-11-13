@@ -98,7 +98,7 @@ public class ExcelShowController {
             if (otherCountSample>0){
                 filepaths = excelShowService.querySample(model,coding,high_frequency);
             }else{
-                String newFilepath = copyFile(filepath,model,coding,category,version,sample_name,sample_frequency,high_frequency);
+                String newFilepath = copyFile(filepath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
                 excelShowService.insertSample(username ,newFilepath,model,coding,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,
                         big_species,small_species,high_frequency,questStats);
                 filepaths.add(newFilepath);
@@ -109,7 +109,8 @@ public class ExcelShowController {
     }
 
 
-    private String copyFile(String filepath,String model,String coding,String category,String version,String sample_name,int sample_frequency,String high_frequency) {
+    private String copyFile(String filepath,String model,String coding,String category,String version,String sample_name,int sample_frequency,String high_frequency
+    ,String questStats) {
 
         try {
             // 替换文件名中的非法字符“/”，“\”，这两个字符串会导致复制文件失败报错
@@ -124,7 +125,7 @@ public class ExcelShowController {
 
             Path source = Paths.get(filepath);
             Path targetDir = Paths.get(savepath); // 使用配置的路径
-            String newFileName = model + " " + coding + "_" + category + "_" + version + "_第" + sample_frequency + "次送样_" + high_sign  + sample_name + ".xlsx";
+            String newFileName = model + " " + coding + "_" + category + "_" + version + "_第" + sample_frequency + "次送样_" + high_sign + questStats + "_" + sample_name + ".xlsx";
             Path target = targetDir.resolve(newFileName);
             Files.createDirectories(targetDir); // 确保目标目录存在
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -160,7 +161,7 @@ public class ExcelShowController {
         int sample_frequency = Integer.parseInt(sample_frequencyStr.trim()); // 使用trim()去除可能的前后空格
         int sample_quantity = Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
 
-        String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency);
+        String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
         excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
         return  new ModelAndView("redirect:/excelShow")
                 .addObject("filePath", copyFilepath);
