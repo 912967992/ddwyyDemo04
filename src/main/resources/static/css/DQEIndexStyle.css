@@ -1,3 +1,25 @@
+.download-btn {
+    position: fixed;
+    top: 20px; /* 设置按钮离顶部的距离 */
+    right: 20px; /* 设置按钮离右边的距离 */
+    background-color: #4CAF50; /* 按钮背景色 */
+    color: #0010fd; /* 按钮文字颜色 */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 999; /* 确保按钮显示在最上层 */
+}
+
+.download-btn:hover {
+    background-color: #45a049; /* 鼠标悬停时按钮的背景色 */
+}
+
+
+
+
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -157,7 +179,7 @@ input[type="number"] {
     width: 100px; /* 输入框宽度 */
     margin-bottom: 10px; /* 下边距 */
 }
-#saveButton {
+#saveButton,#saveOverdueReasons {
     background-color: #4CAF50; /* 绿色背景 */
     color: white; /* 白色字体 */
     padding: 10px 15px; /* 内边距 */
@@ -165,7 +187,7 @@ input[type="number"] {
     border-radius: 5px; /* 圆角 */
     cursor: pointer; /* 鼠标指针 */
 }
-#saveButton:hover {
+#saveButton,#saveOverdueReasons:hover {
     background-color: #45a049; /* 悬停时更深的绿色 */
 }
 

@@ -5,15 +5,35 @@ import com.lu.ddwyydemo04.pojo.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class LabModuleService {
     @Autowired
     private DQEDao dqeDao;
 
-    public int saveSys(SystemInfo systemInfo){
-        return dqeDao.saveSys(systemInfo);
+    public int insertSys(SystemInfo systemInfo){
+        return dqeDao.insertSys(systemInfo);
+    }
+    public int checkIfComputerNameExists(String computerName){
+        return dqeDao.checkIfComputerNameExists(computerName);
     }
 
+
+    public int updateSys(SystemInfo systemInfo){
+        return dqeDao.updateSys(systemInfo);
+    }
+
+
+
+
+    public List<SystemInfo> performSysInfo(String id, String computerName,String version,
+                                           String installationDate,String osVersion, String fullOS,
+                                           String architecture, String systemModel,String cpu,String memory,
+                                           String displays,String networkAdapters){
+        return dqeDao.performSysInfo(id,computerName,version,installationDate,osVersion, fullOS,
+                architecture,systemModel,cpu,memory,displays,networkAdapters);
+    }
 
 
 }

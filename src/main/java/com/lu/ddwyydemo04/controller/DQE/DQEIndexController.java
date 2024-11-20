@@ -62,6 +62,20 @@ public class DQEIndexController {
         return "DQE/dataBoard";
     }
 
+
+
+    @GetMapping("/weeklyNewspaper") // 处理页面跳转请求
+    public String logindWeeklyNewspaper() {
+        // 返回跳转页面的视图名称
+        return "DQE/weeklyNewspaper";
+    }
+
+    @GetMapping("/scanBinning") // 处理页面跳转请求
+    public String loginScanBinning() {
+        // 返回跳转页面的视图名称
+        return "DQE/scanBinning";
+    }
+
     @PostMapping("/DQEIndex/saveWarningDays")
     @ResponseBody
     public ResponseEntity<String> saveWarningDays(@RequestBody Map<String, Object> request) {
@@ -194,11 +208,12 @@ public class DQEIndexController {
             @RequestParam("id") String id,
             @RequestParam("overdueReason") String overdueReason) {
         try {
-            System.out.println("id:"+id);
+
             // 调用 service 层方法更新数据库
             boolean isUpdated = dqeIndexService.updateOverdueReason(id, overdueReason);
 
             if (isUpdated) {
+                System.out.println("id更新超时原因成功:"+id);
                 return ResponseEntity.ok("超时原因更新成功");
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("超时原因更新失败");

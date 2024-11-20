@@ -8,23 +8,29 @@ public class SystemInfo {
     private String architecture;             // 系统架构
     private String computerName;             // 计算机名称
     private String systemModel;              // 系统型号
+    private String created_at;
+    private String fullOS;
+    private String cpu;
+    private String memory;
+    private String displays;
+    private String networkAdapters;
 
 
     // 无参构造函数
-    public SystemInfo() {
-    }
+//    public SystemInfo() {
+//    }
 
     // 全参构造函数
-    public SystemInfo(int id, String version, String installationDate, String osVersion, String architecture,
-                      String computerName, String systemModel, String localTimestamp) {
-        this.id = id;
-        this.version = version;
-        this.installationDate = installationDate;
-        this.osVersion = osVersion;
-        this.architecture = architecture;
-        this.computerName = computerName;
-        this.systemModel = systemModel;
-    }
+//    public SystemInfo(int id, String version, String installationDate, String osVersion, String architecture,
+//                      String computerName, String systemModel, String created_at) {
+//        this.id = id;
+//        this.version = version;
+//        this.installationDate = installationDate;
+//        this.osVersion = osVersion;
+//        this.architecture = architecture;
+//        this.computerName = computerName;
+//        this.systemModel = systemModel;
+//    }
 
     // Getter 和 Setter 方法
     public int getId() {
@@ -83,18 +89,70 @@ public class SystemInfo {
         this.systemModel = systemModel;
     }
 
+    public String getCreated_at() {
+        return created_at;
+    }
 
+    public void setCreated_at(String created_at) {
+        this.created_at = created_at;
+    }
+
+    public String getFullOS() {
+        return fullOS;
+    }
+
+    public void setFullOS(String fullOS) {
+        this.fullOS = fullOS;
+    }
+
+    public String getCpu() {
+        return cpu;
+    }
+
+    public void setCpu(String cpu) {
+        this.cpu = cpu;
+    }
+
+    public String getMemory() {
+        return memory;
+    }
+
+    public void setMemory(String memory) {
+        this.memory = memory;
+    }
+
+    public String getDisplays() {
+        return displays;
+    }
+
+    public void setDisplays(String displays) {
+        this.displays = displays;
+    }
+
+    public String getNetworkAdapters() {
+        return networkAdapters;
+    }
+
+    public void setNetworkAdapters(String networkAdapters) {
+        this.networkAdapters = networkAdapters;
+    }
 
     @Override
     public String toString() {
         return "SystemInfo{" +
                 "id=" + id +
                 ", version='" + version + '\'' +
-                ", installationDate=" + installationDate +
+                ", installationDate='" + installationDate + '\'' +
                 ", osVersion='" + osVersion + '\'' +
                 ", architecture='" + architecture + '\'' +
                 ", computerName='" + computerName + '\'' +
                 ", systemModel='" + systemModel + '\'' +
+                ", created_at='" + created_at + '\'' +
+                ", fullOS='" + fullOS + '\'' +
+                ", cpu='" + cpu + '\'' +
+                ", memory='" + memory + '\'' +
+                ", display='" + displays + '\'' +
+                ", networkAdapters='" + networkAdapters + '\'' +
                 '}';
     }
 }

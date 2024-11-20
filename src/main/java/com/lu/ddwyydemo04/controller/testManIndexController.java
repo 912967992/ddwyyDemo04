@@ -85,7 +85,11 @@ public class testManIndexController {
         return "testManIndex";
     }
 
-
+    @GetMapping("/labModuleTester") // 处理页面跳转请求
+    public String loginlabModuleTester() {
+        // 返回跳转页面的视图名称
+        return "labModuleTester";
+    }
 
 
     @GetMapping("/data") // 定义一个GET请求的接口，路径为 /data, 此方法是获取total逾期相关的

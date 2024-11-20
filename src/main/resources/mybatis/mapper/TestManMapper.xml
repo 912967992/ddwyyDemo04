@@ -37,7 +37,7 @@
         t.pending = (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '1' OR s.sample_schedule = '2') AND s.tester = #{name}),
         t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '3' AND s.tester = #{name}),
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
-        AND s.create_time >= '2024-11-11 00:00:00'
+        AND s.create_time >= '2024-11-18 00:00:00'
         AND (
         (s.finish_time IS NULL AND NOW() > s.planfinish_time) OR
         (s.finish_time IS NOT NULL AND s.planfinish_time &lt; s.finish_time))),
@@ -315,7 +315,8 @@
         AND (#{problemTimeEnd} IS NULL OR create_time &lt;= #{problemTimeEnd})
         AND (#{problemFinishStart} IS NULL OR finish_time >= #{problemFinishStart})
         AND (#{problemFinishEnd} IS NULL OR finish_time &lt;= #{problemFinishEnd})
-        AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule});
+        AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule})
+        ORDER BY create_time DESC;
     </select>
 
 </mapper>

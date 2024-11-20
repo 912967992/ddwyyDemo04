@@ -24,6 +24,9 @@
         <div class="title" id="indexTitle">主页</div>
     </div>
 
+    <button id="downloadGuidelineBtn" class="download-btn">操作指导书下载</button>
+
+
     <div id="buttonContainer"></div>
 
     <!-- 管理配置模态框 -->
@@ -54,7 +57,11 @@
     <div id="overdueModal" class="modal">
         <div class="modal-content">
             <span class="close overdue-close">&times;</span>
-            <h3>超时项目列表</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>超时项目列表</h3>
+                <button id="saveOverdueReasons" style="margin-left: auto;">提交超时原因</button>
+            </div>
+
             <table id="overdueTable">
                 <thead>
                 <tr>
@@ -78,6 +85,7 @@
                 </thead>
                 <tbody id="overdueProjectList"></tbody>
             </table>
+
         </div>
     </div>
 
@@ -125,19 +133,11 @@
         </div>
 
         <div class="grid-container">
-            <div class="module" onclick="location.href='/projectSchedule'">项目<br>进度</div>
             <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
-            <div class="module" onclick="location.href='/labModule'">实验室<br>模块</div>
+            <div class="module highlighted" onclick="location.href='/labModule'">实验室<br>模块</div>
+            <div class="module" onclick="location.href='/projectSchedule'">项目<br>排期</div>
             <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>
         </div>
-
-<!--        全是绿色 ， 原本的代码，但是现在-->
-<!--        <div class="grid-container">-->
-<!--            <div class="module" onclick="location.href='/projectSchedule'">项目<br>进度</div>-->
-<!--            <div class="module" onclick="location.href='/problemMoudle?dd_orientation=landscape'">问题点<br>模块</div>-->
-<!--            <div class="module" onclick="location.href='/sampleData'">样品<br>数据</div>-->
-<!--            <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>-->
-<!--        </div>-->
     </div>
 
 
@@ -152,13 +152,234 @@
         <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
     </div>
 
+    <!-- 模态框结构 -->
+    <div id="guidelineModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000;">
+        <p style="margin: 0 0 20px;">注意：手机端下载此指导书需要先在钉钉创建一个钉盘的文件夹，不然您最后无法选择确认并发送，PC端则不用。此按钮原理是先把文件下载到钉盘再转发给你实现在线编辑查看的功能，此为钉钉官方应用的bug。</p>
+        <button id="closeModal" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px;">关闭</button>
+    </div>
+    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+
+    <!-- 下载按钮 -->
+<!--    <button id="downloadGuidelineBtn">下载操作指导书</button>-->
 
 
 
+    <!-- 确认模态框的 HTML 结构 -->
+    <div id="confirm-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div id="confirm-modal" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center;">
+            <div id="confirm-message" style="margin-bottom: 20px;">确认信息</div>
+            <button id="confirm-yes" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">确认</button>
+            <button id="confirm-no" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+        </div>
+    </div>
 
-<script>
 
-    let debounceTimer; // 定义一个定时器变量 , 用于防抖更新超期原因的
+    <!-- 模态框的 HTML 结构 -->
+    <div id="alert-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div id="alert-modal" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center;">
+            <div id="alert-message" style="margin-bottom: 20px;">提示信息</div>
+            <button id="alert-confirm" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">确认</button>
+        </div>
+    </div>
+
+    <script>
+        // 覆盖原生 alert 方法
+        window.alert = function(message) {
+            // 获取模态框元素
+            const overlay = document.getElementById('alert-overlay');
+            const modal = document.getElementById('alert-modal');
+            const messageElem = document.getElementById('alert-message');
+            const confirmButton = document.getElementById('alert-confirm');
+
+            // 设置消息文本
+            messageElem.textContent = message;
+
+            // 显示模态框
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            // 点击确认按钮时关闭模态框
+            confirmButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                // 调用原本的alert回调
+            };
+        };
+
+
+    // 覆盖原生 confirm 方法
+    window.confirm = function(message) {
+        return new Promise(function(resolve, reject) {
+            const overlay = document.getElementById('confirm-overlay');
+            const modal = document.getElementById('confirm-modal');
+            const messageElem = document.getElementById('confirm-message');
+            const yesButton = document.getElementById('confirm-yes');
+            const noButton = document.getElementById('confirm-no');
+
+            // 设置消息文本
+            messageElem.textContent = message;
+
+            // 显示模态框
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            // 点击“确认”按钮时，关闭模态框并返回 true
+            yesButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                resolve(true); // 返回 true 表示用户点击了确认
+            };
+
+            // 点击“取消”按钮时，关闭模态框并返回 false
+            noButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                reject(false); // 返回 false 表示用户点击了取消
+            };
+        });
+    };
+
+
+
+    // 将数据保存到 localStorage
+    let username = localStorage.getItem('username');
+    let job = localStorage.getItem('job');
+
+    // 更新用户名和职位的函数
+    const buttonsDiv = document.getElementById('buttonsDiv');
+
+    const corp_id = localStorage.getItem('corp_id');
+    readyConfig();
+
+
+    function readyConfig(){
+        // 调用后端接口获取配置信息
+        $.ajax({
+            url: '/getJsapiConfig',
+            type: 'GET',
+            data: { url: encodeURIComponent(location.href.split('#')[0]) },
+            success: function(config) {
+                // 使用获取的配置信息初始化钉钉JSAPI
+                dd.config({
+                    agentId: config.agentId,
+                    corpId: config.corpId,
+                    timeStamp: config.timeStamp,
+                    nonceStr: config.nonceStr,
+                    signature: config.signature,
+                    jsApiList: config.jsApiList // 必填，需要使用的jsapi列表
+                });
+
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+        document.getElementById('downloadGuidelineBtn').addEventListener('click', function() {
+            // 显示模态框
+            document.getElementById('guidelineModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        });
+
+        // 关闭模态框
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('guidelineModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+            // 开始下载指导书
+            downloadGuideline();
+        });
+
+        // 点击遮罩层也关闭模态框
+        document.getElementById('modalOverlay').addEventListener('click', function() {
+            document.getElementById('guidelineModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        });
+
+
+
+    //下载操作指导书的按钮方法
+    // document.getElementById('downloadGuidelineBtn').addEventListener('click', function() {
+    //     alert("注意：手机端下载此指导书需要先在钉钉创建一个钉盘的文件夹，不然您最后无法选择确认并发送，PC端则不用，此按钮原理是先把文件下载到钉盘再转发给你实现在线编辑查看的功能，此为钉钉官方应用的bug。")
+    //     downloadGuideline();
+    // });
+
+    function downloadGuideline() {
+        // 固定文件路径
+        // const filePath = "C:\\ddwyy-lj\\templatesDirectory\\研发质量管理系统操作指导V2.0.docx";
+        const filePath = "Z:\\ddwyy-lj\\templatesDirectory\\研发质量管理系统操作指导V2.0.docx";
+        const fileName = "研发质量管理系统操作指导V2.0.docx"; // 固定文件名
+
+        // if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
+        //     return; // 用户选择不上传
+        // }
+
+        // 选择联系人
+        dd.biz.contact.choose({
+            multiple: false,
+            users: [],
+            corpId: corp_id,
+            max: 1,
+            onSuccess: function(data) {
+                const selectedUserId = data[0].emplId; // 获取单个用户ID
+
+                // 选择钉盘目录
+                dd.chooseDingTalkDir({
+                    corpId: corp_id, // 企业ID
+                    onSuccess: function(res) {
+                        const selectedDirId = res.data[0].dirId; // 获取选中的目录ID
+                        const selectedSpaceId = res.data[0].spaceId; // 获取选中的空间ID
+
+                        // 获取应用免登授权码
+                        dd.runtime.permission.requestAuthCode({
+                            corpId: corp_id,
+                            onSuccess: function(result) {
+                                const authCode = result.code; // 获取到授权码
+                                // 发起后端请求上传文件和发送文件
+                                $.ajax({
+                                    url: '/testManIndex/uploadFileToDingtalk',
+                                    type: 'POST',
+                                    data: {
+                                        filepath: filePath, // 使用固定的文件路径
+                                        dirId: selectedDirId,
+                                        spaceId: selectedSpaceId,
+                                        authCode: authCode,
+                                        receiverId: selectedUserId
+                                    },
+                                    success: function(response) {
+                                        alert('文件上传并发送成功');
+                                        // hideLoading(); // 隐藏加载提示框
+                                    },
+                                    error: function(xhr, status, error) {
+                                        alert('文件上传发送失败: ' + error);
+                                        // hideLoading(); // 隐藏加载提示框
+                                    }
+                                });
+                            },
+                            onFail: function(err) {
+                                alert('获取授权码失败：' + JSON.stringify(err));
+                                // hideLoading(); // 隐藏加载提示框
+                            }
+                        });
+                    },
+                    fail: function(err) {
+                        alert('选择目录失败：' + JSON.stringify(err));
+                        // hideLoading(); // 隐藏加载提示框
+                    },
+                    onCancel: function() {
+                        alert('选择目录取消');
+                        // hideLoading(); // 隐藏加载提示框
+                    }
+                });
+            },
+            onFail: function(err) {
+                alert("选择联系人出错" + err);
+                // hideLoading(); // 隐藏加载提示框
+            }
+        });
+    }
+
     //调试用
     // const username = "邓小英";
     // let job = "DQE";
@@ -170,12 +391,7 @@
     // const username = "黄家灿";
     // const job = "DQE";
 
-    // 将数据保存到 localStorage
-    let username = localStorage.getItem('username');
-    let job = localStorage.getItem('job');
 
-    // 更新用户名和职位的函数
-    const buttonsDiv = document.getElementById('buttonsDiv');
 
     // 更新用户名和职位的函数
     function updateUserInfo(newJob) {
@@ -235,11 +451,11 @@
         window.location.href = '/DQEIndex';
     });
 
-    $(cloudBtn).click(function() {
-        let userRole = 'DQE'; // 示例角色，可以动态获取
-        // 跳转到搜索资源库页面
-        window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
-    });
+    // $(cloudBtn).click(function() {
+    //     let userRole = 'DQE'; // 示例角色，可以动态获取
+    //     // 跳转到搜索资源库页面
+    //     window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
+    // });
 
     $(profileBtn).click(function() {
         // 跳转到个人界面页面
@@ -372,7 +588,9 @@
                 const displayValue = (value) => value === null ? "" : value;
 
                 // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
-                const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧";
+                const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧" ||
+                    (username === "卢健" && job === "manager");
+
 
                 // 填充数据到表格
                 data.forEach(combinedTaskNode => {
@@ -401,14 +619,10 @@
                     if (shouldDisplay) {
                         const row = document.createElement('tr');
 
-                        // 检查用户名是否匹配，允许用户编辑
                         const overdueReasonContent = (personInCharge === username) ?
-                            `<input type="text" value="${displayValue(combinedTaskNode.taskNode.overdueReason)}"
-                             data-id="${combinedTaskNode.taskNode.id}"
-                             onblur="updateOverdueReason(this)"
-                             style="width: 100px;" />`
+                            `<textarea data-id="${combinedTaskNode.taskNode.id}"
+                            style="width: 100px; height: 60px;">${displayValue(combinedTaskNode.taskNode.overdueReason)}</textarea>`
                             : displayValue(combinedTaskNode.taskNode.overdueReason);
-
 
 
                         // 使用 combinedTaskNode.taskNode 获取 TaskNode 的字段
@@ -438,18 +652,15 @@
             .catch(error => console.error("获取超时项目列表时出错:", error));
     };
 
-    // 更新 overdueReason 的方法
-    function updateOverdueReason(element) {
-        const id = element.dataset.id; // 从 data-id 获取任务ID
-        const newReason = element.value;
-        // 清除上一个定时器
-        clearTimeout(debounceTimer);
+    document.getElementById('saveOverdueReasons').onclick = function () {
+        // 收集所有的超期原因
+        const textareas = overdueProjectList.querySelectorAll('textarea');
 
-        // 设置一个新的定时器
-        debounceTimer = setTimeout(() => {
-            console.log(id);
-            console.log(newReason);
+        textareas.forEach(textarea => {
+            const id = textarea.dataset.id; // 获取任务ID
+            const newReason = textarea.value;
 
+            // 发送更新请求
             fetch('/DQEIndex/updateOverdueReason', {
                 method: 'POST',
                 headers: {
@@ -458,18 +669,17 @@
                 body: `id=${encodeURIComponent(id)}&overdueReason=${encodeURIComponent(newReason)}`,
             })
                 .then(response => {
-                    if (response.ok) {
-                        console.log("超时原因更新成功");
-                    } else {
-                        alert("超时原因更新失败");
+                    if (!response.ok) {
+                        alert("部分超期原因保存失败");
+                    }else{
+                        alert('超期原因已保存成功！');
                     }
                 })
-                .catch(error => console.error("更新超时原因时出错:", error));
-        }, 5000); // 500 毫秒的防抖时间，可以根据需要调整
-    }
+                .catch(error => console.error("保存超期原因时出错:", error));
+        });
 
 
-
+    };
 
     overdueClose.onclick = function() {
         overdueModal.style.display = "none";

@@ -253,8 +253,84 @@
     <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
 </div>
 
+<!-- 模态框的 HTML 结构 -->
+<div id="alert-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div id="alert-modal" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center;">
+        <div id="alert-message" style="margin-bottom: 20px;">提示信息</div>
+        <button id="alert-confirm" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">确认</button>
+    </div>
+</div>
+
+<!-- 确认模态框的 HTML 结构 -->
+<div id="confirm-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div id="confirm-modal" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center;">
+        <div id="confirm-message" style="margin-bottom: 20px;">确认信息</div>
+        <button id="confirm-yes" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">确认</button>
+        <button id="confirm-no" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+    </div>
+</div>
+
 
 <script>
+
+    // 覆盖原生 alert 方法
+    window.alert = function(message) {
+        // 获取模态框元素
+        const overlay = document.getElementById('alert-overlay');
+        const modal = document.getElementById('alert-modal');
+        const messageElem = document.getElementById('alert-message');
+        const confirmButton = document.getElementById('alert-confirm');
+
+        // 设置消息文本
+        messageElem.textContent = message;
+
+        // 显示模态框
+        overlay.style.display = 'block';
+        modal.style.display = 'block';
+
+        // 点击确认按钮时关闭模态框
+        confirmButton.onclick = () => {
+            overlay.style.display = 'none';
+            modal.style.display = 'none';
+            // 调用原本的alert回调
+        };
+    };
+
+
+    // 覆盖原生 confirm 方法
+    window.confirm = function(message) {
+        return new Promise(function(resolve, reject) {
+            const overlay = document.getElementById('confirm-overlay');
+            const modal = document.getElementById('confirm-modal');
+            const messageElem = document.getElementById('confirm-message');
+            const yesButton = document.getElementById('confirm-yes');
+            const noButton = document.getElementById('confirm-no');
+
+            // 设置消息文本
+            messageElem.textContent = message;
+
+            // 显示模态框
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            // 点击“确认”按钮时，关闭模态框并返回 true
+            yesButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                resolve(true); // 返回 true 表示用户点击了确认
+            };
+
+            // 点击“取消”按钮时，关闭模态框并返回 false
+            noButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                reject(false); // 返回 false 表示用户点击了取消
+            };
+        });
+    };
+
+
+
     // 存储已选中的 item.id 的数组
     let selectedIds = [];
     let currentPage;
@@ -295,11 +371,11 @@
         window.location.href = '/DQEIndex';
     });
 
-    $(cloudBtn).click(function() {
-        let userRole = 'DQE'; // 示例角色，可以动态获取
-        // 跳转到搜索资源库页面
-        window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
-    });
+    // $(cloudBtn).click(function() {
+    //     let userRole = 'DQE'; // 示例角色，可以动态获取
+    //     // 跳转到搜索资源库页面
+    //     window.location.href = `/durationTable?dd_orientation=landscape&role=${userRole}`;
+    // });
 
     $(profileBtn).click(function() {
         // 跳转到个人界面页面
@@ -413,22 +489,6 @@
         const pageSize = 15;
         let pages = []; // 用于存储分页数据
 
-        // isSearching = false;  //设置个间隔禁止用户连续点击搜索2s
-
-        // 表单提交时触发搜索
-        // $('.search-form').on('submit', function(event) {
-        //     event.preventDefault(); // 防止表单的默认提交行为
-        //     if (!isSearching) {
-        //         isSearching = true; // 设置搜索状态为真
-        //         globalFormData  = $(this).serialize();
-        //
-        //         performSearch(globalFormData); // 执行搜索并传递表单数据
-        //
-        //         setTimeout(() => {
-        //             isSearching = false; // 重置搜索状态
-        //         }, 2000); // 设置间隔时间，例如2000毫秒
-        //     }
-        // });
         $('.search-form').on('submit', function(event) {
             event.preventDefault(); // 防止表单的默认提交行为
             currentPage = 1;
@@ -880,7 +940,7 @@
                                 }
                                 newDiv.textContent = value;
                                 newDiv.style.color = '#8a4e07'; // 设置字体颜色
-                                newItem[attr.field] = null; // 序号不参与修改
+                                newItem[attr.field] = value; // 序号不参与修改
 
                             }  else if (attr.field === 'tester') {
                                 if (username) {
@@ -933,6 +993,85 @@
                                 });
 
                                 newDiv.appendChild(checkbox); // 将复选框添加到新单元格
+                            }else if (attr.field === 'defect_level') {
+                                // 定义缺陷等级的选项
+                                const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+
+                                // 创建下拉框
+                                const select = document.createElement('select');
+
+                                // 创建下拉选项
+                                validOptions.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option;
+                                    optionElement.textContent = option;
+
+                                    // 设置默认选中的选项为“待确定”
+                                    if (option === '待确定') {
+                                        optionElement.selected = true;
+                                    }
+
+                                    select.appendChild(optionElement);
+                                });
+
+                                // 监听下拉框的变化事件
+                                select.addEventListener('change', function () {
+                                    const selectedValue = select.value;
+                                    console.log('缺陷等级已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                    // 如果新值和旧值不同，标记为已修改
+                                    newItem[attr.field] = selectedValue;
+                                    if (!modifiedData.includes(newItem)) {
+                                        modifiedData.push(newItem); // 标记修改过的数据
+                                    }
+                                });
+
+                                newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“待确定”
+                                newDiv.style.color = '#8a4e07'; // 设置字体颜色
+                                value = '待确定';
+
+                            }else if (attr.field === 'current_status') {
+                                // 定义当前状态的选项
+                                const validOptions = ['OPEN', 'CLOSED', '待确定'];
+
+                                // 创建下拉框
+                                const select = document.createElement('select');
+
+                                // 创建下拉选项
+                                validOptions.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option;
+                                    optionElement.textContent = option;
+
+                                    // 设置默认选中的选项为“OPEN”
+                                    if (option === 'OPEN') {
+                                        optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
+                                    }
+
+                                    select.appendChild(optionElement);
+                                });
+
+                                // 监听下拉框的变化事件
+                                select.addEventListener('change', function () {
+                                    const selectedValue = select.value;
+                                    console.log('当前状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                    // 确保下拉框的选中值及时更新到 newItem 中
+                                    newItem[attr.field] = selectedValue;
+                                    if (!modifiedData.includes(newItem)) {
+                                        modifiedData.push(newItem); // 标记修改过的数据
+                                    }
+                                });
+
+                                newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
+
+                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
+                                newItem[attr.field] = 'OPEN'; // 初始化该字段的值为“OPEN”
+                                value = 'OPEN';
+
+                                // 设置字体颜色
+                                newDiv.style.color = '#8a4e07'; // 设置字体颜色
                             } else {
                                 value = ''; // 其他字段保持为空字符串
                             }
@@ -943,10 +1082,11 @@
                             //这里是让editClickBtn点击弹出来的模态框设置哪些列样式不允许人修改的
                             if(attr.field === 'history_id' || attr.field==='created_by'
                                 || attr.field==='created_at' || attr.field === 'dqe_review_at'
-                                || attr.field === 'rd_review_at' || index === 1 || index === 3
-                                || index === 31 || index === 32 || index ===2 || index === 4) {
+                                || attr.field === 'rd_review_at' || index === 1 || index === 3 || index ===2 || index === 4
+                                || index === 31 || index === 32 || index === 33 || index === 19 || index === 20) {
 
                             }else{
+
                                 // 创建可编辑的内容
                                 createEditableSpan(value, newItem, attr, modifiedData, newDiv); // 使用获取的值
                             }
@@ -1082,7 +1222,7 @@
                                 value = item[attr.field];
                             }
 
-                            if (index === 0 || index === 14 || index === 20 || index === 29 || index === 19
+                            if (index === 0 || index === 14 || index === 20 || index === 29 || index === 19 || index === 30
                                  || index ===31 || index === 32 || index === 33) { // 序号，问题图片,当前状态,创建时间,历史ID
                                 if(index === 14){
                                     if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
@@ -1132,7 +1272,7 @@
                                     }
                                 }else if(index === 20){
                                     // 定义需要转换为下拉框的选项
-                                    const validOptions = ['OPEN', 'CLOSED'];
+                                    const validOptions = ['OPEN', 'CLOSED', '待确定'];
 
                                     // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                     let normalizedValue = String(value).toUpperCase();
@@ -1141,42 +1281,43 @@
                                         normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
                                     }
 
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 创建下拉框
-                                        const select = document.createElement('select');
-
-                                        // 创建下拉选项
-                                        validOptions.forEach(option => {
-                                            const optionElement = document.createElement('option');
-                                            optionElement.value = option;
-                                            optionElement.textContent = option;
-
-                                            // 设置默认选中的选项
-                                            if (normalizedValue === option) {
-                                                optionElement.selected = true;
-                                            }
-
-                                            select.appendChild(optionElement);
-                                        });
-
-                                        // 监听下拉框的变化事件
-                                        select.addEventListener('change', function () {
-                                            const selectedValue = select.value;
-                                            console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
-
-                                            // 如果新值和旧值不同，标记为已修改
-                                            if (selectedValue !== normalizedValue) {
-                                                item[attr.field] = selectedValue;
-                                                if (!modifiedData.includes(item)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
-
-                                        valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                    }else {
-                                        createEditableSpan(value, item, attr, modifiedData, valueDiv);
+                                    // 如果值不在有效选项内，则将值设置为“待确定”
+                                    if (!validOptions.includes(normalizedValue)) {
+                                        normalizedValue = '待确定';
                                     }
+
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        const selectedValue = select.value;
+                                        console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 }else if(index === 19){
                                     // 定义需要转换为下拉框的等级选项
                                     const validOptions = ['S', 'A', 'B', 'C', '待确定'];
@@ -1184,44 +1325,46 @@
                                     // 将传递过来的值转换为统一格式（大写）
                                     let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值在有效选项内，使用下拉框，否则直接显示原始值
+                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
                                     if (validOptions.includes(normalizedValue)) {
-                                        // 创建下拉框
-                                        const select = document.createElement('select');
-
-                                        // 创建下拉选项
-                                        validOptions.forEach(option => {
-                                            const optionElement = document.createElement('option');
-                                            optionElement.value = option;
-                                            optionElement.textContent = option;
-
-                                            // 设置默认选中的选项
-                                            if (normalizedValue === option) {
-                                                optionElement.selected = true;
-                                            }
-
-                                            select.appendChild(optionElement);
-                                        });
-
-                                        // 监听下拉框的变化事件
-                                        select.addEventListener('change', function () {
-                                            const selectedValue = select.value;
-                                            console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
-
-                                            // 如果新值和旧值不同，标记为已修改
-                                            if (selectedValue !== normalizedValue) {
-                                                item[attr.field] = selectedValue;
-                                                if (!modifiedData.includes(item)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
-
-                                        valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                                        // 使用输入的值创建下拉框
                                     } else {
-                                        // 如果值不在有效选项范围内，则直接显示用户的原始值
-                                        createEditableSpan(value, item, attr, modifiedData, valueDiv);
+                                        // 如果值不在有效选项范围内，将值设为“待确定”
+                                        normalizedValue = '待确定';
                                     }
+
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        const selectedValue = select.value;
+                                        console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 } else if(index === 29 || index === 33){
                                     if(value){
                                         const valueText = document.createElement('div');
@@ -1236,24 +1379,30 @@
                                     valueText.style.color = '#2954e3'; // 设置不允许修改的列的字体颜色
 
                                     valueText.addEventListener('click', () => {
-                                        const confirmation = confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`);
-                                        if (confirmation && username && username === item.tester) {
-                                            // 发送删除请求到控制层
-                                            fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
-                                                .then(response => {
-                                                    if (response.ok) {
-                                                        alert(`ID为${value}的问题点已成功删除`);
-                                                        // 可在此处更新界面，例如移除该问题点的显示
-                                                        editClickBtn(sampleId);
+                                        confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`)
+                                            .then((confirmation) => {
+                                                if (confirmation) {
+                                                    // 检查用户名是否匹配
+                                                    if (username && username === item.tester) {
+                                                        // 发送删除请求到控制层
+                                                        fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
+                                                            .then(response => {
+                                                                if (response.ok) {
+                                                                    alert(`ID为${value}的问题点已成功删除`);
+                                                                    // 更新界面，例如移除该问题点的显示
+                                                                    editClickBtn(sampleId);
+                                                                } else {
+                                                                    alert("删除失败，问题点未找到");
+                                                                }
+                                                            })
+                                                            .catch(error => console.error("请求失败:", error));
                                                     } else {
-                                                        alert("删除失败，问题点未找到");
+                                                        alert("不能删除不是自己提出的问题点");
                                                     }
-                                                })
-                                                .catch(error => console.error("请求失败:", error));
-                                        }else{
-                                            alert("不能删除不是自己提出的问题点");
-                                        }
+                                                }
+                                            });
                                     });
+
 
                                     valueDiv.appendChild(valueText);
                                 } else {
@@ -1610,14 +1759,14 @@
                     if(sample_schedule === "0"){
                         alert("此项目测试人员还在测试中，还没到您的流程阶段");
                     }else if(sample_schedule === "1"){
-                        if(job==='DQE'){
-                            const confirmation = confirm("此项目目前进度为待DQE审核，您作为DQE要确认流程吗，确认后往下一个流程（待研发审核）走，确认后将会发送OA消息给对应研发通知，请选择是否进入下个流程");
-                            if (confirmation && username) {
-
-                                updateSchedule("2",sampleId,currentRD,statusBarBgColor,username,job);
-                            }
-
-                        }else{
+                        if (job === 'DQE') {
+                            confirm("此项目目前进度为待DQE审核，您作为DQE要确认流程吗，确认后往下一个流程（待研发审核）走，确认后将会发送OA消息给对应研发通知，请选择是否进入下个流程")
+                                .then((confirmation) => {
+                                    if (confirmation && username) {
+                                        updateSchedule("2", sampleId, currentRD, statusBarBgColor, username, job);
+                                    }
+                                });
+                        } else {
                             alert("此项目目前进度为待DQE审核，请耐心等待他们流程走完之后才轮您确认流程！");
                         }
                     }else if(sample_schedule === "2"){
@@ -1647,11 +1796,11 @@
 
         // 处理点击模态框外部的事件
         $(window).on('click', function(event) {
-            const modal = $('#customModal');
+            // const modal = $('#customModal');
             // 判断点击是否在模态框外部
-            if (modal.is(':visible') && !$(event.target).closest('.confirmModal-content').length) {
-                modal.hide();
-            }
+            // if (modal.is(':visible') && !$(event.target).closest('.confirmModal-content').length) {
+            //     modal.hide();
+            // }
         });
 
         // 处理确认选择

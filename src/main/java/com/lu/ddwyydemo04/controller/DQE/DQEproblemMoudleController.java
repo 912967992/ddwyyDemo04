@@ -549,6 +549,8 @@ public class DQEproblemMoudleController {
         }else if(job.equals("tester")){
             dept_id = Long.parseLong("523528658");
             setting_role = "dqeManager";
+        }else if(job.equals("notice")){ //通知给绮敏的，便于她统计每日完成情况
+            setting_role = "okManager";
         }
 
 
@@ -1037,6 +1039,7 @@ public class DQEproblemMoudleController {
                 Map<String, String> response = new HashMap<>();
                 response.put("filePath", filePath);  // 文件路径
                 response.put("fileName", fileName);  // 文件名
+                System.out.println("filePath:"+filePath);
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文件未找到");

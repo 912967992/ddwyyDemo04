@@ -4,12 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>研发质量管理系统登陆验证中...</title>
+    <style>
+        /* 背景遮罩层 */
+        #alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        /* 模态框样式 */
+        #alert-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* 消息内容 */
+        #alert-modal p {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+
+        /* 按钮样式 */
+        #alert-modal button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #alert-modal button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-<!--<button onclick="redirectToDingTalk()">DingTalk Login</button>-->
 <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.7.0/dingtalk.open.js"></script>
 
+<div id="alert-overlay"></div>
+<div id="alert-modal">
+    <p id="alert-message"></p>
+    <button id="alert-confirm">确定</button>
+</div>
+
 <script>
+    // 自定义 alert 函数
+    function alertModal(message) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('alert-overlay');
+            const modal = document.getElementById('alert-modal');
+            const messageElem = document.getElementById('alert-message');
+            const confirmButton = document.getElementById('alert-confirm');
+
+            messageElem.textContent = message;
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            confirmButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                resolve();
+            };
+        });
+    }
 
     dd.ready(function () {
         dd.runtime.permission.requestAuthCode({
@@ -19,29 +92,26 @@
                 sendAuthCodeToServer(result.code);
             },
             onFail: function (err) {
-                alert('获取authCode失败: ' + JSON.stringify(err));
+                alertModal('获取authCode失败: ' + JSON.stringify(err));
             }
         });
     });
 
     function setLocalStorageItem(key, value) {
-        // 判断缓存中是否存在该键
         if (localStorage.getItem(key) !== null) {
-            // 清除之前的缓存
             localStorage.removeItem(key);
         }
-        // 设置新的值
         localStorage.setItem(key, value);
     }
 
-    function sendAuthCodeToServer(authCode) {
+    async function sendAuthCodeToServer(authCode) {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/getUserInfo', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onreadystatechange = function () {
+        xhr.onreadystatechange = async function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 var response = JSON.parse(xhr.responseText);
-                // 单独将每个需要的字段保存到sessionStorage
+
                 sessionStorage.setItem('userId', response.userId);
                 sessionStorage.setItem('username', response.username);
                 sessionStorage.setItem('job', response.job);
@@ -54,21 +124,19 @@
                 setLocalStorageItem("username", response.username);
                 setLocalStorageItem("job", response.job);
                 setLocalStorageItem("corp_id", response.corp_id);
-                // alert('姓名: ' + response.username + '，职位：' + response.job + '  ，你好！');
-                alert('姓名: ' + response.username + '，角色：'+ response.job+'  ，你好！');
 
-                if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader")
-                || response.job.includes("manager")) {
+                // 使用自定义模态框
+                await alertModal('姓名: ' + response.username + '，角色：' + response.job + '，你好！');
+
+                if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
                     window.location.href = '/DQEIndex';
                 } else {
-                    // 重定向到首页
                     window.location.href = '/testManIndex';
                 }
             }
         };
-        xhr.send(JSON.stringify({authCode: authCode}));
+        xhr.send(JSON.stringify({ authCode: authCode }));
     }
-
 </script>
 </body>
 </html>

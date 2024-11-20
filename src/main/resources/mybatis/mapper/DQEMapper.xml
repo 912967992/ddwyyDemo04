@@ -50,6 +50,7 @@
         AND (#{rd_result_judge} IS NULL OR rd_result_judge LIKE CONCAT('%', #{rd_result_judge}, '%'))
         AND (#{problemTimeStart} IS NULL OR finish_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR finish_time &lt; DATE_ADD(#{problemTimeEnd}, INTERVAL 1 DAY))
+        ORDER BY finish_time DESC;
     </select>
 
 
@@ -294,7 +295,7 @@
         SELECT *
         FROM task_nodes
         WHERE notify_once = 1
-
+        ORDER BY warn_time DESC
 
     </select>
 
@@ -302,7 +303,7 @@
         SELECT *
         FROM task_nodes
         WHERE notify_second = 1
-
+        ORDER BY warn_time DESC
     </select>
 
 
@@ -329,6 +330,7 @@
         SELECT *
         FROM task_nodes
         WHERE isOverdue IS NULL
+          AND warn_time IS NOT NULL
         ORDER BY create_time DESC
 
     </select>
@@ -388,13 +390,39 @@
 
 
     <!-- 插入系统信息 -->
-    <!-- 插入系统信息 -->
-    <insert id="saveSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
-        INSERT INTO system_info (version, installation_date, os_version,
-                                 architecture, computer_name, system_model, created_at)
+    <insert id="insertSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
+        INSERT INTO system_info (version, installationDate, osVersion,
+                                 architecture, computerName, systemModel, fullOS,
+                                 cpu, memory, displays , networkAdapters , created_at)
         VALUES (#{version}, #{installationDate}, #{osVersion},
-                #{architecture}, #{computerName}, #{systemModel}, NOW())
+                #{architecture}, #{computerName}, #{systemModel}, #{fullOS},
+                #{cpu},#{memory},#{displays},#{networkAdapters}, NOW())
     </insert>
+
+    <!-- 查询 Computer Name 是否存在 -->
+    <select id="checkIfComputerNameExists" resultType="int" parameterType="String">
+        SELECT COUNT(*)
+        FROM system_info
+        WHERE computerName = #{computerName}
+    </select>
+
+    <!-- 更新系统信息 -->
+    <update id="updateSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
+        UPDATE system_info
+        SET
+        version = #{version},
+        installationDate = #{installationDate},
+        osVersion = #{osVersion},
+        architecture = #{architecture},
+        systemModel = #{systemModel},
+        fullOS = #{fullOS},
+        cpu = #{cpu},
+        memory = #{memory},
+        displays = #{displays},
+        networkAdapters = #{networkAdapters},
+        created_at =  NOW()
+        WHERE computerName = #{computerName}
+    </update>
 
 
     <update id="updatepProblemCounts">
@@ -408,6 +436,23 @@
         WHERE sample_id = #{sample_id}
     </delete>
 
+    <select id="performSysInfo" resultType="com.lu.ddwyydemo04.pojo.SystemInfo">
+        SELECT * FROM system_info
+        WHERE
+            (#{id} IS NULL OR id LIKE CONCAT('%', #{id}, '%'))
+          AND (#{computerName} IS NULL OR computerName LIKE CONCAT('%', #{computerName}, '%'))
+          AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
+          AND (#{installationDate} IS NULL OR installationDate LIKE CONCAT('%', #{installationDate}, '%'))
+          AND (#{osVersion} IS NULL OR osVersion LIKE CONCAT('%', #{osVersion}, '%'))
+          AND (#{fullOS} IS NULL OR fullOS LIKE CONCAT('%', #{fullOS}, '%'))
+          AND (#{architecture} IS NULL OR architecture LIKE CONCAT('%', #{architecture}, '%'))
+          AND (#{systemModel} IS NULL OR systemModel LIKE CONCAT('%', #{systemModel}, '%'))
+          AND (#{cpu} IS NULL OR cpu LIKE CONCAT('%', #{cpu}, '%'))
+          AND (#{memory} IS NULL OR memory LIKE CONCAT('%', #{memory}, '%'))
+          AND (#{displays} IS NULL OR displays LIKE CONCAT('%', #{displays}, '%'))
+          AND (#{networkAdapters} IS NULL OR networkAdapters LIKE CONCAT('%', #{networkAdapters}, '%'))
+
+    </select>
 
 
 </mapper>

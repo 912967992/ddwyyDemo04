@@ -92,12 +92,24 @@ public interface DQEDao {
 
     Boolean updateOverdueReason(@Param("id")String id, @Param("overdueReason")String overdueReason);
 
-    int saveSys(SystemInfo systemInfo);
+    int insertSys(SystemInfo systemInfo);
+    int checkIfComputerNameExists(@Param("computerName")String computerName);
+    int updateSys(SystemInfo systemInfo);
+
 
     List<Map<String, Object>> countDefectLevelsBySampleId(@Param("sampleId") int sampleId);
 
     int updatepProblemCounts(@Param("sample_id") int sample_id,@Param("problemCounts") String problemCounts);
 
     int deleteTaskNodeBefore(@Param("sample_id") int sample_id);
+
+
+    List<SystemInfo> performSysInfo(@Param("id")String id, @Param("computerName")String computerName,
+                                    @Param("version")String version,
+                                    @Param("installationDate")String installationDate,@Param("osVersion")String osVersion,
+                                    @Param("fullOS")String fullOS,
+                                    @Param("architecture")String architecture,@Param("systemModel") String systemModel,
+                                    @Param("cpu")String cpu,@Param("memory")String memory,
+                                    @Param("displays")String displays,@Param("networkAdapters")String networkAdapters);
 
 }
