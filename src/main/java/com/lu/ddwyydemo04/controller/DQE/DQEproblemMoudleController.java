@@ -548,7 +548,12 @@ public class DQEproblemMoudleController {
             setting_role = "dqeManager";
         }else if(job.equals("tester")){
             dept_id = Long.parseLong("523528658");
-            setting_role = "dqeManager";
+            if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
+                setting_role = "okManager";
+            }else {
+                setting_role = "dqeManager";
+            }
+
         }else if(job.equals("notice")){ //通知给绮敏的，便于她统计每日完成情况
             setting_role = "okManager";
         }

@@ -1,3 +1,19 @@
+h3{
+    z-index: 2;
+}
+
+/*#choiceModal {*/
+/*    display: none;*/
+/*    position: fixed;*/
+/*    top: 50%;*/
+/*    left: 50%;*/
+/*    transform: translate(-50%, -50%);*/
+/*    background-color: #35813f;*/
+/*    padding: 20px;*/
+/*    border: 1px solid #ccc;*/
+/*    z-index: 1000;*/
+/*}*/
+
 /* 父容器样式 */
 .title-container {
     /*text-align: center;*/

@@ -609,7 +609,14 @@
                         }else if(cellData === "4"){
                             td.textContent = "已完成";
                             td.style.color = 'green';
+                        }else if(cellData === "9"){
+                            td.textContent = "测试人员退样";
+                            td.style.color = 'green';
+                        }else if(cellData === "10"){
+                            td.textContent = "测试人员竞品完成";
+                            td.style.color = 'green';
                         }
+
                     } else if(headers[index] === "DQE判定" || headers[index] === "研发判定"){
                         if (cellData==="0"){
                             td.textContent = "签样";

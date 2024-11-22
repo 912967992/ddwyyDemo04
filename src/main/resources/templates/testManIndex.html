@@ -266,7 +266,7 @@
 
 
     <!-- 模态框 HTML -->
-    <div id="restDaysModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.4);">
+    <div id="restDaysModal" style="display: none; position: fixed; z-index: 3; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.4);">
         <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 30%; text-align: center;">
             <h3>请输入期间休息天数</h3>
             <p>（只能输入0.5，1.5，或者整数1）</p>
@@ -276,6 +276,17 @@
             <button onclick="closeModal()">取消</button>
         </div>
     </div>
+
+    <div id="choiceModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:#35813f; padding:20px; border:1px solid #ccc; z-index:1000; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.3);">
+        <button id="closeChoiceModal" style="position:absolute; top:5px; right:5px; background:transparent; border:none; font-size:18px; color:white; cursor:pointer;">&times;</button>
+        <p style="color:white; font-size:16px;">请选择：</p>
+        <div style="display:flex; justify-content:space-around; gap:10px;">
+            <button id="btnRetireSample" style="padding:10px 20px; border:none; background-color:#f7d716; color:black; border-radius:5px; cursor:pointer;">测试人员退样（免审核流程）</button>
+            <button id="btnCompetitive" style="padding:10px 20px; border:none; background-color:#f7d716; color:black; border-radius:5px; cursor:pointer;">测试人员竞品完成（免审核流程，会发送通知）</button>
+            <button id="btnNoChoice" style="padding:10px 20px; border:none; background-color:#f7d716; color:black; border-radius:5px; cursor:pointer;">走审核流程</button>
+        </div>
+    </div>
+
 
 
     <!-- 引入 jQuery -->
@@ -303,6 +314,10 @@
     //         h.src = e;
     //     })(window, document, "https://g.alicdn.com/woodpeckerx/jssdk??wpkReporter.js", "__wpk");
     // }
+
+    document.getElementById("choiceModal").addEventListener("click", function() {
+        document.getElementById("choiceModal").style.display = "none";
+    });
 
 
     // 覆盖原生 alert 方法
@@ -1327,6 +1342,10 @@
                     buttonLabel = '审核中';
                 }else if ( product.sample_schedule === "4") {
                     buttonLabel = '完结';
+                }else if ( product.sample_schedule === "9") {
+                    buttonLabel = '退样了';
+                }else if ( product.sample_schedule === "10") {
+                    buttonLabel = '竞品完成';
                 }
 
 
@@ -1398,11 +1417,6 @@
                     var sample_id  = $(this).data('sample_id');
 
                     if (schedule === 0) {
-                        if (!dqe || !rd || !projectLeader) {
-                            // 如果 dqe, rd, 或 projectLeader 任意一个为空或没有值，则执行这段代码
-                            alert("检测到您没填写对应项目的DQE、RD，和项目负责人，请填写，才能准确发送对应流程提醒他们！");
-                            return;
-                        }
 
                         // 由于你覆盖了 confirm，可以直接用原生 confirm
                         confirm(`你确定要提交 ${filepath} 吗？`)
@@ -1411,7 +1425,7 @@
                                     finishBtn(confirmation,
                                         filepath, model, coding, category, version, schedule,
                                         big_species, small_species, high_frequency, sample_frequency,
-                                        questStats, sample_id, dqe
+                                        questStats, sample_id, dqe ,rd ,projectLeader
                                     );
                                 }
                             });
@@ -1572,89 +1586,68 @@
     }
 
 
-
-    // function finishBtn(confirmation,filepath,model,coding,category,version,schedule,big_species,small_species,high_frequency,sample_frequency,questStats,sample_id,dqe){
-    //     if (confirmation) {
-    //         if(schedule===0){
-    //             // 用户点击了确认，询问休息天数
-    //             var restDaysInput = prompt("请输入期间休息天数（只能写0.5，1.5，或者整数1）：", "0");
-    //             // 验证用户输入的休息天数是否为有效的数字
-    //             if (restDaysInput === null) {
-    //                 // 用户取消了输入
-    //                 return;
-    //             }
-    //             // 使用正则表达式检查是否是有效的数字（整数或小数，最多一个小数点，且是0.5的倍数）
-    //             var numberPattern = /^(0|[1-9]\d*)(\.\d)?$/;
-    //             var restDays = parseFloat(restDaysInput);
-    //             if (!numberPattern.test(restDaysInput) || (restDays % 0.5 !== 0)) {
-    //                 // 如果输入的不是有效的数字或不是0.5的倍数，则提示用户并返回
-    //                 alert("请输入一个有效的休息天数！例如：0.5, 1, 1.5");
-    //                 return;
-    //             }
-    //             if (restDays < 0) {
-    //                 // 进一步验证是否为非负数字
-    //                 alert("请输入一个有效的休息天数！");
-    //                 return;
-    //             }
-    //         }
-    //
-    //
-    //         //用户点击了确认
-    //         $.ajax({
-    //             url: '/testManIndex/finishTest', // 控制器的路径
-    //             type: 'POST', // 或者 'GET'，取决于你的需求
-    //             contentType: 'application/json',
-    //             data: JSON.stringify({
-    //                 filepath: filepath,
-    //                 model: model,
-    //                 coding: coding,
-    //                 category: category,
-    //                 version: version,
-    //                 schedule: schedule,
-    //                 big_species: big_species,
-    //                 small_species: small_species,
-    //                 high_frequency: high_frequency,
-    //                 sample_frequency: sample_frequency,
-    //                 questStats: questStats,
-    //                 sample_id:sample_id,
-    //                 restDays: restDays // 添加用户输入的休息天数
-    //             }), // 发送到服务器的JSON数据
-    //             success: function(response) {
-    //                 const statusBarBgColor = "0xFF5E97F6";
-    //                 // 这里处理成功的回调，比如提示用户或者更新UI
-    //                 alert(response.message);
-    //                 if(dqe && response.message.includes("提交成功")){
-    //                     updateSchedule("1",sample_id,dqe,statusBarBgColor,username,job);
-    //                 }
-    //                 // window.location.href = '/testManIndex';
-    //                 // 从后端获取数据并更新页面内容
-    //                 initData();
-    //                 performSearch();
-    //
-    //             },
-    //             error: function(xhr, status, error) {
-    //                 // 这里处理错误的回调
-    //                 alert('提交按钮出现错误: ' + error);
-    //             }
-    //         });
-    //     }
-    // }
-
-    function finishBtn(confirmation, filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, dqe) {
+    function finishBtn(confirmation, filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, dqe ,rd ,projectLeader ) {
         if (confirmation) {
             if (schedule === 0) {
-                // 显示模态框
+                // 显示休息天数模态框
                 openModal(function(restDays) {
-                    // 继续执行 AJAX 提交逻辑
-                    submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe);
-                });
-                return;
-            }
+                    // 显示退样或竞品选择模态框
+                    openChoiceModal(function(choice) {
+                        if (choice === '退样') {
+                            const tuiOrJp = "tui";
+                            alert('用户选择了退样，后续处理逻辑可以在这里完成。');
+                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, null, tuiOrJp);
+                            // 如果需要，调用后续逻辑
+                        } else if (choice === '竞品') {
 
-            // 如果无需输入休息天数，直接调用提交逻辑
-            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, null, dqe);
+                            alert('用户选择了竞品，后续处理逻辑可以在这里完成。');
+                            if(!dqe && !rd){
+                                alert("竞品需要填写对应项目的DQE、RD，请起码填写一个，才能准确发送对应流程提醒他们！");
+                                return;
+                            }
+                            const tuiOrJp = "jp";
+                            // 如果需要，调用后续逻辑
+                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd , tuiOrJp);
+                        } else {
+                            if (!dqe || !rd || !projectLeader) {
+                                alert("检测到您没填写对应项目的DQE、RD，和项目负责人，请填写，才能准确发送对应流程提醒他们！");
+                                return;
+                            }
+
+                            confirm(`你确定要提交 ${filepath} 吗？`)
+                                .then((confirmation)=>{
+                                    if(confirmation){
+                                        submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe);
+                                    }
+                                })
+                        }
+                    });
+                });
+            }else if(schedule === 1){
+                if (confirmation) {
+                    // 执行撤回操作
+                    submitFinish(
+                        filepath,
+                        model,
+                        coding,
+                        category,
+                        version,
+                        schedule,
+                        big_species,
+                        small_species,
+                        high_frequency,
+                        sample_frequency,
+                        questStats,
+                        sample_id,
+                        0, // 撤回时无休息天数
+                        dqe
+                    );
+                }
+
+            }
         }
     }
+
 
     function openModal(callback) {
         const modal = document.getElementById('restDaysModal');
@@ -1681,7 +1674,32 @@
         };
     }
 
-    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe) {
+    function openChoiceModal(callback) {
+        const choiceModal = document.getElementById('choiceModal');
+        choiceModal.style.display = 'block';
+
+        // 绑定选择按钮的点击事件
+        document.getElementById('btnRetireSample').onclick = function() {
+            closeChoiceModal();
+            if (callback) callback('退样');
+        };
+
+        document.getElementById('btnCompetitive').onclick = function() {
+            closeChoiceModal();
+            if (callback) callback('竞品');
+        };
+
+        document.getElementById('btnNoChoice').onclick = function() {
+            closeChoiceModal();
+            if (callback) callback('无选择');
+        };
+
+        function closeChoiceModal() {
+            choiceModal.style.display = 'none';
+        }
+    }
+
+    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd, tuiOrj) {
         // 用户点击了确认
         $.ajax({
             url: '/testManIndex/finishTest', // 控制器的路径
@@ -1700,7 +1718,8 @@
                 sample_frequency: sample_frequency,
                 questStats: questStats,
                 sample_id: sample_id,
-                restDays: restDays // 添加用户输入的休息天数
+                restDays: restDays, // 添加用户输入的休息天数
+                tuiOrj : tuiOrj
             }), // 发送到服务器的JSON数据
             success: function(response) {
                 const statusBarBgColor = "0xFF5E97F6";
@@ -1709,10 +1728,31 @@
                 if (dqe && response.message.includes("提交成功")) {
                     updateSchedule("1", sample_id, dqe, statusBarBgColor, username, job);
 
-                    // 等待 2 秒后发送给测试人员
+                    // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
                         updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
+                }else if(dqe && response.message.includes("退样成功")){
+                    updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
+                    // 等待 2 秒后发送给绮敏
+                    setTimeout(() => {
+                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                    }, 2000); // 2000 毫秒 = 2 秒
+                }else if(response.message.includes("竞品文件完成")){
+
+                    if (dqe) {
+                        updateSchedule("10", sample_id, dqe, statusBarBgColor, username, job);
+
+                    }
+                    if(rd){
+                        updateSchedule("10", sample_id, rd, statusBarBgColor, username, job);
+                    }
+
+                    // 等待 2 秒后发送给绮敏
+                    setTimeout(() => {
+                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                    }, 2000); // 2000 毫秒 = 2 秒
+
                 }
                 initData();
                 performSearch();
@@ -1902,6 +1942,10 @@
                 return "待DQE判定";
             case "4":
                 return "已完成";
+            case "9":
+                return "测试人员退样";
+            case "10":
+                return "测试人员竞品完成";
             default:
                 return ""; // 可以根据需要返回默认值或空字符串
         }

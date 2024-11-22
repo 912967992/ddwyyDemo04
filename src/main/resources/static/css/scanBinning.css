@@ -82,34 +82,111 @@
     text-align: center; /* 文字在自身容器内居中 */
 }
 
-.divider {
-    position: absolute;
-    left: 0;
-    bottom: 70px;
-    width: 100%;
-    height: 1px;
-    background-color: #2ba245;
-    /*z-index: 1;*/
-}
 
-.btn-container {
-    position: relative;
-    bottom: 0;
-    width: 100%;
+
+/* 扫码分箱容器*/
+/* 扫码分箱主内容容器 */
+.content {
+    margin-left: 120px; /* 避开侧边栏 */
+    padding: 20px;
     display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    box-sizing: border-box;
-    /*z-index: 1000;*/
+    flex-direction: column;
+    gap: 20px;
 }
 
-.btn {
-    width: 60px;
-    height: 60px;
+/* 扫描条码的容器 */
+.scanner-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.scan-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px 5px;
     background-color: #2ba245;
     color: #fff;
     border: none;
-    border-radius: 50%;
-    font-size: 24px;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.scan-btn:hover {
+    background-color: #228B22; /* 深绿色悬停效果 */
+}
+
+.result-container p {
+    font-size: 16px;
+    color: #333;
+    margin: 5px 0;
+}
+
+.result-container span {
+    font-weight: bold;
+}
+
+/* 箱体标记的容器 */
+.binning-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.binning-container label {
+    font-size: 16px;
+    color: #333;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.binning-container input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.save-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #2ba245;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.save-btn:hover {
+    background-color: #228B22; /* 深绿色悬停效果 */
+}
+
+
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px; /* 减少宽度 */
+        padding: 10px; /* 缩小内边距 */
+    }
+
+    .content {
+        margin-left: 80px; /* 根据 sidebar 新宽度调整 */
+    }
+
+    .BackBtn {
+        left: auto; /* 清除左侧定位 */
+        right: 10px; /* 设置右侧固定间距 */
+        top: 10px; /* 保持顶部间距 */
+    }
+
+
 }

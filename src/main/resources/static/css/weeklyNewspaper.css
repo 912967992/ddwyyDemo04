@@ -114,3 +114,40 @@
     cursor: pointer;
 }
 
+.content{
+    margin-left:  150px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-left: 150px ;
+}
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px; /* 减少宽度 */
+        padding: 10px; /* 缩小内边距 */
+    }
+
+    .content {
+        margin-left: 80px; /* 根据 sidebar 新宽度调整 */
+    }
+
+    .BackBtn {
+        left: auto; /* 清除左侧定位 */
+        right: 10px; /* 设置右侧固定间距 */
+        top: 10px; /* 保持顶部间距 */
+    }
+
+
+}

@@ -167,10 +167,10 @@ public class AccessTokenService {
 
         // 处理发送结果
         if (response.getErrcode() == 0) {
-            System.out.println("OA消息发送成功，用户名：" +receiver +",用户ID: " + userId);
+            logger.info("OA消息发送成功，用户名：" +receiver +",用户ID: " + userId);
             return response.getTaskId(); // 返回 taskId
         } else {
-            System.out.println("OA消息发送失败，错误码: " + response.getErrcode() + "，错误信息: " + response.getErrmsg());
+            logger.info("OA消息发送失败，错误码: " + response.getErrcode() + "，错误信息: " + response.getErrmsg());
             return null; // 或者抛出异常，根据需要
         }
 
@@ -301,6 +301,10 @@ public class AccessTokenService {
             sampleSchedule = "待DQE判定";
         }else if(Objects.equals(sampleSchedule, "4")){
             sampleSchedule = "已完成";
+        }else if(Objects.equals(sampleSchedule, "9")){
+            sampleSchedule = "测试人员退样";
+        }else if(Objects.equals(sampleSchedule, "10")){
+            sampleSchedule = "测试人员竞品完成";
         }
         return sampleSchedule;
     }

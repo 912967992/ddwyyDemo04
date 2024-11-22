@@ -3,49 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据看板模块</title>
-    <!-- 引入字体图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- 引入外部CSS文件 -->
-    <link rel="stylesheet" href="/css/dataBoard.css">
-
+    <title>扫码分箱</title>
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
-
-
+    <link rel="stylesheet" href="/css/scanBinning.css">
 </head>
 <body>
 
-
-
 <div class="header-container">
-    <div class="title">扫码分箱</div>
+    <div class="title">数据看板</div>
     <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
 </div>
 
 
 <div class="sidebar">
     <ul class="nav-list">
-        <li><a href="/dataBoard" class="nav-link ">数据看板</a></li>
+        <li><a href="/dataBoard" class="nav-link">数据看板</a></li>
         <li><a href="/weeklyNewspaper" class="nav-link">电子DQE周报</a></li>
         <li><a href="/scanBinning" class="nav-link active">扫码分箱</a></li>
     </ul>
 </div>
 
-<!-- 下方固定按钮 -->
-<div class="btn-container">
-    <hr class="divider"> <!-- 按钮上方的横线 -->
-    <!-- 主页按钮 -->
-    <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
-    <!-- 搜索资源库按钮 -->
-    <button class="btn" id="cloudBtn"><i class="fas fa-cloud"></i></button>
-    <!-- 个人界面按钮 -->
-    <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
+
+
+<div class="content">
+    <h3>扫码对比</h3>
+
+    <!-- 箱号输入 -->
+    <div class="binning-container">
+        <h4>请输入箱号</h4>
+        <input type="text" id="binningNumber" placeholder="请输入箱号">
+    </div>
+
+    <!-- 内包装扫描 -->
+    <h4>内包装</h4>
+    <button class="scan-btn" onclick="scanInnerBarcode()">扫描内包装</button>
+    <p>SN 条码：<span id="innerSN">未扫描</span></p>
+    <p>商品条码：<span id="innerProductBarcode">未扫描</span></p>
+
+    <!-- 外包装扫描 -->
+    <h4>外包装</h4>
+    <button class="scan-btn" onclick="scanOuterBarcode()">扫描外包装</button>
+    <p>SN 条码：<span id="outerSN">未扫描</span></p>
+    <p>商品条码：<span id="outerProductBarcode">未扫描</span></p>
+
+    <!-- 比对结果 -->
+    <div class="result-container">
+        <p>内外包装 SN 条码比对结果：<span id="compareSNResult">未开始比对</span></p>
+        <p>内外包装 商品条码比对结果：<span id="compareProductBarcodeResult">未开始比对</span></p>
+    </div>
+
+    <button class="save-btn" onclick="saveData()">保存数据</button>
 </div>
 
+<script>
+    // 条码值
+    let innerSN = ""; // 内包装 SN 条码
+    let innerProductBarcode = ""; // 内包装商品条码
+    let outerSN = ""; // 外包装 SN 条码
+    let outerProductBarcode = ""; // 外包装商品条码
 
+    // 扫描内包装条形码
+    function scanInnerBarcode() {
+        if (innerSN && innerProductBarcode) {
+            alert("内包装条码已扫描完成！");
+            return;
+        }
+        dd.biz.util.scan({
+            type: 'qrCode',
+            onSuccess: function (data) {
+                const barcode = data.text;
+                if (barcode.startsWith('69')) {
+                    if (innerProductBarcode) {
+                        alert("重复扫描商品条码！");
+                    } else {
+                        innerProductBarcode = barcode;
+                        document.getElementById("innerProductBarcode").innerText = innerProductBarcode;
+                    }
+                } else {
+                    if (innerSN) {
+                        alert("重复扫描 SN 条码！");
+                    } else {
+                        innerSN = barcode;
+                        document.getElementById("innerSN").innerText = innerSN;
+                    }
+                }
+                compareBarcodes(); // 每次扫描后比对
+            },
+            onFail: function () {
+                alert("扫描失败，请重试！");
+            }
+        });
+    }
 
+    // 扫描外包装条形码
+    function scanOuterBarcode() {
+        if (outerSN && outerProductBarcode) {
+            alert("外包装条码已扫描完成！");
+            return;
+        }
+        dd.biz.util.scan({
+            type: 'qrCode',
+            onSuccess: function (data) {
+                const barcode = data.text;
+                if (barcode.startsWith('69')) {
+                    if (outerProductBarcode) {
+                        alert("重复扫描商品条码！");
+                    } else {
+                        outerProductBarcode = barcode;
+                        document.getElementById("outerProductBarcode").innerText = outerProductBarcode;
+                    }
+                } else {
+                    if (outerSN) {
+                        alert("重复扫描 SN 条码！");
+                    } else {
+                        outerSN = barcode;
+                        document.getElementById("outerSN").innerText = outerSN;
+                    }
+                }
+                compareBarcodes(); // 每次扫描后比对
+            },
+            onFail: function () {
+                alert("扫描失败，请重试！");
+            }
+        });
+    }
 
+    // 条码比对
+    function compareBarcodes() {
+        // 比对 SN 条码
+        const compareSNResult = document.getElementById("compareSNResult");
+        if (innerSN && outerSN) {
+            if (innerSN === outerSN) {
+                compareSNResult.innerText = "PASS";
+                compareSNResult.style.color = "green";
+            } else {
+                compareSNResult.innerText = "NG";
+                compareSNResult.style.color = "red";
+            }
+        }
 
+        // 比对 商品条码
+        const compareProductBarcodeResult = document.getElementById("compareProductBarcodeResult");
+        if (innerProductBarcode && outerProductBarcode) {
+            if (innerProductBarcode === outerProductBarcode) {
+                compareProductBarcodeResult.innerText = "PASS";
+                compareProductBarcodeResult.style.color = "green";
+            } else {
+                compareProductBarcodeResult.innerText = "NG";
+                compareProductBarcodeResult.style.color = "red";
+            }
+        }
+    }
+
+    // 保存数据
+    function saveData() {
+        const binningNumber = document.getElementById("binningNumber").value;
+        if (!binningNumber) {
+            alert("请先输入箱号！");
+            return;
+        }
+
+        if (!innerSN || !innerProductBarcode || !outerSN || !outerProductBarcode) {
+            alert("请先扫描所有条码！");
+            return;
+        }
+
+        // 构造数据
+        const data = {
+            binningNumber: binningNumber,
+            innerSN: innerSN,
+            innerProductBarcode: innerProductBarcode,
+            outerSN: outerSN,
+            outerProductBarcode: outerProductBarcode,
+            compareSNResult: innerSN === outerSN ? "PASS" : "NG",
+            compareProductBarcodeResult: innerProductBarcode === outerProductBarcode ? "PASS" : "NG",
+        };
+
+        // 模拟保存到后端
+        fetch("/saveScanData", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then((result) => {
+                if (result.success) {
+                    alert("数据保存成功！");
+                    resetForm();
+                } else {
+                    alert("数据保存失败，请重试！");
+                }
+            })
+            .catch((error) => {
+                console.error("保存数据失败：", error);
+                alert("保存数据失败，请检查网络！");
+            });
+    }
+
+    // 重置表单
+    function resetForm() {
+        innerSN = "";
+        innerProductBarcode = "";
+        outerSN = "";
+        outerProductBarcode = "";
+        document.getElementById("innerSN").innerText = "未扫描";
+        document.getElementById("innerProductBarcode").innerText = "未扫描";
+        document.getElementById("outerSN").innerText = "未扫描";
+        document.getElementById("outerProductBarcode").innerText = "未扫描";
+        document.getElementById("compareSNResult").innerText = "未开始比对";
+        document.getElementById("compareSNResult").style.color = "black";
+        document.getElementById("compareProductBarcodeResult").innerText = "未开始比对";
+        document.getElementById("compareProductBarcodeResult").style.color = "black";
+        document.getElementById("binningNumber").value = "";
+    }
+
+</script>
 </body>
 </html>

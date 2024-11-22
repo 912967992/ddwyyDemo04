@@ -32,19 +32,107 @@
     </ul>
 </div>
 
+<table id="dynamicTable">
+    <thead>
+    <tr>
+        <th>品类</th>
+        <th>空</th>
+        <th>44WK</th>
+        <th>45WK</th>
+        <th>46WK</th>
+        <th>47WK</th>
+        <th>48WK</th>
+        <th>49WK</th>
+        <th>责任人</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 数据将由 JavaScript 动态填充 -->
+    </tbody>
+</table>
 
+<script>
+    // 模拟从数据库获取的数据
+    const data = [
+        {
+            category: "蓝牙音频类",
+            responsibility: [
+                { name: "陈善洲", rows: 2 },
+                { name: "刘鹏飞", rows: 2 },
+            ],
+            rows: [
+                { type: "目标", values: ["100", "98", "97", "95", "99", "96"] },
+                { type: "合格率", values: ["95%", "94%", "92%", "90%", "93%", "91%"] },
+                { type: "合格数", values: ["95", "94", "92", "90", "93", "91"] },
+                { type: "抽入总数", values: ["100", "100", "100", "100", "100", "100"] },
+                { type: "耳机合格数", values: ["80", "78", "76", "75", "79", "77"] },
+                { type: "耳机投入总数", values: ["85", "83", "80", "80", "85", "82"] },
+                { type: "其它蓝牙类合格数", values: ["15", "16", "16", "15", "14", "14"] },
+                { type: "其它蓝牙类投入总数", values: ["20", "22", "24", "25", "21", "23"] },
+            ],
+        },
+    ];
 
+    // 动态生成表格内容
+    const tableBody = document.querySelector("#dynamicTable tbody");
 
-<!-- 下方固定按钮 -->
-<div class="btn-container">
-    <hr class="divider"> <!-- 按钮上方的横线 -->
-    <!-- 主页按钮 -->
-    <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
-    <!-- 搜索资源库按钮 -->
-    <button class="btn" id="cloudBtn"><i class="fas fa-cloud"></i></button>
-    <!-- 个人界面按钮 -->
-    <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
-</div>
+    data.forEach((item) => {
+        const categoryRowSpan = item.rows.length;
+        let responsibilityIndex = 0;
+
+        item.rows.forEach((row, rowIndex) => {
+            const tr = document.createElement("tr");
+
+            // 添加品类（只在第一行插入）
+            if (rowIndex === 0) {
+                const categoryTd = document.createElement("td");
+                categoryTd.rowSpan = categoryRowSpan;
+                categoryTd.textContent = item.category;
+                categoryTd.className = "category";
+                tr.appendChild(categoryTd);
+            }
+
+            // 添加类型（目标、合格率等）
+            const typeTd = document.createElement("td");
+            typeTd.textContent = row.type;
+            tr.appendChild(typeTd);
+
+            // 添加周数据
+            row.values.forEach((value) => {
+                const valueTd = document.createElement("td");
+                valueTd.textContent = value;
+                tr.appendChild(valueTd);
+            });
+
+            // 添加责任人（根据责任人分配行数合并单元格）
+            if (rowIndex === item.responsibility[responsibilityIndex].rows) {
+                responsibilityIndex++;
+            }
+
+            if (
+                rowIndex ===
+                item.rows
+                    .slice(0, responsibilityIndex + 1)
+                    .reduce((sum, r, idx) => {
+                        if (idx < responsibilityIndex) {
+                            return sum + item.responsibility[idx].rows;
+                        }
+                        return sum;
+                    }, 0) - item.responsibility[responsibilityIndex].rows
+            ) {
+                const responsibilityTd = document.createElement("td");
+                responsibilityTd.rowSpan = item.responsibility[responsibilityIndex].rows;
+                responsibilityTd.textContent =
+                    item.responsibility[responsibilityIndex].name;
+                responsibilityTd.className = "responsible";
+                tr.appendChild(responsibilityTd);
+            }
+
+            tableBody.appendChild(tr);
+        });
+    });
+</script>
+
 
 
 
