@@ -449,7 +449,7 @@ public class testManIndexController {
         String sample_idStr = request.get("sample_id");
         int sample_id = Integer.parseInt(sample_idStr);
 
-        String tuiOrj = request.get("tuiOrj");
+        String tuiOrJp = request.get("tuiOrJp");
 
 
         // 判断是否存在 restDays 参数
@@ -462,13 +462,16 @@ public class testManIndexController {
         }
 
         if (schedule.equals("0")){
-            if(tuiOrj.equals("tui")){
-                schedule = "9";
-            }else if(tuiOrj.equals("jp")){
-                schedule = "10";
+            if(tuiOrJp != null){
+                if(tuiOrJp.equals("tui")){
+                    schedule = "9";
+                }else if(tuiOrJp.equals("jp")){
+                    schedule = "10";
+                }
             }else{
                 schedule = "1";
             }
+
 
             // 设置完成时间为当前的北京时间
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
@@ -511,16 +514,19 @@ public class testManIndexController {
                 logger.info("提交文件："+filepath + ",测试时长："+workDays + ",预计完成时长："+adjustedWorkDays);
             }
 
-            if(tuiOrj.equals("tui")){
-                response.put("message", "文件退样成功！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为："+workDays + "天。");
-
-            }else if(tuiOrj.equals("jp")){
-                response.put("message", "竞品文件完成，已通知发送对应角色！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为："+workDays + "天。");
-
-            }else{
-                response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为："+workDays + "天。");
-
+            if (tuiOrJp != null && !tuiOrJp.trim().isEmpty()) {
+                if (tuiOrJp.equals("tui")) {
+                    response.put("message", "文件退样成功！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                } else if (tuiOrJp.equals("jp")) {
+                    response.put("message", "竞品文件完成，已通知发送对应角色！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                } else {
+                    response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                }
+            } else {
+                // 如果 tuiOrJp 为空或 null
+                response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
             }
+
 
             //20241111新增一个保存的时候统计好问题点数量并传到samples表里的problemNumber
             List<Map<String, Object>> countDefectLevel = dqEproblemMoudleService.countDefectLevelsBySampleId(sample_id);

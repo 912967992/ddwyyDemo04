@@ -261,7 +261,7 @@
         SELECT id,sample_id, node_number, create_time, warn_time
         FROM task_nodes
         WHERE (node_number = 1 OR node_number = 3)
-          AND isOverdue IS NULL
+          AND isOverdue = 1
           AND warn_time &lt; #{currentTime}
           AND notify_once = 1
           AND notify_second IS NULL
@@ -271,7 +271,7 @@
         SELECT id,sample_id, node_number, create_time, warn_time
         FROM task_nodes
         WHERE node_number = 2
-          AND isOverdue IS NULL
+          AND isOverdue = 1
           AND warn_time &lt; #{currentTime}
           AND notify_once = 1
           AND notify_second IS NULL

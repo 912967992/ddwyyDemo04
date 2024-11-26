@@ -1699,7 +1699,7 @@
         }
     }
 
-    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd, tuiOrj) {
+    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd, tuiOrJp) {
         // 用户点击了确认
         $.ajax({
             url: '/testManIndex/finishTest', // 控制器的路径
@@ -1719,7 +1719,7 @@
                 questStats: questStats,
                 sample_id: sample_id,
                 restDays: restDays, // 添加用户输入的休息天数
-                tuiOrj : tuiOrj
+                tuiOrJp : tuiOrJp
             }), // 发送到服务器的JSON数据
             success: function(response) {
                 const statusBarBgColor = "0xFF5E97F6";
@@ -1741,16 +1741,20 @@
                 }else if(response.message.includes("竞品文件完成")){
 
                     if (dqe) {
-                        updateSchedule("10", sample_id, dqe, statusBarBgColor, username, job);
-
+                        setTimeout(() => {
+                            updateSchedule("10", sample_id, dqe, statusBarBgColor, username, job);
+                        }, 2000); // 2000 毫秒 = 2 秒
                     }
                     if(rd){
-                        updateSchedule("10", sample_id, rd, statusBarBgColor, username, job);
+                        setTimeout(() => {
+                            updateSchedule("10", sample_id, rd, statusBarBgColor, username, job);
+                        }, 2000); // 2000 毫秒 = 2 秒
+
                     }
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        updateSchedule("1", sample_id, "卢绮  f敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
 
                 }
@@ -2478,20 +2482,91 @@
         });
     }
 
+    // function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
+    //     const span = document.createElement('span');
+    //     span.textContent = value || '无';  // 如果没有数据，展示为 '无'
+    //
+    //     // 当前编辑值
+    //     let currentEditValue = value || '';
+    //
+    //     // 点击后变为输入框
+    //     span.addEventListener('click', function () {
+    //         const textarea = document.createElement('textarea');
+    //         textarea.style.height = '50px';  // 设置高度，可以根据需求调整
+    //         textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
+    //
+    //          textarea.style.minWidth = '120px';  // 设置最小宽度
+    //         textarea.value = currentEditValue; // 使用当前编辑值
+    //
+    //         // 添加一些样式，避免选择区域不明显
+    //         textarea.style.outline = 'none';  // 去除焦点时的外边框
+    //         textarea.style.backgroundColor = 'white';  // 确保背景是白色
+    //         textarea.style.color = 'black';  // 确保文本颜色是黑色
+    //         textarea.style.border = '1px solid #ccc';  // 设置边框样式
+    //         textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
+    //
+    //         // 监听失焦事件
+    //         textarea.addEventListener('blur', function () {
+    //             const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
+    //
+    //             // 如果新值和旧值都为空，或者它们相等，则不更新
+    //             if (newValue !== currentEditValue) {
+    //                 currentEditValue = newValue;  // 更新当前编辑值
+    //                 span.textContent = currentEditValue || '无';  // 更新 span 的内容
+    //                 // 更新 item 的值，并标记修改过的数据
+    //                 item[attr.field] = currentEditValue;
+    //                 if (!modifiedData.includes(item)) {
+    //                     modifiedData.push(item);  // 标记修改过的数据
+    //                 }
+    //             }
+    //
+    //             // 将 textarea 替换回 span
+    //             valueDiv.replaceChild(span, textarea);
+    //         });
+    //
+    //         // 将 span 替换为 textarea
+    //         valueDiv.replaceChild(textarea, span);
+    //         textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
+    //
+    //         // 不进行自动全选，允许用户自由选择文本
+    //         // 去掉全选的代码，避免覆盖用户的选择操作
+    //         // textarea.select();  // 不进行强制全选
+    //
+    //         // 监听用户选择的文本
+    //         textarea.addEventListener('select', function () {
+    //             console.log('用户选择的文本：', textarea.value.substring(textarea.selectionStart, textarea.selectionEnd));
+    //         });
+    //     });
+    //
+    //     valueDiv.appendChild(span);
+    // }
+
     function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
-        const span = document.createElement('span');
-        span.textContent = value || '无';  // 如果没有数据，展示为 '无'
+        const div = document.createElement('div');
+        div.textContent = value || '无';  // 如果没有数据，展示为 '无'
+
+        // 设置 CSS 样式，让其支持换行显示，并控制宽度
+        div.style.whiteSpace = 'pre-wrap';  // 保持文本内容换行
+        div.style.wordWrap = 'break-word';  // 超出时换行
+        div.style.maxWidth = '200px';  // 设置最大宽度，避免内容过长时溢出
+        div.style.width = '100%';  // 确保宽度占满父容器
+        div.style.overflowWrap = 'break-word'; // 确保长单词或URL换行
 
         // 当前编辑值
         let currentEditValue = value || '';
 
-        // 点击后变为输入框
-        span.addEventListener('click', function () {
+        div.addEventListener('click', function () {
+            // 创建 textarea
             const textarea = document.createElement('textarea');
-            textarea.style.height = '50px';  // 设置高度，可以根据需求调整
-            textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
 
-             textarea.style.minWidth = '120px';  // 设置最小宽度
+            // 获取 div 的高度，并将其赋值给 textarea
+            const divHeight = div.offsetHeight;  // 获取 div 的高度
+            textarea.style.height = `${divHeight}px`;  // 设置 textarea 高度与 div 一致
+
+            // 其他样式设置
+            textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
+            textarea.style.minWidth = '120px';  // 设置最小宽度，确保输入框可见
+            textarea.style.maxWidth = '200px'; // 设置最大宽度，避免输入框过宽
             textarea.value = currentEditValue; // 使用当前编辑值
 
             // 添加一些样式，避免选择区域不明显
@@ -2508,7 +2583,7 @@
                 // 如果新值和旧值都为空，或者它们相等，则不更新
                 if (newValue !== currentEditValue) {
                     currentEditValue = newValue;  // 更新当前编辑值
-                    span.textContent = currentEditValue || '无';  // 更新 span 的内容
+                    div.textContent = currentEditValue || '无';  // 更新 div 的内容
                     // 更新 item 的值，并标记修改过的数据
                     item[attr.field] = currentEditValue;
                     if (!modifiedData.includes(item)) {
@@ -2516,26 +2591,17 @@
                     }
                 }
 
-                // 将 textarea 替换回 span
-                valueDiv.replaceChild(span, textarea);
+                // 将 textarea 替换回 div
+                valueDiv.replaceChild(div, textarea);
             });
 
-            // 将 span 替换为 textarea
-            valueDiv.replaceChild(textarea, span);
+            // 将 div 替换为 textarea
+            valueDiv.replaceChild(textarea, div);
             textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
-
-            // 不进行自动全选，允许用户自由选择文本
-            // 去掉全选的代码，避免覆盖用户的选择操作
-            // textarea.select();  // 不进行强制全选
-
-            // 监听用户选择的文本
-            textarea.addEventListener('select', function () {
-                console.log('用户选择的文本：', textarea.value.substring(textarea.selectionStart, textarea.selectionEnd));
-            });
         });
-
-        valueDiv.appendChild(span);
+        valueDiv.appendChild(div);
     }
+
 
     function saveChanges(modifiedData,sampleId) {
         // if(!username){

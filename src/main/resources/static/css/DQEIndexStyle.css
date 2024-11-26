@@ -29,11 +29,22 @@ table {
     box-shadow: 0 0 0 10px #fff; /* 模拟圆角效果 */
 }
 
-th, td {
+th {
     border: 5px solid #ddd; /* 加粗边框 */
     padding: 8px;
     text-align: left;
 }
+
+td {
+    border: 5px solid #ddd; /* 加粗边框 */
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word; /* 强制长单词或 URL 换行 */
+    word-break: break-all; /* 强制任意位置换行 */
+    max-width: 200px; /* 设置最大宽度 */
+    overflow-wrap: break-word; /* 允许超出范围的文本换行 */
+}
+
 
 th {
     background-color: #f2f2f2;
@@ -48,7 +59,7 @@ tr:hover {
 .overdueModal {
     display: none;
     position: fixed;
-    z-index: 1001;
+    z-index: 999;
     left: 0;
     top: 0;
     width: 100%;
@@ -62,6 +73,9 @@ tr:hover {
     color: red; /* 红色字体 */
 }
 
+.green-text {
+    color: green; /* 强制应用绿色 */
+}
 
 
 /* 按钮样式 */

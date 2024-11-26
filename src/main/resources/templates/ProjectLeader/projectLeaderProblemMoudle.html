@@ -615,6 +615,12 @@
                         }else if(cellData === "4"){
                             td.textContent = "已完成";
                             td.style.color = 'green';
+                        }else if(cellData === "9"){
+                            td.textContent = "测试人员退样";
+                            td.style.color = 'green';
+                        }else if(cellData === "10"){
+                            td.textContent = "测试人员竞品完成";
+                            td.style.color = 'green';
                         }
                     } else if(headers[index] === "DQE判定" || headers[index] === "研发判定"){
                         if (cellData==="0"){
@@ -801,45 +807,22 @@
             valueDiv.appendChild(span);
         }
 
+
+
         function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
-            const span = document.createElement('span');
-            span.textContent = value || '无';  // 如果没有数据，展示为 '无'
+            const div = document.createElement('div');
+            div.textContent = value || '无';  // 如果没有数据，展示为 '无'
 
-            // 当前编辑值
-            let currentEditValue = value || '';
+            // 设置 CSS 样式，让其支持换行显示，并控制宽度
+            div.style.whiteSpace = 'pre-wrap';  // 保持文本内容换行
+            div.style.wordWrap = 'break-word';  // 超出时换行
+            div.style.maxWidth = '200px';  // 设置最大宽度，避免内容过长时溢出
+            div.style.width = '100%';  // 确保宽度占满父容器
+            div.style.overflowWrap = 'break-word'; // 确保长单词或URL换行
 
-            // 点击后变为输入框
-            span.addEventListener('click', function () {
-                const textarea = document.createElement('textarea');
-                textarea.style.height = '50px';  // 设置高度，可以根据需求调整
-                textarea.value = currentEditValue; // 使用当前编辑值
-
-                // 监听失焦事件
-                textarea.addEventListener('blur', function () {
-                    const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
-
-                    // 如果新值和旧值都为空，或者它们相等，则不更新
-                    if (newValue !== currentEditValue) {
-                        currentEditValue = newValue;  // 更新当前编辑值
-                        span.textContent = currentEditValue || '无';  // 更新 span 的内容
-                        // 更新 item 的值，并标记修改过的数据
-                        item[attr.field] = currentEditValue;
-                        if (!modifiedData.includes(item)) {
-                            modifiedData.push(item);  // 标记修改过的数据
-                        }
-                    }
-
-                    // 将 textarea 替换回 span
-                    valueDiv.replaceChild(span, textarea);
-                });
-
-                // 将 span 替换为 textarea
-                valueDiv.replaceChild(textarea, span);
-                textarea.focus();
-            });
-
-            valueDiv.appendChild(span);
+            valueDiv.appendChild(div);
         }
+
 
 
 

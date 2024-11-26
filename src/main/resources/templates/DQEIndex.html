@@ -176,7 +176,7 @@
 
 
     <!-- 模态框的 HTML 结构 -->
-    <div id="alert-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div id="alert-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1005;">
         <div id="alert-modal" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-align: center;">
             <div id="alert-message" style="margin-bottom: 20px;">提示信息</div>
             <button id="alert-confirm" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">确认</button>
@@ -577,80 +577,164 @@
         }
     }
 
-    overdueButton.onclick = function () {
-        fetch('/DQEIndex/getOverdueSample')
-            .then(response => response.json())
-            .then(data => {
-                // 清空之前的内容
-                overdueProjectList.innerHTML = '';
+    // overdueButton.onclick = function () {
+    //     fetch('/DQEIndex/getOverdueSample')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             // 清空之前的内容
+    //             overdueProjectList.innerHTML = '';
+    //
+    //             // 帮助函数：处理 null 值
+    //             const displayValue = (value) => value === null ? "" : value;
+    //
+    //             // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
+    //             const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧" ||
+    //                 (username === "卢健" && job === "manager");
+    //
+    //
+    //             // 填充数据到表格
+    //             data.forEach(combinedTaskNode => {
+    //                 const personInCharge = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number))
+    //                     ? combinedTaskNode.dqe
+    //                     : String(combinedTaskNode.taskNode.node_number) === "2"
+    //                         ? combinedTaskNode.rd ? combinedTaskNode.rd : ""
+    //                         : ""; // 默认值
+    //
+    //                 // 根据 Job 过滤数据
+    //                 let shouldDisplay = false;
+    //                 if (job === "DQE" || job === "manager") {
+    //                     // 如果 Job 是 DQE，则只展示 node_number 为 "1" 或 "3" 的数据
+    //                     shouldDisplay = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number));
+    //                 } else if (job === "rd") {
+    //                     // 如果 Job 是 rd，则只展示 node_number 为 "2" 的数据
+    //                     shouldDisplay = String(combinedTaskNode.taskNode.node_number) === "2";
+    //                 }
+    //
+    //                 // 如果是黄家灿或肖政文，则额外过滤 notify_second_time 不为空的数据
+    //                 if (isSpecialUser) {
+    //                     shouldDisplay = shouldDisplay && displayValue(combinedTaskNode.taskNode.notify_second_time) !== "";
+    //                 }
+    //
+    //                 // 只有在满足条件时才创建行
+    //                 if (shouldDisplay) {
+    //                     const row = document.createElement('tr');
+    //
+    //                     const overdueReasonContent = (personInCharge === username) ?
+    //                         `<textarea data-id="${combinedTaskNode.taskNode.id}"
+    //                         style="width: 100px; height: 60px;">${displayValue(combinedTaskNode.taskNode.overdueReason)}</textarea>`
+    //                         : displayValue(combinedTaskNode.taskNode.overdueReason);
+    //
+    //
+    //                     // 使用 combinedTaskNode.taskNode 获取 TaskNode 的字段
+    //                     row.innerHTML = `
+    //                 <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
+    //                 <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
+    //                 <td class="red-text">${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td> <!-- 使用外部方法 -->
+    //                 <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
+    //                 <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
+    //                 <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
+    //                 <td>${displayValue(combinedTaskNode.taskNode.notify_once_time)}</td>
+    //                 <td>${displayValue(combinedTaskNode.taskNode.notify_second_time)}</td>
+    //                 <td>${displayValue(combinedTaskNode.fullModel)}</td> <!-- 这里是样本的字段 -->
+    //                 <td>${displayValue(combinedTaskNode.bigSpecial)}</td>
+    //                 <td>${displayValue(combinedTaskNode.smallSpecial)}</td>
+    //                 <td>${displayValue(combinedTaskNode.sampleCategory)}</td>
+    //                 <td>${displayValue(combinedTaskNode.version)}</td>
+    //                 <td>${displayValue(combinedTaskNode.questStats)}</td>
+    //                 <td>${displayValue(personInCharge)}</td> <!-- 添加负责人信息 -->
+    //                 <td>${overdueReasonContent}</td> <!-- 添加可编辑的 overdueReason -->
+    //                 `;
+    //                     overdueProjectList.appendChild(row);
+    //                 }
+    //             });
+    //             overdueModal.style.display = "block"; // 显示模态框
+    //         })
+    //         .catch(error => console.error("获取超时项目列表时出错:", error));
+    // };
+        overdueButton.onclick = function () {
+            fetch('/DQEIndex/getOverdueSample')
+                .then(response => response.json())
+                .then(data => {
+                    // 清空之前的内容
+                    overdueProjectList.innerHTML = '';
 
-                // 帮助函数：处理 null 值
-                const displayValue = (value) => value === null ? "" : value;
+                    // 帮助函数：处理 null 值
+                    const displayValue = (value) => value === null ? "" : value;
 
-                // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
-                const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧" ||
-                    (username === "卢健" && job === "manager");
+                    // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
+                    const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧" ||
+                        (username === "卢健" && job === "manager");
 
+                    // 填充数据到表格
+                    data.forEach(combinedTaskNode => {
+                        const personInCharge = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number))
+                            ? combinedTaskNode.dqe
+                            : String(combinedTaskNode.taskNode.node_number) === "2"
+                                ? combinedTaskNode.rd ? combinedTaskNode.rd : ""
+                                : ""; // 默认值
 
-                // 填充数据到表格
-                data.forEach(combinedTaskNode => {
-                    const personInCharge = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number))
-                        ? combinedTaskNode.dqe
-                        : String(combinedTaskNode.taskNode.node_number) === "2"
-                            ? combinedTaskNode.rd ? combinedTaskNode.rd : ""
-                            : ""; // 默认值
+                        // 根据 Job 过滤数据
+                        let shouldDisplay = false;
+                        if (job === "DQE" || job === "manager") {
+                            // 如果 Job 是 DQE，则只展示 node_number 为 "1" 或 "3" 的数据
+                            shouldDisplay = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number));
+                        } else if (job === "rd") {
+                            // 如果 Job 是 rd，则只展示 node_number 为 "2" 的数据
+                            shouldDisplay = String(combinedTaskNode.taskNode.node_number) === "2";
+                        }
 
-                    // 根据 Job 过滤数据
-                    let shouldDisplay = false;
-                    if (job === "DQE" || job === "manager") {
-                        // 如果 Job 是 DQE，则只展示 node_number 为 "1" 或 "3" 的数据
-                        shouldDisplay = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number));
-                    } else if (job === "rd") {
-                        // 如果 Job 是 rd，则只展示 node_number 为 "2" 的数据
-                        shouldDisplay = String(combinedTaskNode.taskNode.node_number) === "2";
-                    }
+                        // 如果是黄家灿或肖政文，则额外过滤 notify_second_time 不为空的数据
+                        if (isSpecialUser) {
+                            shouldDisplay = shouldDisplay && displayValue(combinedTaskNode.taskNode.notify_second_time) !== "";
+                        }
 
-                    // 如果是黄家灿或肖政文，则额外过滤 notify_second_time 不为空的数据
-                    if (isSpecialUser) {
-                        shouldDisplay = shouldDisplay && displayValue(combinedTaskNode.taskNode.notify_second_time) !== "";
-                    }
+                        // 只有在满足条件时才创建行
+                        if (shouldDisplay) {
+                            const row = document.createElement('tr');
 
-                    // 只有在满足条件时才创建行
-                    if (shouldDisplay) {
-                        const row = document.createElement('tr');
+                            const overdueReasonContent = (personInCharge === username) ?
+                                `<textarea data-id="${combinedTaskNode.taskNode.id}"
+                        style="width: 100px; height: 60px;">${displayValue(combinedTaskNode.taskNode.overdueReason)}</textarea>`
+                                : displayValue(combinedTaskNode.taskNode.overdueReason);
 
-                        const overdueReasonContent = (personInCharge === username) ?
-                            `<textarea data-id="${combinedTaskNode.taskNode.id}"
-                            style="width: 100px; height: 60px;">${displayValue(combinedTaskNode.taskNode.overdueReason)}</textarea>`
-                            : displayValue(combinedTaskNode.taskNode.overdueReason);
+                            // 比较 node_number 和 status_value，决定颜色
+                            const nodeDescription = getNodeDescription(combinedTaskNode.taskNode.node_number);
+                            let statusValue = displayValue(combinedTaskNode.taskNode.status_value);
 
+                            // 去掉 status_value 中的前缀 "测试进度："（如果有）
+                            statusValue = statusValue.replace("测试进度：", "").trim();
 
-                        // 使用 combinedTaskNode.taskNode 获取 TaskNode 的字段
-                        row.innerHTML = `
-                    <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
-                    <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
-                    <td class="red-text">${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td> <!-- 使用外部方法 -->
-                    <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
-                    <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
-                    <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
-                    <td>${displayValue(combinedTaskNode.taskNode.notify_once_time)}</td>
-                    <td>${displayValue(combinedTaskNode.taskNode.notify_second_time)}</td>
-                    <td>${displayValue(combinedTaskNode.fullModel)}</td> <!-- 这里是样本的字段 -->
-                    <td>${displayValue(combinedTaskNode.bigSpecial)}</td>
-                    <td>${displayValue(combinedTaskNode.smallSpecial)}</td>
-                    <td>${displayValue(combinedTaskNode.sampleCategory)}</td>
-                    <td>${displayValue(combinedTaskNode.version)}</td>
-                    <td>${displayValue(combinedTaskNode.questStats)}</td>
-                    <td>${displayValue(personInCharge)}</td> <!-- 添加负责人信息 -->
-                    <td>${overdueReasonContent}</td> <!-- 添加可编辑的 overdueReason -->
+                            // 判断颜色
+                            const descriptionClass = nodeDescription === statusValue ? 'red-text' : 'green-text';
+
+                            // 使用 combinedTaskNode.taskNode 获取 TaskNode 的字段
+                            row.innerHTML = `
+                        <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
+                        <td class="${descriptionClass}">${nodeDescription}</td> <!-- 根据值判断颜色 -->
+                        <td>${statusValue}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.notify_once_time)}</td>
+                        <td>${displayValue(combinedTaskNode.taskNode.notify_second_time)}</td>
+                        <td>${displayValue(combinedTaskNode.fullModel)}</td> <!-- 这里是样本的字段 -->
+                        <td>${displayValue(combinedTaskNode.bigSpecial)}</td>
+                        <td>${displayValue(combinedTaskNode.smallSpecial)}</td>
+                        <td>${displayValue(combinedTaskNode.sampleCategory)}</td>
+                        <td>${displayValue(combinedTaskNode.version)}</td>
+                        <td>${displayValue(combinedTaskNode.questStats)}</td>
+                        <td>${displayValue(personInCharge)}</td> <!-- 添加负责人信息 -->
+                        <td>${overdueReasonContent}</td> <!-- 添加可编辑的 overdueReason -->
                     `;
-                        overdueProjectList.appendChild(row);
-                    }
-                });
-                overdueModal.style.display = "block"; // 显示模态框
-            })
-            .catch(error => console.error("获取超时项目列表时出错:", error));
-    };
+                            overdueProjectList.appendChild(row);
+                        }
+                    });
+                    overdueModal.style.display = "block"; // 显示模态框
+                })
+                .catch(error => console.error("获取超时项目列表时出错:", error));
+        };
+
+
 
     document.getElementById('saveOverdueReasons').onclick = function () {
         // 收集所有的超期原因
