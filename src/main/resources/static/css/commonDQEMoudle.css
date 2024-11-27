@@ -386,17 +386,20 @@
 
 /* 文字内容的控制 */
 .value-cell div {
-    white-space: normal;  /* 支持换行 */
+    white-space: normal; /* 支持换行 */
     overflow: hidden;
-    text-overflow: ellipsis;  /* 超出部分显示省略号 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+    font-family: "Microsoft YaHei", Arial, sans-serif; /* 设置为微软雅黑字体 */
+    font-size: 13px; /* 设置字体大小为13px */
 }
 
 /* 为单元格设置最小宽度 */
 .value-cell {
-    min-width: 120px;  /* 根据内容设置合适的最小宽度 */
+    min-width: 100px; /* 根据内容设置合适的最小宽度 */
     max-width: 200px;
-    overflow: hidden;  /* 隐藏溢出内容 */
+    overflow: hidden; /* 隐藏溢出内容 */
 }
+
 
 /*.value-cell {*/
 /*    white-space: nowrap; !* 防止换行 *!*/

@@ -4,139 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>电子DQE周报模块</title>
-    <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- 引入外部CSS文件 -->
     <link rel="stylesheet" href="/css/weeklyNewspaper.css">
-
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
 
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f5f5f5;
+        }
+
+        /* 设置第一二列和责任人列固定 */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: #f5f5f5;
+            z-index: 1;
+            font-weight: bold;
+        }
+
+        /* 为第一列和责任人列设置不同背景色 */
+        .sticky-col-1 {
+            z-index: 2;
+            background-color: #f0f0f0;
+        }
+
+        .sticky-col-2 {
+            z-index: 2;
+            background-color: #f0f0f0;
+        }
+
+        .sticky-col-responsible {
+            z-index: 2;
+            background-color: #f0f0f0;
+        }
+
+        /* 其他样式 */
+        .green-cell {
+            background-color: #c6e2ff;
+        }
+
+        .header-row th {
+            background-color: #f0f0f0;
+        }
+
+        .input-cell {
+            width: 80px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-
-
 
 <div class="header-container">
     <div class="title">电子DQE周报</div>
     <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
 </div>
 
-
-<div class="sidebar">
-    <ul class="nav-list">
-        <li><a href="/dataBoard" class="nav-link">数据看板</a></li>
-        <li><a href="/weeklyNewspaper" class="nav-link active">电子DQE周报</a></li>
-        <li><a href="/scanBinning" class="nav-link">扫码分箱</a></li>
-    </ul>
-</div>
-
 <table id="dynamicTable">
     <thead>
-    <tr>
-        <th>品类</th>
-        <th>空</th>
+    <tr class="header-row">
+        <th class="sticky-col sticky-col-1">品类</th>
+        <th class="sticky-col sticky-col-2">目标</th>
         <th>44WK</th>
         <th>45WK</th>
         <th>46WK</th>
         <th>47WK</th>
         <th>48WK</th>
         <th>49WK</th>
-        <th>责任人</th>
+        <th class="sticky-col sticky-col-responsible">责任人</th>
+        <th class="sticky-col sticky-col-responsible">组长</th>
     </tr>
     </thead>
-    <tbody>
-    <!-- 数据将由 JavaScript 动态填充 -->
+    <tbody id="dataRows">
+    <!-- 数据行，将动态填充 -->
     </tbody>
 </table>
 
 <script>
-    // 模拟从数据库获取的数据
+    // 动态填充表格数据的JavaScript
     const data = [
         {
-            category: "蓝牙音频类",
-            responsibility: [
-                { name: "陈善洲", rows: 2 },
-                { name: "刘鹏飞", rows: 2 },
-            ],
-            rows: [
-                { type: "目标", values: ["100", "98", "97", "95", "99", "96"] },
-                { type: "合格率", values: ["95%", "94%", "92%", "90%", "93%", "91%"] },
-                { type: "合格数", values: ["95", "94", "92", "90", "93", "91"] },
-                { type: "抽入总数", values: ["100", "100", "100", "100", "100", "100"] },
-                { type: "耳机合格数", values: ["80", "78", "76", "75", "79", "77"] },
-                { type: "耳机投入总数", values: ["85", "83", "80", "80", "85", "82"] },
-                { type: "其它蓝牙类合格数", values: ["15", "16", "16", "15", "14", "14"] },
-                { type: "其它蓝牙类投入总数", values: ["20", "22", "24", "25", "21", "23"] },
-            ],
-        },
+            category: '蓝牙音频类',
+            target: '90.0%',
+            weekData: ['90.0%', '90.0%', '90.0%', '90.0%', '#DIV/0!', '#DIV/0!'],
+            responsible: '自动生成',
+            leader: '陈善洲',
+            items: [
+                { label: '合格率', values: ['100.0%', '92.9%', '90.0%', '#DIV/0!', '#DIV/0!'] },
+                { label: '合格数', values: ['9', '13', '0', '0', '0'] },
+                { label: '抽入总数', values: ['9', '14', '0', '0', '0'] },
+                { label: '耳机合格数', values: ['4', '4', '6', '6', '6'] },
+                { label: '耳机投入总数', values: ['4', '4', '6', '6', '6'] },
+                { label: '其它蓝牙类合格数', values: ['5', '7', '0', '0', '0'] },
+                { label: '其它蓝牙类投入总数', values: ['5', '8', '0', '0', '0'] }
+            ]
+        }
+        // 这里可以添加更多的数据对象
     ];
 
-    // 动态生成表格内容
-    const tableBody = document.querySelector("#dynamicTable tbody");
+    const tbody = document.getElementById('dataRows');
 
-    data.forEach((item) => {
-        const categoryRowSpan = item.rows.length;
-        let responsibilityIndex = 0;
+    data.forEach(item => {
+        // 添加类别行
+        const categoryRow = document.createElement('tr');
+        categoryRow.innerHTML = `
+            <td class="sticky-col sticky-col-1">${item.category}</td>
+            <td class="sticky-col sticky-col-2">${item.target}</td>
+            <td>${item.weekData[0]}</td>
+            <td>${item.weekData[1]}</td>
+            <td>${item.weekData[2]}</td>
+            <td>${item.weekData[3]}</td>
+            <td>${item.weekData[4]}</td>
+            <td>${item.weekData[5]}</td>
+            <td class="sticky-col sticky-col-responsible">${item.responsible}</td>
+            <td class="sticky-col sticky-col-responsible">${item.leader}</td>
+        `;
+        tbody.appendChild(categoryRow);
 
-        item.rows.forEach((row, rowIndex) => {
-            const tr = document.createElement("tr");
-
-            // 添加品类（只在第一行插入）
-            if (rowIndex === 0) {
-                const categoryTd = document.createElement("td");
-                categoryTd.rowSpan = categoryRowSpan;
-                categoryTd.textContent = item.category;
-                categoryTd.className = "category";
-                tr.appendChild(categoryTd);
-            }
-
-            // 添加类型（目标、合格率等）
-            const typeTd = document.createElement("td");
-            typeTd.textContent = row.type;
-            tr.appendChild(typeTd);
-
-            // 添加周数据
-            row.values.forEach((value) => {
-                const valueTd = document.createElement("td");
-                valueTd.textContent = value;
-                tr.appendChild(valueTd);
-            });
-
-            // 添加责任人（根据责任人分配行数合并单元格）
-            if (rowIndex === item.responsibility[responsibilityIndex].rows) {
-                responsibilityIndex++;
-            }
-
-            if (
-                rowIndex ===
-                item.rows
-                    .slice(0, responsibilityIndex + 1)
-                    .reduce((sum, r, idx) => {
-                        if (idx < responsibilityIndex) {
-                            return sum + item.responsibility[idx].rows;
-                        }
-                        return sum;
-                    }, 0) - item.responsibility[responsibilityIndex].rows
-            ) {
-                const responsibilityTd = document.createElement("td");
-                responsibilityTd.rowSpan = item.responsibility[responsibilityIndex].rows;
-                responsibilityTd.textContent =
-                    item.responsibility[responsibilityIndex].name;
-                responsibilityTd.className = "responsible";
-                tr.appendChild(responsibilityTd);
-            }
-
-            tableBody.appendChild(tr);
+        // 添加数据项行
+        item.items.forEach(subItem => {
+            const itemRow = document.createElement('tr');
+            itemRow.innerHTML = `
+                <td class="sticky-col sticky-col-1">${subItem.label}</td>
+                <td class="sticky-col sticky-col-2">${item.target}</td>
+                <td>${subItem.values[0]}</td>
+                <td>${subItem.values[1]}</td>
+                <td>${subItem.values[2]}</td>
+                <td>${subItem.values[3]}</td>
+                <td>${subItem.values[4]}</td>
+                <td>${subItem.values[5]}</td>
+                <td class="sticky-col sticky-col-responsible">${item.responsible}</td>
+                <td class="sticky-col sticky-col-responsible">${item.leader}</td>
+            `;
+            tbody.appendChild(itemRow);
         });
     });
 </script>
-
-
-
-
-
 
 </body>
 </html>
