@@ -50,9 +50,28 @@
         AND (#{rd_result_judge} IS NULL OR rd_result_judge LIKE CONCAT('%', #{rd_result_judge}, '%'))
         AND (#{problemTimeStart} IS NULL OR finish_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR finish_time &lt; DATE_ADD(#{problemTimeEnd}, INTERVAL 1 DAY))
+        AND (#{sample_leader} IS NULL OR sample_leader LIKE CONCAT('%', #{sample_leader}, '%'))
+        -- 新加的模糊搜索条件
+        AND (#{key} IS NULL OR
+        sample_id LIKE CONCAT('%', #{key}, '%') OR
+        full_model LIKE CONCAT('%', #{key}, '%') OR
+        questStats LIKE CONCAT('%', #{key}, '%') OR
+        sample_category LIKE CONCAT('%', #{key}, '%') OR
+        version LIKE CONCAT('%', #{key}, '%') OR
+        big_species LIKE CONCAT('%', #{key}, '%') OR
+        small_species LIKE CONCAT('%', #{key}, '%') OR
+        supplier LIKE CONCAT('%', #{key}, '%') OR
+        test_Overseas LIKE CONCAT('%', #{key}, '%') OR
+        sample_DQE LIKE CONCAT('%', #{key}, '%') OR
+        sample_Developer LIKE CONCAT('%', #{key}, '%') OR
+        tester LIKE CONCAT('%', #{key}, '%') OR
+        priority LIKE CONCAT('%', #{key}, '%') OR
+        sample_schedule LIKE CONCAT('%', #{key}, '%') OR
+        result_judge LIKE CONCAT('%', #{key}, '%') OR
+        rd_result_judge LIKE CONCAT('%', #{key}, '%') OR
+        sample_leader LIKE CONCAT('%', #{key}, '%'))
         ORDER BY finish_time DESC;
     </select>
-
 
 
 
@@ -99,7 +118,7 @@
             post_improvement_risk, next_version_regression_test, remark,
             created_at, history_id, sample_id, created_by,
             dqe_confirm,dqe_review_at,dqe,rd_confirm,rd_review_at,rd,
-            modifier,modify_at
+            modifier,modify_at, responsibleDepartment
         ) VALUES (
                      #{full_model}, #{sample_stage}, #{version}, #{chip_solution}, #{test_platform},
                      #{test_device}, #{other_device}, #{problem},#{problemCategory},
@@ -110,7 +129,7 @@
                      #{next_version_regression_test}, #{remark}, #{created_at},
                      #{history_id}, #{sample_id}, #{created_by},
                      #{dqe_confirm},#{dqe_review_at},#{dqe},#{rd_confirm},#{rd_review_at},#{rd},
-                     #{modifier},#{modify_at}
+                     #{modifier},#{modify_at} ,#{responsibleDepartment}
                  );
     </insert>
 
@@ -151,7 +170,8 @@
             rd_review_at = #{rd_review_at},
             rd = #{rd},
             modifier = #{modifier},
-            modify_at = #{modify_at}
+            modify_at = #{modify_at},
+            responsibleDepartment = #{responsibleDepartment}
         WHERE
             id = #{id}
     </update>
@@ -265,6 +285,7 @@
           AND warn_time &lt; #{currentTime}
           AND notify_once = 1
           AND notify_second IS NULL
+          AND create_time >= '2024-12-07 00:00:00'
     </select>
 
     <select id="findSecondOverdueSampleIdsRD" resultType="map" parameterType="java.time.LocalDateTime">
@@ -275,6 +296,7 @@
           AND warn_time &lt; #{currentTime}
           AND notify_once = 1
           AND notify_second IS NULL
+          AND create_time >= '2024-12-07 00:00:00'
     </select>
 
     <update id="updateTaskNodesOnce">

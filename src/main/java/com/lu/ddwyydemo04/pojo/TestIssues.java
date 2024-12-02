@@ -107,6 +107,7 @@ public class TestIssues {
     private String modifier;
 
     private LocalDateTime modify_at;
+    private String responsibleDepartment;
 
 
     public Long getId() {
@@ -405,6 +406,14 @@ public class TestIssues {
         this.modify_at = modify_at;
     }
 
+    public String getResponsibleDepartment() {
+        return responsibleDepartment;
+    }
+
+    public void setResponsibleDepartment(String responsibleDepartment) {
+        this.responsibleDepartment = responsibleDepartment;
+    }
+
     @Override
     public String toString() {
         return "TestIssues{" +
@@ -445,6 +454,7 @@ public class TestIssues {
                 ", rd='" + rd + '\'' +
                 ", modifier='" + modifier + '\'' +
                 ", modify_at=" + modify_at +
+                ", responsibleDepartment=" + responsibleDepartment +
                 '}';
     }
 }

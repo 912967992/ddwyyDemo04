@@ -103,9 +103,11 @@ public class DQEproblemMoudleController {
                                          @RequestParam(required = false) String sample_Developer,
                                          @RequestParam(required = false) String tester,
                                          @RequestParam(required = false) String priority,
+                                         @RequestParam(required = false) String sample_leader,
                                          @RequestParam(required = false) String sample_schedule,
                                          @RequestParam(required = false) String result_judge,
                                          @RequestParam(required = false) String rd_result_judge,
+                                         @RequestParam(required = false) String key,
                                          @RequestParam(required = false) String problemTimeStart,
                                          @RequestParam(required = false) String problemTimeEnd) {
 
@@ -130,10 +132,15 @@ public class DQEproblemMoudleController {
         problemTimeStart = (problemTimeStart != null && !problemTimeStart.isEmpty()) ? problemTimeStart : null;
         problemTimeEnd = (problemTimeEnd != null && !problemTimeEnd.isEmpty()) ? problemTimeEnd : null;
 
+        //20241128新增项目和模糊搜索
+        sample_leader = (sample_leader != null && !sample_leader.isEmpty()) ? sample_leader : null;
+        key = (key != null && !key.isEmpty()) ? key : null;
+
         List<Samples> samples = dqeproblemMoudleService.searchSamplesDQE(sample_id, full_model, questStats, sample_category, version,
                 big_species, small_species, supplier, test_Overseas,
                 sample_DQE, sample_Developer, tester, priority,
-                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd);
+                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd,
+                sample_leader,key);
 //        System.out.println(samples);
 
         return samples;
@@ -199,6 +206,7 @@ public class DQEproblemMoudleController {
                 issue.setOther_device((String) row.get("other_device"));
                 issue.setProblem((String) row.get("problem"));
                 issue.setProblemCategory((String) row.get("problemCategory"));
+                issue.setResponsibleDepartment((String) row.get("responsibleDepartment"));
 
 //                issue.setProblem_image_or_video((String) row.get("problem_image_or_video"));
                 issue.setProblem_time((String) row.get("problem_time"));

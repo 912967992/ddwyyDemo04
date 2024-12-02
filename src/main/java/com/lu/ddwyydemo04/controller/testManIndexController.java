@@ -851,7 +851,8 @@ public class testManIndexController {
                                           @RequestParam("dirId") String dirId,
                                           @RequestParam("spaceId") String spaceId,
                                           @RequestParam("receiverId") String receiverId,
-                                          @RequestParam("authCode") String authCode) {
+                                          @RequestParam("authCode") String authCode,
+                                                    @RequestParam("username") String username) {
         Map<String, String> response = new HashMap<>();
         logger.info("Received request to uploadFileToDingtalk. filepath: {}, dirId: {}, spaceId: {}, receiverId: {}, authCode: {}",
                 filepath, dirId, spaceId, receiverId, authCode);
@@ -861,7 +862,6 @@ public class testManIndexController {
             String filename = file.getName();
 
             String media_id = testManIndexService.getMediaId(filepath,accessToken,agentid);
-            System.out.println("media_id:"+media_id);
 
             //上传文件到钉盘
             DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/cspace/add");
@@ -875,12 +875,11 @@ public class testManIndexController {
             req.setOverwrite(true);
             req.setHttpMethod("GET");
             OapiCspaceAddResponse rsp = client.execute(req, accessToken);
-            logger.info("Response from DingTalk cspace add: {}", rsp.getBody());
             //发送钉盘文件给用户
             sendDingFileToUser(accessToken,filename,media_id,receiverId);
 
             response.put("status", "发送成功");
-            logger.info("uploadFileToDingtalk successfully.");
+            logger.info(filename+"文件导出成功，导出人："+username);
         } catch (ApiException e) {
             e.printStackTrace();
             response.put("status", "发送失败");

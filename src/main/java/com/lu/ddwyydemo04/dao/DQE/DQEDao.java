@@ -36,7 +36,9 @@ public interface DQEDao {
             @Param("result_judge") String result_judge,
             @Param("rd_result_judge") String rd_result_judge,
             @Param("problemTimeStart") String  problemTimeStart,
-            @Param("problemTimeEnd") String problemTimeEnd);
+            @Param("problemTimeEnd") String problemTimeEnd,
+            @Param("sample_leader") String sample_leader,
+            @Param("key") String key);
     public Map<String, Object> addNewRow(@Param("sampleId") int sampleId);
 
     public Map<String, Object> addNewRowHistroyidZero(@Param("sampleId") int sampleId);

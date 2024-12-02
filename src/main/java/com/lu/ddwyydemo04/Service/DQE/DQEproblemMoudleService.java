@@ -34,11 +34,12 @@ public class DQEproblemMoudleService {
     public List<Samples> searchSamplesDQE(String sample_id, String full_model, String questStats, String sample_category, String version,
                                           String big_species, String small_species, String supplier, String test_Overseas,
                                           String sample_DQE, String sample_Developer, String tester, String priority,
-                                          String sample_schedule, String result_judge,String rd_result_judge, String problemTimeStart, String  problemTimeEnd){
+                                          String sample_schedule, String result_judge,String rd_result_judge, String problemTimeStart, String  problemTimeEnd,
+                                          String sample_leader, String key){
         return dqeDao.searchSamplesDQE(sample_id, full_model, questStats, sample_category, version,
                 big_species, small_species, supplier, test_Overseas,
                 sample_DQE, sample_Developer, tester, priority,
-                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd);
+                sample_schedule, result_judge,rd_result_judge, problemTimeStart, problemTimeEnd,sample_leader,key);
     }
 
     public Map<String, Object> addNewRow(int sampleId){

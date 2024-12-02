@@ -109,25 +109,6 @@
             </select>
         </div>
 
-
-        <!-- DQE -->
-        <div class="input-group">
-            <label for="sample_DQE">DQE:</label>
-            <input type="text" id="sample_DQE" name="sample_DQE" placeholder="输入 DQE">
-        </div>
-
-        <!-- 电子工程师 -->
-        <div class="input-group">
-            <label for="sample_Developer">研发<br>电子:</label>
-            <input type="text" id="sample_Developer" name="sample_Developer" placeholder="">
-        </div>
-
-        <!-- 测试人 -->
-        <div class="input-group">
-            <label for="tester">测试<br>人:</label>
-            <input type="text" id="tester" name="tester" placeholder="输入测试人">
-        </div>
-
         <!-- 优先级 -->
         <div class="input-group">
             <label for="priority">优先<br>级:</label>
@@ -140,6 +121,33 @@
             </select>
         </div>
 
+        <!-- 项目 -->
+        <div class="input-group">
+            <label for="sample_leader">项目<br>负责:</label>
+            <input type="text" id="sample_leader" name="sample_leader" placeholder="输入 项目人">
+        </div>
+
+
+        <!-- DQE -->
+        <div class="input-group">
+            <label for="sample_DQE">DQE:</label>
+            <input type="text" id="sample_DQE" name="sample_DQE" placeholder="输入 DQE">
+        </div>
+
+        <!-- 电子工程师 -->
+        <div class="input-group">
+            <label for="sample_Developer">研发<br>电子:</label>
+            <input type="text" id="sample_Developer" name="sample_Developer" placeholder="输入 研发">
+        </div>
+
+        <!-- 测试人 -->
+        <div class="input-group">
+            <label for="tester">测试<br>人:</label>
+            <input type="text" id="tester" name="tester" placeholder="输入测试人">
+        </div>
+
+
+
 
         <!-- 样品进度 -->
         <div class="input-group">
@@ -151,6 +159,8 @@
                 <option value="2">待研发审核</option>
                 <option value="3">待DQE判定</option>
                 <option value="4">已完成</option>
+                <option value="9">测试人员退样</option>
+                <option value="10">测试人员竞品完成</option>
 
             </select>
         </div>
@@ -182,6 +192,12 @@
                 <option value="4">免签不发邮件</option>
 
             </select>
+        </div>
+
+        <!-- 模糊搜索 -->
+        <div class="input-group">
+            <label for="key">模糊<br>搜索:</label>
+            <input type="text" id="key" name="key" placeholder="模糊搜索">
         </div>
 
         <!-- 日期范围选择器 -->
@@ -797,7 +813,7 @@
         }
 
 
-        function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
+        function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter) {
             const div = document.createElement('div');
             div.textContent = value || '无';  // 如果没有数据，展示为 '无'
 
@@ -811,52 +827,60 @@
             // 当前编辑值
             let currentEditValue = value || '';
 
-            div.addEventListener('click', function () {
-                // 创建 textarea
-                const textarea = document.createElement('textarea');
+            // 添加条件判断，只有在 presenter 和 username 一致时才添加点击编辑事件
+            if (presenter === username) {
+                div.addEventListener('click', function () {
+                    // 创建 textarea
+                    const textarea = document.createElement('textarea');
 
-                // 获取 div 的高度，并将其赋值给 textarea
-                const divHeight = div.offsetHeight;  // 获取 div 的高度
-                textarea.style.height = `${divHeight}px`;  // 设置 textarea 高度与 div 一致
+                    // 获取 div 的高度，并将其赋值给 textarea
+                    const divHeight = div.offsetHeight;  // 获取 div 的高度
+                    textarea.style.height = `${divHeight}px`;  // 设置 textarea 高度与 div 一致
 
-                // 其他样式设置
-                textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
-                textarea.style.minWidth = '120px';  // 设置最小宽度，确保输入框可见
-                textarea.style.maxWidth = '200px'; // 设置最大宽度，避免输入框过宽
-                textarea.value = currentEditValue; // 使用当前编辑值
+                    // 其他样式设置
+                    textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
+                    textarea.style.minWidth = '120px';  // 设置最小宽度，确保输入框可见
+                    textarea.style.maxWidth = '200px'; // 设置最大宽度，避免输入框过宽
+                    textarea.value = currentEditValue; // 使用当前编辑值
 
-                // 添加一些样式，避免选择区域不明显
-                textarea.style.outline = 'none';  // 去除焦点时的外边框
-                textarea.style.backgroundColor = 'white';  // 确保背景是白色
-                textarea.style.color = 'black';  // 确保文本颜色是黑色
-                textarea.style.border = '1px solid #ccc';  // 设置边框样式
-                textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
+                    // 添加一些样式，避免选择区域不明显
+                    textarea.style.outline = 'none';  // 去除焦点时的外边框
+                    textarea.style.backgroundColor = 'white';  // 确保背景是白色
+                    textarea.style.color = 'black';  // 确保文本颜色是黑色
+                    textarea.style.border = '1px solid #ccc';  // 设置边框样式
+                    textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
 
-                // 监听失焦事件
-                textarea.addEventListener('blur', function () {
-                    const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
+                    // 监听失焦事件
+                    textarea.addEventListener('blur', function () {
+                        const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
 
-                    // 如果新值和旧值都为空，或者它们相等，则不更新
-                    if (newValue !== currentEditValue) {
-                        currentEditValue = newValue;  // 更新当前编辑值
-                        div.textContent = currentEditValue || '无';  // 更新 div 的内容
-                        // 更新 item 的值，并标记修改过的数据
-                        item[attr.field] = currentEditValue;
-                        if (!modifiedData.includes(item)) {
-                            modifiedData.push(item);  // 标记修改过的数据
+                        // 如果新值和旧值都为空，或者它们相等，则不更新
+                        if (newValue !== currentEditValue) {
+                            currentEditValue = newValue;  // 更新当前编辑值
+                            div.textContent = currentEditValue || '无';  // 更新 div 的内容
+                            // 更新 item 的值，并标记修改过的数据
+                            item[attr.field] = currentEditValue;
+                            if (!modifiedData.includes(item)) {
+                                modifiedData.push(item);  // 标记修改过的数据
+                            }
                         }
-                    }
 
-                    // 将 textarea 替换回 div
-                    valueDiv.replaceChild(div, textarea);
+                        // 将 textarea 替换回 div
+                        valueDiv.replaceChild(div, textarea);
+                    });
+
+                    // 将 div 替换为 textarea
+                    valueDiv.replaceChild(textarea, div);
+                    textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
                 });
+            } else {
+                // 如果 presenter 和 username 不一致，不添加点击事件
+                div.style.cursor = 'not-allowed';  // 可选：禁用光标变化，提示用户不可编辑
+            }
 
-                // 将 div 替换为 textarea
-                valueDiv.replaceChild(textarea, div);
-                textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
-            });
             valueDiv.appendChild(div);
         }
+
 
 
 
@@ -958,12 +982,12 @@
                                 } else {
                                     value = ''; // 其他字段保持为空字符串
                                 }
-                            } else if( index === 1 || index === 3 ){
+                            } else if( index === 2 || index === 4 ){
                                 const checkbox = document.createElement('input');
                                 checkbox.type = 'checkbox';
                                 checkbox.checked = newItem[attr.field] === '确认'; // 根据需要设定默认值
 
-                                if (index === 1) {
+                                if (index === 2) {
                                     if (job==='DQE') {
                                         checkbox.setAttribute('data-dqe', 'true');
                                     } else {
@@ -1043,7 +1067,7 @@
 
                             }else if (attr.field === 'current_status') {
                                 // 定义当前状态的选项
-                                const validOptions = ['OPEN', 'CLOSED', '待确定'];
+                                const validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
 
                                 // 创建下拉框
                                 const select = document.createElement('select');
@@ -1082,6 +1106,47 @@
 
                                 // 设置字体颜色
                                 newDiv.style.color = '#8a4e07'; // 设置字体颜色
+                            }else if (attr.field === 'responsibleDepartment') {
+                                // 定义当前状态的选项
+                                const validOptions = ['产品', '项目', '结构' , 'ID', '研发', 'DQE', 'SQE', 'CQE', '待确定'];
+
+                                // 创建下拉框
+                                const select = document.createElement('select');
+
+                                // 创建下拉选项
+                                validOptions.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option;
+                                    optionElement.textContent = option;
+
+                                    // 设置默认选中的选项为“OPEN”
+                                    if (option === '待确定') {
+                                        optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
+                                    }
+
+                                    select.appendChild(optionElement);
+                                });
+
+                                // 监听下拉框的变化事件
+                                select.addEventListener('change', function () {
+                                    const selectedValue = select.value;
+                                    console.log('当前状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                    // 确保下拉框的选中值及时更新到 newItem 中
+                                    newItem[attr.field] = selectedValue;
+                                    if (!modifiedData.includes(newItem)) {
+                                        modifiedData.push(newItem); // 标记修改过的数据
+                                    }
+                                });
+
+                                newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
+
+                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                                value = '待确定';
+
+                                // 设置字体颜色
+                                newDiv.style.color = '#8a4e07'; // 设置字体颜色
                             } else {
                                 value = ''; // 其他字段保持为空字符串
                             }
@@ -1096,7 +1161,6 @@
                                 || index === 31 || index === 32 || index === 33 || index === 19 || index === 20) {
 
                             }else{
-
                                 // 创建可编辑的内容
                                 createEditableSpan(value, newItem, attr, modifiedData, newDiv); // 使用获取的值
                             }
@@ -1158,6 +1222,7 @@
                     headerRow.className = 'header-row';
                     const attributes = [
                         { label: 'ID(点击删除)', field: 'id' },
+                        { label: '责任部门（必填）', field: 'responsibleDepartment' },
                         { label: 'DQE确认', field: 'dqe_confirm' },
                         { label: 'DQE意见信息', field: 'dqe_confirm_inform' },
                         { label: '研发确认', field: 'rd_confirm' },
@@ -1176,7 +1241,7 @@
                         { label: '复现方法', field: 'reproduction_method' },
                         { label: '恢复方法', field: 'recovery_method' },
                         { label: '复现概率', field: 'reproduction_probability' },
-                        { label: '缺陷等级', field: 'defect_level' },
+                        { label: '缺陷等级(只写SABC)', field: 'defect_level' },
                         { label: '当前状态', field: 'current_status' },
                         { label: '对比上一版或竞品', field: 'comparison_with_previous' },
                         { label: '提出人', field: 'tester' },
@@ -1232,9 +1297,13 @@
                                 value = item[attr.field];
                             }
 
-                            if (index === 0 || index === 14 || index === 20 || index === 29 || index === 19 || index === 30
-                                 || index ===31 || index === 32 || index === 33) { // 序号，问题图片,当前状态,创建时间,历史ID
-                                if(index === 14){
+                            // 获取“提出人”列的值
+                            const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
+
+
+                            if (index === 0 || index === 1 || index === 15 || index === 21 || index === 30 || index === 20 || index === 31
+                                 || index ===32 || index === 33 || index === 34) { // 序号，问题图片,当前状态,创建时间,历史ID
+                                if(index === 15){
                                     if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
                                         // 判断是否为有效图片路径
                                         const img = document.createElement('img');
@@ -1251,7 +1320,7 @@
 
                                         // 点击图片显示大图
                                         img.addEventListener('click', function () {
-                                            showImageModal(img.src,sampleId,item.id,modifiedData);
+                                            showImageModal(img.src,sampleId,item.id,modifiedData , responsiblePersonValue);
                                         });
 
                                         valueDiv.appendChild(img);  // 添加图片到 valueDiv 中
@@ -1262,27 +1331,30 @@
                                         uploadText.style.color = '#8a4e07';  // 设置文本颜色
 
                                         // 点击时触发选择文件的方法
-                                        uploadText.addEventListener('click', function () {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = 'image/*';  // 仅接受图片类型
-                                            // 选择文件后上传
-                                            input.addEventListener('change', function (event) {
-                                                const file = event.target.files[0];
-                                                if (file) {
-                                                    // 在这里调用上传文件的方法，并传入 sampleId
-                                                    uploadImage(file, sampleId , item.id,modifiedData);
-                                                }
-                                            });
+                                        if(responsiblePersonValue === username){
+                                            uploadText.addEventListener('click', function () {
+                                                const input = document.createElement('input');
+                                                input.type = 'file';
+                                                input.accept = 'image/*';  // 仅接受图片类型
+                                                // 选择文件后上传
+                                                input.addEventListener('change', function (event) {
+                                                    const file = event.target.files[0];
+                                                    if (file) {
+                                                        // 在这里调用上传文件的方法，并传入 sampleId
+                                                        uploadImage(file, sampleId , item.id,modifiedData);
+                                                    }
+                                                });
 
-                                            input.click();  // 自动触发文件选择
-                                        });
+                                                input.click();  // 自动触发文件选择
+                                            });
+                                        }
+
 
                                         valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
                                     }
-                                }else if(index === 20){
+                                }else if(index === 21){
                                     // 定义需要转换为下拉框的选项
-                                    const validOptions = ['OPEN', 'CLOSED', '待确定'];
+                                    const validOptions = ['OPEN', 'CLOSED','FOLLOW UP', '待确定'];
 
                                     // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                     let normalizedValue = String(value).toUpperCase();
@@ -1328,7 +1400,7 @@
                                     });
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                }else if(index === 19){
+                                }else if(index === 20){
                                     // 定义需要转换为下拉框的等级选项
                                     const validOptions = ['S', 'A', 'B', 'C', '待确定'];
 
@@ -1375,7 +1447,56 @@
                                     });
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                } else if(index === 29 || index === 33){
+                                }else if(index === 1){
+                                    // 定义需要转换为下拉框的等级选项
+                                    const validOptions = ['产品', '项目', '结构', 'ID', '研发' ,'DQE' ,'SQE' ,'CQE','待确定'];
+
+                                    // 将传递过来的值转换为统一格式（大写）
+                                    let normalizedValue = String(value).toUpperCase();
+
+                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
+                                    if (validOptions.includes(normalizedValue)) {
+                                        // 使用输入的值创建下拉框
+                                    } else {
+                                        // 如果值不在有效选项范围内，将值设为“待确定”
+                                        normalizedValue = '待确定';
+                                    }
+
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 为 select 元素添加 data-depart 属性,20241127
+                                    select.setAttribute('data-depart', 'true');  // 这里的 'your-depart-value' 需要根据你的业务逻辑设置
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        const selectedValue = select.value;
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                                } else if(index === 30 || index === 34){
                                     if(value){
                                         const valueText = document.createElement('div');
                                         valueText.textContent = value.replace("T"," ");
@@ -1422,7 +1543,7 @@
                                     valueText.style.color = '#8a4e07'; // 设置不允许修改的列的字体颜色
                                     valueDiv.appendChild(valueText);
                                 }
-                            }else if (index >= 1 && index <= 4) {
+                            }else if (index >= 2 && index <= 5) {
                                 // DQE确认到研发意见信息之间列的处理如下
                                 if (attr.field === 'dqe_confirm' || attr.field === 'rd_confirm') {
                                     const checkbox = document.createElement('input');
@@ -1505,7 +1626,8 @@
                                 }
 
                             } else {
-                                createEditableSpan(value, item, attr, modifiedData, valueDiv);
+
+                                createEditableSpan(value, item, attr, modifiedData, valueDiv ,responsiblePersonValue);
                             }
 
                             enableDragScroll(valueDiv);
@@ -1551,9 +1673,7 @@
                     // 全选确认按钮点击事件
                     selectAllButton.addEventListener('click', function () {
                         const checkboxes = document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"], .value-row input[type="checkbox"][data-rd="true"]');
-
                         let allChecked = true; // 用于检查是否所有复选框都已选中
-
                         checkboxes.forEach(checkbox => {
                             if (!checkbox.checked) {
                                 allChecked = false; // 如果有未选中的复选框，则设置为 false
@@ -1628,22 +1748,36 @@
                             : document.querySelectorAll('.value-row input[type="checkbox"][data-rd="true"]');
 
                         let allChecked = true; // 用于检查是否所有复选框都已选中
-
                         checkboxes.forEach(checkbox => {
                             if (!checkbox.checked) {
                                 allChecked = false; // 如果有未选中的复选框，则设置为 false
                             }
                         });
 
-                        if (allChecked) {
+                        // 判断责任部门是否都为有效选项：
+                        // 根据 data-depart 属性筛选 select 元素
+                        const selects = document.querySelectorAll('.value-row select[data-depart="true"]');
+
+                        let allValid = true; // 用于检查是否所有选项都非“待确定”
+                        // 检查所有下拉框的值
+                        selects.forEach(select => {
+                            if (select.value === '待确定') {
+                                allValid = false;
+                            }
+                        });
+
+
+                        if (allChecked && allValid ) {
 
                             // 在这里添加流程确认的逻辑，比如发送请求或更新状态，会先进行一次对问题点的保存
                             processConfirm(sampleId, username);
                             saveChanges(modifiedData, sampleId);
 
-                        } else {
+                        } else if(!allChecked){
                             // 有未选中的复选框，提示用户
                             alert('有问题点没有确认，清先确认才能让流程往下一个节点走。');
+                        }else if(!allValid){
+                            alert('责任部门没有确认完毕，清先确认才能让流程往下一个节点走。');
                         }
                     });
 
@@ -1927,7 +2061,7 @@
         }
 
 
-        function showImageModal(imageSrc,sampleId,id,modifiedData) {
+        function showImageModal(imageSrc,sampleId,id,modifiedData, responsiblePersonValue) {
             // 检查是否已存在模态框
             let modal = document.querySelector('.image-modal');
 
@@ -1976,10 +2110,13 @@
                 img.style.transform = `scale(${scale})`;
             });
 
-            // 点击图片时触发上传逻辑
-            img.addEventListener('click', function () {
-                triggerImageUpload(imageSrc,sampleId,id,modifiedData,modal); // 触发上传方法
-            });
+            if(responsiblePersonValue === username){
+                // 点击图片时触发上传逻辑
+                img.addEventListener('click', function () {
+                    triggerImageUpload(imageSrc,sampleId,id,modifiedData,modal); // 触发上传方法
+                });
+            }
+
 
             // 将图片添加到模态框中
             modal.appendChild(img);
@@ -2140,9 +2277,9 @@
                     const filePath = data.filePath; // 后端返回的完整 URL
                     const fileName = data.fileName; // 后端返回的文件名
 
-                    if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
-                        return; // 用户选择不上传
-                    }
+                    // if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
+                    //     return; // 用户选择不上传
+                    // }
 
                     // 选择联系人
                     dd.biz.contact.choose({
@@ -2174,7 +2311,8 @@
                                                     dirId: selectedDirId,
                                                     spaceId: selectedSpaceId,
                                                     authCode: authCode,
-                                                    receiverId: selectedUserId
+                                                    receiverId: selectedUserId,
+                                                    username : username
                                                 },
                                                 success: function(response) {
                                                     alert('文件上传并发送成功');
