@@ -736,6 +736,8 @@ public class testManIndexController {
                 testIssues.setSample_id(sample_id);
                 testIssues.setHistory_id(history_id);
 
+                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
+
                 int insertProblem = testManIndexService.insertTestIssues(testIssues);
 
                 if(insertProblem == 1){

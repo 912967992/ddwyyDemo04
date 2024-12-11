@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
@@ -84,6 +85,7 @@ public class DQEproblemMoudleController {
 
         List<TestIssues> editTestissues = dqeproblemMoudleService.selectTestIssuesFromSampleid(sampleId);
         System.out.println("editClickBtn获取到数据了:");
+//        System.out.println(editTestissues);
 
         return editTestissues;
     }
