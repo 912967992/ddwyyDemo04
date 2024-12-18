@@ -287,6 +287,8 @@
 </div>
 
 
+
+
 <script>
 
     // 覆盖原生 alert 方法
@@ -329,6 +331,20 @@
             overlay.style.display = 'block';
             modal.style.display = 'block';
 
+            // 20241213定义 ESC 键关闭逻辑,这样子就可以用ESC去触发取消confirm
+            const handleEscapeKey = (event) => {
+                if (event.key === 'Escape') {
+                    // 移除模态框和监听器
+                    overlay.style.display = 'none';
+                    modal.style.display = 'none';
+                    document.removeEventListener('keydown', handleEscapeKey);
+                    reject(false); // 模拟“取消”行为
+                }
+            };
+
+            // 添加 ESC 键事件监听器
+            document.addEventListener('keydown', handleEscapeKey);
+
             // 点击“确认”按钮时，关闭模态框并返回 true
             yesButton.onclick = () => {
                 overlay.style.display = 'none';
@@ -364,7 +380,7 @@
     // const username = "黄家灿"
     // let job = "manager";
 
-    const username = localStorage.getItem("username");
+    let username = localStorage.getItem("username");
     let job = localStorage.getItem("job");
     const corp_id = localStorage.getItem('corp_id');
 
@@ -400,10 +416,10 @@
 
     let isEditing = false; // 新增状态标志
 
-    if(job){
+    if(job && username){
 
     }else{
-        alert("用户信息已过期，请关闭后重新进入本应用")
+        alert("用户信息已过期，请关闭后重新进入本应用，如果您是从通知的信息点击跳转过来的，需要先主动从工作台进入一次获取用户信息。")
         window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
     }
 
@@ -497,6 +513,11 @@
 
 
     $(document).ready(function() {
+        // 获取 URL 参数的方法
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
 
         readyConfig();
 
@@ -510,6 +531,7 @@
             currentPage = 1;
 
             globalFormData = $(this).serialize();  // 获取表单数据
+            console.log("globalFormData:",globalFormData)
 
             performSearch(globalFormData);  // 执行搜索并传递表单数据
         });
@@ -689,6 +711,32 @@
 
             // 创建分页按钮并添加到表格容器
             updatePagination(tableContainer);
+        }
+
+        const sampleId = getQueryParam("sample_id");
+
+        if (sampleId) {
+
+            username = getQueryParam("username");
+            job = getQueryParam("job");
+            // if (job === "DQE" || job === "RD") {
+            if ( job === "RD") {
+                job = job.toLowerCase();
+            }
+            // alert(username)
+            if(job==="Tester"){
+                window.location.href = "http://219.134.191.195:64000";
+            }
+            alert(username)
+            alert(job)
+
+
+            // 构造 globalFormData
+            globalFormData = `sample_id=${sampleId}`;
+
+            // 触发 performSearch 方法
+            performSearch(globalFormData);
+            editClickBtn(sampleId)
         }
 
         function updatePagination(container) {
@@ -1496,10 +1544,19 @@
                                     });
 
                                     // 如果初始值为空或等于默认值（即“研发”），强制认为这是修改过的
-                                    if (normalizedValue === '研发' && !modifiedData.includes(item)) {
-                                        item[attr.field] = '研发'; // 确保将字段值设为 "研发"
-                                        modifiedData.push(item); // 标记修改过的数据
+                                    // if (normalizedValue === '研发' && !modifiedData.includes(item)) {
+                                    //     item[attr.field] = '研发'; // 确保将字段值设为 "研发"
+                                    //     modifiedData.push(item); // 标记修改过的数据
+                                    // }
+                                    // 如果初始值为空或输入的值不在有效选项内，设置默认值为“研发”
+                                    if ((!value || !validOptions.includes(String(value).toUpperCase())) && !modifiedData.includes(item)) {
+                                        item[attr.field] = '研发'; // 仅在初始值为空时，将字段值设为 "研发"
+                                        modifiedData.push(item);  // 标记为修改过的数据
+                                    } else if (value && value === '研发') {
+                                        // 如果值已经是“研发”，不标记为修改
+                                        item[attr.field] = '研发'; // 确保字段值正确
                                     }
+
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 } else if(index === 30 || index === 34){
@@ -1657,7 +1714,7 @@
                     contentDiv.appendChild(saveButton);
 
                     saveButton.addEventListener('click', function () {
-                        saveChanges(modifiedData,sampleId); // 只发送修改的数据
+                        saveChanges(modifiedData,sampleId,true); // 只发送修改的数据
                     });
 
                     // 创建新增问题按钮
@@ -1777,7 +1834,7 @@
 
                             // 在这里添加流程确认的逻辑，比如发送请求或更新状态，会先进行一次对问题点的保存
                             processConfirm(sampleId, username);
-                            saveChanges(modifiedData, sampleId);
+                            saveChanges(modifiedData, sampleId,true);
 
                         } else if(!allChecked){
                             // 有未选中的复选框，提示用户
@@ -1819,36 +1876,49 @@
                     // ESC快捷键退出点击的模态框
                     modal.style.display = 'block';
 
+                    const closeTheModal = () => {
+                        modal.style.display = 'none';
+                        document.removeEventListener('keydown', handleEscapeKey); // 移除 ESC 键事件监听器
+                    };
                     // 定义处理 ESC 键的函数
                     const handleEscapeKey = (event) => {
                         if (event.key === 'Escape') {
-                            closeModal();
+                            // 这里不直接关闭主模态框，而是弹出确认模态框
+                            closeTheModal();
                         }
                     };
 
                     // 添加 ESC 键事件监听器
                     document.addEventListener('keydown', handleEscapeKey);
 
-                    // 关闭模态框的函数
+                    // 封装关闭模态框的逻辑
                     const closeModal = () => {
-                        modal.style.display = 'none';
-                        performSearch(globalFormData);
-                        // 只有在没有正在搜索时才执行搜索
-                        // if (!isSearching) {
-                        //     isSearching = true; // 设置搜索状态为真
-                        //     performSearch(globalFormData);
-                        //
-                        //     setTimeout(() => {
-                        //         isSearching = false; // 重置搜索状态
-                        //     }, 2000); // 设置间隔时间，例如2000毫秒
-                        // }
-                        // 移除 ESC 键事件监听器
-                        document.removeEventListener('keydown', handleEscapeKey);
+                        if (modifiedData && modifiedData.length > 0) {
+                            // 使用 confirm 返回 Promise
+                            confirm('是否保存并关闭？选择“确定”保存，选择“取消”直接关闭.')
+                                .then((confirmation) => {
+                                    if (confirmation) {
+                                        // 用户选择“确定”，执行保存操作
+                                        saveChanges(modifiedData, sampleId, false);
+                                        performSearch(globalFormData); // 调用保存逻辑
+                                    }
+                                    closeTheModal(); // 无论如何都要关闭模态框
+                                })
+                                .catch((error) => {
+                                    // 用户选择“取消”，执行取消逻辑
+                                    closeTheModal(); // 直接关闭模态框
+                                });
+                        } else {
+                            // 如果没有修改数据，直接关闭模态框
+                            closeTheModal();
+                        }
                     };
 
 
                     const span = document.getElementsByClassName('close')[0];
                     span.onclick = closeModal;
+
+
 
                     // 重置编辑状态
                     isEditing = false; // 在请求完成后重置状态
@@ -1944,14 +2014,7 @@
                 .catch(error => console.error("请求失败:", error));
         }
 
-        // 处理点击模态框外部的事件
-        $(window).on('click', function(event) {
-            // const modal = $('#customModal');
-            // 判断点击是否在模态框外部
-            // if (modal.is(':visible') && !$(event.target).closest('.confirmModal-content').length) {
-            //     modal.hide();
-            // }
-        });
+
 
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
@@ -2052,7 +2115,7 @@
                         alert(data.message); // 只在消息中包含“上传成功”时弹出]
                         // 检查 modifiedData 是否不为空数组
                         if (Array.isArray(modifiedData) && modifiedData.length > 0) {
-                            saveChanges(modifiedData, sampleId);
+                            saveChanges(modifiedData, sampleId,true);
                         }
                         editClickBtn(sampleId)
 
@@ -2153,11 +2216,11 @@
 
 
 // 保存修改的函数
-        function saveChanges(modifiedData,sampleId) {
+        function saveChanges(modifiedData,sampleId, isEditClick) {
             if(!username){
-                alert("用户名不存在，麻烦重新进入本应用!"); // 可选的警告提示
-                window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
-                return;
+                // alert("用户名不存在，麻烦重新进入本应用!"); // 可选的警告提示
+                // window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
+                // return;
             }
 
             if (modifiedData.length === 0) {
@@ -2182,7 +2245,10 @@
                     // console.log('保存成功:', responseText); // 打印成功消息
                     alert('修改成功，已同步到数据库');
                     // 刷新弹出框中的数据
-                    editClickBtn(sampleId);
+                    if(isEditClick){
+                        editClickBtn(sampleId);
+                    }
+
                 })
                 .catch(error => {
                     console.error('提交失败:', error);

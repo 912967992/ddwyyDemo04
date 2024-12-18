@@ -777,30 +777,32 @@
     const recentNotificationsClose = document.getElementsByClassName("recent-notifications-close")[0];
     const recentNotificationsProjectList = document.getElementById("recentNotificationsProjectList");
     // 查看近期通知项目按钮点击事件
-    recentNotificationsButton.onclick = function () {
-        fetch(`/DQEIndex/getRecentNotifications?username=${encodeURIComponent(username)}`)
-            .then(response => response.json())
-            .then(data => {
-                recentNotificationsProjectList.innerHTML = '';
-                const displayValue = (value) => value === null ? "" : value;
+        recentNotificationsButton.onclick = function () {
+            fetch(`/DQEIndex/getRecentNotifications?username=${encodeURIComponent(username)}`)
+                .then(response => response.json())
+                .then(data => {
+                    recentNotificationsProjectList.innerHTML = '';
+                    const displayValue = (value) => value === null ? "" : value;
 
-                data.forEach(combinedTaskNode => {
-                    // 确定负责人
-                    let personInCharge = "";
-                    if (combinedTaskNode.taskNode.node_number === "1" || combinedTaskNode.taskNode.node_number === "3") {
-                        personInCharge = combinedTaskNode.dqe;
-                    } else if (combinedTaskNode.taskNode.node_number === "2") {
-                        personInCharge = combinedTaskNode.rd;
-                    } else if (combinedTaskNode.taskNode.node_number === "4") {
-                        personInCharge = combinedTaskNode.projectLeader;
-                    }
+                    data.forEach(combinedTaskNode => {
+                        // 确定负责人
+                        let personInCharge = "";
+                        if (combinedTaskNode.taskNode.node_number === "1" || combinedTaskNode.taskNode.node_number === "3") {
+                            personInCharge = combinedTaskNode.dqe;
+                        } else if (combinedTaskNode.taskNode.node_number === "2") {
+                            personInCharge = combinedTaskNode.rd;
+                        } else if (combinedTaskNode.taskNode.node_number === "4") {
+                            personInCharge = combinedTaskNode.projectLeader;
+                        }
 
-                    // 如果负责人匹配用户名，则添加该行，否则跳过
-                    if (personInCharge === username) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
+                        // 如果负责人匹配用户名，则添加该行，否则跳过
+                        if (personInCharge === username) {
+                            const row = document.createElement('tr');
+
+                            // 让 sample_id 成为可点击的链接
+                            row.innerHTML = `
                         <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
-                        <td>${displayValue(combinedTaskNode.taskNode.sample_id)}</td>
+                        <td><a href="/problemMoudle?dd_orientation=landscape&sample_id=${encodeURIComponent(combinedTaskNode.taskNode.sample_id)}&username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}">${displayValue(combinedTaskNode.taskNode.sample_id)}</a></td>
                         <td>${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td>
                         <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
                         <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
@@ -813,13 +815,15 @@
                         <td>${displayValue(combinedTaskNode.questStats)}</td>
                         <td>${displayValue(personInCharge)}</td>
                     `;
-                        recentNotificationsProjectList.appendChild(row);
-                    }
-                });
-                recentNotificationsModal.style.display = "block";
-            })
-            .catch(error => console.error("获取近期通知项目列表时出错:", error));
-    };
+
+                            recentNotificationsProjectList.appendChild(row);
+                        }
+                    });
+
+                    recentNotificationsModal.style.display = "block";
+                })
+                .catch(error => console.error("获取近期通知项目列表时出错:", error));
+        };
 
     recentNotificationsClose.onclick = function() {
         recentNotificationsModal.style.display = "none";

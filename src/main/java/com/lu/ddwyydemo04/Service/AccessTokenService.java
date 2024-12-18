@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -139,14 +141,34 @@ public class AccessTokenService {
     // 根据用户名和部门id来遍历部门，直到匹配就返回userid
     public Long findUserIdByUsernameInDeptHierarchy(String receiver,  Samples sample,
                                                       String statusBarBgColor,String sender,String notify_time,
-                                                    String warn_time) throws ApiException {
+                                                    String warn_time) throws ApiException, UnsupportedEncodingException {
 
+        //20241211写一个方法先去检查receiver是什么job，再来看页面跳转链接要不要触发点击搜索问题点操作
+        String reveiverJob = getJobFromUsers(receiver);
+
+        if (reveiverJob == null) {
+            logger.info("接收者为空");
+            // 根据业务逻辑决定是抛异常还是直接返回
+            return 1L;
+        }
 
         // 定义要发送的消息内容
         //下边这个链接很重要，OA消息发送的时候用户点击的话会跳转到工作台直接进入我的应用
-        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
-
-
+//        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
+        int sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
+//        String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
+        String baseUrl = "http://ugd3er.natappfree.cc/problemMoudle?dd_orientation=landscape";
+        String redirectUrl = String.format(
+                "%s&sample_id=%d&username=%s&job=%s",
+                baseUrl,
+                sampleId,
+                URLEncoder.encode(receiver, "UTF-8"), // 编码 username 参数
+                URLEncoder.encode(reveiverJob, "UTF-8")       // 编码 job 参数
+        );
+        String messageUrl = String.format(
+                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=%s",
+                URLEncoder.encode(redirectUrl, "UTF-8")
+        );
 
         String userId = getUserIdByName(receiver);
         System.out.println("userId:"+userId);
@@ -708,6 +730,10 @@ public class AccessTokenService {
 
     public int deleteTaskNodeBefore(int sample_id){
         return dqeDao.deleteTaskNodeBefore(sample_id);
+    }
+
+    public String getJobFromUsers(String username){
+        return dqeDao.getJobFromUsers(username);
     }
 
 }

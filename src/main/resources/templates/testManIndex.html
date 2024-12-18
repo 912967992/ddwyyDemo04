@@ -912,7 +912,6 @@
                                 <option value="李素欣1">李素欣1</option>
                                 <option value="张锐">张锐</option>
                                 <option value="阮晓晴">阮晓晴</option>
-                                <option value="卢绮敏">卢绮敏</option>
                                 <option value="蓝明城">蓝明城</option>
                                 <option value="廖建伟">廖建伟</option>
                                 <option value="蔡义会">蔡义会</option>
@@ -1731,13 +1730,13 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(response.message.includes("竞品文件完成")){
 
@@ -1755,7 +1754,7 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮  f敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
 
                 }
@@ -2417,7 +2416,7 @@
                 contentDiv.appendChild(saveButton);
 
                 saveButton.addEventListener('click', function () {
-                    saveChanges(modifiedData,sampleId); // 只发送修改的数据
+                    saveChanges(modifiedData,sampleId, true); // 只发送修改的数据
                 });
 
                 // 创建新增问题按钮
@@ -2662,7 +2661,7 @@
     }
 
 
-    function saveChanges(modifiedData,sampleId) {
+    function saveChanges(modifiedData,sampleId, isEditClick) {
         // if(!username){
         //     alert("用户名不存在，麻烦重新进入本应用!"); // 可选的警告提示
         //     window.location.href = 'http://219.134.191.195:64000'; // 将'/login'替换为你的登录控制器的 URL
@@ -2691,7 +2690,9 @@
                 // console.log('保存成功:', responseText); // 打印成功消息
                 alert('修改成功，已同步到数据库');
                 // 刷新弹出框中的数据
-                editClickBtn(sampleId);
+                if(isEditClick){
+                    editClickBtn(sampleId);
+                }
             })
             .catch(error => {
                 console.error('提交失败:', error);
@@ -3304,7 +3305,7 @@
                     alert(data.message); // 只在消息中包含“上传成功”时弹出]
                     // 检查 modifiedData 是否不为空数组
                     if (Array.isArray(modifiedData) && modifiedData.length > 0) {
-                        saveChanges(modifiedData, sampleId);
+                        saveChanges(modifiedData, sampleId,true);
                     }
                     editClickBtn(sampleId)
 

@@ -476,5 +476,9 @@
 
     </select>
 
+    <select id="getJobFromUsers" resultType="String">
+        SELECT position FROM users WHERE username =#{username}
+    </select>
+
 
 </mapper>

@@ -114,4 +114,7 @@ public interface DQEDao {
                                     @Param("cpu")String cpu,@Param("memory")String memory,
                                     @Param("displays")String displays,@Param("networkAdapters")String networkAdapters);
 
+
+    String getJobFromUsers(@Param("username")String username);
+
 }

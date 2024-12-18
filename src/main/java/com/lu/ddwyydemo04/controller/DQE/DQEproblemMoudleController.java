@@ -516,7 +516,7 @@ public class DQEproblemMoudleController {
     // 待DQE审核进来的流程确认方法
     @PostMapping("/problemMoudle/updateSchedule")
     @ResponseBody
-    public ResponseEntity<String> updateSchedule(@RequestBody Map<String, String> request) throws ApiException {
+    public ResponseEntity<String> updateSchedule(@RequestBody Map<String, String> request) throws ApiException, UnsupportedEncodingException {
         String sampleSchedule = request.get("sample_schedule");
         String sampleId = request.get("sample_id");
         String statusBarBgColor = request.get("statusBarBgColor");
@@ -628,7 +628,7 @@ public class DQEproblemMoudleController {
                 notify_time,warn_time);
 
         // 如果找到匹配的用户ID，执行更新逻辑，否则返回失败消息
-        if (task_id != null) {
+        if (task_id != null && task_id != 1L) {
             TaskNode taskNode = new TaskNode();
             taskNode.setTask_id(task_id);
             taskNode.setSample_id(Integer.parseInt(sampleId));
@@ -673,8 +673,9 @@ public class DQEproblemMoudleController {
                 return ResponseEntity.status(400).body("Failed to update schedule");
             }
         } else {
-            logger.info(sampleId+"的消息发送失败");
-            return ResponseEntity.status(404).body("已进入下一个流程，但是未找到与 \" + receiver +\" 匹配的用户，无法发送OA消息通知");
+            logger.info(sampleId+"的消息发送失败,没有找到"+receiver);
+            return ResponseEntity.status(404).body("已进入下一个流程，但是未找到与 " + receiver + " 匹配的用户，无法发送OA消息通知,建议撤回重新提交");
+
         }
     }
 
