@@ -374,11 +374,7 @@
     let currentProjectLeader;
 
     let globalFormData ;
-    // let isSearching = false;
 
-    //从本地缓存获取用户信息，为什么改成用本地缓存，是为了兼容苹果手机切换成横屏会丢失信息，sessionStorage不行
-    // const username = "黄家灿"
-    // let job = "manager";
 
     let username = localStorage.getItem("username");
     let job = localStorage.getItem("job");
@@ -727,8 +723,6 @@
             if(job==="Tester"){
                 window.location.href = "http://219.134.191.195:64000";
             }
-            alert(username)
-            alert(job)
 
 
             // 构造 globalFormData
