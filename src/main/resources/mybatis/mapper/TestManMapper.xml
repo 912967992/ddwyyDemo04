@@ -177,15 +177,7 @@
     <select id="queryFilepath" resultType="String">
         SELECT filepath FROM samples
         WHERE
-            sample_model = #{sample_model} and
-            sample_coding = #{sample_coding} and
-            sample_category = #{sample_category} and
-            version = #{version} and
-            big_species = #{big_species} and
-            small_species = #{small_species} and
-            high_frequency = #{high_frequency} and
-            sample_frequency =#{sample_frequency} and
-            questStats = #{questStats}
+            sample_id = #{sample_id}
     </select>
 
     <select id="queryTester_teamwork" resultType="String">

@@ -1004,30 +1004,24 @@
                 // alert(`您选择的文件大小为 ${fileSizeInMB} MB，正在上传中，预计需要 ${estimatedTime} min，请先点击确认关闭本提示框，然后等结果框弹出再操作本文件`);
                 alert(`您选择的文件大小为 ${fileSizeInMB} MB，正在上传中，请先点击确认关闭本提示框，然后等结果框弹出说"替换成功"后再操作本文件`);
 
-                var model = $('#edit_model').val();
-                var coding = $('#edit_coding').val();
-                var category = $('#edit_category').val();
-                var version = $('#edit_version').val();
-                var big_species = $('#edit_big_species').val();
-                var small_species = $('#edit_small_species').val();
-                var high_frequency = $('#edit_high_frequency').val();
-                var questStats = $('#edit_questStats').val();
-                var sample_frequency = $('#edit_sample_frequency').val();
+                var sample_id = $('#edit_sample_id').val();
+
+                // var model = $('#edit_model').val();
+                // var coding = $('#edit_coding').val();
+                // var category = $('#edit_category').val();
+                // var version = $('#edit_version').val();
+                // var big_species = $('#edit_big_species').val();
+                // var small_species = $('#edit_small_species').val();
+                // var high_frequency = $('#edit_high_frequency').val();
+                // var questStats = $('#edit_questStats').val();
+                // var sample_frequency = $('#edit_sample_frequency').val();
 
                 $.ajax({
                     url: '/testManIndex/getjumpFilepath',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        model: model,
-                        coding: coding,
-                        category: category,
-                        version: version,
-                        big_species: big_species,
-                        small_species: small_species,
-                        high_frequency: high_frequency,
-                        questStats: questStats,
-                        sample_frequency: sample_frequency
+                        sample_id: sample_id
                     }),
                     success: function(jumpfilepath){
                         // 使用获取到的文件路径替换服务器上的文件
@@ -1102,18 +1096,20 @@
 
             // 执行实际的Ajax请求
             function proceedWithRequest() {
+                // 20241226改成通过id去跳转文件地址
+                var sample_id = $('#edit_sample_id').val();
+
                 var model = $('#edit_model').val();
                 var coding = $('#edit_coding').val();
-                var category = $('#edit_category').val();
-                var version = $('#edit_version').val();
-                var big_species = $('#edit_big_species').val();
-                var small_species = $('#edit_small_species').val();
-                var high_frequency = $('#edit_high_frequency').val();
-                var questStats = $('#edit_questStats').val();
+                // var category = $('#edit_category').val();
+                // var version = $('#edit_version').val();
+                // var big_species = $('#edit_big_species').val();
+                // var small_species = $('#edit_small_species').val();
+                // var high_frequency = $('#edit_high_frequency').val();
+                // var questStats = $('#edit_questStats').val();
+                // var sample_frequency = $('#edit_sample_frequency').val();
                 var sample_name = $('#edit_sample_name').val();
                 var supplier = $('#edit_supplier').val();
-                var sample_frequency = $('#edit_sample_frequency').val();
-
 
                 var sample_DQE = $('#edit_sample_DQE').val();
                 var sample_Developer = $('#edit_sample_Developer').val();
@@ -1124,15 +1120,16 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        model: model,
-                        coding: coding,
-                        category: category,
-                        version: version,
-                        big_species: big_species,
-                        small_species: small_species,
-                        high_frequency: high_frequency,
-                        questStats: questStats,
-                        sample_frequency: sample_frequency
+                        sample_id: sample_id
+                        // model: model,
+                        // coding: coding,
+                        // category: category,
+                        // version: version,
+                        // big_species: big_species,
+                        // small_species: small_species,
+                        // high_frequency: high_frequency,
+                        // questStats: questStats,
+                        // sample_frequency: sample_frequency
                     }),
                     success: function(jumpfilepath){
                         $.ajax({

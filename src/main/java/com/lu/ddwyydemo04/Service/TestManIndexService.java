@@ -101,8 +101,8 @@ public class TestManIndexService {
         return testManDao.querySample_name(sample_id);
     }
 
-    public String queryFilepath(Samples sample){
-        return testManDao.queryFilepath(sample);
+    public String queryFilepath(int sample_id){
+        return testManDao.queryFilepath(sample_id);
     }
 
     public String queryTester(int sample_id){

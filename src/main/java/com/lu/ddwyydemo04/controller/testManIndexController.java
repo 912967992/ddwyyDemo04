@@ -218,29 +218,34 @@ public class testManIndexController {
     @PostMapping("/testManIndex/getjumpFilepath")
     @ResponseBody
     public String getjumpFilepath(@RequestBody Map<String, Object> data){
-        String model = (String) data.get("model");
-        String coding = (String) data.get("coding");
-        String category = (String) data.get("category");
-        String version = (String) data.get("version");
-        String big_species = (String) data.get("big_species");
-        String small_species = (String) data.get("small_species");
-        String high_frequency = (String) data.get("high_frequency");
-        String questStats = (String) data.get("questStats");
-        String sample_frequencyStr = (String) data.get("sample_frequency");
-        Samples sample = new Samples();
-        sample.setSample_model(model);
-        sample.setSample_coding(coding);
-        sample.setSample_category(category);
-        sample.setVersion(version);
-        sample.setBig_species(big_species);
-        sample.setSmall_species(small_species);
-        sample.setHigh_frequency(high_frequency);
-        sample.setQuestStats(questStats);
+        String sample_idStr = (String) data.get("sample_id");
+        int sample_id = Integer.parseInt(sample_idStr);
+        logger.info("获取的getjumpFilepath的sample_id为:"+sample_id);
 
-        int sample_frequency =  Integer.parseInt(sample_frequencyStr.trim());
-        sample.setSample_frequency(sample_frequency);
 
-        return testManIndexService.queryFilepath(sample);
+//        String model = (String) data.get("model");
+//        String coding = (String) data.get("coding");
+//        String category = (String) data.get("category");
+//        String version = (String) data.get("version");
+//        String big_species = (String) data.get("big_species");
+//        String small_species = (String) data.get("small_species");
+//        String high_frequency = (String) data.get("high_frequency");
+//        String questStats = (String) data.get("questStats");
+//        String sample_frequencyStr = (String) data.get("sample_frequency");
+//        Samples sample = new Samples();
+//        sample.setSample_model(model);
+//        sample.setSample_coding(coding);
+//        sample.setSample_category(category);
+//        sample.setVersion(version);
+//        sample.setBig_species(big_species);
+//        sample.setSmall_species(small_species);
+//        sample.setHigh_frequency(high_frequency);
+//        sample.setQuestStats(questStats);
+//
+//        int sample_frequency =  Integer.parseInt(sample_frequencyStr.trim());
+//        sample.setSample_frequency(sample_frequency);
+
+        return testManIndexService.queryFilepath(sample_id);
     }
 
     //替换报告
@@ -374,7 +379,7 @@ public class testManIndexController {
 
             //如果有更新产品名称则需要更新文件名
             String old_name = testManIndexService.querySample_name(sample_id);
-            String oldFilePath = testManIndexService.queryFilepath(sample);
+            String oldFilePath = testManIndexService.queryFilepath(sample_id);
             String oldtester = testManIndexService.queryTester(sample_id); //已经添加questStats,20240709
 
 

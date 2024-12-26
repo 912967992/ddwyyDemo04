@@ -39,7 +39,7 @@ public interface TestManDao {
     public LocalDateTime  queryCreateTime(@Param("sample_id")int sample_id);
     public String querySample_name(int sample_id);
 
-    public String queryFilepath(Samples sample);
+    public String queryFilepath(@Param("sample_id")int sample_id);
 
     public String queryTester_teamwork(int sample_id);
 
