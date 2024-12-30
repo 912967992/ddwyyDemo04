@@ -51,6 +51,12 @@
         <button id="managerBtn">经理级别以上</button>
     </div>
 
+    <!-- 输入用户名 -->
+    <div id="usernameDiv">
+        <input type="text" id="usernameInput" placeholder="输入你的名字" />
+        <button id="saveUsernameBtn">保存名字</button>
+    </div>
+
     <button id="viewOverdueButton">查看超时项目</button>
 
     <!-- 超时项目模态框 -->
@@ -245,9 +251,14 @@
     // 将数据保存到 localStorage
     let username = localStorage.getItem('username');
     let job = localStorage.getItem('job');
+    // let username = "黄家灿";
+    // let job = "DQE";
+    // alert(username)
+    // alert(job)
 
     // 更新用户名和职位的函数
     const buttonsDiv = document.getElementById('buttonsDiv');
+    const usernameDiv = document.getElementById('usernameDiv')
 
     const corp_id = localStorage.getItem('corp_id');
     readyConfig();
@@ -393,8 +404,10 @@
     // 如果用户名是 "卢健"，显示切换职位按钮
     if (username === '卢健') {
         buttonsDiv.style.display = 'block';  // 显示按钮
+        usernameDiv.style.display = 'block';
     } else {
         buttonsDiv.style.display = 'none';  // 隐藏按钮
+        usernameDiv.style.display = 'none';
     }
 
     // 为按钮添加点击事件，切换职位并更新 localStorage
@@ -409,6 +422,17 @@
     });
     document.getElementById('managerBtn').addEventListener('click', function() {
         updateUserInfo('manager');
+    });
+
+    document.getElementById('saveUsernameBtn').addEventListener('click',function (){
+        const usernameInput = document.getElementById('usernameInput');
+        username = usernameInput.value.trim(); // 去除多余空格
+        if (username) {
+            localStorage.setItem('username', username); // 更新 localStorage 中的用户名
+            alert("用户名已更新为: " + username);
+        } else {
+            alert("请输入有效的名字！");
+        }
     });
 
     function redirectToPage() {

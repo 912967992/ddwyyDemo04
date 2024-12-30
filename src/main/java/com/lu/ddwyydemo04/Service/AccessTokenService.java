@@ -156,8 +156,8 @@ public class AccessTokenService {
         //下边这个链接很重要，OA消息发送的时候用户点击的话会跳转到工作台直接进入我的应用
 //        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
         int sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
-//        String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
-        String baseUrl = "http://38knkf.natappfree.cc/problemMoudle?dd_orientation=landscape";
+        String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
+//        String baseUrl = "http://38knkf.natappfree.cc/problemMoudle?dd_orientation=landscape";
         String redirectUrl = String.format(
                 "%s&sample_id=%d&username=%s&job=%s",
                 baseUrl,
@@ -446,16 +446,16 @@ public class AccessTokenService {
 
                 if(nodeNumber.equals("1")){
                     senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为："+sample.getSample_DQE();
-//                    receiver = "张华";
-                    receiver = "卢健";
+                    receiver = "张华";
+//                    receiver = "卢健";
                 }else if(nodeNumber.equals("2")){
                     senderOnce = "系统检测到此项目"+notify_days_rd+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为:"+sample.getSample_Developer();
-//                    receiver = "钟海龙";
-                    receiver = "卢健";
+                    receiver = "钟海龙";
+//                    receiver = "卢健";
                 } else if (nodeNumber.equals("3")) {
                     senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为："+sample.getSample_DQE();
-//                    receiver = "张华";
-                    receiver = "卢健";
+                    receiver = "张华";
+//                    receiver = "卢健";
 
                 }
                 Long task_id_Once = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderOnce,createTimeString,warnTimeString);
@@ -506,16 +506,16 @@ public class AccessTokenService {
 
                 if(nodeNumber.equals("1")){
                     senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为:"+sample.getSample_DQE();
-//                    receiver = "黄家灿";
-                    receiver = "卢健";
+                    receiver = "黄家灿";
+//                    receiver = "卢健";
                 }else if(nodeNumber.equals("2")){
                     senderSecond = "系统检测到此项目"+doubledDays_rd+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_Developer();
-//                    receiver = "肖政文";
-                    receiver = "卢健";
+                    receiver = "肖政文";
+//                    receiver = "卢健";
                 } else if (nodeNumber.equals("3")) {
                     senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_DQE();
-//                    receiver = "黄家灿";
-                    receiver = "卢健";
+                    receiver = "黄家灿";
+//                    receiver = "卢健";
                 }
                 Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString);
 //                System.out.println("task_id_OSecond:"+task_id_OSecond);
