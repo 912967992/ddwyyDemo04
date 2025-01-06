@@ -472,7 +472,7 @@
 }
 
 
-.save-button,.add-button , .select-all-button, .process-confirm-button{
+.save-button,.add-button , .select-all-button, .process-confirm-button {
     background-color: green; /* 绿色背景 */
     color: white; /* 字体颜色为白色 */
     border-radius: 10px; /* 边框圆润 */
@@ -486,7 +486,7 @@
     margin-right: 15px; /* 添加右间隔 */
 }
 
-.export-button,.exportFile-button{
+.export-button,.exportFile-button, .restore-btn{
     background-color: #a97d49; /* 绿色背景 */
     color: white; /* 字体颜色为白色 */
     border-radius: 10px; /* 边框圆润 */
@@ -590,5 +590,21 @@
     z-index: 1000;
     border-radius: 5px;
 }
+
+/*20250101 新增隐藏列方法的样式*/
+/*.hide-btn, .restore-btn {*/
+/*    margin-left: 10px;*/
+/*    background-color: #007bff;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 5px 10px;*/
+/*    border-radius: 5px;*/
+/*    cursor: pointer;*/
+/*}*/
+
+/*.hide-btn:hover, .restore-btn:hover {*/
+/*    background-color: #0056b3;*/
+/*}*/
+
 
 

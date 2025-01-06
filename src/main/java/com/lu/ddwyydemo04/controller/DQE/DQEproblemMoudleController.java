@@ -276,6 +276,14 @@ public class DQEproblemMoudleController {
                 issue.setModify_at(LocalDateTime.now());
 
                 // 其他字段可以继续填充...
+                // 20250102 换新模板，新增其他字段
+                issue.setSku((String) row.get("sku"));
+                issue.setGreen_union_dqe((String) row.get("green_union_dqe"));
+                issue.setGreen_union_rd((String) row.get("green_union_rd"));
+                issue.setSolution_provider((String) row.get("solution_provider"));
+                issue.setSupplier((String) row.get("supplier"));
+                issue.setReview_conclusion((String) row.get("review_conclusion"));
+
                 Integer id = (Integer) row.get("id");
                 if (id != null) {
 

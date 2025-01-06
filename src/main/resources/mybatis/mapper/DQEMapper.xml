@@ -118,7 +118,8 @@
             post_improvement_risk, next_version_regression_test, remark,
             created_at, history_id, sample_id, created_by,
             dqe_confirm,dqe_review_at,dqe,rd_confirm,rd_review_at,rd,
-            modifier,modify_at, responsibleDepartment
+            modifier,modify_at, responsibleDepartment,
+            sku, green_union_dqe, green_union_rd, solution_provider, supplier, review_conclusion
         ) VALUES (
                      #{full_model}, #{sample_stage}, #{version}, #{chip_solution}, #{test_platform},
                      #{test_device}, #{other_device}, #{problem},#{problemCategory},
@@ -129,7 +130,8 @@
                      #{next_version_regression_test}, #{remark}, #{created_at},
                      #{history_id}, #{sample_id}, #{created_by},
                      #{dqe_confirm},#{dqe_review_at},#{dqe},#{rd_confirm},#{rd_review_at},#{rd},
-                     #{modifier},#{modify_at} ,#{responsibleDepartment}
+                     #{modifier},#{modify_at} ,#{responsibleDepartment},
+                     #{sku},  #{green_union_dqe}, #{green_union_rd}, #{solution_provider}, #{supplier}, #{review_conclusion}
                  );
     </insert>
 
@@ -171,7 +173,13 @@
             rd = #{rd},
             modifier = #{modifier},
             modify_at = #{modify_at},
-            responsibleDepartment = #{responsibleDepartment}
+            responsibleDepartment = #{responsibleDepartment},
+            sku = #{sku},
+            green_union_dqe  = #{green_union_dqe},
+            green_union_rd = #{green_union_rd},
+            solution_provider  = #{solution_provider},
+            supplier = #{supplier},
+            review_conclusion = #{review_conclusion}
         WHERE
             id = #{id}
     </update>

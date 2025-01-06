@@ -108,6 +108,12 @@ public class TestIssues {
 
     private LocalDateTime modify_at;
     private String responsibleDepartment;
+    private String sku;
+    private String green_union_dqe;
+    private String green_union_rd;
+    private String solution_provider;
+    private String supplier;
+    private String review_conclusion;
 
 
     public Long getId() {
@@ -414,6 +420,55 @@ public class TestIssues {
         this.responsibleDepartment = responsibleDepartment;
     }
 
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+
+    public String getGreen_union_dqe() {
+        return green_union_dqe;
+    }
+
+    public void setGreen_union_dqe(String green_union_dqe) {
+        this.green_union_dqe = green_union_dqe;
+    }
+
+    public String getGreen_union_rd() {
+        return green_union_rd;
+    }
+
+    public void setGreen_union_rd(String green_union_rd) {
+        this.green_union_rd = green_union_rd;
+    }
+
+    public String getSolution_provider() {
+        return solution_provider;
+    }
+
+    public void setSolution_provider(String solution_provider) {
+        this.solution_provider = solution_provider;
+    }
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
+    public String getReview_conclusion() {
+        return review_conclusion;
+    }
+
+    public void setReview_conclusion(String review_conclusion) {
+        this.review_conclusion = review_conclusion;
+    }
+
     @Override
     public String toString() {
         return "TestIssues{" +
@@ -454,7 +509,13 @@ public class TestIssues {
                 ", rd='" + rd + '\'' +
                 ", modifier='" + modifier + '\'' +
                 ", modify_at=" + modify_at +
-                ", responsibleDepartment=" + responsibleDepartment +
+                ", responsibleDepartment='" + responsibleDepartment + '\'' +
+                ", sku='" + sku + '\'' +
+                ", green_union_dqe='" + green_union_dqe + '\'' +
+                ", green_union_rd='" + green_union_rd + '\'' +
+                ", solution_provider='" + solution_provider + '\'' +
+                ", supplier='" + supplier + '\'' +
+                ", review_conclusion='" + review_conclusion + '\'' +
                 '}';
     }
 }

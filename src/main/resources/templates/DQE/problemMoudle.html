@@ -855,56 +855,142 @@
         }
 
 
+        // function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter) {
+        //     const div = document.createElement('div');
+        //     div.textContent = value || '无';  // 如果没有数据，展示为 '无'
+        //
+        //     // 设置 CSS 样式，让其支持换行显示，并控制宽度
+        //     div.style.whiteSpace = 'pre-wrap';  // 保持文本内容换行
+        //     div.style.wordWrap = 'break-word';  // 超出时换行
+        //     div.style.maxWidth = '200px';  // 设置最大宽度，避免内容过长时溢出
+        //     div.style.width = '100%';  // 确保宽度占满父容器
+        //     div.style.overflowWrap = 'break-word'; // 确保长单词或URL换行
+        //
+        //     // 当前编辑值
+        //     let currentEditValue = value || '';
+        //
+        //     // 添加条件判断，只有在 presenter 和 username 一致时才添加点击编辑事件
+        //     if (presenter === username || attr.field === 'green_union_dqe' || attr.field === 'green_union_rd' ) {
+        //         div.addEventListener('click', function () {
+        //             // 创建 textarea
+        //             const textarea = document.createElement('textarea');
+        //
+        //             // 获取 div 的高度，并将其赋值给 textarea
+        //             const divHeight = div.offsetHeight;  // 获取 div 的高度
+        //             textarea.style.height = `${divHeight}px`;  // 设置 textarea 高度与 div 一致
+        //
+        //             // 其他样式设置
+        //             textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
+        //             textarea.style.minWidth = '120px';  // 设置最小宽度，确保输入框可见
+        //             textarea.style.minHeight = '50px';  // 设置最小宽度，确保输入框可见
+        //             textarea.style.maxWidth = '200px'; // 设置最大宽度，避免输入框过宽
+        //             textarea.value = currentEditValue; // 使用当前编辑值
+        //
+        //             // 添加一些样式，避免选择区域不明显
+        //             textarea.style.outline = 'none';  // 去除焦点时的外边框
+        //             textarea.style.backgroundColor = 'white';  // 确保背景是白色
+        //             textarea.style.color = 'black';  // 确保文本颜色是黑色
+        //             textarea.style.border = '1px solid #ccc';  // 设置边框样式
+        //             textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
+        //
+        //             // 监听失焦事件
+        //             textarea.addEventListener('blur', function () {
+        //                 const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
+        //
+        //                 // 如果新值和旧值都为空，或者它们相等，则不更新
+        //                 if (newValue !== currentEditValue) {
+        //                     currentEditValue = newValue;  // 更新当前编辑值
+        //                     div.textContent = currentEditValue || '无';  // 更新 div 的内容
+        //                     // 更新 item 的值，并标记修改过的数据
+        //                     item[attr.field] = currentEditValue;
+        //                     if (!modifiedData.includes(item)) {
+        //                         modifiedData.push(item);  // 标记修改过的数据
+        //                     }
+        //                 }
+        //
+        //                 // 将 textarea 替换回 div
+        //                 valueDiv.replaceChild(div, textarea);
+        //             });
+        //
+        //             // 将 div 替换为 textarea
+        //             valueDiv.replaceChild(textarea, div);
+        //             textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
+        //         });
+        //     } else {
+        //         // 如果 presenter 和 username 不一致，不添加点击事件
+        //         div.style.cursor = 'not-allowed';  // 可选：禁用光标变化，提示用户不可编辑
+        //     }
+        //
+        //     valueDiv.appendChild(div);
+        // }
+
+        // 20250103 修改一下可编辑的列
         function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter) {
             const div = document.createElement('div');
-            div.textContent = value || '无';  // 如果没有数据，展示为 '无'
+            div.textContent = value || '无'; // 如果没有数据，展示为 '无'
 
             // 设置 CSS 样式，让其支持换行显示，并控制宽度
-            div.style.whiteSpace = 'pre-wrap';  // 保持文本内容换行
-            div.style.wordWrap = 'break-word';  // 超出时换行
-            div.style.maxWidth = '200px';  // 设置最大宽度，避免内容过长时溢出
-            div.style.width = '100%';  // 确保宽度占满父容器
+            div.style.whiteSpace = 'pre-wrap'; // 保持文本内容换行
+            div.style.wordWrap = 'break-word'; // 超出时换行
+            div.style.maxWidth = '200px'; // 设置最大宽度，避免内容过长时溢出
+            div.style.width = '100%'; // 确保宽度占满父容器
             div.style.overflowWrap = 'break-word'; // 确保长单词或URL换行
 
             // 当前编辑值
             let currentEditValue = value || '';
 
-            // 添加条件判断，只有在 presenter 和 username 一致时才添加点击编辑事件
-            if (presenter === username) {
+            // 判断字段和编辑权限,下边isRestrictedField字段的意思是仅 presenter === username 为true的时候才允许编辑
+            const isRestrictedField = attr.field === 'tester' || attr.field === 'version' || attr.field === 'sample_stage' || attr.field === 'test_platform' || attr.field === 'test_device' || attr.field === 'other_device' || attr.field === 'problem' ||
+                attr.field === 'problem_image_or_video' || attr.field === 'problem_time' || attr.field === 'reproduction_method' || attr.field === 'recovery_method'  ||
+                attr.field === 'reproduction_probability' || attr.field === 'defect_level' || attr.field === 'next_version_regression_test';
+            const canEdit = isRestrictedField ? presenter === username : true;
+
+            if (canEdit) {
                 div.addEventListener('click', function () {
                     // 创建 textarea
                     const textarea = document.createElement('textarea');
 
                     // 获取 div 的高度，并将其赋值给 textarea
-                    const divHeight = div.offsetHeight;  // 获取 div 的高度
-                    textarea.style.height = `${divHeight}px`;  // 设置 textarea 高度与 div 一致
+                    const divHeight = div.offsetHeight; // 获取 div 的高度
+                    textarea.style.height = `${divHeight}px`; // 设置 textarea 高度与 div 一致
 
                     // 其他样式设置
-                    textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
-                    textarea.style.minWidth = '120px';  // 设置最小宽度，确保输入框可见
-                    textarea.style.minHeight = '50px';  // 设置最小宽度，确保输入框可见
+                    textarea.style.width = '100%'; // 确保文本框的宽度与父容器相同
+                    textarea.style.minWidth = '120px'; // 设置最小宽度，确保输入框可见
+                    textarea.style.minHeight = '50px'; // 设置最小高度，确保输入框可见
                     textarea.style.maxWidth = '200px'; // 设置最大宽度，避免输入框过宽
                     textarea.value = currentEditValue; // 使用当前编辑值
 
                     // 添加一些样式，避免选择区域不明显
-                    textarea.style.outline = 'none';  // 去除焦点时的外边框
-                    textarea.style.backgroundColor = 'white';  // 确保背景是白色
-                    textarea.style.color = 'black';  // 确保文本颜色是黑色
-                    textarea.style.border = '1px solid #ccc';  // 设置边框样式
-                    textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
+                    textarea.style.outline = 'none'; // 去除焦点时的外边框
+                    textarea.style.backgroundColor = 'white'; // 确保背景是白色
+                    textarea.style.color = 'black'; // 确保文本颜色是黑色
+                    textarea.style.border = '1px solid #ccc'; // 设置边框样式
+                    textarea.style.padding = '5px'; // 设置内边距，使文本有一定的空间
+
+                    textarea.addEventListener('mousedown', function (event) {
+                        // 如果用户按住鼠标拖动的是非输入相关内容，可以做限制，但这里不阻止默认行为
+                        event.stopPropagation(); // 阻止事件冒泡
+                    });
+
+                    // 添加拖动限制，确保 textarea 不会移动,解决编辑框拖动的时候也会移动的bug
+                    textarea.addEventListener('dragstart', function (event) {
+                        event.preventDefault(); // 禁止拖动行为
+                    });
+
 
                     // 监听失焦事件
                     textarea.addEventListener('blur', function () {
-                        const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
+                        const newValue = textarea.value.trim() || ''; // 新值为空字符串则转换为空
 
                         // 如果新值和旧值都为空，或者它们相等，则不更新
                         if (newValue !== currentEditValue) {
-                            currentEditValue = newValue;  // 更新当前编辑值
-                            div.textContent = currentEditValue || '无';  // 更新 div 的内容
+                            currentEditValue = newValue; // 更新当前编辑值
+                            div.textContent = currentEditValue || '无'; // 更新 div 的内容
                             // 更新 item 的值，并标记修改过的数据
                             item[attr.field] = currentEditValue;
                             if (!modifiedData.includes(item)) {
-                                modifiedData.push(item);  // 标记修改过的数据
+                                modifiedData.push(item); // 标记修改过的数据
                             }
                         }
 
@@ -917,8 +1003,8 @@
                     textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
                 });
             } else {
-                // 如果 presenter 和 username 不一致，不添加点击事件
-                div.style.cursor = 'not-allowed';  // 可选：禁用光标变化，提示用户不可编辑
+                // 如果字段受限制且不可编辑，禁用点击事件
+                div.style.cursor = 'not-allowed'; // 可选：禁用光标变化，提示用户不可编辑
             }
 
             valueDiv.appendChild(div);
@@ -930,6 +1016,9 @@
 
         //editClickBtn点击新增问题按钮触发的方法
         function addNewRow(sampleId,attributes,modifiedData,table) {
+            // 获取隐藏列信息
+            const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
+
             // 发送 AJAX 请求以获取数据，将 sampleId 作为查询参数
             fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}`, {
                 method: 'GET',
@@ -960,6 +1049,7 @@
 
                     // 遍历 attributes 数组，将每个字段对应的数据插入到表格中
                     attributes.forEach((attr, index) => {
+
                         const newCell = document.createElement('td');
                         newCell.className = `value-cell value-cell-${index + 1}`;
 
@@ -1149,6 +1239,47 @@
 
                                 // 设置字体颜色
                                 newDiv.style.color = '#8a4e07'; // 设置字体颜色
+                            }else if (attr.field === 'problemCategory') {
+                                // 定义当前状态的选项
+                                const validOptions = ['电气性能', '兼容性', '可靠性', '工艺' ,'待确定'];
+
+                                // 创建下拉框
+                                const select = document.createElement('select');
+
+                                // 创建下拉选项
+                                validOptions.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option;
+                                    optionElement.textContent = option;
+
+                                    // 设置默认选中的选项为“OPEN”
+                                    if (option === '待确定') {
+                                        optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
+                                    }
+
+                                    select.appendChild(optionElement);
+                                });
+
+                                // 监听下拉框的变化事件
+                                select.addEventListener('change', function () {
+                                    const selectedValue = select.value;
+                                    console.log('当前状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                    // 确保下拉框的选中值及时更新到 newItem 中
+                                    newItem[attr.field] = selectedValue;
+                                    if (!modifiedData.includes(newItem)) {
+                                        modifiedData.push(newItem); // 标记修改过的数据
+                                    }
+                                });
+
+                                newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
+
+                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                                value = '待确定';
+
+                                // 设置字体颜色
+                                newDiv.style.color = '#8a4e07'; // 设置字体颜色
                             }else if (attr.field === 'responsibleDepartment') {
                                 // 定义当前状态的选项
                                 const validOptions = ['研发','产品', '项目', '结构' , 'ID',  'DQE', 'SQE', 'CQE','实验室', '待确定'];
@@ -1197,11 +1328,16 @@
                             // 将新值添加到 newItem 中
                             newItem[attr.field] = value;
 
+                            // 跳过隐藏列的渲染
+                            if (hiddenColumns.includes(index)) {
+                                return;
+                            }
+
                             //这里是让editClickBtn点击弹出来的模态框设置哪些列样式不允许人修改的
                             if(attr.field === 'history_id' || attr.field==='created_by'
                                 || attr.field==='created_at' || attr.field === 'dqe_review_at' || attr.field === 'current_status'
                                 || attr.field === 'rd_review_at' || index === 1 || index === 3 || index ===2 || index === 4 || index === 5
-                                || index === 32 || index === 33 || index === 34 || index === 20 || index === 21) {
+                                || index === 36 || index === 37 || index === 38 || index === 39 || index === 40 || index === 6 || index === 7 || index === 8) {
 
                             }else{
                                 // 创建可编辑的内容
@@ -1222,6 +1358,38 @@
                     alert(error.message); // 处理错误
                 });
         }
+
+        // 切换列的显示或隐藏
+        function toggleColumn(index, hide = true) {
+            const table = document.querySelector('.data-table'); // 获取表格
+            if (!table) {
+                console.error('表格不存在，请检查代码');
+                return; // 如果表格没有渲染，直接退出
+            }
+
+            // 遍历表格的每一行，切换指定列的显示状态
+            table.querySelectorAll('tr').forEach(row => {
+                const cells = row.children;
+                if (cells[index]) {
+                    cells[index].style.display = hide ? 'none' : ''; // 隐藏或显示列
+                }
+            });
+        }
+
+        // 隐藏列并保存到本地缓存
+        function hideColumn(index) {
+            const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
+            if (!hiddenColumns.includes(index)) {
+                hiddenColumns.push(index);
+                localStorage.setItem('hiddenColumns', JSON.stringify(hiddenColumns)); // 保存隐藏列到本地缓存
+            }
+            toggleColumn(index, true); // 隐藏列
+
+            // // 使用 alert 显示当前的隐藏列列表,这个hiddenColumns是隐藏的列的索引
+            // alert('当前隐藏的列索引: ' + JSON.stringify(hiddenColumns));
+        }
+
+
 
         function editClickBtn(sampleId) {
             // 如果正在编辑，直接返回，避免重复请求
@@ -1263,13 +1431,22 @@
                     // 创建列名行
                     const headerRow = document.createElement('tr');
                     headerRow.className = 'header-row';
+
+
                     const attributes = [
                         { label: 'ID(点击删除)', field: 'id' },
-                        { label: '责任部门（必填）', field: 'responsibleDepartment' },
+                        { label: '责任单位（必填）', field: 'responsibleDepartment' },
                         { label: 'DQE确认', field: 'dqe_confirm' },
                         { label: 'DQE意见信息', field: 'dqe_confirm_inform' },
                         { label: '研发确认', field: 'rd_confirm' },
                         { label: '研发意见信息', field: 'rd_confirm_inform' },
+                        // 前移
+                        { label: '缺陷等级(只写SABC)', field: 'defect_level' },
+                        { label: '当前状态', field: 'current_status' },
+                        { label: '问题类别', field: 'problemCategory' },
+                        { label: '评审结论', field: 'review_conclusion' },
+                        { label: 'SKU', field: 'sku' },
+
                         { label: '完整型号', field: 'full_model' },
                         { label: '样品阶段', field: 'sample_stage' },
                         { label: '版本', field: 'version' },
@@ -1278,18 +1455,24 @@
                         { label: '显示设备', field: 'test_device' },
                         { label: '其他设备', field: 'other_device' },
                         { label: '问题描述', field: 'problem' },
-                        { label: '问题类别', field: 'problemCategory' },
+
                         { label: '问题图片', field: 'problem_image_or_video' },
                         { label: '问题时间', field: 'problem_time' },
                         { label: '复现方法', field: 'reproduction_method' },
                         { label: '恢复方法', field: 'recovery_method' },
                         { label: '复现概率', field: 'reproduction_probability' },
-                        { label: '缺陷等级(只写SABC)', field: 'defect_level' },
-                        { label: '当前状态', field: 'current_status' },
+
                         { label: '对比上一版或竞品', field: 'comparison_with_previous' },
-                        { label: '提出人', field: 'tester' },
+                        //  20250101 新增模板字段
                         { label: 'DQE&研发确认', field: 'dqe_and_development_confirm' },
-                        { label: '改善对策（研发回复）', field: 'improvement_plan' },
+                        { label: 'DQE确认回复', field: 'green_union_dqe' },
+                        { label: '研发确认回复', field: 'green_union_rd' },
+                        { label: '方案商', field: 'solution_provider' },
+                        { label: '供应商', field: 'supplier' },
+
+
+                        { label: '提出人', field: 'tester' },
+                        // { label: '改善对策（研发回复）', field: 'improvement_plan' },
                         { label: '分析责任人', field: 'responsible_person' },
                         { label: '改善后风险', field: 'post_improvement_risk' },
                         { label: '下一版回归测试', field: 'next_version_regression_test' },
@@ -1298,20 +1481,43 @@
                         { label: '历史ID', field: 'history_id' },
                         { label: '问题点创建者', field: 'created_by' },
                         { label: '最后一次改动者', field: 'modifier' },
-                        { label: '改动时间', field: 'modify_at' },
+                        { label: '改动时间', field: 'modify_at' }
                     ];
+
+                    // attributes.forEach((attr, index) => {
+                    //     const headerCell = document.createElement('th');
+                    //     headerCell.className = `header-cell header-cell-${index + 1}`;
+                    //
+                    //     // 创建可滚动的 div
+                    //     const headerDiv = document.createElement('div');
+                    //     headerDiv.textContent = attr.label; // 显示 label
+                    //     enableDragScroll(headerDiv);
+                    //     headerCell.appendChild(headerDiv);
+                    //     headerRow.appendChild(headerCell);
+                    // });
+                    //20250101 尝试新增隐藏列方法
 
                     attributes.forEach((attr, index) => {
                         const headerCell = document.createElement('th');
                         headerCell.className = `header-cell header-cell-${index + 1}`;
+                        headerCell.dataset.index = index; // 添加索引
 
                         // 创建可滚动的 div
                         const headerDiv = document.createElement('div');
                         headerDiv.textContent = attr.label; // 显示 label
                         enableDragScroll(headerDiv);
+
+                        // 创建隐藏按钮
+                        const hideBtn = document.createElement('button');
+                        hideBtn.textContent = '隐藏';
+                        hideBtn.className = 'hide-btn';
+                        hideBtn.addEventListener('click', () => hideColumn(index)); // 调用外部的 hideColumn
+
                         headerCell.appendChild(headerDiv);
+                        headerCell.appendChild(hideBtn);
                         headerRow.appendChild(headerCell);
                     });
+
 
                     // 将列名行添加到表格
                     table.appendChild(headerRow);
@@ -1344,9 +1550,9 @@
                             const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
 
 
-                            if (index === 0 || index === 1 || index === 15 || index === 21 || index === 30 || index === 20 || index === 31
-                                 || index ===32 || index === 33 || index === 34) { // 序号，问题图片,当前状态,创建时间,历史ID
-                                if(index === 15){
+                            if (index === 0 || index === 1 || index === 19 || index === 6 || index === 7 || index === 8 || index === 35
+                                 || index ===36 || index === 37 || index === 38 || index === 39) { // 序号，问题图片,当前状态,创建时间,历史ID
+                                if(index === 19){
                                     if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
                                         // 判断是否为有效图片路径
                                         const img = document.createElement('img');
@@ -1395,7 +1601,7 @@
 
                                         valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
                                     }
-                                }else if(index === 21){
+                                }else if(index === 7){
                                     // 定义需要转换为下拉框的选项
                                     const validOptions = ['OPEN', 'CLOSED','FOLLOW UP', '待确定'];
 
@@ -1443,7 +1649,51 @@
                                     });
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                }else if(index === 20){
+                                }else if(index === 8){
+                                    // 定义需要转换为下拉框的选项
+                                    const validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
+
+                                    // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
+                                    let normalizedValue = String(value);
+
+                                    // 如果值不在有效选项内，则将值设置为“待确定”
+                                    if (!validOptions.includes(normalizedValue)) {
+                                        normalizedValue = '待确定';
+                                    }
+
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        const selectedValue = select.value;
+                                        console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                                }else if(index === 6){
                                     // 定义需要转换为下拉框的等级选项
                                     const validOptions = ['S', 'A', 'B', 'C', '待确定'];
 
@@ -1553,7 +1803,7 @@
 
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                } else if(index === 30 || index === 34){
+                                } else if(index === 35 || index === 39){
                                     if(value){
                                         const valueText = document.createElement('div');
                                         valueText.textContent = value.replace("T"," ");
@@ -1700,6 +1950,24 @@
                     tableContainer.appendChild(table);
                     contentDiv.appendChild(tableContainer);
 
+                    const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || []; // 获取已隐藏列的状态
+                    hiddenColumns.forEach(index => toggleColumn(index, true));  // 应用隐藏列
+
+                    // 20250101 新增隐藏列方法
+                    // 添加恢复隐藏列的按钮
+
+                    // 添加恢复隐藏列的按钮
+                    const restoreBtn = document.createElement('button');
+                    restoreBtn.textContent = '恢复\n隐藏列';
+                    restoreBtn.className = 'restore-btn';
+                    restoreBtn.addEventListener('click', () => {
+                        const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
+                        hiddenColumns.forEach(index => toggleColumn(index, false));  // 恢复显示列
+                        localStorage.setItem('hiddenColumns', JSON.stringify([])); // 清空隐藏列缓存
+                    });
+
+                    contentDiv.appendChild(restoreBtn);  // 添加按钮到页面
+
                     // 创建保存按钮
                     const saveButton = document.createElement('button');
                     saveButton.textContent = '保存\n修改'; // 使用换行符分两行显示文本
@@ -1811,7 +2079,7 @@
                             }
                         });
 
-                        // 判断责任部门是否都为有效选项：
+                        // 判断责任单位是否都为有效选项：
                         // 根据 data-depart 属性筛选 select 元素
                         const selects = document.querySelectorAll('.value-row select[data-depart="true"]');
 
@@ -1834,7 +2102,7 @@
                             // 有未选中的复选框，提示用户
                             alert('有问题点没有确认，清先确认才能让流程往下一个节点走。');
                         }else if(!allValid){
-                            alert('责任部门没有确认完毕，清先确认才能让流程往下一个节点走。');
+                            alert('责任单位没有确认完毕，清先确认才能让流程往下一个节点走。');
                         }
                     });
 
@@ -2111,7 +2379,7 @@
                         if (Array.isArray(modifiedData) && modifiedData.length > 0) {
                             saveChanges(modifiedData, sampleId,true);
                         }
-                        editClickBtn(sampleId)
+                        // editClickBtn(sampleId)
 
                     } else {
                         alert("上传失败或其他信息: " + data.message);

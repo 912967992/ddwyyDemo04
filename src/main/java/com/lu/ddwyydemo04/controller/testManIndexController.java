@@ -483,6 +483,7 @@ public class testManIndexController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = now.format(formatter);
 
+            // 这里是提交我呢见的时候抓取问题点的方法
             String problem = getProblemFromJson(filepath,model,coding);
 
             // 检查问题是否包含缺少列的错误
@@ -643,19 +644,30 @@ public class testManIndexController {
 
             List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
 
+//            // 定义需要的列名
+//            List<String> requiredColumns = Arrays.asList(
+//                    "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
+//                    "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
+//                    "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品", "DQE&研发确认",
+//                    "改善对策（研发回复）", "分析责任人", "改善后风险", "下一版回归测试", "备注"
+//            );
             // 定义需要的列名
             List<String> requiredColumns = Arrays.asList(
                     "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
                     "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
-                    "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品", "DQE&研发确认",
-                    "改善对策（研发回复）", "分析责任人", "改善后风险", "下一版回归测试", "备注"
+                    "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品",
+                    "分析责任人", "改善后风险", "下一版回归测试", "备注", "DQE&研发确认",
+                    "SKU","责任单位","DQE确认回复","研发确认回复","方案商","供应商","评审结论"
             );
+
+            // 定义不需要判断的字段名
+            Set<String> skipColumns = new HashSet<>(Arrays.asList("DQE&研发确认", "DQE确认回复", "研发确认回复","方案商","供应商"));
 
             // 检查缺少的列名
             Set<String> missingColumns = new HashSet<>();
             for (Map<String, String> rowMap : filteredRows) {
                 for (String column : requiredColumns) {
-                    if (!rowMap.containsKey(column)) {
+                    if (!skipColumns.contains(column) && !rowMap.containsKey(column)) {
                         missingColumns.add(column);
                     }
                 }
@@ -704,12 +716,21 @@ public class testManIndexController {
                 String defect_level = rowMap.get("缺陷等级");
                 String current_status = rowMap.get("当前状态");
                 String comparison_with_previous = rowMap.get("对比上一版或竞品");
-                String dqe_and_development_confirm = rowMap.get("DQE&研发确认");
-                String improvement_plan = rowMap.get("改善对策（研发回复）");
+//                 20241230按李喜明的新模板他说改善对策（研发回复）删了，DQE&研发确认要拆分成两个
+//                String dqe_and_development_confirm = rowMap.get("DQE&研发确认");
+//                String improvement_plan = rowMap.get("改善对策（研发回复）");    20241230按李喜明的新模板他说删了
                 String responsible_person = rowMap.get("分析责任人");
                 String post_improvement_risk = rowMap.get("改善后风险");
                 String next_version_regression_test = rowMap.get("下一版回归测试");
                 String remark = rowMap.get("备注");
+
+                String sku = rowMap.get("SKU");
+                String responsibleDepartment = rowMap.get("责任单位");
+                String green_union_dqe = rowMap.get("绿联DQE");
+                String green_union_rd = rowMap.get("绿联电子");
+                String solution_provider = rowMap.get("方案商");
+                String supplier = rowMap.get("供应商");
+                String review_conclusion = rowMap.get("评审结论");
 
                 String real_full_model = model + " "+ coding;
                 testIssues.setFull_model(real_full_model); //因为完整编码测试人员填写的可能不一致，所以这里强制用数据库的编码就保证一致
@@ -730,18 +751,29 @@ public class testManIndexController {
                 testIssues.setDefect_level(defect_level);
                 testIssues.setCurrent_status(current_status);
                 testIssues.setComparison_with_previous(comparison_with_previous);
-                testIssues.setDqe_and_development_confirm(dqe_and_development_confirm);
-                testIssues.setImprovement_plan(improvement_plan);
+//                testIssues.setDqe_and_development_confirm(dqe_and_development_confirm);
+//                testIssues.setImprovement_plan(improvement_plan);
                 testIssues.setResponsible_person(responsible_person);
                 testIssues.setPost_improvement_risk(post_improvement_risk);
                 testIssues.setNext_version_regression_test(next_version_regression_test);
                 testIssues.setRemark(remark);
 
+                // 20241230 按新模板新增6个字段:SKU ,责任单位，绿联DQE，绿联电子，方案商，供应商，评审结论
+                testIssues.setSku(sku);
+                testIssues.setResponsibleDepartment(responsibleDepartment);
+                testIssues.setGreen_union_dqe(green_union_dqe);
+                testIssues.setGreen_union_rd(green_union_rd);
+                testIssues.setSolution_provider(solution_provider);
+                testIssues.setSupplier(supplier);
+                testIssues.setReview_conclusion(review_conclusion);
+
+
                 testIssues.setCreated_at(parsedDateTime);
                 testIssues.setSample_id(sample_id);
                 testIssues.setHistory_id(history_id);
 
-                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
+//                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
+                System.out.println("testIssues:"+testIssues);
 
                 int insertProblem = testManIndexService.insertTestIssues(testIssues);
 
@@ -796,7 +828,10 @@ public class testManIndexController {
                 filteredRows.add(rowMap);
             }
         }
-
+        System.out.println("filteredRows如下:");
+        for (Map<String, String> row : filteredRows) {
+            System.out.println(row);
+        }
         return filteredRows;
     }
 

@@ -1727,13 +1727,13 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(response.message.includes("竞品文件完成")){
 
@@ -1751,7 +1751,7 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
 
                 }
@@ -1995,11 +1995,18 @@
                 headerRow.className = 'header-row';
                 const attributes = [
                     { label: 'ID(点击删除)', field: 'id' },
-                    { label: '责任部门（必填）', field: 'responsibleDepartment' },
+                    { label: '责任单位（必填）', field: 'responsibleDepartment' },
                     { label: 'DQE确认', field: 'dqe_confirm' },
                     { label: 'DQE意见信息', field: 'dqe_confirm_inform' },
                     { label: '研发确认', field: 'rd_confirm' },
                     { label: '研发意见信息', field: 'rd_confirm_inform' },
+                    // 前移
+                    { label: '缺陷等级(只写SABC)', field: 'defect_level' },
+                    { label: '当前状态', field: 'current_status' },
+                    { label: '问题类别', field: 'problemCategory' },
+                    { label: '评审结论', field: 'review_conclusion' },
+                    { label: 'SKU', field: 'sku' },
+
                     { label: '完整型号', field: 'full_model' },
                     { label: '样品阶段', field: 'sample_stage' },
                     { label: '版本', field: 'version' },
@@ -2008,18 +2015,24 @@
                     { label: '显示设备', field: 'test_device' },
                     { label: '其他设备', field: 'other_device' },
                     { label: '问题描述', field: 'problem' },
-                    { label: '问题类别', field: 'problemCategory' },
+
                     { label: '问题图片', field: 'problem_image_or_video' },
                     { label: '问题时间', field: 'problem_time' },
                     { label: '复现方法', field: 'reproduction_method' },
                     { label: '恢复方法', field: 'recovery_method' },
                     { label: '复现概率', field: 'reproduction_probability' },
-                    { label: '缺陷等级(只写SABC)', field: 'defect_level' },
-                    { label: '当前状态', field: 'current_status' },
+
                     { label: '对比上一版或竞品', field: 'comparison_with_previous' },
-                    { label: '提出人', field: 'tester' },
+                    //  20250101 新增模板字段
                     { label: 'DQE&研发确认', field: 'dqe_and_development_confirm' },
-                    { label: '改善对策（研发回复）', field: 'improvement_plan' },
+                    { label: 'DQE确认回复', field: 'green_union_dqe' },
+                    { label: '研发确认回复', field: 'green_union_rd' },
+                    { label: '方案商', field: 'solution_provider' },
+                    { label: '供应商', field: 'supplier' },
+
+
+                    { label: '提出人', field: 'tester' },
+                    // { label: '改善对策（研发回复）', field: 'improvement_plan' },
                     { label: '分析责任人', field: 'responsible_person' },
                     { label: '改善后风险', field: 'post_improvement_risk' },
                     { label: '下一版回归测试', field: 'next_version_regression_test' },
@@ -2028,7 +2041,7 @@
                     { label: '历史ID', field: 'history_id' },
                     { label: '问题点创建者', field: 'created_by' },
                     { label: '最后一次改动者', field: 'modifier' },
-                    { label: '改动时间', field: 'modify_at' },
+                    { label: '改动时间', field: 'modify_at' }
                 ];
 
                 attributes.forEach((attr, index) => {
@@ -2074,9 +2087,9 @@
                         const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
 
 
-                        if (index === 0 || index === 1  || index === 15 || index === 21 || index === 30 || index === 20 || index === 31
-                            || index ===32 || index === 33 || index === 34) { // 序号，问题图片,当前状态,创建时间,历史ID
-                            if(index === 15){
+                        if (index === 0 || index === 1 || index === 19 || index === 6 || index === 7 || index === 8 || index === 35
+                            || index ===36 || index === 37 || index === 38 || index === 39) { // 序号，问题图片,当前状态,创建时间,历史ID
+                            if(index === 19){
                                 if (value && (String(value).includes('/imageDirectory/') || String(value).includes('/issuespath/'))) {
                                     // 判断是否为有效图片路径
                                     const img = document.createElement('img');
@@ -2124,7 +2137,7 @@
 
                                     valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
                                 }
-                            }else if(index === 21){
+                            }else if(index === 7){
                                 // 定义需要转换为下拉框的选项
                                 const validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
 
@@ -2172,7 +2185,51 @@
                                 });
 
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                            } else if(index === 20){
+                            }else if(index === 8){
+                                // 定义需要转换为下拉框的选项
+                                const validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
+
+                                // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
+                                let normalizedValue = String(value);
+
+                                // 如果值不在有效选项内，则将值设置为“待确定”
+                                if (!validOptions.includes(normalizedValue)) {
+                                    normalizedValue = '待确定';
+                                }
+
+                                // 创建下拉框
+                                const select = document.createElement('select');
+
+                                // 创建下拉选项
+                                validOptions.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option;
+                                    optionElement.textContent = option;
+
+                                    // 设置默认选中的选项
+                                    if (normalizedValue === option) {
+                                        optionElement.selected = true;
+                                    }
+
+                                    select.appendChild(optionElement);
+                                });
+
+                                // 监听下拉框的变化事件
+                                select.addEventListener('change', function () {
+                                    const selectedValue = select.value;
+                                    console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                    // 如果新值和旧值不同，标记为已修改
+                                    if (selectedValue !== normalizedValue) {
+                                        item[attr.field] = selectedValue;
+                                        if (!modifiedData.includes(item)) {
+                                            modifiedData.push(item); // 标记修改过的数据
+                                        }
+                                    }
+                                });
+
+                                valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                            } else if(index === 6){
                                 // 定义需要转换为下拉框的等级选项
                                 const validOptions = ['S', 'A', 'B', 'C', '待确定'];
 
@@ -2265,7 +2322,7 @@
                                 });
 
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                            } else if(index === 30 || index === 34){
+                            } else if(index === 35 || index === 39){
                                 if(value){
                                     const valueText = document.createElement('div');
                                     valueText.textContent = value.replace("T"," ");
@@ -2628,6 +2685,16 @@
                 textarea.style.border = '1px solid #ccc';  // 设置边框样式
                 textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
 
+                textarea.addEventListener('mousedown', function (event) {
+                    // 如果用户按住鼠标拖动的是非输入相关内容，可以做限制，但这里不阻止默认行为
+                    event.stopPropagation(); // 阻止事件冒泡
+                });
+
+                // 添加拖动限制，确保 textarea 不会移动,解决编辑框拖动的时候也会移动的bug
+                textarea.addEventListener('dragstart', function (event) {
+                    event.preventDefault(); // 禁止拖动行为
+                });
+
                 // 监听失焦事件
                 textarea.addEventListener('blur', function () {
                     const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
@@ -2918,6 +2985,47 @@
 
                             // 设置字体颜色
                             newDiv.style.color = '#8a4e07'; // 设置字体颜色
+                        }else if (attr.field === 'problemCategory') {
+                            // 定义当前状态的选项
+                            const validOptions = ['电气性能', '兼容性', '可靠性', '工艺' ,'待确定'];
+
+                            // 创建下拉框
+                            const select = document.createElement('select');
+
+                            // 创建下拉选项
+                            validOptions.forEach(option => {
+                                const optionElement = document.createElement('option');
+                                optionElement.value = option;
+                                optionElement.textContent = option;
+
+                                // 设置默认选中的选项为“OPEN”
+                                if (option === '待确定') {
+                                    optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
+                                }
+
+                                select.appendChild(optionElement);
+                            });
+
+                            // 监听下拉框的变化事件
+                            select.addEventListener('change', function () {
+                                const selectedValue = select.value;
+                                console.log('当前状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                // 确保下拉框的选中值及时更新到 newItem 中
+                                newItem[attr.field] = selectedValue;
+                                if (!modifiedData.includes(newItem)) {
+                                    modifiedData.push(newItem); // 标记修改过的数据
+                                }
+                            });
+
+                            newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
+
+                            // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
+                            newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                            value = '待确定';
+
+                            // 设置字体颜色
+                            newDiv.style.color = '#8a4e07'; // 设置字体颜色
                         }else if (attr.field === 'responsibleDepartment') {
                             // 定义当前状态的选项
                             const validOptions = ['产品', '项目', '结构' , 'ID', '研发', 'DQE', 'SQE', 'CQE', '待确定'];
@@ -2968,13 +3076,13 @@
 
                         //这里是让editClickBtn点击弹出来的模态框设置哪些列样式不允许人修改的
                         if(attr.field === 'history_id' || attr.field==='created_by'
-                            || attr.field==='created_at' || attr.field === 'dqe_review_at'
-                            || attr.field === 'rd_review_at' || index === 1 ||index === 2 || index === 4 || index ===3 || index === 5
-                            || index === 32 || index === 33 || index === 34 || index === 20 || index === 21) {
+                            || attr.field==='created_at' || attr.field === 'dqe_review_at' || attr.field === 'current_status'
+                            || attr.field === 'rd_review_at' || index === 1 || index === 3 || index ===2 || index === 4 || index === 5
+                            || index === 36 || index === 37 || index === 38 || index === 39 || index === 40 || index === 6 || index === 7 || index === 8) {
 
                         }else{
                             // 创建可编辑的内容
-                            createEditableSpan(value, newItem, attr, modifiedData, newDiv); // 使用获取的值
+                            createEditableSpan(value, newItem, attr, modifiedData, newDiv, username); // 使用获取的值
                         }
 
                     }
