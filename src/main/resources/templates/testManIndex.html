@@ -21,7 +21,7 @@
 <!--    <meta name="wpk-bid" content="dta_1_3078576183">-->
 
 <div class="title-container">
-    <button id="announcement-btn">查看公告(v2.0，全新版本!审核流程已打通！20241113更新)</button>
+    <button id="announcement-btn">查看公告(v2.1，20250111创建报告现在请按计划表来填写三个排期字段)</button>
     <div class="title">主页</div>
 </div>
 
@@ -31,7 +31,9 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，新增"问题类别"一列。)</span></h2>
-            <p>2024.11.18<br>
+            <p>20250111:创建报告现在需要填写的是计划表卢绮敏提供的三个排期内容：排期时间，排期天数，请写准确，不允许修改的！
+                <br>
+                2024.11.18<br>
                 1. 打通测试报告审核签样流程：测试人员提交->DQE审核问题点->研发审核判定->DQE最终判定->返回通知测试及DQE判定结果。此过程中任何一方角色都可以同步查看修改问题点，并且有操作记录,每个流程节点都会有OA消息通知对应人。<br>
                 2. 测试报告文件名加上任务属性，不然会有与其他文件冲突的风险。  --赵爽发现<br>
                 3. 逾期节点更新，从 '2024-11-18 00:00:00'创建的文件开始算起。
@@ -1356,21 +1358,14 @@
                 // 创建表格和按钮的容器
                 var tableAndButtons = '<div class="table-and-buttons">';
 
-                // 判断是否需要红色边框
                 var isDanger = (product.danger && product.danger.trim() !== "") ||
-                    (
-                        product.finish_time &&
-                        new Date(product.finish_time).getTime() >
-                        new Date(product.planfinish_time || product.scheduleEndTime).getTime()
-                    ) ||
-                    (
-                        !product.finish_time &&
-                        new Date().getTime() >
-                        new Date(product.planfinish_time || product.scheduleEndTime).getTime()
-                    );
-                // var isDanger = (product.danger && product.danger.trim() !== "") ||
-                //     (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.planfinish_time).getTime()) ||
-                //     (!product.finish_time && new Date().getTime() > new Date(product.planfinish_time).getTime());
+                    (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                    (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+
+                // 如果 scheduleEndTime 为 null，则 isDanger 一定为 false
+                if (product.scheduleEndTime === null) {
+                    isDanger = false;
+                }
 
                 // 根据条件 isDanger 来决定 tableClass 的值
                 var tableClass = isDanger ? 'product-table danger' : 'product-table';
@@ -1792,13 +1787,13 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(response.message.includes("竞品文件完成")){
 
@@ -1816,7 +1811,7 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
 
                 }
