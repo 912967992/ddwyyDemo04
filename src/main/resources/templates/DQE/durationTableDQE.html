@@ -276,9 +276,8 @@
 
 
             const headers = [
-                "ID","创建时间", "预计完成时间", "实际完成时间", "预计测试时长(天/8小时)","实测时长(天/8小时)", "测试人员",
-                "完整编码", "样品阶段", "大类", "小类", "版本","样品名称","样品进度"
-
+                "ID","创建时间", "预计完成时间（弃用了）","排期开始时间","排期结束时间", "实际完成时间", "排期测试周期(天/8小时)","实测时长(天/8小时)", "测试人员",
+                "完整编码", "样品阶段", "大类", "小类","版本","样品名称","样品进度"
             ];
 
             headers.forEach(headerText => {
@@ -297,9 +296,9 @@
 
                 // 填充表格行的每个单元格
                 const cells = [
-                    item.sample_id,  item.create_time,  item.planfinish_time,item.finish_time,
-                    item.planTestDuration ,item.testDuration,  item.tester,
-                    item.full_model, item.sample_category, item.big_species,item.small_species,
+                    item.sample_id,  item.create_time, item.planfinish_time , item.scheduleStartTime, item.scheduleEndTime , item.finish_time,
+                    item.scheduleTestCycle ,item.testDuration,  item.tester,
+                    item.full_model, item.sample_category,item.big_species, item.small_species,
                     item.version,item.sample_name,
                     item.sample_schedule
 
@@ -332,59 +331,6 @@
                             td.textContent = cellData || '';
                         }
 
-                        // td.addEventListener('click', () => {
-                        //     const fullContentModal = document.createElement('div');
-                        //     fullContentModal.style.position = 'fixed';
-                        //     fullContentModal.style.top = '0';
-                        //     fullContentModal.style.left = '0';
-                        //     fullContentModal.style.width = '100%';
-                        //     fullContentModal.style.height = '100%';
-                        //     fullContentModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                        //     fullContentModal.style.display = 'flex';
-                        //     fullContentModal.style.alignItems = 'center';
-                        //     fullContentModal.style.justifyContent = 'center';
-                        //     fullContentModal.style.zIndex = '1000';
-                        //
-                        //     const contentBox = document.createElement('div');
-                        //     contentBox.style.maxWidth = '80%';
-                        //     contentBox.style.maxHeight = '80%';
-                        //     contentBox.style.overflowY = 'auto';
-                        //     contentBox.style.backgroundColor = '#fff';
-                        //     contentBox.style.padding = '20px';
-                        //     contentBox.style.borderRadius = '8px';
-                        //     contentBox.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-                        //     contentBox.textContent = td.textContent || '无内容';
-                        //
-                        //     const copyButton = document.createElement('button');
-                        //     copyButton.textContent = '复制到剪贴板';
-                        //     copyButton.style.marginTop = '10px';
-                        //     copyButton.style.display = 'block';
-                        //
-                        //     copyButton.addEventListener('click', async () => {
-                        //         const tempTextarea = document.createElement('textarea');
-                        //         tempTextarea.value = td.textContent || '';
-                        //         document.body.appendChild(tempTextarea);
-                        //         tempTextarea.select();
-                        //
-                        //         try {
-                        //             document.execCommand('copy');
-                        //             alert('内容已复制到剪贴板');
-                        //         } catch (err) {
-                        //             console.error('无法复制内容', err);
-                        //         }
-                        //
-                        //         document.body.removeChild(tempTextarea);
-                        //     });
-                        //
-                        //     contentBox.appendChild(copyButton);
-                        //     fullContentModal.appendChild(contentBox);
-                        //
-                        //     fullContentModal.addEventListener('click', () => {
-                        //         document.body.removeChild(fullContentModal);
-                        //     });
-                        //
-                        //     document.body.appendChild(fullContentModal);
-                        // });
                     }
 
                     row.appendChild(td);

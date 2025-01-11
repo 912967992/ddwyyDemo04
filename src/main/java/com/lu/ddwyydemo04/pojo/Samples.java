@@ -52,6 +52,12 @@ public class Samples {
     private String rd_result_judge;
     private String problemCounts;
 
+    private String scheduleStartTime;
+
+    private String scheduleEndTime;
+
+    private String scheduleTestCycle;
+
     public Integer getSample_id() {
         return sample_id;
     }
@@ -361,6 +367,30 @@ public class Samples {
         this.problemCounts = problemCounts;
     }
 
+    public String getScheduleStartTime() {
+        return scheduleStartTime;
+    }
+
+    public void setScheduleStartTime(String scheduleStartTime) {
+        this.scheduleStartTime = scheduleStartTime;
+    }
+
+    public String getScheduleEndTime() {
+        return scheduleEndTime;
+    }
+
+    public void setScheduleEndTime(String scheduleEndTime) {
+        this.scheduleEndTime = scheduleEndTime;
+    }
+
+    public String getScheduleTestCycle() {
+        return scheduleTestCycle;
+    }
+
+    public void setScheduleTestCycle(String scheduleTestCycle) {
+        this.scheduleTestCycle = scheduleTestCycle;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -401,6 +431,9 @@ public class Samples {
                 ", planTestDuration=" + planTestDuration +
                 ", rd_result_judge='" + rd_result_judge + '\'' +
                 ", problemCounts='" + problemCounts + '\'' +
+                ", scheduleStartTime='" + scheduleStartTime + '\'' +
+                ", scheduleEndTime='" + scheduleEndTime + '\'' +
+                ", scheduleTestCycle='" + scheduleTestCycle + '\'' +
                 '}';
     }
 }

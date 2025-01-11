@@ -61,7 +61,7 @@ dingtalk:
   appSecret: wwXuKPRFKVXhQBHBqkT7C6_U13RkxFK_FksYqVP5CsIIU2X-nAqISyNrweHzJQn5
   corpid: ding39a9d20442a933ec35c2f4657eb6378f
   agentid: 3152575892
-  apiToDingTalkUrl: https://api.dingtalk.com
+  apiToDingTalkUrl: https://api.dingtalk.coml
 ##  研发质量管理系统
 #  appKey: dingifih6yjygcaok5xp
 #  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox

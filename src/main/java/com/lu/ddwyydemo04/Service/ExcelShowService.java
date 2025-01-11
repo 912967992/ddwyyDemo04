@@ -1258,27 +1258,45 @@ public class ExcelShowService {
     }
 
 
-    public int insertSample(String tester, String filepath, String model, String coding, String category, String version, String sample_name, String  planfinish_time,String create_time,String sample_schedule,int sample_frequency,int sample_quantity,
-                            String big_species,String small_species,String high_frequency,String questStats) {
+    public int insertSample(String tester, String filepath, String model, String coding, String category, String version, String sample_name,String create_time,String sample_schedule,int sample_frequency,int sample_quantity,
+                            String big_species,String small_species,String high_frequency,String questStats,
+                            String scheduleStartTime,String scheduleEndTime,String scheduleTestCycle) {
         String full_model = model + " " + coding;
 
         // 定义日期时间格式
         DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         // 定义匹配 '2024-09-20T18:43' 格式的日期时间格式
         DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        // 将前端传递的时间字符串转换为 LocalDateTime
+        LocalDateTime parsedScheduleStartTime = LocalDateTime.parse(scheduleStartTime, formatter2);
+        LocalDateTime parsedScheduleEndTime = LocalDateTime.parse(scheduleEndTime, formatter2);
+
+// 将 LocalDateTime 格式化为 MySQL 支持的时间格式
+        String formattedScheduleStartTime = parsedScheduleStartTime.format(formatter1);
+        String formattedScheduleEndTime = parsedScheduleEndTime.format(formatter1);
 
 
         // 解析字符串为 LocalDateTime
-        LocalDateTime createDateTime = LocalDateTime.parse(create_time, formatter1);
-        LocalDateTime planFinishDateTime = LocalDateTime.parse(planfinish_time, formatter2);
+//        LocalDateTime createDateTime = LocalDateTime.parse(create_time, formatter1);
+//        LocalDateTime planFinishDateTime = LocalDateTime.parse(planfinish_time, formatter2);
+//        double planTestDuration = calculateWorkDays(createDateTime,planFinishDateTime,0);
+//        // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数,预计测试时长
+//        double adjustedWorkDays = Math.ceil(planTestDuration * 2) / 2;
+//
+//        System.out.println("adjustedWorkDays:"+adjustedWorkDays);
 
-        double planTestDuration = calculateWorkDays(createDateTime,planFinishDateTime,0);
-        // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
-        double adjustedWorkDays = Math.ceil(planTestDuration * 2) / 2;
+        // 将 scheduleTestCycle 转换为 double
+        double adjustedWorkDays;
+        try {
+            adjustedWorkDays = Double.parseDouble(scheduleTestCycle);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid scheduleTestCycle value: " + scheduleTestCycle, e);
+        }
 
-        System.out.println("adjustedWorkDays:"+adjustedWorkDays);
+        System.out.println("adjustedWorkDays:" + adjustedWorkDays);
 
-        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,adjustedWorkDays);
+        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,adjustedWorkDays,
+                formattedScheduleStartTime,formattedScheduleEndTime,scheduleTestCycle);
     }
 
     public List<String> querySample(String model,String coding,String high_frequency){

@@ -166,7 +166,7 @@ public class AccessTokenService {
                 URLEncoder.encode(reveiverJob, "UTF-8")       // 编码 job 参数
         );
         String messageUrl = String.format(
-                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=%s",
+                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=%s",
                 URLEncoder.encode(redirectUrl, "UTF-8")
         );
 

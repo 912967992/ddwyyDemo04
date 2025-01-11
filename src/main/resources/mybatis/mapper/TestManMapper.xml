@@ -39,8 +39,8 @@
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
         AND s.create_time >= '2024-11-18 00:00:00'
         AND (
-        (s.finish_time IS NULL AND NOW() > s.planfinish_time) OR
-        (s.finish_time IS NOT NULL AND s.planfinish_time &lt; s.finish_time))),
+        (s.finish_time IS NULL AND NOW() > s.scheduleEndTime) OR
+        (s.finish_time IS NOT NULL AND s.scheduleEndTime &lt; s.finish_time))),
         t.danger = (SELECT COUNT(*) FROM samples s WHERE s.danger IS NOT NULL AND s.danger != '' AND s.tester = #{name})
         WHERE t.name = #{name}
     </update>
@@ -95,7 +95,6 @@
         UPDATE samples
         SET
             sample_name = #{sample_name},
-            planfinish_time = #{planfinish_time},
             chip_control = #{chip_control},
             version_software = #{version_software},
             version_hardware = #{version_hardware},
@@ -117,7 +116,6 @@
         UPDATE samples
         SET
             sample_name = #{sample_name},
-            planfinish_time = #{planfinish_time},
             chip_control = #{chip_control},
             version_software = #{version_software},
             version_hardware = #{version_hardware},

@@ -100,7 +100,8 @@ public class durationTableController {
 
             // 创建列标题
             Row headerRow = sheet.createRow(0);
-            String[] columns = {"ID", "创建时间", "预计完成时间", "实际完成时间", "预计测试时长", "实测时长", "测试人员", "完整编码", "样品阶段","大类","小类", "版本", "样品名称"  ,"样品进度"};
+//            String[] columns = {"ID", "创建时间", "预计完成时间", "实际完成时间", "预计测试时长", "实测时长", "测试人员", "完整编码", "样品阶段","大类","小类", "版本", "样品名称"  ,"样品进度"};
+            String[] columns = {"ID", "创建时间",  "预计完成时间（弃用了）","排期开始时间","排期结束时间", "实际完成时间", "排期测试周期(天/8小时)", "实测时长", "测试人员", "完整编码", "样品阶段","大类","小类", "版本", "样品名称"  ,"样品进度"};
 
 
             // 创建样式
@@ -114,11 +115,13 @@ public class durationTableController {
                 cell.setCellStyle(style); // 应用样式
                 if(i==0){
                     sheet.setColumnWidth(i, 5 * 256); // 设置列宽
-                }else if (i==1 || i==2 || i== 3){
+                }else if (i==1 || i==2 || i== 3 || i ==4 || i==5){
                     sheet.setColumnWidth(i, 30 * 256); // 设置列宽
-                }else if (i==4 ||i==5){
+                }
+                /*else if (i==4 ||i==5){
                     sheet.setColumnWidth(i, 8 * 256); // 设置列宽
-                }else{
+                }*/
+                else{
                     sheet.setColumnWidth(i, 20 * 256); // 设置列宽
                 }
 
@@ -143,17 +146,20 @@ public class durationTableController {
                             }
                             break;
                         case 2: value = item.get("planfinish_time"); break;
-                        case 3: value = item.get("finish_time"); break;
-                        case 4: value = item.get("planTestDuration"); break;
-                        case 5: value = item.get("testDuration"); break;
-                        case 6: value = item.get("tester"); break;
-                        case 7: value = item.get("full_model"); break;
-                        case 8: value = item.get("sample_category"); break;
-                        case 9: value = item.get("big_species"); break;
-                        case 10: value = item.get("small_species"); break;
-                        case 11: value = item.get("version"); break;
-                        case 12: value = item.get("sample_name"); break;
-                        case 13:
+                        case 3: value = item.get("scheduleStartTime"); break;
+                        case 4: value = item.get("scheduleEndTime"); break;
+                        case 5: value = item.get("finish_time"); break;
+
+                        case 6: value = item.get("scheduleTestCycle"); break;
+                        case 7: value = item.get("testDuration"); break;
+                        case 8: value = item.get("tester"); break;
+                        case 9: value = item.get("full_model"); break;
+                        case 10: value = item.get("sample_category"); break;
+                        case 11: value = item.get("big_species"); break;
+                        case 12: value = item.get("small_species"); break;
+                        case 13: value = item.get("version"); break;
+                        case 14: value = item.get("sample_name"); break;
+                        case 15:
                             String scheduleValueStr = (String) item.get("sample_schedule");
                             if (scheduleValueStr != null) {
                                 switch (scheduleValueStr) {
@@ -176,7 +182,7 @@ public class durationTableController {
                             break;
                     }
                     // 设置单元格值
-                    if (j == 4 || j == 5) { // 如果是预计测试时长或实测时长
+                    if (j == 6 || j == 7) { // 如果是预计测试时长或实测时长
                         cell.setCellValue(value != null ? Double.parseDouble(value.toString()) : 0);
                     } else {
                         cell.setCellValue(value != null ? value.toString() : "");

@@ -74,10 +74,15 @@ public class ExcelShowController {
         String category = payload.get("category");
         String version = payload.get("version");
         String sample_name = payload.get("sample_name");
-        String planfinish_time = payload.get("planfinish_time");
+//        String planfinish_time = payload.get("planfinish_time");
         String sample_frequencyStr = payload.get("sample_frequency");
         String sample_quantityStr = payload.get("sample_quantity");
         String questStats = payload.get("questStats");
+        //新增3个排期字段
+        String scheduleStartTime = payload.get("scheduleStartTime");
+        String scheduleEndTime = payload.get("scheduleEndTime");
+        String scheduleTestCycle = payload.get("scheduleTestCycle");
+
         int sample_frequency =  Integer.parseInt(sample_frequencyStr.trim()); // 使用trim()去除可能的前后空格
         int sample_quantity =  Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
 
@@ -99,8 +104,8 @@ public class ExcelShowController {
                 filepaths = excelShowService.querySample(model,coding,high_frequency);
             }else{
                 String newFilepath = copyFile(filepath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
-                excelShowService.insertSample(username ,newFilepath,model,coding,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,
-                        big_species,small_species,high_frequency,questStats);
+                excelShowService.insertSample(username ,newFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,
+                        big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
                 filepaths.add(newFilepath);
             }
         }
@@ -144,8 +149,9 @@ public class ExcelShowController {
     @RequestMapping("/copyClickFile")
     public ModelAndView copyClickFile(@RequestParam String filePath, @RequestParam String model, @RequestParam String coding,
                                       @RequestParam String category, @RequestParam String version, @RequestParam String sample_name,
-                                      @RequestParam String planfinish_time, @RequestParam String username,@RequestParam String sample_frequencyStr,@RequestParam String sample_quantityStr,
-                                      @RequestParam String big_species, @RequestParam String small_species,@RequestParam String high_frequency,@RequestParam String questStats){
+                                      @RequestParam String username,@RequestParam String sample_frequencyStr,@RequestParam String sample_quantityStr,
+                                      @RequestParam String big_species, @RequestParam String small_species,@RequestParam String high_frequency,@RequestParam String questStats,
+                                      @RequestParam String scheduleStartTime,@RequestParam String scheduleEndTime,@RequestParam String scheduleTestCycle){
         if (username == null){
             throw new SessionTimeoutException("会话已超时，请重新登录");
         }
@@ -162,7 +168,8 @@ public class ExcelShowController {
         int sample_quantity = Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
 
         String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
-        excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,planfinish_time,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
+        excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,
+                scheduleStartTime,scheduleEndTime,scheduleTestCycle);
         return  new ModelAndView("redirect:/excelShow")
                 .addObject("filePath", copyFilepath);
     }

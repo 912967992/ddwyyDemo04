@@ -318,7 +318,11 @@ public class testManIndexController {
 
             @RequestParam("edit_version") String editVersion,
             @RequestParam("edit_sample_name") String editSampleName,
-            @RequestParam("edit_planfinish_time") String editPlanfinishTime,
+//            @RequestParam("edit_planfinish_time") String editPlanfinishTime,
+//            @RequestParam("edit_scheduleStartTime") String edit_scheduleStartTime,
+//            @RequestParam("edit_scheduleEndTime") String edit_scheduleEndTime,
+            @RequestParam("edit_scheduleTestCycle") String edit_scheduleTestCycle,
+
             @RequestParam("edit_chip_control") String editChipControl,
             @RequestParam("edit_version_software") String editVersionSoftware,
             @RequestParam("edit_version_hardware") String editVersionHardware,
@@ -342,7 +346,7 @@ public class testManIndexController {
             sample.setSample_category(editCategory);
             sample.setVersion(editVersion);
             sample.setSample_name(editSampleName);
-            sample.setPlanfinish_time(editPlanfinishTime);
+//            sample.setPlanfinish_time(editPlanfinishTime);
             sample.setChip_control(editChipControl);
             sample.setVersion_software(editVersionSoftware);
             sample.setVersion_hardware(editVersionHardware);
@@ -354,6 +358,10 @@ public class testManIndexController {
             sample.setSample_Developer(editSampleDeveloper);
             sample.setSample_leader(editSampleleader);
             sample.setTester(tester);
+
+//            sample.setScheduleStartTime(edit_scheduleStartTime);
+//            sample.setScheduleEndTime(edit_scheduleEndTime);
+//            sample.setScheduleTestCycle(edit_scheduleTestCycle);
 
             int sample_frequency =  Integer.parseInt(editsample_frequency.trim());
             sample.setSample_frequency(sample_frequency);
@@ -367,14 +375,25 @@ public class testManIndexController {
             LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
 
             // 使用ISO_LOCAL_DATE_TIME来解析带T的格式
-            LocalDateTime planfinishTime = LocalDateTime.parse(editPlanfinishTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
-
-            double planWorkDays = calculateWorkDays(createTime,planfinishTime,0);
+//            LocalDateTime planfinishTime = LocalDateTime.parse(editPlanfinishTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+//            double planWorkDays = calculateWorkDays(createTime,planfinishTime,0);
             // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
-            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
-            System.out.println("adjustedWorkDays:"+adjustedWorkDays);;
-            sample.setPlanTestDuration(adjustedWorkDays);
+//            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
+//            System.out.println("adjustedWorkDays:"+adjustedWorkDays);;
+//            sample.setPlanTestDuration(adjustedWorkDays);
+
+            if (edit_scheduleTestCycle != null && !edit_scheduleTestCycle.isEmpty()) {
+                try {
+                    double planTestDuration = Double.parseDouble(edit_scheduleTestCycle);
+                    if (planTestDuration != 0.0) {
+                        sample.setPlanTestDuration(planTestDuration);
+                    }
+                    // 如果为 0.0，不执行任何操作
+                } catch (NumberFormatException e) {
+                    // 处理转换失败的情况，例如记录日志
+                    logger.info("edit_scheduleTestCycle的值为空");
+                }
+            }
 
 
             //如果有更新产品名称则需要更新文件名

@@ -272,10 +272,13 @@
             const headerRow = document.createElement('tr');
 
 
+            // const headers = [
+            //     "ID","创建时间", "预计完成时间", "实际完成时间", "预计测试时长(天/8小时)","实测时长(天/8小时)", "测试人员",
+            //     "完整编码", "样品阶段", "大类", "小类","版本","样品名称","样品进度"
+            // ];
             const headers = [
-                "ID","创建时间", "预计完成时间", "实际完成时间", "预计测试时长(天/8小时)","实测时长(天/8小时)", "测试人员",
+                "ID","创建时间", "预计完成时间（弃用了）","排期开始时间","排期结束时间", "实际完成时间", "排期测试周期(天/8小时)","实测时长(天/8小时)", "测试人员",
                 "完整编码", "样品阶段", "大类", "小类","版本","样品名称","样品进度"
-
             ];
 
             headers.forEach(headerText => {
@@ -294,8 +297,8 @@
 
                 // 填充表格行的每个单元格
                 const cells = [
-                    item.sample_id,  item.create_time,  item.planfinish_time,item.finish_time,
-                    item.planTestDuration ,item.testDuration,  item.tester,
+                    item.sample_id,  item.create_time, item.planfinish_time , item.scheduleStartTime, item.scheduleEndTime , item.finish_time,
+                    item.scheduleTestCycle ,item.testDuration,  item.tester,
                     item.full_model, item.sample_category,item.big_species, item.small_species,
                     item.version,item.sample_name,
                     item.sample_schedule

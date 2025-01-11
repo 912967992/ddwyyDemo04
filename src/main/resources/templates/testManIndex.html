@@ -190,8 +190,16 @@
             <input type="text" id="version" name="version" required placeholder="必填项大写，没有填无">
             <label for="sample_name">产品名称:</label>
             <input type="text" id="sample_name" name="sample_name" required placeholder="必填项，/\:*?<>|会替换成下横线_"><br>
-            <label for="planfinish_time">预计完成时间:</label>
-            <input type="datetime-local" id="planfinish_time" name="planfinish_time" required><br>
+            <!--   20250108 删掉预计完成时间，改成3个字段：排期开始时间，排期结束时间，排期测试周期        -->
+<!--            <label for="planfinish_time">预计完成时间:</label>-->
+<!--            <input type="datetime-local" id="planfinish_time" name="planfinish_time" required><br>-->
+            <label for="scheduleStartTime">排期开始时间:</label>
+            <input type="datetime-local" id="scheduleStartTime" name="scheduleStartTime" required><br>
+            <label for="scheduleEndTime">排期结束时间:</label>
+            <input type="datetime-local" id="scheduleEndTime" name="scheduleEndTime" required><br>
+            <label for="scheduleTestCycle">排期测试周期(天):</label>
+            <input type="number" id="scheduleTestCycle" name="scheduleTestCycle" min="0.5" step="0.5" required placeholder="必填项，最小是0.5">
+
 
             <label for="sample_frequency">送样次数:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <input type="number" id="sample_frequency" name="sample_frequency" min="1" required placeholder="必填项，请写明是第几次送样，第一次则为1">
@@ -639,7 +647,10 @@
             sample_name = sample_name.replace(/[\/\\:*?"<>|\t]/g, "_");
 
 
-            var planfinish_time = $('#planfinish_time').val();
+            // var planfinish_time = $('#planfinish_time').val();
+            var scheduleStartTime = $('#scheduleStartTime').val();
+            var scheduleEndTime = $('#scheduleEndTime').val();
+            var scheduleTestCycle = $('#scheduleTestCycle').val();
 
             $.ajax({
                 url: '/home/queryExist',
@@ -652,14 +663,18 @@
                     category: category,
                     version: version,
                     sample_name: sample_name,
-                    planfinish_time: planfinish_time,
+                    // planfinish_time: planfinish_time,
                     sample_frequency : sample_frequency,
                     sample_quantity : sample_quantity,
                     big_species: big_species,
                     small_species: small_species,
                     high_frequency: high_frequency,
                     questStats: questStats,
-                    username: username
+                    username: username,
+                    scheduleStartTime: scheduleStartTime,
+                    scheduleEndTime: scheduleEndTime,
+                    scheduleTestCycle: scheduleTestCycle,
+
                 }),
                 success: function (filepaths) {
                     let high_sign = "";
@@ -692,10 +707,11 @@
                                 }
                                 window.location.href = redirectUrl;
                             }else{
-                                addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
+                                // addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
+                                addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
                             }
                         }else{
-                            addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
+                            addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
                         }
                     }
 
@@ -710,7 +726,7 @@
     });
 
 
-    function addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequencyStr,sample_quantityStr,big_species,small_species,high_frequency,questStats){
+    function addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequencyStr,sample_quantityStr,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle){
         var existModalContent = document.querySelector('.existModal-content');
         existModalContent.innerHTML = '<span class="close">&times;</span><h2>已存在其他版本的文件</h2>';
         var existModal = document.getElementById("existModal");
@@ -738,14 +754,17 @@
                 + '&category=' + encodeURIComponent(category)
                 + '&version=' + encodeURIComponent(version)
                 + '&sample_name=' + encodeURIComponent(sample_name)
-                + '&planfinish_time=' + encodeURIComponent(planfinish_time)
+                // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
                 + '&username=' + encodeURIComponent(username)
                 + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
                 + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
                 + '&big_species=' + encodeURIComponent(big_species)
                 + '&small_species=' + encodeURIComponent(small_species)
                 + '&high_frequency=' + encodeURIComponent(high_frequency)
-                + '&questStats=' + encodeURIComponent(questStats);
+                + '&questStats=' + encodeURIComponent(questStats)
+                + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
+                + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
+                + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle);
 
             if (redirectUrl.indexOf('?') !== -1) {
                 redirectUrl += '&dd_orientation=landscape';
@@ -780,14 +799,17 @@
                     + '&category=' + encodeURIComponent(category)
                     + '&version=' + encodeURIComponent(version)
                     + '&sample_name=' + encodeURIComponent(sample_name)
-                    + '&planfinish_time=' + encodeURIComponent(planfinish_time)
+                    // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
                     + '&username=' + encodeURIComponent(username)
                     + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
                     + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
                     + '&big_species=' + encodeURIComponent(big_species)
                     + '&small_species=' + encodeURIComponent(small_species)
                     + '&high_frequency=' + encodeURIComponent(high_frequency)
-                    + '&questStats=' + encodeURIComponent(questStats);
+                    + '&questStats=' + encodeURIComponent(questStats)
+                    + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
+                    + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
+                    + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle);
 
 // Check if the URL already contains a query string (i.e., '?')
                 if (redirectUrl.indexOf('?') !== -1) {
@@ -852,10 +874,17 @@
                             <label for="edit_sample_quantity">送样数量:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <input type="text" id="edit_sample_quantity" name="edit_sample_quantity" required readonly style="background-color: #e87676;">
 
+                            <label for="edit_scheduleStartTime">排期开始时间:</label>
+                            <input type="datetime-local" id="edit_scheduleStartTime" name="edit_scheduleStartTime" required readonly style="background-color: #e87676;">
+                            <label for="edit_scheduleEndTime">排期结束时间:</label>
+                            <input type="datetime-local" id="edit_scheduleEndTime" name="edit_scheduleEndTime" required readonly style="background-color: #e87676;">
+                            <label for="edit_scheduleTestCycle">排期测试周期:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <input type="text" id="edit_scheduleTestCycle" name="edit_scheduleTestCycle" required readonly style="background-color: #e87676;">
+
                             <label for="edit_sample_name">产品名称:</label>
                             <input type="text" id="edit_sample_name" name="edit_sample_name" required placeholder="必填项"><span style="color: red;">*</span><br>
-                            <label for="edit_planfinish_time">预计完成时间:</label>
-                            <input type="datetime-local" id="edit_planfinish_time" name="edit_planfinish_time" required><span style="color: red;">*</span><br>
+<!--                            <label for="edit_planfinish_time">预计完成时间:</label>-->
+<!--                            <input type="datetime-local" id="edit_planfinish_time" name="edit_planfinish_time" required><span style="color: red;">*</span><br>-->
                             <label for="edit_chip_control">主控芯片:</label>
                             <input type="text" id="edit_chip_control" name="edit_chip_control" ><span style="color: red;">*</span><br>
                             <label for="edit_version_software">软件版本:</label>
@@ -960,9 +989,34 @@
         });
 
         // 因为手机端需要有“T”才可以在前端展示这个数据，不然会显示空
-        const formattedPlanFinishTime = product.planfinish_time.replace(' ', 'T');
+        // const formattedPlanFinishTime = product.planfinish_time.replace(' ', 'T');
+        // document.getElementById('edit_planfinish_time').value = formattedPlanFinishTime;
+        // 检查并更新 scheduleStartTime
+        if (product.scheduleStartTime) {
+            const formattedScheduleStartTime = product.scheduleStartTime.replace(' ', 'T');
+            const startTimeElement = document.getElementById('edit_scheduleStartTime');
+            if (startTimeElement) {
+                startTimeElement.value = formattedScheduleStartTime;
+            }
+        }
 
-        document.getElementById('edit_planfinish_time').value = formattedPlanFinishTime;
+        // 检查并更新 scheduleEndTime
+        if (product.scheduleEndTime) {
+            const formattedScheduleEndTime = product.scheduleEndTime.replace(' ', 'T');
+            const endTimeElement = document.getElementById('edit_scheduleEndTime');
+            if (endTimeElement) {
+                endTimeElement.value = formattedScheduleEndTime;
+            }
+        }
+
+        // 检查并更新 scheduleTestCycle
+        if (product.scheduleTestCycle) {
+            const testCycleElement = document.getElementById('edit_scheduleTestCycle');
+            if (testCycleElement) {
+                testCycleElement.value = product.scheduleTestCycle;
+            }
+        }
+
 
         // 显示模态框
         document.getElementById('editModal').style.display = 'block';
@@ -1304,8 +1358,19 @@
 
                 // 判断是否需要红色边框
                 var isDanger = (product.danger && product.danger.trim() !== "") ||
-                    (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.planfinish_time).getTime()) ||
-                    (!product.finish_time && new Date().getTime() > new Date(product.planfinish_time).getTime());
+                    (
+                        product.finish_time &&
+                        new Date(product.finish_time).getTime() >
+                        new Date(product.planfinish_time || product.scheduleEndTime).getTime()
+                    ) ||
+                    (
+                        !product.finish_time &&
+                        new Date().getTime() >
+                        new Date(product.planfinish_time || product.scheduleEndTime).getTime()
+                    );
+                // var isDanger = (product.danger && product.danger.trim() !== "") ||
+                //     (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.planfinish_time).getTime()) ||
+                //     (!product.finish_time && new Date().getTime() > new Date(product.planfinish_time).getTime());
 
                 // 根据条件 isDanger 来决定 tableClass 的值
                 var tableClass = isDanger ? 'product-table danger' : 'product-table';
