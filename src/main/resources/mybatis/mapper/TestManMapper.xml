@@ -159,8 +159,8 @@
                 sample_id =#{sample_id}
     </select>
 
-    <select id="queryPlanFinishTime" resultType="java.time.LocalDateTime">
-        SELECT planfinish_time FROM samples
+    <select id="queryPlanFinishTime" resultType="java.math.BigDecimal">
+        SELECT planTestDuration FROM samples
         WHERE
             sample_id =#{sample_id}
     </select>

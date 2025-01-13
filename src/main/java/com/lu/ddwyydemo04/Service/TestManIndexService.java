@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +135,7 @@ public class TestManIndexService {
         return testManDao.setDuration(planWorkDays,workDays,sample_id);
     }
 
-    public LocalDateTime  queryPlanFinishTime(int sample_id){
+    public BigDecimal queryPlanFinishTime(int sample_id){
         return testManDao.queryPlanFinishTime(sample_id);
     }
 

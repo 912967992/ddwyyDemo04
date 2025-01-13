@@ -70,10 +70,10 @@ public class DQEIndexController {
         return "DQE/weeklyNewspaper";
     }
 
-    @GetMapping("/scanBinning") // 处理页面跳转请求
+    @GetMapping("/scheduleBoard") // 处理页面跳转请求
     public String loginScanBinning() {
         // 返回跳转页面的视图名称
-        return "DQE/scanBinning";
+        return "DQE/scheduleBoard";
     }
 
     @PostMapping("/DQEIndex/saveWarningDays")

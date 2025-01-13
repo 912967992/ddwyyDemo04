@@ -7,6 +7,7 @@ import com.lu.ddwyydemo04.pojo.TotalData;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 @Repository
@@ -59,7 +60,7 @@ public interface TestManDao {
                            @Param("sample_id") int sample_id);
 
 
-    public LocalDateTime  queryPlanFinishTime(@Param("sample_id")int sample_id);
+    public BigDecimal queryPlanFinishTime(@Param("sample_id")int sample_id);
 
 
     public List<Samples> searchSampleTestMan(@Param("keyword") String keyword,

@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -527,11 +528,16 @@ public class testManIndexController {
             testManIndexService.finishTestWithoutTime(schedule,formattedDateTime,sample_id);
 
             LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
-            LocalDateTime planFinishTime =  testManIndexService.queryPlanFinishTime(sample_id);
+//            LocalDateTime planFinishTime =  testManIndexService.queryPlanFinishTime(sample_id);
 
-            double planWorkDays = calculateWorkDays(createTime,planFinishTime,restDays);
+//            double planWorkDays = calculateWorkDays(createTime,planFinishTime,restDays);
+
             // 将其转换为 0.5 的倍数，向上取整,只算0.5的倍数
-            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
+//            double adjustedWorkDays = Math.ceil(planWorkDays * 2) / 2;
+
+            //因为预计完成时间字段现在去掉了，有可能为null。所以这里要用
+            BigDecimal planTestDuration = testManIndexService.queryPlanFinishTime(sample_id);
+            double adjustedWorkDays = (planTestDuration != null) ? planTestDuration.doubleValue() : 0.0;
 
             double workDays = calculateWorkDays(createTime,now,restDays);
             int setDuration = testManIndexService.setDuration(adjustedWorkDays,workDays,sample_id);
