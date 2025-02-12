@@ -1,125 +1,117 @@
-.BackBtn {
-    position: absolute; /* 绝对定位 */
-    top: 0px; /* 距离顶部10px */
-    left: 150px; /* 距离左侧10px */
-    padding: 8px 16px;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: 20px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    background-color: #FFDAB9;
-    color: #000000;
-    font-size: 16px;
+/* 样式保持不变 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
 }
-
-@media (max-width: 768px) {
-    .sidebar {
-        width: 60px; /* 减少宽度 */
-        padding: 10px; /* 缩小内边距 */
-    }
-
-    .content {
-        margin-left: 80px; /* 根据 sidebar 新宽度调整 */
-    }
-
-    .BackBtn {
-        left: auto; /* 清除左侧定位 */
-        right: 10px; /* 设置右侧固定间距 */
-        top: 10px; /* 保持顶部间距 */
-    }
-
-
-}
-
-
-
-
-/* 20250112 排期看板*/
-.add-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 12px;
-    margin-left: 5px;
-}
-
-.add-btn:hover {
-    background-color: #45a049;
-}
-
-
-.BackBtn {
-    position: absolute; /* 使用绝对定位 */
-    top: 10px; /* 距离顶部 10px */
-    left: 10px; /* 距离左侧 10px */
-    padding: 8px 16px;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: 20px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    background-color: #FFDAB9;
-    color: #000000;
-    font-size: 16px;
-}
-
-
-.header-container {
-    position: relative;
-    height: 60px;
+.container {
     display: flex;
-    justify-content: center; /* 让标题居中 */
-    align-items: center; /* 垂直居中 */
+    gap: 20px;
 }
-
-.title {
-    font-weight: bold;
-    color: #2ba245;
-    font-size: 25px;
-    text-align: center; /* 文字在自身容器内居中 */
-}
-
-#calendar {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#calendar th, #calendar td {
+.pool,
+.schedule-container {
     border: 1px solid #ccc;
-    text-align: center;
-    height: 50px;
-}
-#projects-container {
-    margin-top: 20px;
-}
-
-.project {
-    width: 100px;
-    height: 30px;
-    background-color: #007bff;
-    color: white;
-    text-align: center;
-    line-height: 30px;
-    margin-bottom: 10px;
-    cursor: grab;
-}
-
-.dropzone {
+    padding: 20px;
     background-color: #f9f9f9;
-    height: 50px;
+}
+.pool {
+    width: 30%;
+    min-height: 400px;
+}
+.schedule-container {
+    width: 65%;
+}
+.controls {
+    margin-bottom: 20px;
+}
+.controls button {
+    margin-right: 10px;
+}
+.project {
+    background-color: #f44336; /* 默认红色 */
+    color: white;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: move;
+    border-radius: 5px;
+    text-align: center;
+    position: relative; /* 保证内部绝对定位相对于项目元素 */
+    user-select: none;
+}
+.project .days-input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 30px;
+    text-align: center;
+    border-radius: 0 5px 0 0;
+}
+/* 修改：颜色选择器固定在项目元素右下角，不论项目在项目池还是排期面板中 */
+/* 修改颜色选择器样式 */
+.color-selector {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 10;
+}
+.color-picker-btn {
+    width: 20px;
+    height: 20px;
+    border: none;
+    cursor: pointer;
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.color-options {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: white;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.color-option {
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+    border: none;
+    cursor: pointer;
+}
+.color-picker-btn:hover .color-options,
+.color-options:hover {
+    display: flex;
+    flex-wrap: wrap;
+}
+.schedule {
+    display: grid;
+    gap: 1px;
+}
+.cell {
+    border: 1px solid #ccc;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
     position: relative;
 }
-
-.dropzone .project {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    cursor: grab;
+.cell.occupied {
+    background-color: #ffeeba;
+}
+.cell.merged {
+    display: none; /* 合并的单元格隐藏 */
+}
+.cell.merge-start {
+    grid-column-end: span var(--merge-days); /* 合并单元格 */
+}
+.header {
+    background-color: #f1f1f1;
+    font-weight: bold;
+    text-align: center;
 }

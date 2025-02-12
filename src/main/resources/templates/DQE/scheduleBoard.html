@@ -1,235 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>排期版</title>
 
-    <!-- 引入外部CSS文件 -->
-    <link rel="stylesheet" href="/css/scheduleBoard.css">
+    <link rel="stylesheet" href="/css/scheduleBoard.css">-->
 
-    <title>排期看板</title>
-    <style>
-        .dropzone {
-            border: 1px solid #ccc;
-            min-height: 50px;
-            text-align: center;
-            padding: 10px;
-        }
-        .highlight {
-            background-color: #f0f8ff;
-        }
-        .project {
-            padding: 5px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 3px;
-            margin: 5px;
-            cursor: grab;
-        }
-    </style>
+
 </head>
 <body>
-
-<div class="header-container">
-    <div class="title">数据看板</div>
-    <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+<h1>排期版</h1>
+<div class="controls">
+    <button id="addTester">新增测试人员</button>
+    <button id="addProject">新增项目</button>
+    <button id="addDay">新增排期日期</button>
 </div>
-
-<div id="projects-container">
-    <div class="project" data-id="1" draggable="true">项目A</div>
-    <div class="project" data-id="2" draggable="true">项目B</div>
+<div class="container">
+    <div class="pool" id="pool">
+        <h3>项目池子</h3>
+    </div>
+    <div class="schedule-container">
+        <h3>排期版</h3>
+        <div class="schedule" id="schedule"></div>
+    </div>
 </div>
-
-<button id="add-date-btn">新增日期</button>
-
-<table id="calendar" border="1" style="width: 100%; margin-top: 20px;">
-    <thead>
-    <tr>
-        <th>测试人员</th>
-        <th>2025-01-01</th>
-        <th>2025-01-02</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>测试人员 1</td>
-        <td class="dropzone" data-tester="Tester 1" data-date="2025-01-01"></td>
-        <td class="dropzone" data-tester="Tester 1" data-date="2025-01-02"></td>
-    </tr>
-    <tr>
-        <td>测试人员 2</td>
-        <td class="dropzone" data-tester="Tester 2" data-date="2025-01-01"></td>
-        <td class="dropzone" data-tester="Tester 2" data-date="2025-01-02"></td>
-    </tr>
-    </tbody>
-</table>
 
 <script>
-    // 初始化拖动事件
-    document.querySelectorAll('.project').forEach(project => {
-        project.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', project.dataset.id);
-        });
+    const pool = document.getElementById('pool');
+    const schedule = document.getElementById('schedule');
 
-        // 添加右键菜单事件
-        project.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // 禁止默认右键菜单
+    let testers = [];
+    let dates = [];
+    // 存储排期数据：{ tester: { date: { project, days, startDate, color } } }
+    let scheduleData = {};
+    // 当拖拽排期中项目时记录原始信息（用于拖拽取消时回退）
+    let draggedProjectOriginal = null;
 
-            const currentParent = project.parentElement;
-            if (currentParent && currentParent.classList.contains('dropzone')) {
-                // 从单元格中移除项目
-                currentParent.removeChild(project);
-
-                // 将项目还原到外部容器
-                const projectsContainer = document.getElementById('projects-container');
-                projectsContainer.appendChild(project);
-
-                console.log(`Restored Project ${project.dataset.id} to the container.`);
-            }
-        });
-    });
-
-    // 处理拖放到单元格
-    document.querySelectorAll('.dropzone').forEach(zone => {
-        zone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            zone.classList.add('highlight');
-        });
-
-        zone.addEventListener('dragleave', () => {
-            zone.classList.remove('highlight');
-        });
-
-        zone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            zone.classList.remove('highlight');
-
-            const projectId = e.dataTransfer.getData('text/plain');
-            const project = document.querySelector(`.project[data-id="${projectId}"]`);
-
-            if (project) {
-                const currentParent = project.parentElement;
-
-                // 如果项目已经在另一个单元格中，移除原位置
-                if (currentParent && currentParent.classList.contains('dropzone')) {
-                    currentParent.removeChild(project);
-                }
-
-                // 放置到当前单元格
-                zone.appendChild(project);
-
-                // 重新绑定右键菜单事件
-                project.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    if (project.parentElement && project.parentElement.classList.contains('dropzone')) {
-                        project.parentElement.removeChild(project);
-                        document.getElementById('projects-container').appendChild(project);
-                        console.log(`Restored Project ${projectId} to the container.`);
-                    }
-                });
-
-                saveSchedule(zone, projectId);
-            }
-        });
-    });
-
-    // 处理从单元格拖回到外部容器
-    const projectsContainer = document.getElementById('projects-container');
-    projectsContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-    });
-
-    projectsContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-
-        const projectId = e.dataTransfer.getData('text/plain');
-        const project = document.querySelector(`.project[data-id="${projectId}"]`);
-
-        if (project) {
-            const currentParent = project.parentElement;
-
-            // 如果项目在日历单元格中，移除原位置
-            if (currentParent && currentParent.classList.contains('dropzone')) {
-                currentParent.removeChild(project);
-            }
-
-            // 将项目放回外部容器
-            projectsContainer.appendChild(project);
-            console.log(`Removed Project ${projectId} from schedule.`);
-        }
-    });
-
-    // 添加新日期列
-    document.getElementById('add-date-btn').addEventListener('click', () => {
-        const calendar = document.getElementById('calendar');
-        const headerRow = calendar.querySelector('thead tr');
-        const bodyRows = calendar.querySelectorAll('tbody tr');
-
-        const lastDate = headerRow.lastElementChild.textContent;
-        const nextDate = new Date(lastDate);
-        nextDate.setDate(nextDate.getDate() + 1);
-
-        // 添加新日期到表头
-        const newDateTh = document.createElement('th');
-        newDateTh.textContent = nextDate.toISOString().split('T')[0];
-        headerRow.appendChild(newDateTh);
-
-        // 为每个测试人员添加新的单元格
-        bodyRows.forEach(row => {
-            const newCell = document.createElement('td');
-            newCell.classList.add('dropzone');
-            newCell.dataset.tester = row.firstElementChild.textContent;
-            newCell.dataset.date = newDateTh.textContent;
-
-            newCell.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                newCell.classList.add('highlight');
-            });
-
-            newCell.addEventListener('dragleave', () => {
-                newCell.classList.remove('highlight');
-            });
-
-            newCell.addEventListener('drop', (e) => {
-                e.preventDefault();
-                newCell.classList.remove('highlight');
-
-                const projectId = e.dataTransfer.getData('text/plain');
-                const project = document.querySelector(`.project[data-id="${projectId}"]`);
-
-                if (project) {
-                    const currentParent = project.parentElement;
-
-                    if (currentParent && currentParent.classList.contains('dropzone')) {
-                        currentParent.removeChild(project);
-                    }
-
-                    newCell.appendChild(project);
-
-                    // 重新绑定右键菜单事件
-                    project.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        if (project.parentElement && project.parentElement.classList.contains('dropzone')) {
-                            project.parentElement.removeChild(project);
-                            document.getElementById('projects-container').appendChild(project);
-                            console.log(`Restored Project ${projectId} to the container.`);
-                        }
-                    });
-
-                    saveSchedule(newCell, projectId);
-                }
-            });
-
-            row.appendChild(newCell);
-        });
-    });
-
-    // 模拟保存排期的函数
-    function saveSchedule(cell, projectId) {
-        console.log(`Saved Project ${projectId} to Tester: ${cell.dataset.tester}, Date: ${cell.dataset.date}`);
+    // 生成唯一项目名称
+    function getNextProjectName() {
+        const existing = new Set();
+        Array.from(pool.children).forEach(p => existing.add(p.textContent));
+        Array.from(schedule.querySelectorAll('.occupied')).forEach(c => existing.add(c.textContent));
+        let num = 1;
+        while (existing.has(`项目${num}`)) num++;
+        return `项目${num}`;
     }
+
+    // 渲染排期表
+    function renderSchedule() {
+        const cols = dates.length + 1;
+        const rows = testers.length + 1;
+
+        schedule.style.gridTemplateColumns = `150px repeat(${cols - 1}, 100px)`;
+        schedule.style.gridTemplateRows = `repeat(${rows}, 50px)`;
+        schedule.innerHTML = '';
+
+        // 表头行
+        schedule.appendChild(createHeaderCell('测试人员/日期'));
+        dates.forEach(date => schedule.appendChild(createHeaderCell(date)));
+
+        // 数据行
+        testers.forEach(tester => {
+            schedule.appendChild(createHeaderCell(tester));
+            dates.forEach((date, dateIndex) => {
+                const cell = createEmptyCell();
+                cell.dataset.tester = tester;
+                cell.dataset.date = date;
+                cell.dataset.dateIndex = dateIndex;
+
+                const projectData = scheduleData[tester]?.[date];
+                // 在渲染排期时，检查项目数据是否存在，若存在则进行合并显示
+                if (projectData) {
+                    if (projectData.startDate === date) {
+                        // 合并单元格
+                        cell.style.gridColumnEnd = `span ${projectData.days}`;
+                        cell.classList.add('merge-start');
+                        cell.classList.add('occupied');
+                        // 让单元格背景色与项目颜色保持一致
+                        cell.style.backgroundColor = projectData.color || '#f44336';
+                        cell.innerHTML = ''; // 清空内容
+                        const projDiv = document.createElement('div');
+                        projDiv.className = 'project';
+                        projDiv.draggable = true;
+                        projDiv.textContent = projectData.project;
+                        projDiv.style.backgroundColor = projectData.color || '#f44336';
+                        addDragAndDropFromSchedule(projDiv, tester, date, projectData);
+                        addColorSelector(projDiv);
+                        cell.appendChild(projDiv);
+                    } else {
+                        // 隐藏被合并的单元格
+                        cell.classList.add('merged');
+                    }
+                }
+
+                schedule.appendChild(cell);
+            });
+        });
+    }
+
+    // 创建表头单元格
+    function createHeaderCell(content) {
+        const cell = document.createElement('div');
+        cell.className = 'cell header';
+        cell.textContent = content;
+        return cell;
+    }
+
+    // 创建空白格子
+    // 创建空白格子
+    function createEmptyCell() {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        // 保留原有右键撤回功能
+        cell.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (cell.classList.contains('occupied')) {
+                const projectName = cell.querySelector('.project').textContent; // 获取项目名称
+                const tester = cell.dataset.tester;
+                const date = cell.dataset.date;
+                const projectData = scheduleData[tester][date];
+                if (projectData) {
+                    const startDate = projectData.startDate;
+                    const days = projectData.days;
+                    // 清除所有占用的格子
+                    for (let i = 0; i < days; i++) {
+                        const currentDate = dates[dates.indexOf(startDate) + i];
+                        delete scheduleData[tester][currentDate];
+                    }
+                    // 移回池子（保留原始天数和颜色）
+                    const project = document.createElement('div');
+                    project.className = 'project';
+                    project.draggable = true;
+                    project.textContent = projectName; // 只保留项目名称
+                    addDragAndDrop(project);
+                    addDaysInput(project, days);
+                    project.style.backgroundColor = projectData.color || '#f44336';
+                    addColorSelector(project);
+                    pool.appendChild(project);
+                }
+                renderSchedule();
+            }
+        });
+        return cell;
+    }
+    // 为项目添加天数输入框（仅用于项目池中的项目）
+    function addDaysInput(project, days = 1) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = 1;
+        input.value = days;
+        input.className = 'days-input';
+        project.appendChild(input);
+    }
+
+    // 修改后的颜色选择器函数
+    function addColorSelector(project) {
+        const colors = {
+            red: '#f44336',
+            yellow: '#ffeb3b',
+            green: '#4caf50',
+            gray: '#9e9e9e'
+        };
+
+        const picker = document.createElement('div');
+        picker.className = 'color-selector';
+
+        const btn = document.createElement('button');
+        btn.className = 'color-picker-btn';
+        btn.innerHTML = '🎨';
+
+        const options = document.createElement('div');
+        options.className = 'color-options';
+
+        for (const key in colors) {
+            const colorBtn = document.createElement('button');
+            colorBtn.className = 'color-option';
+            colorBtn.style.backgroundColor = colors[key];
+            colorBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                project.style.backgroundColor = colors[key];
+                project.dataset.color = colors[key];
+
+                const cell = project.parentElement;
+                if (cell && cell.dataset.tester && cell.dataset.date) {
+                    const tester = cell.dataset.tester;
+                    const startDate = cell.dataset.date;
+                    const projData = scheduleData[tester]?.[startDate];
+                    if (projData) {
+                        projData.color = colors[key];
+                        const startIndex = dates.indexOf(startDate);
+                        for (let i = 0; i < projData.days; i++) {
+                            const d = dates[startIndex + i];
+                            if (scheduleData[tester][d]) {
+                                scheduleData[tester][d].color = colors[key];
+                            }
+                        }
+                        cell.style.backgroundColor = colors[key];
+                    }
+                }
+            });
+            options.appendChild(colorBtn);
+        }
+
+        btn.appendChild(options);
+        picker.appendChild(btn);
+        project.appendChild(picker);
+
+        // 使用 mouseenter 和 mouseleave 控制颜色选择器的显示
+        btn.addEventListener('mouseenter', () => {
+            options.style.display = 'flex';
+        });
+        btn.addEventListener('mouseleave', () => {
+            options.style.display = 'none';
+        });
+
+    }
+    // 为项目添加拖拽功能（适用于项目池中的项目）
+    function addDragAndDrop(element) {
+        element.addEventListener('dragstart', (e) => {
+            const element = e.target;
+
+            // 提取 div 中的纯文本内容，忽略 button 和其他非文本节点
+            let projectName = '';
+            for (let node of element.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
+                    projectName += node.nodeValue.trim();
+                }
+            }
+
+            // 设置拖拽数据
+            e.dataTransfer.setData('text', projectName);
+            // const projectName = element.textContent.trim(); // 直接使用 textContent
+            console.log("拖拽1",element)
+            e.dataTransfer.setData('text', projectName);
+            e.dataTransfer.setData('days', element.querySelector('.days-input').value);
+            e.dataTransfer.setData('source', 'pool');
+            e.dataTransfer.setData('color', element.dataset.color || '#f44336');
+            element.classList.add('dragging');
+        });
+        element.addEventListener('dragend', () => {
+            element.classList.remove('dragging');
+        });
+    }
+
+    // 为排期中的项目添加拖拽功能
+    function addDragAndDropFromSchedule(element, tester, date, projectData) {
+        element.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text', element.textContent);
+            console.log("拖拽2",element)
+            e.dataTransfer.setData('days', projectData.days);
+            e.dataTransfer.setData('color', projectData.color || '#f44336');
+            e.dataTransfer.setData('source', 'schedule');
+            draggedProjectOriginal = { tester, startDate: date, project: projectData.project, days: projectData.days, color: projectData.color || '#f44336' };
+            setTimeout(() => {
+                const startIndex = dates.indexOf(date);
+                for (let i = 0; i < projectData.days; i++) {
+                    const d = dates[startIndex + i];
+                    delete scheduleData[tester][d];
+                }
+                renderSchedule();
+            }, 0);
+        });
+        element.addEventListener('dragend', () => {
+            if (draggedProjectOriginal) {
+                const { tester, startDate, project, days, color } = draggedProjectOriginal;
+                const startIndex = dates.indexOf(startDate);
+                for (let i = 0; i < days; i++) {
+                    const d = dates[startIndex + i];
+                    scheduleData[tester][d] = { project, days, startDate, color };
+                }
+                draggedProjectOriginal = null;
+                renderSchedule();
+            }
+        });
+    }
+
+    // 排期版拖拽放置事件（适用于来自项目池和排期中的项目）
+    schedule.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const cell = e.target.closest('.cell:not(.header):not(.occupied)');
+        if (cell) cell.style.border = '2px dashed green';
+    });
+
+    schedule.addEventListener('dragleave', (e) => {
+        const cell = e.target.closest('.cell');
+        if (cell) cell.style.border = '1px solid #ccc';
+    });
+
+    schedule.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const cell = e.target.closest('.cell:not(.header):not(.occupied)');
+        if (!cell) return;
+
+        const source = e.dataTransfer.getData('source');
+        const projectName = e.dataTransfer.getData('text');
+        console.log("拖拽3:",projectName)
+        console.log("拖拽3的e:",e.dataTransfer)
+
+        const days = parseInt(e.dataTransfer.getData('days'), 10);
+        const color = e.dataTransfer.getData('color') || '#f44336';
+        const tester = cell.dataset.tester;
+        const startDateIndex = parseInt(cell.dataset.dateIndex, 10);
+
+        // 检查是否有足够的连续空位
+        let hasEnoughSpace = true;
+        if (startDateIndex + days > dates.length) {
+            hasEnoughSpace = false;
+        } else {
+            for (let i = 0; i < days; i++) {
+                const idx = startDateIndex + i;
+                const targetCell = schedule.querySelector(`.cell[data-tester="${tester}"][data-date-index="${idx}"]`);
+                if (targetCell && targetCell.classList.contains('occupied')) {
+                    hasEnoughSpace = false;
+                    break;
+                }
+            }
+        }
+
+        if (hasEnoughSpace) {
+            const startDate = dates[startDateIndex];
+            for (let i = 0; i < days; i++) {
+                const d = dates[startDateIndex + i];
+                scheduleData[tester][d] = { project: projectName, days, startDate, color };
+            }
+            if (source === 'pool') {
+                const proj = Array.from(pool.children).find(p => p.textContent === projectName);
+                if (proj) pool.removeChild(proj);
+            }
+            draggedProjectOriginal = null;
+            renderSchedule();
+        } else {
+            alert('没有足够的连续空位！');
+            if (source === 'schedule' && draggedProjectOriginal) {
+                const { tester, startDate, project, days, color } = draggedProjectOriginal;
+                const startIndex = dates.indexOf(startDate);
+                for (let i = 0; i < days; i++) {
+                    const d = dates[startIndex + i];
+                    scheduleData[tester][d] = { project, days, startDate, color };
+                }
+                draggedProjectOriginal = null;
+                renderSchedule();
+            }
+        }
+        cell.style.border = '1px solid #ccc';
+    });
+
+    // 事件监听：新增测试人员
+    document.getElementById('addTester').addEventListener('click', () => {
+        const name = `测试人员${testers.length + 1}`;
+        testers.push(name);
+        scheduleData[name] = {};
+        dates.forEach(date => scheduleData[name][date] = null);
+        renderSchedule();
+    });
+
+    // 事件监听：新增项目（加入项目池）
+    document.getElementById('addProject').addEventListener('click', () => {
+        const project = document.createElement('div');
+        project.className = 'project';
+        project.draggable = true;
+        project.textContent = getNextProjectName();
+        addDragAndDrop(project);
+        addDaysInput(project);
+        project.style.backgroundColor = '#f44336';
+        project.dataset.color = '#f44336';
+        addColorSelector(project);
+        pool.appendChild(project);
+    });
+
+    // 事件监听：新增排期日期
+    document.getElementById('addDay').addEventListener('click', () => {
+        const date = `日期${dates.length + 1}`;
+        dates.push(date);
+        testers.forEach(tester => {
+            if (!scheduleData[tester][date]) {
+                scheduleData[tester][date] = null;
+            }
+        });
+        renderSchedule();  // 重新渲染排期表
+    });
+
 </script>
-
-
 </body>
 </html>
