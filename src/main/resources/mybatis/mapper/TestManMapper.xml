@@ -142,14 +142,20 @@
             sample_id =#{sample_id}
     </update>
 
-    <update id="finishTestWithoutTime" >
+    <update id="finishTestWithoutTime">
         UPDATE samples
         SET
-            sample_schedule =#{sample_schedule},
-            finish_time =#{finish_time}
+            sample_schedule = #{sample_schedule},
+            finish_time = CASE
+                              WHEN finish_time IS NULL AND #{finish_time} IS NOT NULL THEN #{finish_time}
+                              ELSE finish_time
+                END
         WHERE
-            sample_id =#{sample_id}
+            sample_id = #{sample_id}
     </update>
+
+
+
 
 
 

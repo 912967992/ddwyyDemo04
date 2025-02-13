@@ -503,7 +503,7 @@ public class testManIndexController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = now.format(formatter);
 
-            // 这里是提交我呢见的时候抓取问题点的方法
+            // 这里是提交报告时候抓取问题点的方法
             String problem = getProblemFromJson(filepath,model,coding);
 
             // 检查问题是否包含缺少列的错误
