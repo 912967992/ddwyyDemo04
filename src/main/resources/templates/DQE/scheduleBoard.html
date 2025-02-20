@@ -25,6 +25,7 @@
 <!-- 右键菜单 -->
 <ul class="context-menu" id="contextMenu">
     <li id="removeProjectBtn">撤回到项目池</li>
+    <li id="changeColorBtn">更改颜色</li>
 </ul>
 
 <script>
@@ -36,6 +37,7 @@
     let testers = [];
     let dates = [];
     let scheduleData = {}; // 存储排期数据，用于撤回指定项目时不影响其他项目
+    let selectedProject = null; // 记录当前选中的项目
 
     // 项目池：新增项目
     document.getElementById('addProjectBtn').addEventListener('click', () => {
@@ -51,6 +53,16 @@
         // 添加拖拽事件
         newProject.addEventListener('dragstart', (event) => {
             event.dataTransfer.setData('projectName', projectName);
+        });
+
+        // 右键菜单：项目池中右键菜单
+        newProject.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            selectedProject = newProject;
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = `${event.pageX}px`;
+            menu.style.top = `${event.pageY}px`;
+            menu.style.display = 'block';
         });
 
         // 将新的项目添加到项目池中
@@ -170,7 +182,6 @@
     }
 
     // 右键菜单：显示
-    let selectedProject = null;
     document.addEventListener('contextmenu', (event) => {
         if (event.target && event.target.classList.contains('draggable')) {
             event.preventDefault();
@@ -216,6 +227,24 @@
             document.getElementById('contextMenu').style.display = 'none';
         }
     });
+
+    // 右键菜单：更改颜色
+    document.getElementById('changeColorBtn').addEventListener('click', () => {
+        if (selectedProject) {
+            selectedProject.style.backgroundColor = getRandomColor();
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+    });
+
+    // 随机颜色生成
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
 
     // 点击其他地方时隐藏右键菜单
     document.addEventListener('click', () => {

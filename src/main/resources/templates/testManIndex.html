@@ -927,6 +927,8 @@
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
                                 <option value="卢健">卢健</option>
+                                <option value="官旺华">官旺华</option>
+                                <option value="段平">段平</option>
                                 <option value="魏民">魏民</option>
                                 <option value="程奕阳">程奕阳</option>
                                 <option value="黄坚">黄坚</option>
@@ -1360,7 +1362,8 @@
 
                 var isDanger = (product.danger && product.danger.trim() !== "") ||
                     (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
-                    (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+                    (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                    (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
 
                 // 如果 scheduleEndTime 为 null，则 isDanger 一定为 false
                 if (product.scheduleEndTime === null) {
