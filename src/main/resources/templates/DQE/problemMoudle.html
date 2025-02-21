@@ -550,7 +550,7 @@
                     // 处理搜索结果
                     pages = paginateData(data, pageSize);
                     // currentPage = 1; // 重置当前页
-                    displayPage(currentPage);
+                    displayPage(currentPage,data);
                 },
                 error: function(xhr, status, error) {
                     console.error('搜索请求失败:', error);
@@ -569,7 +569,7 @@
             return pages;
         }
 
-        function displayPage(pageNum) {
+        function displayPage(pageNum,data) {
             if (pageNum < 1 || pageNum > pages.length) return; // 检查页码范围
 
             currentPage = pageNum; // 更新当前页码
@@ -706,7 +706,7 @@
             tableContainer.appendChild(table);
 
             // 创建分页按钮并添加到表格容器
-            updatePagination(tableContainer);
+            updatePagination(tableContainer,data);
         }
 
         const sampleId = getQueryParam("sample_id");
@@ -733,7 +733,7 @@
             editClickBtn(sampleId)
         }
 
-        function updatePagination(container) {
+        function updatePagination(container, data) {
             const pagination = document.createElement('div');
             pagination.classList.add('pagination');
 
@@ -741,7 +741,7 @@
             function changePage(newPage) {
                 currentPage = newPage;
                 updatePagination(container); // Refresh pagination buttons only
-                displayPage(currentPage); // Update the display for the selected page
+                displayPage(currentPage,data); // Update the display for the selected page
             }
 
             // Function to change page range and adjust current page
@@ -795,7 +795,7 @@
                 pageButton.disabled = i === currentPage; // Disable the current page button
                 pageButton.addEventListener('click', () => {
                     currentPage = i;
-                    displayPage(i); // Update the display for the selected page
+                    displayPage(i,data); // Update the display for the selected page
                 });
                 pagination.appendChild(pageButton);
             }
@@ -813,6 +813,15 @@
             lastPageButton.disabled = currentPage === numPages; // Disable if on the last page
             lastPageButton.addEventListener('click', () => changePage(numPages));
             pagination.appendChild(lastPageButton);
+
+            //在分页按钮旁边新增一个导出按钮，把搜索到的数据导出xlsx文件
+            const editButton = document.createElement('button');
+            editButton.textContent = '导出';
+            editButton.classList.add('exportProblem-button'); // 为按钮添加样式类
+            editButton.addEventListener('click', () => {
+                exportBtn(data);
+            });
+            pagination.appendChild(editButton);
 
             // Remove the previous pagination and add the new one
             const existingPagination = container.querySelector('.pagination');
@@ -2689,6 +2698,31 @@
     });
 
 
+    function exportBtn(data){
+        // 通过 AJAX 请求将数据导出
+        $.ajax({
+            url: '/exportBtn',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data), // 假设 data 是你的搜索结果数组
+            xhrFields: {
+                responseType: 'blob' // 指定响应为 blob
+            },
+            success: function(blob) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'samples.xlsx'; // 下载文件名
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url); // 释放内存
+            },
+            error: function(xhr, status, error) {
+                console.error('导出失败:', error);
+            }
+        });
+    }
 
 
 

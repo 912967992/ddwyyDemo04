@@ -608,3 +608,18 @@
 
 
 
+.exportProblem-button {
+    background-color: #28a745; /* 绿色背景 */
+    color: white; /* 白色字体 */
+    border: none; /* 无边框 */
+    padding: 10px 20px; /* 内边距 */
+    font-size: 14px; /* 字体大小 */
+    cursor: pointer; /* 鼠标悬停时显示为手指样式 */
+    border-radius: 5px; /* 圆角 */
+    transition: background-color 0.3s; /* 背景色过渡 */
+}
+
+.exportProblem-button:hover {
+    background-color: #218838; /* 悬停时的颜色 */
+}
+
