@@ -214,6 +214,30 @@
         WHERE sample_id = #{sample_id}
     </update>
 
+    <update id="updateResult">
+        UPDATE samples
+        <set>
+            <if test="job == 'DQE' and selectedOption != null">
+                result_judge = #{selectedOption},
+            </if>
+            <if test="job == 'rd' and selectedOption != null">
+                rd_result_judge = #{selectedOption},
+            </if>
+        </set>
+        WHERE sample_id = #{sample_id}
+    </update>
+
+    <select id="queryResults" resultType="int">
+        SELECT
+            CASE
+                WHEN result_judge IS NOT NULL AND rd_result_judge IS NOT NULL THEN 1
+                ELSE 0
+                END AS result
+        FROM samples
+        WHERE
+            sample_id =#{sample_id}
+    </select>
+
 
     <select id="getFilePathBySampleId" resultType="String">
         SELECT filepath FROM samples

@@ -133,4 +133,13 @@ public class DQEproblemMoudleService {
         return dqeDao.updatepProblemCounts(sampleId,problemCounts);
     }
 
+    public int updateResult(String sampleId , String job, String selectedOption) {
+        return dqeDao.updateResult(sampleId , job, selectedOption);
+    }
+
+    public int queryResults(String sampleId ) {
+        return dqeDao.queryResults(sampleId );
+    }
+
+
 }

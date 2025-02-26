@@ -262,6 +262,14 @@ public class DingTalkH5Controller {
             return "manager";
         }
 
+        //20250526新增官旺华
+        if ("官旺华".equals(username) ) {
+            return "tester";
+        }else if("卢绮敏".equals(username) ){
+            return "DQE";
+        }
+
+
         // 解析 JSON 响应
         JSONObject response = JSON.parseObject(jsonResponse);
         System.out.println("response:"+response);

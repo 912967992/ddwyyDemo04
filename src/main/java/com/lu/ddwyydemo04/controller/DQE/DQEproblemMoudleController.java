@@ -520,6 +520,18 @@ public class DQEproblemMoudleController {
     }
 
 
+    @PostMapping("/problemMoudle/updateResult")
+    @ResponseBody
+    public ResponseEntity<String> updateResult(@RequestBody Map<String, String> request) throws ApiException, UnsupportedEncodingException {
+        String sampleId = request.get("sample_id");
+        String selectedOption = request.get("selectedOption");
+        String job = request.get("job");
+        int updateResult = dqeproblemMoudleService.updateResult(sampleId , job, selectedOption);
+        System.out.println("updateResult:"+updateResult);
+        int allHaveValue = dqeproblemMoudleService.queryResults(sampleId);
+
+        return ResponseEntity.ok("进度更新成功！OA消息已发送给 " + allHaveValue );
+    }
 
     // 待DQE审核进来的流程确认方法
     @PostMapping("/problemMoudle/updateSchedule")
@@ -624,7 +636,7 @@ public class DQEproblemMoudleController {
             LocalDateTime warnTime = notifyTime.plusDays(notify_days);
 
             // 如果 notifyTime 是星期五，则在 warnTime 上多加两天
-            if (notifyTime.getDayOfWeek() == DayOfWeek.FRIDAY) {
+            if (notifyTime.getDayOfWeek() == DayOfWeek.FRIDAY || notifyTime.getDayOfWeek() == DayOfWeek.SATURDAY) {
                 warnTime = warnTime.plusDays(2);
             }
 

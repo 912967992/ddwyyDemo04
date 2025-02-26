@@ -117,4 +117,10 @@ public interface DQEDao {
 
     String getJobFromUsers(@Param("username")String username);
 
+    int updateResult(@Param("sample_id")String sample_id,
+                     @Param("job") String job, @Param("selectedOption") String selectedOption);
+
+    int queryResults(@Param("sample_id")String sample_id);
+
+
 }
