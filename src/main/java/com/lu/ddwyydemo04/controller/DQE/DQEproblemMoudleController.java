@@ -522,15 +522,25 @@ public class DQEproblemMoudleController {
 
     @PostMapping("/problemMoudle/updateResult")
     @ResponseBody
-    public ResponseEntity<String> updateResult(@RequestBody Map<String, String> request) throws ApiException, UnsupportedEncodingException {
+    public int updateResult(@RequestBody Map<String, String> request)  {
         String sampleId = request.get("sample_id");
         String selectedOption = request.get("selectedOption");
         String job = request.get("job");
+        //20250303 在DQE和研发给出承认结果的时候，把各自的节点信息修改为已完成，这样子就不会警报各自的节点了
+        int updateNodeAsFinish = 0;
+        if(job.equals("DQE")){
+            updateNodeAsFinish = dqeproblemMoudleService.updateNodeAsFinishWithDQE(sampleId);
+        }else if(job.equals("rd")){
+            updateNodeAsFinish = dqeproblemMoudleService.updateNodeAsFinishWithRD(sampleId);
+        }
+
+
+        //查看DQE和研发是否都给出了承认结果
         int updateResult = dqeproblemMoudleService.updateResult(sampleId , job, selectedOption);
         System.out.println("updateResult:"+updateResult);
         int allHaveValue = dqeproblemMoudleService.queryResults(sampleId);
 
-        return ResponseEntity.ok("进度更新成功！OA消息已发送给 " + allHaveValue );
+        return allHaveValue;
     }
 
     // 待DQE审核进来的流程确认方法
@@ -553,40 +563,56 @@ public class DQEproblemMoudleController {
         Long dept_id = null;
         String setting_role = "";
 
+        String node_number = "";
+
         //62712385 -->产品研发部，523528658 --> 电子DQE组， 523459714 --》电子测试组
-        if(job.equals("DQE")){
-            if(sampleSchedule.equals("2")){ //下一步是待研发审核
-                dept_id = Long.parseLong("62712385");
-                setting_role = "rdManager";
-
-
-            }else if(sampleSchedule.equals("4")){  //下一步是已完成,这里应该是要发送OA给研发和测试人员两个，但是此时不需要警示时间了，所以这里用okManager
-                if(isReceiverTester!=null){
-                    if(isReceiverTester.equals("true")){
-                        dept_id = Long.parseLong("523459714");
-                    }
-                }else{
-                    dept_id = Long.parseLong("62712385");
-                }
-
-                setting_role = "okManager";
-
-
-            }
-        }else if(job.equals("rd")){
-            dept_id = Long.parseLong("523528658");
-            setting_role = "dqeManager";
-        }else if(job.equals("tester")){
-            dept_id = Long.parseLong("523528658");
-            if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
-                setting_role = "okManager";
-            }else {
-                setting_role = "dqeManager";
-            }
-
-        }else if(job.equals("notice")){ //通知给绮敏的，便于她统计每日完成情况
+        //20250228 简化审核流程
+        if(sampleSchedule.equals("2")){
             setting_role = "okManager";
+        }else if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
+            setting_role = "okManager";
+        }else if (sampleSchedule.equals("1")){
+            if(job.equals("DQE")){
+                setting_role = "dqeManager";
+            }else if(job.equals("rd")){
+                setting_role = "rdManager";
+            }
         }
+
+
+//        if(job.equals("DQE")){
+//            if(sampleSchedule.equals("2")){ //下一步是待研发审核
+//                dept_id = Long.parseLong("62712385");
+//                setting_role = "rdManager";
+//
+//
+//            }else if(sampleSchedule.equals("4")){  //下一步是已完成,这里应该是要发送OA给研发和测试人员两个，但是此时不需要警示时间了，所以这里用okManager
+//                if(isReceiverTester!=null){
+//                    if(isReceiverTester.equals("true")){
+//                        dept_id = Long.parseLong("523459714");
+//                    }
+//                }else{
+//                    dept_id = Long.parseLong("62712385");
+//                }
+//
+//                setting_role = "okManager";
+//
+//
+//            }
+//        }else if(job.equals("rd")){
+//            dept_id = Long.parseLong("523528658");
+//            setting_role = "dqeManager";
+//        }else if(job.equals("tester")){
+//            dept_id = Long.parseLong("523528658");
+//            if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
+//                setting_role = "okManager";
+//            }else {
+//                setting_role = "dqeManager";
+//            }
+//
+//        }else if(job.equals("notice")){ //通知给绮敏的，便于她统计每日完成情况
+//            setting_role = "okManager";
+//        }
 
 
         List<Samples> sampleList = dqeproblemMoudleService.querySamples(sampleId);
@@ -645,15 +671,24 @@ public class DQEproblemMoudleController {
         }
 
         Long task_id  = accessTokenService.findUserIdByUsernameInDeptHierarchy(receiver , sample ,statusBarBgColor,sender,
-                notify_time,warn_time);
+                notify_time,warn_time,"");
 
         // 如果找到匹配的用户ID，执行更新逻辑，否则返回失败消息
         if (task_id != null && task_id != 1L) {
             TaskNode taskNode = new TaskNode();
             taskNode.setTask_id(task_id);
             taskNode.setSample_id(Integer.parseInt(sampleId));
-            taskNode.setNode_number(sampleSchedule);
-            taskNode.setStatus_value("测试进度："+accessTokenService.returnSchedule(sampleSchedule));
+
+            if(job.equals("DQE") && sampleSchedule.equals("1")){
+                node_number = "1"; //node_number =1 是DQE审核的信息节点
+            }else if(job.equals("rd") && sampleSchedule.equals("1")){
+                node_number = "2";  //node_number=2 是研发审核的信息节点
+            }else if(sampleSchedule.equals("2")){
+                node_number = "3";  //node_number=3则是节点已完成
+            }
+
+            taskNode.setNode_number(node_number);
+            taskNode.setStatus_value(accessTokenService.returnSchedule(sampleSchedule));
             taskNode.setCreate_time(notify_time);
             taskNode.setWarn_time(warn_time);
 
@@ -684,6 +719,7 @@ public class DQEproblemMoudleController {
 
             // 插入新节点到数据库
             int insertTaskNode = accessTokenService.insertTaskNode(taskNode);
+
 
             String getSchedule = accessTokenService.getOASchedule(task_id);
 

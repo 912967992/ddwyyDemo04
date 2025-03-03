@@ -147,10 +147,10 @@
             <select id="sample_schedule" name="sample_schedule">
                 <option value=""></option>
                 <option value="0">测试中</option>
-                <option value="1">待DQE审核</option>
-                <option value="2">待研发审核</option>
-                <option value="3">待DQE判定</option>
-                <option value="4">已完成</option>
+                <option value="1">待DQE和研发审核</option>
+                <option value="2">审核完成</option>
+                <option value="9">测试人员退样</option>
+                <option value="10">测试人员竞品完成</option>
 
             </select>
         </div>
@@ -163,9 +163,9 @@
                 <option value=""></option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签只发邮件</option>
-                <option value="4">免签不发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">会议评审接受</option>
 
             </select>
         </div>
@@ -177,9 +177,9 @@
                 <option value=""></option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签只发邮件</option>
-                <option value="4">免签不发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">会议评审接受</option>
 
             </select>
         </div>
@@ -228,9 +228,9 @@
             <select id="finalResult" class="form-control">
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签不发邮件</option>
-                <option value="4">免签发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">会议评审接受</option>
             </select>
         </div>
         <div class="confirmModal-footer">
@@ -604,17 +604,11 @@
                         if (cellData === "0"){
                             td.textContent = "测试中";
                         }else if(cellData === "1"){
-                            td.textContent = "待DQE审核";
+                            td.textContent = "待DQE和研发审核";
                             td.style.color = 'orange'; // 设置字体颜色为绿色
                         }else if(cellData === "2"){
-                            td.textContent = "待研发审核";
+                            td.textContent = "审核完成";
                             td.style.color = 'blue'; // 设置字体颜色为绿色
-                        }else if(cellData === "3"){
-                            td.textContent = "待DQE判定";
-                            td.style.color = 'red'; // 设置字体颜色为绿色
-                        }else if(cellData === "4"){
-                            td.textContent = "已完成";
-                            td.style.color = 'green';
                         }else if(cellData === "9"){
                             td.textContent = "测试人员退样";
                             td.style.color = 'green';
@@ -629,13 +623,13 @@
                             td.textContent = "退样";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "2"){
-                            td.textContent = "拒签";
+                            td.textContent = "限收";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "3"){
-                            td.textContent = "免签不发邮件";
+                            td.textContent = "特采";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "4"){
-                            td.textContent = "免签发邮件";
+                            td.textContent = "会议评审接受";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }
                     }else if (headers[index] === "问题点数量") {
@@ -1511,11 +1505,11 @@
             } else if (result_judge === "1") {
                 result_judge = "退样";
             } else if (result_judge === "2") {
-                result_judge = "拒签";
+                result_judge = "限收";
             } else if (result_judge === "3") {
-                result_judge = "免签只发邮件";
+                result_judge = "特采";
             } else if (result_judge === "4") {
-                result_judge = "免签不发邮件";
+                result_judge = "会议评审接受";
             }
             return result_judge;
         }

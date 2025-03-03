@@ -58,10 +58,10 @@
             <select id="sample_schedule" name="sample_schedule">
                 <option value="">选择进度</option>
                 <option value="0">测试中</option>
-                <option value="1">待DQE审核</option>
-                <option value="2">待研发审核</option>
-                <option value="3">待DQE判定</option>
-                <option value="4">已完成</option>
+                <option value="1">待DQE和研发审核</option>
+                <option value="2">审核完成</option>
+                <option value="9">测试人员退样</option>
+                <option value="10">测试人员竞品完成</option>
             </select>
         </div>
 
@@ -312,13 +312,9 @@
                         if (cellData === "0") {
                             td.textContent = "测试中";
                         } else if (cellData === "1") {
-                            td.textContent = "待DQE审核";
+                            td.textContent = "待DQE和研发审核";
                         } else if (cellData === "2") {
-                            td.textContent = "待研发审核";
-                        }else if (cellData === "3") {
-                            td.textContent = "待DQE判定";
-                        }else if (cellData === "4") {
-                            td.textContent = "已完成";
+                            td.textContent = "审核完成";
                         }else if (cellData === "9") {
                             td.textContent = "测试人员退样";
                         }else if (cellData === "10") {

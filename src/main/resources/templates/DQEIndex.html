@@ -578,13 +578,13 @@
     function getNodeDescription(nodeNumber) {
         switch (nodeNumber) {
             case "1":
-                return "待DQE审核";
+                return "待DQE和研发审核";
             case "2":
-                return "待研发审核";
+                return "待DQE和研发审核";
             case "3":
-                return "待DQE判定";
-            case "4":
-                return "已完成";
+                return "审核完成";
+            // case "4":
+            //     return "已完成";
             default:
                 return ""; // 默认返回空字符串
         }
@@ -729,7 +729,8 @@
                     data.forEach(combinedTaskNode => {
                         // 确定负责人
                         let personInCharge = "";
-                        if (combinedTaskNode.taskNode.node_number === "1" || combinedTaskNode.taskNode.node_number === "3") {
+                        //20250301 简化审核逻辑
+                        if (combinedTaskNode.taskNode.node_number === "1" ) {
                             personInCharge = combinedTaskNode.dqe;
                         } else if (combinedTaskNode.taskNode.node_number === "2") {
                             personInCharge = combinedTaskNode.rd;
@@ -737,16 +738,35 @@
                             personInCharge = combinedTaskNode.projectLeader;
                         }
 
+
+                        // 原来的审核逻辑
+                        // if (combinedTaskNode.taskNode.node_number === "1" || combinedTaskNode.taskNode.node_number === "3") {
+                        //     personInCharge = combinedTaskNode.dqe;
+                        // } else if (combinedTaskNode.taskNode.node_number === "2") {
+                        //     personInCharge = combinedTaskNode.rd;
+                        // } else if (combinedTaskNode.taskNode.node_number === "4") {
+                        //     personInCharge = combinedTaskNode.projectLeader;
+                        // }
+
                         // 如果负责人匹配用户名，则添加该行，否则跳过
                         if (personInCharge === username) {
                             const row = document.createElement('tr');
+
+                            //20250301 在查看近期项目按钮新增当前进度颜色判断
+                            // 比较 node_number 和 status_value，决定颜色
+                            const nodeDescription = getNodeDescription(combinedTaskNode.taskNode.node_number);
+                            let statusValue = displayValue(combinedTaskNode.taskNode.status_value);
+                            statusValue = statusValue.replace("测试进度：", "").trim();
+                            // 判断颜色
+                            const descriptionClass = nodeDescription === statusValue ? 'red-text' : 'green-text';
 
                             // 让 sample_id 成为可点击的链接
                             row.innerHTML = `
                         <td>${displayValue(combinedTaskNode.taskNode.id)}</td>
                         <td><a href="/problemMoudle?dd_orientation=landscape&sample_id=${encodeURIComponent(combinedTaskNode.taskNode.sample_id)}&username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}">${displayValue(combinedTaskNode.taskNode.sample_id)}</a></td>
                         <td>${getNodeDescription(combinedTaskNode.taskNode.node_number)}</td>
-                        <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>
+<!--                        <td>${displayValue(combinedTaskNode.taskNode.status_value)}</td>-->
+                        <td class="${descriptionClass}">${displayValue(combinedTaskNode.taskNode.status_value)}</td>
                         <td>${displayValue(combinedTaskNode.taskNode.create_time)}</td>
                         <td>${displayValue(combinedTaskNode.taskNode.warn_time)}</td>
                         <td>${displayValue(combinedTaskNode.fullModel)}</td>

@@ -155,10 +155,10 @@
             <select id="sample_schedule" name="sample_schedule">
                 <option value=""></option>
                 <option value="0">测试中</option>
-                <option value="1">待DQE审核</option>
-                <option value="2">待研发审核</option>
-                <option value="3">待DQE判定</option>
-                <option value="4">已完成</option>
+                <option value="1">待DQE和研发审核</option>
+                <option value="2">审核完成</option>
+<!--                <option value="3">待DQE判定</option>-->
+<!--                <option value="4">已完成</option>-->
                 <option value="9">测试人员退样</option>
                 <option value="10">测试人员竞品完成</option>
 
@@ -173,9 +173,9 @@
                 <option value=""></option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签只发邮件</option>
-                <option value="4">免签不发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">会议评审接受</option>
 
             </select>
         </div>
@@ -187,9 +187,9 @@
                 <option value=""></option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签只发邮件</option>
-                <option value="4">免签不发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">评审会议接受</option>
 
             </select>
         </div>
@@ -244,9 +244,9 @@
             <select id="finalResult" class="form-control">
                 <option value="0">签样</option>
                 <option value="1">退样</option>
-                <option value="2">拒签</option>
-                <option value="3">免签不发邮件</option>
-                <option value="4">免签发邮件</option>
+                <option value="2">限收</option>
+                <option value="3">特采</option>
+                <option value="4">会议评审接受</option>
             </select>
         </div>
         <div class="confirmModal-footer">
@@ -632,18 +632,20 @@
                         if (cellData === "0"){
                             td.textContent = "测试中";
                         }else if(cellData === "1"){
-                            td.textContent = "待DQE审核";
+                            td.textContent = "待DQE和研发审核";
                             td.style.color = 'orange'; // 设置字体颜色为绿色
                         }else if(cellData === "2"){
-                            td.textContent = "待研发审核";
-                            td.style.color = 'blue'; // 设置字体颜色为绿色
-                        }else if(cellData === "3"){
-                            td.textContent = "待DQE判定";
-                            td.style.color = 'red'; // 设置字体颜色为绿色
-                        }else if(cellData === "4"){
-                            td.textContent = "已完成";
-                            td.style.color = 'green';
-                        }else if(cellData === "9"){
+                            td.textContent = "审核完成";
+                            td.style.color = 'green'; // 设置字体颜色为绿色
+                        }
+                        // else if(cellData === "3"){
+                        //     td.textContent = "待DQE判定";
+                        //     td.style.color = 'red'; // 设置字体颜色为绿色
+                        // }else if(cellData === "4"){
+                        //     td.textContent = "已完成";
+                        //     td.style.color = 'green';
+                        // }
+                        else if(cellData === "9"){
                             td.textContent = "测试人员退样";
                             td.style.color = 'green';
                         }else if(cellData === "10"){
@@ -658,13 +660,13 @@
                             td.textContent = "退样";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "2"){
-                            td.textContent = "拒签";
+                            td.textContent = "限收";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "3"){
-                            td.textContent = "免签不发邮件";
+                            td.textContent = "特采";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "4"){
-                            td.textContent = "免签发邮件";
+                            td.textContent = "会议评审接受";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }
                     }else if (headers[index] === "问题点数量") {
@@ -2214,11 +2216,11 @@
             } else if (result_judge === "1") {
                 result_judge = "退样";
             } else if (result_judge === "2") {
-                result_judge = "拒签";
+                result_judge = "限收";
             } else if (result_judge === "3") {
-                result_judge = "免签只发邮件";
+                result_judge = "特采";
             } else if (result_judge === "4") {
-                result_judge = "免签不发邮件";
+                result_judge = "会议评审接受";
             }
             return result_judge;
         }
@@ -2254,62 +2256,64 @@
                     if(sample_schedule === "0"){
                         alert("此项目测试人员还在测试中，还没到您的流程阶段");
                     }else if(sample_schedule === "1"){
-                        if (job === 'DQE') {
-                            confirm("此项目目前进度为待DQE审核，您作为DQE要确认流程吗，确认后往下一个流程（待研发审核）走，确认后将会发送OA消息给对应研发通知，请选择是否进入下个流程")
-                                .then((confirmation) => {
-                                    if (confirmation && username) {
-                                        updateSchedule("2", sampleId, currentRD, statusBarBgColor, username, job);
-                                    }
-                                });
-                        } else {
-                            alert("此项目目前进度为待DQE审核，请耐心等待他们流程走完之后才轮您确认流程！");
-                        }
+                        // if (job === 'DQE') {
+                        //     confirm("此项目目前进度为待DQE审核，您作为DQE要确认流程吗，确认后往下一个流程（待研发审核）走，确认后将会发送OA消息给对应研发通知，请选择是否进入下个流程")
+                        //         .then((confirmation) => {
+                        //             if (confirmation && username) {
+                        //                 updateSchedule("2", sampleId, currentRD, statusBarBgColor, username, job);
+                        //             }
+                        //         });
+                        // } else {
+                        //     alert("此项目目前进度为待DQE审核，请耐心等待他们流程走完之后才轮您确认流程！");
+                        // }
 
                         // 20250225修改审核流程，改成：提交报告-DQE和研发同步审核给各自的承认结果-通知各相关人员
+                        if(job==='DQE'){
+                            if(rd_result_judge===undefined){
+
+                            }else{
+                                alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE确认或修改您的承认结果");
+                            }
+
+                            // 直接显示自定义模态框
+                            $('#customModal').show();
+                        }else if(job === "rd"){
+                            if(result_judge===undefined){
+
+                            }else{
+                                alert("此项目DQE给予的判定结果是："+returnResult(result_judge)+"，请您作为研发确认或修改您的承认结果");
+                            }
+                            // 直接显示自定义模态框
+                            $('#customModal').show();
+                        }
+
+                    }else if(sample_schedule === "2"){
                         // if(job==='DQE'){
-                        //     if(rd_result_judge===undefined){
+                        //     alert("此项目目前进度为待研发审核，请耐心等待他们流程走完之后才轮到您最终执行结果判定!")
+                        // }else if(job === "rd"){
+                        //     // 直接显示自定义模态框
+                        //     $('#customModal').show();
                         //
-                        //     }else{
-                        //         alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE作您的承认结果");
-                        //     }
-                        //
+                        // }
+
+                        // 20250225修改审核流程，改成：提交报告-DQE和研发同步审核给各自的承认结果-通知各相关人员
+                        const resultStr = returnResult(result_judge);
+                        const rd_resultStr = returnResult(rd_result_judge);
+                        alert("此项目目前进度已完成，不需要进行任何流程确认了，最终DQE的判定结果为："+ resultStr+",研发的判定结果为："+rd_resultStr);
+
+                    }
+                    // else if(sample_schedule === "3"){
+                        // if (job==='DQE') {
+                        //     alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE作最后的判定");
                         //     // 直接显示自定义模态框
                         //     $('#customModal').show();
                         // }else if(job === "rd"){
-                        //     if(result_judge===undefined){
-                        //
-                        //     }else{
-                        //         alert("此项目DQE给予的判定结果是："+returnResult(result_judge)+"，请您作为研发作您的承认结果");
-                        //     }
-                        //     // 直接显示自定义模态框
-                        //     $('#customModal').show();
+                        //     alert("此项目目前进度为待DQE判定，您已经走完您的流程了,您作为研发的判定结果是："+returnResult(rd_result_judge));
                         // }
-
-                    }else if(sample_schedule === "2"){
-                        if(job==='DQE'){
-                            alert("此项目目前进度为待研发审核，请耐心等待他们流程走完之后才轮到您最终执行结果判定!")
-                        }else if(job === "rd"){
-                            // 直接显示自定义模态框
-                            $('#customModal').show();
-
-                        }
-
-                        // 20250225修改审核流程，改成：提交报告-DQE和研发同步审核给各自的承认结果-通知各相关人员
+                    // }else if(sample_schedule === "4"){
                         // const resultStr = returnResult(result_judge);
                         // alert("此项目目前进度已完成，不需要进行任何流程确认了，最终DQE的判定结果为："+ resultStr);
-
-                    }else if(sample_schedule === "3"){
-                        if (job==='DQE') {
-                            alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE作最后的判定");
-                            // 直接显示自定义模态框
-                            $('#customModal').show();
-                        }else if(job === "rd"){
-                            alert("此项目目前进度为待DQE判定，您已经走完您的流程了,您作为研发的判定结果是："+returnResult(rd_result_judge));
-                        }
-                    }else if(sample_schedule === "4"){
-                        const resultStr = returnResult(result_judge);
-                        alert("此项目目前进度已完成，不需要进行任何流程确认了，最终DQE的判定结果为："+ resultStr);
-                    }
+                    // }
 
                 })
                 .catch(error => console.error("请求失败:", error));
@@ -2319,53 +2323,41 @@
 
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
-            const selectedOption = $('#finalResult').val();
-            const statusBarBgColor = "0xFF5E97F6";
-            if(job==="DQE"){
-                //执行进度更新至“已完成”，并发送消息给rd和tester
-                const schedule = "4"; //4为已完成
-                const isReceiverTester = true;
-                updateSchedule(schedule,currentSampleId,currentRD,statusBarBgColor,username ,job, selectedOption);
-                //发送给测试人员，用isReceiverTester为true去告诉这个方法说要改一下部门id
-                // 等待 2 秒后发送给测试人员
-                setTimeout(() => {
-                    updateSchedule(schedule, currentSampleId, currentTester, statusBarBgColor, username, job, selectedOption, isReceiverTester);
-                }, 2000); // 2000 毫秒 = 2 秒
-                // 等待 2 秒后发送给项目
-                setTimeout(() => {
-                    updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job, selectedOption);
-                }, 2000); // 2000 毫秒 = 2 秒
-            }else if(job === "rd"){
-                //执行进度更新至“待DQE判定”，并发送消息给DQE
-                const schedule = "3"; //3为待DQE判定
-                updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job, selectedOption);
-            }
-            $('#customModal').hide();
-
             // const selectedOption = $('#finalResult').val();
             // const statusBarBgColor = "0xFF5E97F6";
             // if(job==="DQE"){
-            //     updateResult(currentSampleId,job,selectedOption)
             //     //执行进度更新至“已完成”，并发送消息给rd和tester
-            //     // const schedule = "1"; //4为已完成
-            //     // const isReceiverTester = true;
-            //     // updateSchedule(schedule,currentSampleId,currentRD,statusBarBgColor,username ,job, selectedOption);
-            //     // //发送给测试人员，用isReceiverTester为true去告诉这个方法说要改一下部门id
-            //     // // 等待 2 秒后发送给测试人员
-            //     // setTimeout(() => {
-            //     //     updateSchedule(schedule, currentSampleId, currentTester, statusBarBgColor, username, job, selectedOption, isReceiverTester);
-            //     // }, 2000); // 2000 毫秒 = 2 秒
-            //     // // 等待 2 秒后发送给项目
-            //     // setTimeout(() => {
-            //     //     updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job, selectedOption);
-            //     // }, 2000); // 2000 毫秒 = 2 秒
+            //     const schedule = "4"; //4为已完成
+            //     const isReceiverTester = true;
+            //     updateSchedule(schedule,currentSampleId,currentRD,statusBarBgColor,username ,job, selectedOption);
+            //     //发送给测试人员，用isReceiverTester为true去告诉这个方法说要改一下部门id
+            //     // 等待 2 秒后发送给测试人员
+            //     setTimeout(() => {
+            //         updateSchedule(schedule, currentSampleId, currentTester, statusBarBgColor, username, job, selectedOption, isReceiverTester);
+            //     }, 2000); // 2000 毫秒 = 2 秒
+            //     // 等待 2 秒后发送给项目
+            //     setTimeout(() => {
+            //         updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job, selectedOption);
+            //     }, 2000); // 2000 毫秒 = 2 秒
             // }else if(job === "rd"){
             //     //执行进度更新至“待DQE判定”，并发送消息给DQE
-            //     // const schedule = "1"; //3为待DQE判定
-            //     // updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job, selectedOption);
-            //     updateResult(currentSampleId,job,selectedOption)
+            //     const schedule = "3"; //3为待DQE判定
+            //     updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job, selectedOption);
             // }
             // $('#customModal').hide();
+
+            //20250226简化审核流程
+            const selectedOption = $('#finalResult').val();
+            const statusBarBgColor = "0xFF5E97F6";
+            if(job==="DQE"){
+                updateResult(currentSampleId,job,selectedOption, statusBarBgColor)
+                alert("DQE承认结果已保存为:"+returnResult(selectedOption));
+            }else if(job === "rd"){
+                updateResult(currentSampleId,job,selectedOption)
+                alert("研发承认结果已保存为:"+returnResult(selectedOption));
+            }
+
+            $('#customModal').hide();
         });
 
 // 处理取消选择
@@ -2374,7 +2366,7 @@
         });
 
         // 20250225新增一个方法，用于DQE和研发确认进度的时候，更新各自的承认结果，然后再检查两个是否都有结果了，有的话再触发updateSchedule去发送流程
-        function updateResult(sample_id,job,selectedOption){
+        function updateResult(sample_id,job,selectedOption, statusBarBgColor){
             fetch('/problemMoudle/updateResult', {
                 method: 'POST',
                 headers: {
@@ -2396,8 +2388,22 @@
                     return response.text(); // 使用 text() 来解析响应
                 })
                 .then(message => {
-                    alert(message); // 输出成功信息
+                    // alert(message); // 输出成功信息
                     // 这里可以处理成功后的逻辑，比如更新UI等
+                    if(message === "1"){
+                        const schedule = "2";
+                        const isReceiverTester = true;
+                        updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job);
+
+                        // 等待 2 秒后发送给测试人员
+                        setTimeout(() => {
+                            updateSchedule(schedule, currentSampleId, currentTester, statusBarBgColor, username, job);
+                        }, 2000); // 2000 毫秒 = 2 秒
+                        // 等待 2 秒后发送给项目
+                        setTimeout(() => {
+                            updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job);
+                        }, 2000); // 2000 毫秒 = 2 秒
+                    }
                 })
                 .catch((error) => {
                     console.error('Error:', error);
@@ -2780,7 +2786,7 @@
     function exportBtn(data){
         // 通过 AJAX 请求将数据导出
         $.ajax({
-            url: '/exportBtn',
+            url: '/problemMoudle/exportBtn',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data), // 假设 data 是你的搜索结果数组

@@ -121,6 +121,8 @@ public interface DQEDao {
                      @Param("job") String job, @Param("selectedOption") String selectedOption);
 
     int queryResults(@Param("sample_id")String sample_id);
+    int updateNodeAsFinishWithDQE(@Param("sample_id")String sample_id);
+    int updateNodeAsFinishWithRD(@Param("sample_id")String sample_id);
 
 
 }

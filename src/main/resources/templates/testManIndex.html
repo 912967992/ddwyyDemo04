@@ -1340,11 +1340,11 @@
             case 1:
                 return "退样";
             case 2:
-                return "拒签";
+                return "限收";
             case 3:
-                return "免签只发邮件";
+                return "特采";
             case 4:
-                return "免签不发邮件";
+                return "会议评审接受";
             default:
                 return "未知"; // 默认返回值
         }
@@ -1677,7 +1677,7 @@
                             confirm(`你确定要提交 ${filepath} 吗？`)
                                 .then((confirmation)=>{
                                     if(confirmation){
-                                        submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe);
+                                        submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, rd);
                                     }
                                 })
                         }
@@ -1786,17 +1786,21 @@
                 // 这里处理成功的回调，比如提示用户或者更新UI
                 alert(response.message);
                 if (dqe && response.message.includes("提交成功")) {
-                    updateSchedule("1", sample_id, dqe, statusBarBgColor, username, job);
+                    updateSchedule("1", sample_id, dqe, statusBarBgColor, username, "DQE");
+
+                    setTimeout(() => {
+                        updateSchedule("1", sample_id, rd, statusBarBgColor, username, "rd");
+                    }, 2000); // 2000 毫秒 = 2 秒
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }else if(response.message.includes("竞品文件完成")){
 
@@ -1814,7 +1818,7 @@
 
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                        // updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
 
                 }
@@ -1999,13 +2003,13 @@
             case "0":
                 return "测试中";
             case "1":
-                return "待DQE审核";
+                return "待DQE和研发审核";
             case "2":
-                return "待研发审核";
-            case "3":
-                return "待DQE判定";
-            case "4":
-                return "已完成";
+                return "审核完成";
+            // case "3":
+            //     return "待DQE判定";
+            // case "4":
+            //     return "已完成";
             case "9":
                 return "测试人员退样";
             case "10":

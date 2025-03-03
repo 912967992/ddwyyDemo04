@@ -512,5 +512,22 @@
         SELECT position FROM users WHERE username =#{username}
     </select>
 
+    <update id="updateNodeAsFinishWithDQE">
+        update task_nodes
+        set isOverdue = false,
+            status_value = "审核完成"
+        where sample_id = #{sample_id}
+            and
+            node_number = "1"
+    </update>
+
+    <update id="updateNodeAsFinishWithRD">
+        update task_nodes
+        set isOverdue = false,
+            status_value = "审核完成"
+        where sample_id = #{sample_id}
+          and
+            node_number = "2"
+    </update>
 
 </mapper>

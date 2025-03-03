@@ -140,6 +140,13 @@ public class DQEproblemMoudleService {
     public int queryResults(String sampleId ) {
         return dqeDao.queryResults(sampleId );
     }
+    public int updateNodeAsFinishWithDQE(String sampleId) {
+        return dqeDao.updateNodeAsFinishWithDQE(sampleId );
+    }
+
+    public int updateNodeAsFinishWithRD(String sampleId) {
+        return dqeDao.updateNodeAsFinishWithRD(sampleId );
+    }
 
 
 }

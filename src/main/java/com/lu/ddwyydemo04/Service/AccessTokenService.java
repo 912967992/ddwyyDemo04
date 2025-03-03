@@ -141,7 +141,7 @@ public class AccessTokenService {
     // 根据用户名和部门id来遍历部门，直到匹配就返回userid
     public Long findUserIdByUsernameInDeptHierarchy(String receiver,  Samples sample,
                                                       String statusBarBgColor,String sender,String notify_time,
-                                                    String warn_time) throws ApiException, UnsupportedEncodingException {
+                                                    String warn_time,String personCharge) throws ApiException, UnsupportedEncodingException {
 
         //20241211写一个方法先去检查receiver是什么job，再来看页面跳转链接要不要触发点击搜索问题点操作
         String reveiverJob = getJobFromUsers(receiver);
@@ -184,7 +184,7 @@ public class AccessTokenService {
                 notify_time,
                 warn_time,
                 messageUrl,
-                sender,statusBarBgColor,sample.getResult_judge(),sample.getRd_result_judge()
+                sender,statusBarBgColor,sample.getResult_judge(),sample.getRd_result_judge(),personCharge
         );
 
         // 处理发送结果
@@ -210,7 +210,7 @@ public class AccessTokenService {
             String warn_time,
             String messageUrl,
             String sender,
-            String statusBarBgColor,String result_judge,String rd_result_judge) throws ApiException {
+            String statusBarBgColor,String result_judge,String rd_result_judge,String personCharge) throws ApiException {
 
 
         DingTalkClient client = new DefaultDingTalkClient(SEND_MESSAGE_URL);
@@ -222,90 +222,127 @@ public class AccessTokenService {
 
         // 设置消息内容
         OapiMessageCorpconversationAsyncsendV2Request.Msg msg = new OapiMessageCorpconversationAsyncsendV2Request.Msg();
-        msg.setMsgtype("oa");
 
-        // 设置 OA 消息
-        OapiMessageCorpconversationAsyncsendV2Request.OA oa = new OapiMessageCorpconversationAsyncsendV2Request.OA();
+        // 区分发给卢绮敏的信息,卢健的userId是：2329612068682307，卢绮敏的是：210139201721546755
+        if(userId.equals("210139201721546755")){
+            msg.setMsgtype("text");
 
-        // 设置消息跳转 URL
-        oa.setMessageUrl(messageUrl);
-        oa.setPcMessageUrl(messageUrl);
+            // 创建 Text 类型的消息内容
+            OapiMessageCorpconversationAsyncsendV2Request.Text text = new OapiMessageCorpconversationAsyncsendV2Request.Text();
 
-        // 设置状态栏内容
-        OapiMessageCorpconversationAsyncsendV2Request.StatusBar statusBar = new OapiMessageCorpconversationAsyncsendV2Request.StatusBar();
-        StringBuilder statusValueBuilder = new StringBuilder();
+            // 构建消息内容
+            StringBuilder contentBuilder = new StringBuilder();
 
-        // 添加基本状态信息
-        statusValueBuilder.append("测试进度: ").append(returnSchedule(sampleSchedule)).append("\r\n");
+            // 添加基本状态信息
+            contentBuilder.append("测试进度: ").append(returnSchedule(sampleSchedule)).append("\n");
 
-        // 添加研发判定
-        if (rd_result_judge != null) {
-            statusValueBuilder.append("研发判定：").append(returnResult(rd_result_judge)).append("\r\n");
-        }
+            // 添加完整型号等其他信息
+            contentBuilder.append("完整型号: ").append(fullModel).append("\n");
+            contentBuilder.append("样品阶段: ").append(sampleCategory).append("\n");
+            contentBuilder.append("版本: ").append(version).append("\n");
+            contentBuilder.append("产品名称: ").append(sampleName).append("\n");
+            contentBuilder.append("提交时间: ").append(notifyTime).append("\n");
+            contentBuilder.append("报告提交者: ").append(sender).append("\n");
 
-        // 添加 DQE 判定
-        if (result_judge != null) {
-            statusValueBuilder.append("DQE判定：").append(returnResult(result_judge)).append("\r\n");
-        }
+            // 设置消息内容
+            text.setContent(contentBuilder.toString());
+            // 设置消息内容到 Msg 对象
+            msg.setText(text);
+        }else{
+            // 设置 OA 消息
+            OapiMessageCorpconversationAsyncsendV2Request.OA oa = new OapiMessageCorpconversationAsyncsendV2Request.OA();
+            msg.setMsgtype("oa");
+            oa.setMessageUrl(messageUrl);
+            oa.setPcMessageUrl(messageUrl);
 
-        // 设置状态栏的最终内容
-        statusBar.setStatusValue(statusValueBuilder.toString());
-        oa.setStatusBar(statusBar);
-        oa.getStatusBar().setStatusBg(statusBarBgColor);
+            // 设置状态栏内容
+            OapiMessageCorpconversationAsyncsendV2Request.StatusBar statusBar = new OapiMessageCorpconversationAsyncsendV2Request.StatusBar();
+            StringBuilder statusValueBuilder = new StringBuilder();
 
-        // 设置消息头部
-        OapiMessageCorpconversationAsyncsendV2Request.Head head = new OapiMessageCorpconversationAsyncsendV2Request.Head();
-        head.setBgcolor("FF0000");  // 头部背景颜色黄色
-        head.setText("完整型号: " + fullModel);  // 头部标题
-        oa.setHead(head);
+            // 添加基本状态信息
+            statusValueBuilder.append("测试进度: ").append(returnSchedule(sampleSchedule)).append("\r\n");
 
-        // 设置消息主体内容
-        OapiMessageCorpconversationAsyncsendV2Request.Body body = new OapiMessageCorpconversationAsyncsendV2Request.Body();
-        body.setTitle(fullModel + " 测试进度更新： " + returnSchedule(sampleSchedule));
+            // 设置状态栏的最终内容
+            statusBar.setStatusValue(statusValueBuilder.toString());
+            oa.setStatusBar(statusBar);
+            oa.getStatusBar().setStatusBg(statusBarBgColor);
 
-        // 设置表单内容
-        List<OapiMessageCorpconversationAsyncsendV2Request.Form> formList = new ArrayList<>();
+            // 设置消息头部
+            OapiMessageCorpconversationAsyncsendV2Request.Head head = new OapiMessageCorpconversationAsyncsendV2Request.Head();
+            head.setBgcolor("6699ff");  // 头部微应用程序名的字体颜色黄色
+            head.setText("完整型号: " + fullModel);  // 头部标题
+            oa.setHead(head);
 
-        OapiMessageCorpconversationAsyncsendV2Request.Form form1 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-        form1.setKey("完整型号：");
-        form1.setValue(fullModel);
-        formList.add(form1);
+            // 设置消息主体内容
+            OapiMessageCorpconversationAsyncsendV2Request.Body body = new OapiMessageCorpconversationAsyncsendV2Request.Body();
+            body.setTitle(fullModel + " 进度更新: " + returnSchedule(sampleSchedule));
 
-        OapiMessageCorpconversationAsyncsendV2Request.Form form2 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-        form2.setKey("样品阶段：");
-        form2.setValue(sampleCategory);
-        formList.add(form2);
+            // 设置表单内容
+            List<OapiMessageCorpconversationAsyncsendV2Request.Form> formList = new ArrayList<>();
 
-        OapiMessageCorpconversationAsyncsendV2Request.Form form3 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-        form3.setKey("版本：");
-        form3.setValue(version);
-        formList.add(form3);
+            OapiMessageCorpconversationAsyncsendV2Request.Form form1 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+            form1.setKey("完整型号：");
+            form1.setValue(fullModel);
+            formList.add(form1);
 
-        OapiMessageCorpconversationAsyncsendV2Request.Form form4 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-        form4.setKey("产品名称：");
-        form4.setValue(sampleName);
-        formList.add(form4);
+            OapiMessageCorpconversationAsyncsendV2Request.Form form2 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+            form2.setKey("样品阶段：");
+            form2.setValue(sampleCategory);
+            formList.add(form2);
 
-        OapiMessageCorpconversationAsyncsendV2Request.Form form5 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-        form5.setKey("通知时间：");
-        form5.setValue(notifyTime);
-        formList.add(form5);
+            OapiMessageCorpconversationAsyncsendV2Request.Form form3 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+            form3.setKey("版本：");
+            form3.setValue(version);
+            formList.add(form3);
 
-        if (warn_time != null) { // 仅在 warn_time 不为空时添加
-            OapiMessageCorpconversationAsyncsendV2Request.Form form6 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
-            form6.setKey("警报时间：");
-            form6.setValue(warn_time);
-            formList.add(form6);
-        }
+            OapiMessageCorpconversationAsyncsendV2Request.Form form4 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+            form4.setKey("产品名称：");
+            form4.setValue(sampleName);
+            formList.add(form4);
 
-        body.setForm(formList);
-        body.setAuthor(sender);
+            OapiMessageCorpconversationAsyncsendV2Request.Form form5 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+            form5.setKey("通知时间：");
+            form5.setValue(notifyTime);
+            formList.add(form5);
 
-        // 设置大段文本内容为指定格式
+            if (warn_time != null) { // 仅在 warn_time 不为空时添加
+                OapiMessageCorpconversationAsyncsendV2Request.Form form6 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+                form6.setKey("警报时间：");
+                form6.setValue(warn_time);
+                formList.add(form6);
+            }
+
+            if(rd_result_judge!=null){
+                OapiMessageCorpconversationAsyncsendV2Request.Form form7 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+                form7.setKey("研发承认结果：");
+                form7.setValue(returnResult(rd_result_judge));
+                formList.add(form7);
+            }
+
+            if(result_judge!=null){
+                OapiMessageCorpconversationAsyncsendV2Request.Form form8 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+                form8.setKey("DQE承认结果：");
+                form8.setValue(returnResult(result_judge));
+                formList.add(form8);
+            }
+
+
+            if(personCharge !=null && !Objects.equals(personCharge, "")){
+                OapiMessageCorpconversationAsyncsendV2Request.Form form9 = new OapiMessageCorpconversationAsyncsendV2Request.Form();
+                form9.setKey("节点负责人：");
+                form9.setValue(personCharge);
+                formList.add(form9);
+            }
+
+            body.setForm(formList);
+            body.setAuthor(sender);
+
+//            // 设置大段文本内容为指定格式
 //        body.setContent(fullModel + " 测试进度为：------> " + sampleSchedule);
 
-        oa.setBody(body);
-        msg.setOa(oa);
+            oa.setBody(body);
+            msg.setOa(oa);
+        }
         request.setMsg(msg);
 
         // 发送请求
@@ -316,14 +353,16 @@ public class AccessTokenService {
         if(Objects.equals(sampleSchedule, "0")){
             sampleSchedule = "测试中";
         }else if(Objects.equals(sampleSchedule, "1")){
-            sampleSchedule = "待DQE审核";
+            sampleSchedule = "待DQE和研发审核";
         }else if(Objects.equals(sampleSchedule, "2")){
-            sampleSchedule = "待研发审核";
-        }else if(Objects.equals(sampleSchedule, "3")){
-            sampleSchedule = "待DQE判定";
-        }else if(Objects.equals(sampleSchedule, "4")){
-            sampleSchedule = "已完成";
-        }else if(Objects.equals(sampleSchedule, "9")){
+            sampleSchedule = "审核完成";
+        }
+//        else if(Objects.equals(sampleSchedule, "3")){
+//            sampleSchedule = "待DQE判定";
+//        }else if(Objects.equals(sampleSchedule, "4")){
+//            sampleSchedule = "已完成";
+//        }
+        else if(Objects.equals(sampleSchedule, "9")){
             sampleSchedule = "测试人员退样";
         }else if(Objects.equals(sampleSchedule, "10")){
             sampleSchedule = "测试人员竞品完成";
@@ -407,6 +446,7 @@ public class AccessTokenService {
     @Scheduled(fixedRate = 1800000) // 30分钟 = 1800000毫秒
     public void checkOverdueIssues() {
         logger.info("开始执行定时数据库检查任务...");
+        String personCharge = "";
 
         // 获取当前时间
         LocalDateTime currentTime = LocalDateTime.now();
@@ -445,20 +485,24 @@ public class AccessTokenService {
                 Samples sample = sampleList.isEmpty() ? null : sampleList.get(0);
 
                 if(nodeNumber.equals("1")){
-                    senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为："+sample.getSample_DQE();
-                    receiver = "张华";
-//                    receiver = "卢健";
-                }else if(nodeNumber.equals("2")){
-                    senderOnce = "系统检测到此项目"+notify_days_rd+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为:"+sample.getSample_Developer();
-                    receiver = "钟海龙";
-//                    receiver = "卢健";
-                } else if (nodeNumber.equals("3")) {
-                    senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给主管级别,节点负责人为："+sample.getSample_DQE();
-                    receiver = "张华";
-//                    receiver = "卢健";
+                    senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给DQE主管级别,节点负责人为："+sample.getSample_DQE();
+//                    receiver = "张华";
+                    receiver = "卢健";
+                    personCharge = sample.getSample_DQE();
 
+                }else if(nodeNumber.equals("2")){
+                    senderOnce = "系统检测到此项目"+notify_days_rd+"天进度没动，第一次超期发送此警示信息给研发主管级别,节点负责人为:"+sample.getSample_Developer();
+//                    receiver = "钟海龙";
+                    receiver = "卢健";
+                    personCharge = sample.getSample_Developer();
                 }
-                Long task_id_Once = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderOnce,createTimeString,warnTimeString);
+//                else if (nodeNumber.equals("3")) {
+//                    senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给DQE主管级别,节点负责人为："+sample.getSample_DQE();
+////                    receiver = "张华";
+//                    receiver = "卢健";
+//
+//                }
+                Long task_id_Once = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderOnce,createTimeString,warnTimeString,personCharge);
                 System.out.println("id:"+id);
                 int updateTaskNodesOnce = updateTaskNodesOnce(id, currentTime);
                 if(updateTaskNodesOnce>0){
@@ -506,18 +550,23 @@ public class AccessTokenService {
 
                 if(nodeNumber.equals("1")){
                     senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为:"+sample.getSample_DQE();
-                    receiver = "黄家灿";
-//                    receiver = "卢健";
+//                    receiver = "黄家灿";
+                    receiver = "卢健";
+
+                    personCharge = sample.getSample_DQE();
                 }else if(nodeNumber.equals("2")){
                     senderSecond = "系统检测到此项目"+doubledDays_rd+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_Developer();
-                    receiver = "肖政文";
-//                    receiver = "卢健";
-                } else if (nodeNumber.equals("3")) {
-                    senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_DQE();
-                    receiver = "黄家灿";
-//                    receiver = "卢健";
+//                    receiver = "肖政文";
+                    receiver = "卢健";
+
+                    personCharge = sample.getSample_Developer();
                 }
-                Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString);
+//                else if (nodeNumber.equals("3")) {
+//                    senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_DQE();
+////                    receiver = "黄家灿";
+//                    receiver = "卢健";
+//                }
+                Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString, personCharge);
 //                System.out.println("task_id_OSecond:"+task_id_OSecond);
                 int updateTaskNodesSecond = updateTaskNodesSecond(id, currentTime);
                 if(updateTaskNodesSecond>0){
@@ -530,7 +579,7 @@ public class AccessTokenService {
                 logger.info("发现第二次超期的sample_id: {}", secondOverdueSampleIdsAndNodes);
                 // 可以添加返回前端的逻辑，比如通过WebSocket推送或更新缓存
             } else {
-                logger.info("没有发现d第二次超期的记录");
+                logger.info("没有发现第二次超期的记录");
             }
 
         } catch (Exception e) {
@@ -570,7 +619,9 @@ public class AccessTokenService {
                 user.setPosition("DQE"); // 特殊条件：如果是卢健或者卢绮敏，则职位为 DQE
             } else if (user.getUsername().equals("官旺华")) {
                 user.setPosition("tester"); // 特殊条件：如果是官旺华，则职位为 tester,因为他被放到了电子DQE租
-            } else if (majorDeptId.equals(62712385L)) { // 产品研发部
+            }else if (user.getUsername().equals("蓝明城")) {
+                user.setPosition("DQE");
+            }  else if (majorDeptId.equals(62712385L)) { // 产品研发部
                 user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
                 // 进一步检查是否在电子测试组
@@ -637,11 +688,11 @@ public class AccessTokenService {
         } else if (judge.equals("1")) {
             judge = "退样";
         } else if (judge.equals("2")) {
-            judge = "拒签";
+            judge = "限收";
         } else if (judge.equals("3")) {
-            judge = "免签只发邮件";
+            judge = "特采";
         } else if (judge.equals("4")) {
-            judge = "免签不发邮件";
+            judge = "会议评审接受";
         }
         return judge;
     }
@@ -737,5 +788,6 @@ public class AccessTokenService {
     public String getJobFromUsers(String username){
         return dqeDao.getJobFromUsers(username);
     }
+
 
 }

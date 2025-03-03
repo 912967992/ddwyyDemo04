@@ -267,7 +267,7 @@ public class durationTableController {
     );
 
     // 这样就可以确保列顺序是固定的
-    @PostMapping("/exportBtn")
+    @PostMapping("/problemMoudle/exportBtn")
     @ResponseBody
     public ResponseEntity<byte[]> exportProblem(@RequestBody List<Map<String, Object>> data) {
         try (Workbook workbook = new XSSFWorkbook();
@@ -299,6 +299,7 @@ public class durationTableController {
             }
 
             // 填充数据
+// 填充数据
             for (int i = 0; i < data.size(); i++) {
                 Map<String, Object> item = data.get(i);
                 Row row = sheet.createRow(i + 1);
@@ -308,15 +309,75 @@ public class durationTableController {
                     Object value = item.get(column);
 
                     Cell cell = row.createCell(j);
-                    if (value != null) {
-                        // 设置单元格的值
-                        if (value instanceof Double || value instanceof Integer) {
-                            cell.setCellValue(Double.parseDouble(value.toString()));
+
+                    if ("result_judge".equals(column) || "rd_result_judge".equals(column)) { // 判断是否是“判定结果”列
+                        if (value != null) {
+                            // 根据判定结果的值进行判断并设置描述
+                            String resultDescription = "";
+                            switch (value.toString()) {
+                                case "0":
+                                    resultDescription = "签样";
+                                    break;
+                                case "1":
+                                    resultDescription = "退样";
+                                    break;
+                                case "2":
+                                    resultDescription = "限收";
+                                    break;
+                                case "3":
+                                    resultDescription = "特采";
+                                    break;
+                                case "4":
+                                    resultDescription = "会议评审接受";
+                                    break;
+                                default:
+                                    resultDescription = "";
+                                    break;
+                            }
+                            cell.setCellValue(resultDescription); // 设置对应的描述
                         } else {
-                            cell.setCellValue(value.toString());
+                            cell.setCellValue(""); // 如果值为 null，则设置为空字符串
                         }
-                    } else {
-                        cell.setCellValue(""); // 如果值为 null，则设置为空字符串
+                    }else if("sample_schedule".equals(column)){
+                        if (value != null) {
+                            // 根据判定结果的值进行判断并设置描述
+                            String resultDescription = "";
+                            switch (value.toString()) {
+                                case "0":
+                                    resultDescription = "测试中";
+                                    break;
+                                case "1":
+                                    resultDescription = "待DQE和研发审核";
+                                    break;
+                                case "2":
+                                    resultDescription = "审核完成";
+                                    break;
+                                case "9":
+                                    resultDescription = "测试人员退样";
+                                    break;
+                                case "10":
+                                    resultDescription = "测试人员竞品完成";
+                                    break;
+                                default:
+                                    resultDescription = "";
+                                    break;
+                            }
+                            cell.setCellValue(resultDescription); // 设置对应的描述
+                        } else {
+                            cell.setCellValue(""); // 如果值为 null，则设置为空字符串
+                        }
+                    }else {
+                        // 其他列处理
+                        if (value != null) {
+                            // 设置单元格的值
+                            if (value instanceof Double || value instanceof Integer) {
+                                cell.setCellValue(Double.parseDouble(value.toString()));
+                            } else {
+                                cell.setCellValue(value.toString());
+                            }
+                        } else {
+                            cell.setCellValue(""); // 如果值为 null，则设置为空字符串
+                        }
                     }
 
                     cell.setCellStyle(style); // 应用样式

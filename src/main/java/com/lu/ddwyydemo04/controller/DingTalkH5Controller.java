@@ -267,6 +267,8 @@ public class DingTalkH5Controller {
             return "tester";
         }else if("卢绮敏".equals(username) ){
             return "DQE";
+        }else if ("蓝明城".equals(username)){
+            return "DQE";
         }
 
 
