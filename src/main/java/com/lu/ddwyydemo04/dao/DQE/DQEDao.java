@@ -112,7 +112,9 @@ public interface DQEDao {
                                     @Param("fullOS")String fullOS,
                                     @Param("architecture")String architecture,@Param("systemModel") String systemModel,
                                     @Param("cpu")String cpu,@Param("memory")String memory,
-                                    @Param("displays")String displays,@Param("networkAdapters")String networkAdapters);
+                                    @Param("displays")String displays,@Param("networkAdapters")String networkAdapters,
+                                    @Param("maxResolution")String maxResolution,
+                                    @Param("maxRefreshRate")String maxRefreshRate,@Param("interfaceInfo")String interfaceInfo);
 
 
     String getJobFromUsers(@Param("username")String username);

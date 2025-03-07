@@ -14,6 +14,10 @@ public class SystemInfo {
     private String memory;
     private String displays;
     private String networkAdapters;
+    private double roundedScreenSize;  //屏幕尺寸
+    private String maxResolution;  //最大分辨率
+    private String maxRefreshRate;  //刷新率
+    private String interfaceInfo;  //接口信息
 
 
     // 无参构造函数
@@ -137,6 +141,39 @@ public class SystemInfo {
         this.networkAdapters = networkAdapters;
     }
 
+    public double getRoundedScreenSize() {
+        return roundedScreenSize;
+    }
+
+    public void setRoundedScreenSize(double roundedScreenSize) {
+        this.roundedScreenSize = roundedScreenSize;
+    }
+
+    public String getMaxResolution() {
+        return maxResolution;
+    }
+
+    public void setMaxResolution(String maxResolution) {
+        this.maxResolution = maxResolution;
+    }
+
+    public String getMaxRefreshRate() {
+        return maxRefreshRate;
+    }
+
+    public void setMaxRefreshRate(String maxRefreshRate) {
+        this.maxRefreshRate = maxRefreshRate;
+    }
+
+
+    public String getInterfaceInfo() {
+        return interfaceInfo;
+    }
+
+    public void setInterfaceInfo(String interfaceInfo) {
+        this.interfaceInfo = interfaceInfo;
+    }
+
     @Override
     public String toString() {
         return "SystemInfo{" +
@@ -153,6 +190,10 @@ public class SystemInfo {
                 ", memory='" + memory + '\'' +
                 ", display='" + displays + '\'' +
                 ", networkAdapters='" + networkAdapters + '\'' +
+                ", roundedScreenSize='" + roundedScreenSize + '\'' +
+                ", maxResolution='" + maxResolution + '\'' +
+                ", maxRefreshRate='" + maxRefreshRate + '\'' +
+                ", interfaceInfo='" + interfaceInfo + '\'' +
                 '}';
     }
 }

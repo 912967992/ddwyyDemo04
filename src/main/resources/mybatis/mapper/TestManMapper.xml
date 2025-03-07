@@ -34,8 +34,8 @@
         UPDATE total t
         SET
         t.testing = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}),
-        t.pending = (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '1' OR s.sample_schedule = '2') AND s.tester = #{name}),
-        t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '3' AND s.tester = #{name}),
+        t.pending = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}),
+        t.completed = (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '2' OR s.sample_schedule = '9' OR s.sample_schedule = '10') AND s.tester = #{name}),
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
         AND s.create_time >= '2024-11-18 00:00:00'
         AND (
@@ -314,5 +314,22 @@
         AND (#{sample_schedule} IS NULL OR sample_schedule = #{sample_schedule})
         ORDER BY create_time DESC;
     </select>
+
+    <select id="getInterfaceData" parameterType="Integer" resultType="String">
+        SELECT interfaceInfo FROM system_info WHERE id = #{id}
+    </select>
+
+    <update id="updateInterface">
+        UPDATE system_info
+        SET
+            interfaceInfo = #{interfaceInfo}
+        WHERE
+            id =#{id}
+
+    </update>
+
+
+
+
 
 </mapper>

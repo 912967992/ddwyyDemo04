@@ -70,5 +70,8 @@ public interface TestManDao {
                                              @Param("problemFinishEnd")String problemFinishEnd,
                                              @Param("sample_schedule")String sample_schedule);
 
+    public String getInterfaceData(@Param("id")int id);
+    public void updateInterface(@Param("id")String id,@Param("interfaceInfo")String interfaceInfo);
+
 
 }

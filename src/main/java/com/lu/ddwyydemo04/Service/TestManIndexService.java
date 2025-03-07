@@ -221,6 +221,13 @@ public class TestManIndexService {
 
 
 
+    public String getInterfaceData(int id){
+        return testManDao.getInterfaceData(id);
+    }
+
+    public void updateInterface(String id,String interfaceInfo){
+        testManDao.updateInterface(id, interfaceInfo);
+    }
 
 
 

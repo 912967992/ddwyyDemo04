@@ -111,6 +111,24 @@
             </div>
 
 
+            <!-- 最大分辨率 -->
+            <div class="input-group">
+                <label for="maxResolution">最大分辨率:</label>
+                <input type="text" id="maxResolution" name="maxResolution" placeholder="">
+            </div>
+
+            <!-- 最大刷新率 -->
+            <div class="input-group">
+                <label for="maxRefreshRate">最大刷新率:</label>
+                <input type="text" id="maxRefreshRate" name="maxRefreshRate" placeholder="">
+            </div>
+
+            <!-- 接口信息 -->
+            <div class="input-group">
+                <label for="interfaceInfo">接口信息:</label>
+                <input type="text" id="interfaceInfo" name="interfaceInfo" placeholder="">
+            </div>
+
 
             <!--        &lt;!&ndash; 日期范围选择器 &ndash;&gt;-->
             <!--        <div class="input-group date-range">-->
@@ -159,6 +177,29 @@
     </div>
 </div>
 
+<!-- 模态框 -->
+<!-- Modal for Interface Details -->
+<div id="modal-interface" style="display: none;">
+    <div class="modal-content">
+        <h3>接口信息</h3>
+
+        <!-- Display the header row (column names) -->
+        <div class="modal-row">
+            <div class="modal-cell">接口类型</div>
+            <div class="modal-cell">接口标准</div>
+            <div class="modal-cell">接口数量</div>
+        </div>
+
+        <!-- Display dynamic data rows -->
+        <div id="dataRows"></div>
+
+        <div>
+            <button id="addRowBtn">新增行</button>
+            <button id="saveInterface">保存数据</button>
+            <button id="closeModal">关闭</button>
+        </div>
+    </div>
+</div>
 
 
 
@@ -189,9 +230,9 @@
     let currentPage;
     let globalFormData ;
 
-
-
-
+    let interfaceInfoData = [];
+    let interfaceId;
+    const username = sessionStorage.getItem('username');
 
 
     function readyConfig(){
@@ -273,6 +314,189 @@
             return pages;
         }
 
+        // Function to close the modal when ESC key is pressed
+        function handleEscKey(event) {
+            // Check if the pressed key is ESC (keyCode 27)
+            if (event.key === 'Escape') {
+                // Hide the modal by setting the display to 'none'
+                document.getElementById('modal-interface').style.display = 'none';
+            }
+        }
+
+// Add event listener for keydown event to detect ESC key press
+        document.addEventListener('keydown', handleEscKey);
+
+
+        // 显示模态框的函数
+        function showModal(id) {
+            const modal = document.getElementById('modal-interface');
+            const dataRows = document.getElementById('dataRows');
+
+            // 清空旧数据
+            dataRows.innerHTML = '';
+
+            // 发送请求到后端，获取 ID 对应的数据
+            fetch(`/getInterfaceData?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    interfaceInfoData = JSON.parse(JSON.stringify(data)); // 深拷贝，避免数据引用问题
+                    console.log("初始接口数据:", interfaceInfoData);
+
+                    if (interfaceInfoData.length > 0) {
+                        interfaceInfoData.forEach((rowData, rowIndex) => {
+                            // 创建一行
+                            const row = document.createElement('div');
+                            row.classList.add('modal-row');
+
+                            rowData.forEach((item, colIndex) => {
+                                // 创建 input 作为可编辑单元格
+                                const cell = document.createElement('div');
+                                cell.classList.add('modal-cell');
+
+                                if (username === '戴杏华' || username === '卢健') {
+                                    // 可编辑输入框
+                                    const input = document.createElement('input');
+                                    input.type = 'text';
+                                    input.classList.add('modal-input');
+                                    input.value = item;
+                                    input.dataset.rowIndex = rowIndex;
+                                    input.dataset.colIndex = colIndex;
+
+                                    // 监听输入框变化
+                                    input.addEventListener('input', (event) => {
+                                        let rIdx = event.target.dataset.rowIndex;
+                                        let cIdx = event.target.dataset.colIndex;
+                                        interfaceInfoData[rIdx][cIdx] = event.target.value.trim();
+                                        console.log("更新后的数据:", interfaceInfoData);
+                                    });
+
+                                    cell.appendChild(input);
+                                } else {
+                                    // 只读文本
+                                    cell.textContent = item;
+                                }
+
+                                row.appendChild(cell);
+                            });
+
+                            dataRows.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("获取数据失败:", error);
+                    alert("无法加载数据");
+                });
+
+            // 显示模态框
+            modal.style.display = 'block';
+
+            // 关闭模态框
+            const closeBtn = modal.querySelector('#closeModal');
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none'; // 隐藏模态框
+            });
+
+            // 监听 "新增一行" 按钮
+            const addRowBtn = modal.querySelector('#addRowBtn');
+            // 先移除旧的事件监听器，防止多次绑定
+            addRowBtn.removeEventListener('click', handleAddRow);
+
+            // 绑定新的事件监听器
+            addRowBtn.addEventListener('click', handleAddRow);
+
+        }
+
+        function handleAddRow() {
+            if (username !== '卢健' && username !== '戴杏华') {
+                alert("你无权限修改数据！");
+                return;
+            }
+            addEditableRow();
+        }
+
+// 添加可编辑行
+        function addEditableRow() {
+            const dataRows = document.getElementById('dataRows');
+            const newRow = document.createElement('div');
+            newRow.classList.add('modal-row');
+
+            // 获取当前行索引（用于存入 interfaceInfoData）
+            const rowIndex = interfaceInfoData.length;
+
+            // 创建输入框
+            function createInputCell(colIndex) {
+                const cell = document.createElement('div');
+                cell.classList.add('modal-cell');
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.classList.add('modal-input');
+
+                // 监听输入框的变化，实时更新 interfaceInfoData
+                input.addEventListener('input', (event) => {
+                    interfaceInfoData[rowIndex][colIndex] = event.target.value || ""; // 清空时存入空字符串
+                });
+
+                cell.appendChild(input);
+                return cell;
+            }
+
+            // 生成 3 列输入框
+            newRow.appendChild(createInputCell(0));
+            newRow.appendChild(createInputCell(1));
+            newRow.appendChild(createInputCell(2));
+
+            // 添加新行到数据区
+            dataRows.appendChild(newRow);
+
+            // 在 interfaceInfoData 中添加对应的空行
+            interfaceInfoData.push(["", "", ""]);
+
+            console.log(interfaceInfoData);
+        }
+
+
+        document.getElementById('saveInterface').addEventListener('click', () => {
+            // 更新 interfaceInfoData 中的内容
+            const rows = document.querySelectorAll('#dataRows .modal-row');
+            console.log("interfaceInfoData是",interfaceInfoData)
+            rows.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length === 3) {
+                    const interfaceType = inputs[0].value.trim();
+                    const interfaceStandard = inputs[1].value.trim();
+                    const interfaceQuantity = inputs[2].value.trim();
+
+                    // 如果用户输入有效数据，更新 interfaceInfoData 中的对应项
+                    if (interfaceType && interfaceStandard && interfaceQuantity) {
+                        // 更新 interfaceInfoData 中的对应数组
+                        interfaceInfoData[index] = [interfaceType, interfaceStandard, interfaceQuantity];
+                    }
+                }
+            });
+
+
+            // 发送数据到后端
+            fetch(`/saveInterface?id=${interfaceId}`,{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(interfaceInfoData)  // 发送全部数据
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("服务器响应:", data);
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error("错误:", error);
+                    alert("提交失败");
+                });
+        });
+
+
         function displayPage(pageNum) {
             if (pageNum < 1 || pageNum > pages.length) return; // 检查页码范围
 
@@ -292,7 +516,7 @@
 
             const headers = [
                 "设备ID","计算机名称", "操作系统版本","操作系统安装日期", "操作系统详细版本号",'版本号',"系统架构","系统型号",
-                "记录更新时间", "处理器", "内存", "显卡", "网络适配器"
+                "记录更新时间", "处理器", "内存", "显卡", "网络适配器" , "内置屏最大分辨率" ,"内置屏最大刷新率", "接口信息"
             ];
 
             headers.forEach(headerText => {
@@ -314,19 +538,22 @@
                 const cells = [
                     item.id, item.computerName, item.version, item.installationDate, item.osVersion, item.fullOS,
                     item.architecture,  item.systemModel, item.created_at , item.cpu, item.memory,
-                    item.displays , item.networkAdapters
+                    item.displays , item.networkAdapters , item.maxResolution, item.maxRefreshRate,
+                    item.interfaceInfo
 
                 ];
 
                 cells.forEach((cellData, index) => {
                     const td = document.createElement('td');
 
-                    td.textContent = cellData || '';
+                    td.textContent = cellData ? cellData : '/';
 
-                    // // 判断不是 "问题点数量" 时才添加点击事件
-                    // if (headers[index] !== "问题点数量") {
-                    //     td.addEventListener('click', () => editClickBtn(item.sample_id));
-                    // }
+                    if (headers[index] === "接口信息") {
+                        td.addEventListener('click', () => {
+                            interfaceId = item.id;
+                            showModal(item.id); // 调用函数来展示模态框并填充数据
+                        });
+                    }
 
                     row.appendChild(td);
                 });

@@ -35,6 +35,9 @@ public class LabModuleController {
         System.out.println("displays: " + systemInfo.getDisplays());
         System.out.println("networkAdapters: " + systemInfo.getNetworkAdapters());
 
+        System.out.println("maxResolution: " + systemInfo.getMaxResolution());
+        System.out.println("maxRefreshRate: " + systemInfo.getMaxRefreshRate());
+
         // 判断 Computer Name 是否在数据库中存在
         int exists = labModuleService.checkIfComputerNameExists(systemInfo.getComputerName());
 
@@ -73,7 +76,10 @@ public class LabModuleController {
                                           @RequestParam(required = false) String cpu,
                                           @RequestParam(required = false) String memory,
                                           @RequestParam(required = false) String displays,
-                                          @RequestParam(required = false) String networkAdapters
+                                          @RequestParam(required = false) String networkAdapters,
+                                          @RequestParam(required = false) String maxResolution,
+                                          @RequestParam(required = false) String maxRefreshRate,
+                                          @RequestParam(required = false) String interfaceInfo
                                           ) {
 
         // 将空字符串转换为 null
@@ -92,10 +98,15 @@ public class LabModuleController {
         displays = (displays != null && !displays.isEmpty()) ? displays : null;
         networkAdapters = (networkAdapters != null && !networkAdapters.isEmpty()) ? networkAdapters : null;
 
+        maxResolution = (maxResolution != null && !maxResolution.isEmpty()) ? maxResolution : null;
+        maxRefreshRate = (maxRefreshRate != null && !maxRefreshRate.isEmpty()) ? maxRefreshRate : null;
+
+        interfaceInfo = (interfaceInfo != null && !interfaceInfo.isEmpty()) ? interfaceInfo : null;
+
 
         List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,version,installationDate,osVersion,fullOS,
-                architecture,systemModel,cpu,memory,displays,networkAdapters);
-        System.out.println(systemInfos);
+                architecture,systemModel,cpu,memory,displays,networkAdapters,maxResolution,maxRefreshRate,interfaceInfo);
+//        System.out.println(systemInfos);
 
         return systemInfos;
     }

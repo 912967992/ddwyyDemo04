@@ -447,10 +447,12 @@
     <insert id="insertSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
         INSERT INTO system_info (version, installationDate, osVersion,
                                  architecture, computerName, systemModel, fullOS,
-                                 cpu, memory, displays , networkAdapters , created_at)
+                                 cpu, memory, displays , networkAdapters , created_at,
+                                 maxResolution,maxRefreshRate)
         VALUES (#{version}, #{installationDate}, #{osVersion},
                 #{architecture}, #{computerName}, #{systemModel}, #{fullOS},
-                #{cpu},#{memory},#{displays},#{networkAdapters}, NOW())
+                #{cpu},#{memory},#{displays},#{networkAdapters}, NOW(),
+                #{maxResolution},#{maxRefreshRate})
     </insert>
 
     <!-- 查询 Computer Name 是否存在 -->
@@ -474,7 +476,9 @@
         memory = #{memory},
         displays = #{displays},
         networkAdapters = #{networkAdapters},
-        created_at =  NOW()
+        created_at =  NOW(),
+        maxResolution = #{maxResolution},
+        maxRefreshRate = #{maxRefreshRate}
         WHERE computerName = #{computerName}
     </update>
 
@@ -505,7 +509,9 @@
           AND (#{memory} IS NULL OR memory LIKE CONCAT('%', #{memory}, '%'))
           AND (#{displays} IS NULL OR displays LIKE CONCAT('%', #{displays}, '%'))
           AND (#{networkAdapters} IS NULL OR networkAdapters LIKE CONCAT('%', #{networkAdapters}, '%'))
-
+          AND (#{maxResolution} IS NULL OR maxResolution LIKE CONCAT('%', #{maxResolution}, '%'))
+          AND (#{maxRefreshRate} IS NULL OR maxRefreshRate LIKE CONCAT('%', #{maxRefreshRate}, '%'))
+          AND (#{interfaceInfo} IS NULL OR interfaceInfo LIKE CONCAT('%', #{interfaceInfo}, '%'))
     </select>
 
     <select id="getJobFromUsers" resultType="String">

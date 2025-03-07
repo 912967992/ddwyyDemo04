@@ -1163,4 +1163,66 @@ public class testManIndexController {
 
 
 
+    @PostMapping("/saveInterface")
+    @ResponseBody
+    public String saveInterface(@RequestParam String id, @RequestBody List<List<String>> interfaceData) {
+        // 创建一个 StringBuilder 来构建最终的输出字符串
+        StringBuilder interfaceInfo = new StringBuilder();
+        System.out.println("id:" + id);
+
+        // 遍历每一项数据并合并为 USB-3.0-2 的格式
+        for (List<String> entry : interfaceData) {
+            // 过滤掉全是空字符串的行
+            if (entry.stream().allMatch(String::isEmpty)) {
+                continue; // 跳过该行
+            }
+
+            // 将每行的数据通过 "-" 连接
+            String formattedRow = String.join("-", entry);
+
+            // 将每行添加到 StringBuilder，并添加换行符
+            interfaceInfo.append(formattedRow).append("\n");
+        }
+
+        // 打印最终的格式化数据
+        System.out.println("formattedData:\n" + interfaceInfo);
+        testManIndexService.updateInterface(id, interfaceInfo.toString());
+
+        return "{\"success\": true, \"message\": \"数据已接收\"}";
+    }
+
+
+
+
+    @GetMapping("/getInterfaceData")
+    @ResponseBody
+    public List<List<String>> getInterfaceData(int id) {
+        String rawData = testManIndexService.getInterfaceData(id);
+
+        if (rawData == null) {
+            return new ArrayList<>();
+        }
+        System.out.println("rawData: " + rawData);
+
+        // 按行分割数据
+        String[] rows = rawData.split("\n"); // 假设每一行的数据以换行符分隔
+
+        List<List<String>> result = new ArrayList<>();
+
+        // 处理每一行
+        for (String row : rows) {
+            String[] parts = row.split("-"); // 按照 - 分隔字段
+
+            if (parts.length == 3) {
+                // 直接将每行数据以字符串列表形式加入结果
+                result.add(Arrays.asList(parts));
+            }
+        }
+        System.out.println("result: " + result);
+
+        return result;
+    }
+
+
+
 }

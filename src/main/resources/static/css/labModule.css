@@ -562,3 +562,35 @@
     z-index: 1000;
     border-radius: 5px;
 }
+
+
+/* 接口点击弹出模态框 */
+#modal-interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-row {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.modal-cell {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.modal-input {
+    width: 80%;
+    padding: 5px;
+    margin: 5px;
+}
