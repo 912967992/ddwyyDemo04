@@ -1,15 +1,14 @@
 package com.lu.ddwyydemo04.dao;
 
-import com.lu.ddwyydemo04.pojo.FileData;
-import com.lu.ddwyydemo04.pojo.Samples;
-import com.lu.ddwyydemo04.pojo.TestIssues;
-import com.lu.ddwyydemo04.pojo.TotalData;
+import com.lu.ddwyydemo04.pojo.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
 @Repository
 public interface TestManDao {
 
@@ -73,5 +72,9 @@ public interface TestManDao {
     public String getInterfaceData(@Param("id")int id);
     public void updateInterface(@Param("id")String id,@Param("interfaceInfo")String interfaceInfo);
 
+    public List<Map<String, Object>> getReceivedData();
 
+    public int queryElectricalCode(@Param("sample_id")String sample_id);
+    public int insertElectricInfo(PassbackData passbackData);
+    public int updateElectricInfo(PassbackData passbackData);
 }

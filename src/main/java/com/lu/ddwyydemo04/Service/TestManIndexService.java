@@ -11,6 +11,7 @@ import com.dingtalk.api.response.OapiFileUploadTransactionResponse;
 import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
+import com.lu.ddwyydemo04.pojo.PassbackData;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TestIssues;
 import com.lu.ddwyydemo04.pojo.TotalData;
@@ -229,6 +230,24 @@ public class TestManIndexService {
         testManDao.updateInterface(id, interfaceInfo);
     }
 
+    public List<Map<String, Object>> getReceivedData(){
+        return testManDao.getReceivedData();
+    }
+
+    public int queryElectricalCode(String sample_id){
+        return testManDao.queryElectricalCode(sample_id);
+
+    }
+
+    public int insertElectricInfo(PassbackData passbackData){
+        return testManDao.insertElectricInfo(passbackData);
+
+    }
+
+    public int updateElectricInfo(PassbackData passbackData){
+        return testManDao.updateElectricInfo(passbackData);
+
+    }
 
 
 }
