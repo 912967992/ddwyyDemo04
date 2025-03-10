@@ -72,7 +72,7 @@ public interface TestManDao {
     public String getInterfaceData(@Param("id")int id);
     public void updateInterface(@Param("id")String id,@Param("interfaceInfo")String interfaceInfo);
 
-    public List<Map<String, Object>> getReceivedData();
+    public List<PassbackData> getReceivedData();
 
     public int queryElectricalCode(@Param("sample_id")String sample_id);
     public int insertElectricInfo(PassbackData passbackData);

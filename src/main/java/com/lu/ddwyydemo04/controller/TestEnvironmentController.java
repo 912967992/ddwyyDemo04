@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,16 +37,16 @@ public class TestEnvironmentController {
     public ResponseEntity<Map<String, Object>> receiveData(@RequestBody PassbackData requestData) {
 
         // 获取传入的请求数据
-        String sampleId = requestData.getSampleId();
-        String sampleCategory = requestData.getSampleCategory();
-        String sampleModel = requestData.getSampleModel();
-        String sampleCoding = requestData.getSampleCoding();
+        String sampleId = requestData.getSample_id();
+        String sampleCategory = requestData.getSample_category();
+        String sampleModel = requestData.getSample_model();
+        String sampleCoding = requestData.getSample_coding();
         String materialCode = requestData.getMaterialCode();
-        String sampleFrequency = requestData.getSampleFrequency();
-        String sampleName = requestData.getSampleName();
+        String sampleFrequency = requestData.getSample_frequency();
+        String sampleName = requestData.getSample_name();
         String version = requestData.getVersion();
         String priority = requestData.getPriority();
-        String sampleLeader = requestData.getSampleLeader();
+        String sampleLeader = requestData.getSample_leader();
         String supplier = requestData.getSupplier();
         String testProjectCategory = requestData.getTestProjectCategory();
         String testProjects = requestData.getTestProjects();
@@ -86,9 +87,10 @@ public class TestEnvironmentController {
 
 
     @GetMapping("/passback/getReceivedData")
-    public ResponseEntity<List<Map<String, Object>>> getReceivedData() {
-        String sql = "SELECT * FROM test_data ORDER BY id DESC LIMIT 10";
-        List<Map<String, Object>> receivedData = testManIndexService.getReceivedData();
+    @ResponseBody
+    public ResponseEntity<List<PassbackData>> getReceivedData() {
+        List<PassbackData> receivedData =  testManIndexService.getReceivedData();
+        System.out.println("receivedData:"+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 

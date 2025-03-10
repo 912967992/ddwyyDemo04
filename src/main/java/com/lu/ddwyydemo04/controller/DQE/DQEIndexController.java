@@ -4,6 +4,7 @@ package com.lu.ddwyydemo04.controller.DQE;
 import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 
 import com.lu.ddwyydemo04.pojo.CombinedTaskNode;
+import com.lu.ddwyydemo04.pojo.PassbackData;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TaskNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -222,6 +223,15 @@ public class DQEIndexController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("更新超时原因时出错");
         }
     }
+
+//    @GetMapping("/getEletricInfo")
+//    public List<PassbackData> getElectricInfo() {
+//        return dqeIndexService.getElectricInfo();
+//    }
+
+
+
+
 
 
 }

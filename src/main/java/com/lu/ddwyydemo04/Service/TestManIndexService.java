@@ -230,7 +230,7 @@ public class TestManIndexService {
         testManDao.updateInterface(id, interfaceInfo);
     }
 
-    public List<Map<String, Object>> getReceivedData(){
+    public List<PassbackData> getReceivedData(){
         return testManDao.getReceivedData();
     }
 

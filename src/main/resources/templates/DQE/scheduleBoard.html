@@ -2,254 +2,55 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新增项目与排期面板</title>
-    <link rel="stylesheet" href="/css/scheduleBoard.css">
+    <title>项目池子展示</title>
+    <style>
+        #projectPool {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            width: 90%;
+            background-color: #f9f9f9;
+        }
+        .project-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
-<div>
-    <!-- 项目池 -->
-    <button id="addProjectBtn">新增项目</button>
-    <div id="projectPool"></div>
-</div>
-
-<div id="schedulePanel">
-    <h2>排期面板</h2>
-    <div class="button-container">
-        <button id="addTesterBtn">新增测试人员</button>
-        <button id="addDateBtn">新增日期</button>
-    </div>
-    <table id="scheduleTable"></table>
-</div>
-
-<!-- 右键菜单 -->
-<ul class="context-menu" id="contextMenu">
-    <li id="removeProjectBtn">撤回到项目池</li>
-    <li id="changeColorBtn">更改颜色</li>
-</ul>
+<h2>项目池子</h2>
+<div id="projectPool">加载中...</div>
 
 <script>
-    let projectCount = 0;
-    let testerCount = 0;
-    let dateCount = 0;
-
-    // 存储测试人员和日期
-    let testers = [];
-    let dates = [];
-    let scheduleData = {}; // 存储排期数据，用于撤回指定项目时不影响其他项目
-    let selectedProject = null; // 记录当前选中的项目
-
-    // 项目池：新增项目
-    document.getElementById('addProjectBtn').addEventListener('click', () => {
-        projectCount++;
-        const projectName = `项目${projectCount}`;
-
-        // 创建新的项目元素
-        const newProject = document.createElement('div');
-        newProject.classList.add('project');
-        newProject.setAttribute('draggable', true);
-        newProject.innerHTML = `<span>${projectName}</span>`;
-
-        // 添加拖拽事件
-        newProject.addEventListener('dragstart', (event) => {
-            event.dataTransfer.setData('projectName', projectName);
-        });
-
-        // 右键菜单：项目池中右键菜单
-        newProject.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            selectedProject = newProject;
-            const menu = document.getElementById('contextMenu');
-            menu.style.left = `${event.pageX}px`;
-            menu.style.top = `${event.pageY}px`;
-            menu.style.display = 'block';
-        });
-
-        // 将新的项目添加到项目池中
-        const projectPool = document.getElementById('projectPool');
-        projectPool.appendChild(newProject);
-    });
-
-    // 排期面板：新增测试人员
-    document.getElementById('addTesterBtn').addEventListener('click', () => {
-        testerCount++;
-        const testerName = `测试人员${testerCount}`;
-        testers.push(testerName);
-        renderScheduleTable();
-    });
-
-    // 排期面板：新增日期
-    document.getElementById('addDateBtn').addEventListener('click', () => {
-        dateCount++;
-        const date = `日期${dateCount}`;
-        dates.push(date);
-        renderScheduleTable();
-    });
-
-    // 渲染排期表格
-    function renderScheduleTable() {
-        const scheduleTable = document.getElementById('scheduleTable');
-        scheduleTable.innerHTML = ''; // 清空表格
-
-        // 表格头部：日期
-        const headerRow = document.createElement('tr');
-        headerRow.innerHTML = '<th>测试人员</th>';
-        dates.forEach(date => {
-            const th = document.createElement('th');
-            th.textContent = date;
-            headerRow.appendChild(th);
-        });
-        scheduleTable.appendChild(headerRow);
-
-        // 表格内容：测试人员
-        testers.forEach(tester => {
-            const row = document.createElement('tr');
-            const testerCell = document.createElement('td');
-            testerCell.textContent = tester;
-            row.appendChild(testerCell);
-
-            dates.forEach(date => {
-                const dateCell = document.createElement('td');
-                dateCell.setAttribute('ondragover', 'event.preventDefault()');
-                dateCell.setAttribute('ondrop', 'drop(event)');
-
-                const dragTarget = document.createElement('div');
-                dragTarget.classList.add('draggable');
-                dragTarget.setAttribute('data-tester', tester);
-                dragTarget.setAttribute('data-date', date);
-                dateCell.appendChild(dragTarget);
-
-                // 如果有已分配的项目，显示它
-                if (scheduleData[tester] && scheduleData[tester][date]) {
-                    dragTarget.textContent = scheduleData[tester][date];
+    // 页面加载完成后立即调用接口
+    window.onload = function() {
+        fetch('/api/getEletricInfo')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('projectPool');
+                container.innerHTML = ''; // 清空初始文字
+                if (data.length === 0) {
+                    container.innerHTML = '暂无项目数据。';
+                    return;
                 }
 
-                // 允许拖拽排期面板中的项目
-                dragTarget.addEventListener('dragstart', (event) => {
-                    event.dataTransfer.setData('projectName', dragTarget.textContent);
-                    event.dataTransfer.setData('originDate', date);
-                    event.dataTransfer.setData('originTester', tester);
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'project-item';
+                    div.innerHTML = `
+                            <strong>项目名称：</strong> ${item.projectName}<br>
+                            <strong>地点：</strong> ${item.location}<br>
+                            <strong>状态：</strong> ${item.status}
+                        `;
+                    container.appendChild(div);
                 });
-
-                row.appendChild(dateCell);
+            })
+            .catch(error => {
+                document.getElementById('projectPool').innerHTML = '加载失败，请稍后重试。';
+                console.error('Error fetching electric info:', error);
             });
-
-            scheduleTable.appendChild(row);
-        });
     }
-
-    // 拖拽放下事件
-    function drop(event) {
-        event.preventDefault();
-        const projectName = event.dataTransfer.getData('projectName');
-        const dragTarget = event.target;
-
-        if (dragTarget.classList.contains('draggable')) {
-            const originTester = event.dataTransfer.getData('originTester');
-            const originDate = event.dataTransfer.getData('originDate');
-
-            // 清空原位置的项目
-            if (scheduleData[originTester] && scheduleData[originTester][originDate]) {
-                delete scheduleData[originTester][originDate];
-            }
-
-            // 更新排期数据
-            const tester = dragTarget.getAttribute('data-tester');
-            const date = dragTarget.getAttribute('data-date');
-
-            // 如果目标位置有项目，显示新的项目名
-            if (!scheduleData[tester]) {
-                scheduleData[tester] = {};
-            }
-            scheduleData[tester][date] = projectName;
-
-            // 更新排期面板
-            renderScheduleTable();
-
-            // 更新目标单元格的内容
-            dragTarget.textContent = projectName;
-
-            // 从项目池中移除已分配的项目
-            const projectPool = document.getElementById('projectPool');
-            const projects = projectPool.getElementsByClassName('project');
-            for (let i = 0; i < projects.length; i++) {
-                if (projects[i].textContent === projectName) {
-                    projectPool.removeChild(projects[i]);
-                    break;
-                }
-            }
-        }
-    }
-
-    // 右键菜单：显示
-    document.addEventListener('contextmenu', (event) => {
-        if (event.target && event.target.classList.contains('draggable')) {
-            event.preventDefault();
-            selectedProject = event.target;
-            const menu = document.getElementById('contextMenu');
-            menu.style.left = `${event.pageX}px`;
-            menu.style.top = `${event.pageY}px`;
-            menu.style.display = 'block';
-        } else {
-            document.getElementById('contextMenu').style.display = 'none';
-        }
-    });
-
-    // 右键菜单：撤回到项目池
-    document.getElementById('removeProjectBtn').addEventListener('click', () => {
-        if (selectedProject) {
-            const projectName = selectedProject.textContent;
-            const tester = selectedProject.getAttribute('data-tester');
-            const date = selectedProject.getAttribute('data-date');
-
-            // 清空选中的格子内容
-            selectedProject.textContent = '';
-
-            // 在排期数据中移除该项目
-            if (scheduleData[tester] && scheduleData[tester][date]) {
-                delete scheduleData[tester][date];
-            }
-
-            // 将项目重新添加到项目池
-            const projectPool = document.getElementById('projectPool');
-            const projectDiv = document.createElement('div');
-            projectDiv.classList.add('project');
-            projectDiv.textContent = projectName;
-            projectDiv.setAttribute('draggable', true);
-
-            projectDiv.addEventListener('dragstart', (event) => {
-                event.dataTransfer.setData('projectName', projectName);
-            });
-
-            projectPool.appendChild(projectDiv);
-
-            // 隐藏右键菜单
-            document.getElementById('contextMenu').style.display = 'none';
-        }
-    });
-
-    // 右键菜单：更改颜色
-    document.getElementById('changeColorBtn').addEventListener('click', () => {
-        if (selectedProject) {
-            selectedProject.style.backgroundColor = getRandomColor();
-            document.getElementById('contextMenu').style.display = 'none';
-        }
-    });
-
-    // 随机颜色生成
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-    }
-
-    // 点击其他地方时隐藏右键菜单
-    document.addEventListener('click', () => {
-        document.getElementById('contextMenu').style.display = 'none';
-    });
 </script>
 </body>
 </html>

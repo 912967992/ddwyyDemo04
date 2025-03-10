@@ -3,54 +3,63 @@ package com.lu.ddwyydemo04.pojo;
 import java.time.LocalDateTime;
 
 public class PassbackData {
-    private String sampleId;
-    private String sampleCategory;
-    private String sampleModel;
-    private String sampleCoding;
+
+    private int id;
+    private String sample_id;
+    private String sample_category;
+    private String sample_model;
+    private String sample_coding;
     private String materialCode;
-    private String sampleFrequency;
-    private String sampleName;
+    private String sample_frequency;
+    private String sample_name;
     private String version;
     private String priority;
-    private String sampleLeader;
+    private String sample_leader;
     private String supplier;
     private String testProjectCategory;
     private String testProjects;
     private String schedule;
 
-    private LocalDateTime createTime; // 新增字段
+    private LocalDateTime create_time;
 
-    // Getters and Setters
-    public String getSampleId() {
-        return sampleId;
+    public int getId() {
+        return id;
     }
 
-    public void setSampleId(String sampleId) {
-        this.sampleId = sampleId;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getSampleCategory() {
-        return sampleCategory;
+    public String getSample_id() {
+        return sample_id;
     }
 
-    public void setSampleCategory(String sampleCategory) {
-        this.sampleCategory = sampleCategory;
+    public void setSample_id(String sample_id) {
+        this.sample_id = sample_id;
     }
 
-    public String getSampleModel() {
-        return sampleModel;
+    public String getSample_category() {
+        return sample_category;
     }
 
-    public void setSampleModel(String sampleModel) {
-        this.sampleModel = sampleModel;
+    public void setSample_category(String sample_category) {
+        this.sample_category = sample_category;
     }
 
-    public String getSampleCoding() {
-        return sampleCoding;
+    public String getSample_model() {
+        return sample_model;
     }
 
-    public void setSampleCoding(String sampleCoding) {
-        this.sampleCoding = sampleCoding;
+    public void setSample_model(String sample_model) {
+        this.sample_model = sample_model;
+    }
+
+    public String getSample_coding() {
+        return sample_coding;
+    }
+
+    public void setSample_coding(String sample_coding) {
+        this.sample_coding = sample_coding;
     }
 
     public String getMaterialCode() {
@@ -61,20 +70,20 @@ public class PassbackData {
         this.materialCode = materialCode;
     }
 
-    public String getSampleFrequency() {
-        return sampleFrequency;
+    public String getSample_frequency() {
+        return sample_frequency;
     }
 
-    public void setSampleFrequency(String sampleFrequency) {
-        this.sampleFrequency = sampleFrequency;
+    public void setSample_frequency(String sample_frequency) {
+        this.sample_frequency = sample_frequency;
     }
 
-    public String getSampleName() {
-        return sampleName;
+    public String getSample_name() {
+        return sample_name;
     }
 
-    public void setSampleName(String sampleName) {
-        this.sampleName = sampleName;
+    public void setSample_name(String sample_name) {
+        this.sample_name = sample_name;
     }
 
     public String getVersion() {
@@ -93,12 +102,12 @@ public class PassbackData {
         this.priority = priority;
     }
 
-    public String getSampleLeader() {
-        return sampleLeader;
+    public String getSample_leader() {
+        return sample_leader;
     }
 
-    public void setSampleLeader(String sampleLeader) {
-        this.sampleLeader = sampleLeader;
+    public void setSample_leader(String sample_leader) {
+        this.sample_leader = sample_leader;
     }
 
     public String getSupplier() {
@@ -133,11 +142,35 @@ public class PassbackData {
         this.schedule = schedule;
     }
 
-    public LocalDateTime getCreateTime() {
-        return createTime;
+    public LocalDateTime getCreate_time() {
+        return create_time;
     }
 
-    public void setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
+    public void setCreate_time(LocalDateTime create_time) {
+        this.create_time = create_time;
     }
+
+
+    @Override
+    public String toString() {
+        return "PassbackData{" +
+                "id=" + id +
+                ", sample_id='" + sample_id + '\'' +
+                ", sample_category='" + sample_category + '\'' +
+                ", sample_model='" + sample_model + '\'' +
+                ", sample_coding='" + sample_coding + '\'' +
+                ", materialCode='" + materialCode + '\'' +
+                ", sample_frequency='" + sample_frequency + '\'' +
+                ", sample_name='" + sample_name + '\'' +
+                ", version='" + version + '\'' +
+                ", priority='" + priority + '\'' +
+                ", sample_leader='" + sample_leader + '\'' +
+                ", supplier='" + supplier + '\'' +
+                ", testProjectCategory='" + testProjectCategory + '\'' +
+                ", testProjects='" + testProjects + '\'' +
+                ", schedule='" + schedule + '\'' +
+                ", create_time=" + create_time +
+                '}';
+    }
+
 }

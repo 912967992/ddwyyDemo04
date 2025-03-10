@@ -328,7 +328,7 @@
 
     </update>
 
-    <select id="getReceivedData" resultType="java.util.HashMap">
+    <select id="getReceivedData" resultType="PassbackData">
         SELECT * FROM electric_info
     </select>
 
@@ -355,16 +355,16 @@
             create_time
         )
         VALUES (
-                   #{sampleId},
-                   #{sampleCategory},
-                   #{sampleModel},
-                   #{sampleCoding},
+                   #{sample_id},
+                   #{sample_category},
+                   #{sample_model},
+                   #{sample_coding},
                    #{materialCode},
-                   #{sampleFrequency},
-                   #{sampleName},
+                   #{sample_frequency},
+                   #{sample_name},
                    #{version},
                    #{priority},
-                   #{sampleLeader},
+                   #{sample_leader},
                    #{supplier},
                    #{testProjectCategory},
                    #{testProjects},
@@ -376,15 +376,15 @@
     <update id="updateElectricInfo" parameterType="PassbackData">
         UPDATE electric_info
         SET
-            sample_category = #{sampleCategory},
-            sample_model = #{sampleModel},
-            sample_coding = #{sampleCoding},
+            sample_category = #{sample_category},
+            sample_model = #{sample_model},
+            sample_coding = #{sample_coding},
             materialCode = #{materialCode},
-            sample_frequency = #{sampleFrequency},
-            sample_name = #{sampleName},
+            sample_frequency = #{sample_frequency},
+            sample_name = #{sample_name},
             version = #{version},
             priority = #{priority},
-            sample_leader = #{sampleLeader},
+            sample_leader = #{sample_leader},
             supplier = #{supplier},
             testProjectCategory = #{testProjectCategory},
             testProjects = #{testProjects},
