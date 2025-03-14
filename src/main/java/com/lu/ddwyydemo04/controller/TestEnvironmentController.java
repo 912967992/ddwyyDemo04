@@ -2,6 +2,7 @@ package com.lu.ddwyydemo04.controller;
 
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
+import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +91,34 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getReceivedData();
-        System.out.println("receivedData:"+receivedData.toString());
+//        System.out.println("receivedData:"+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
+
+    @GetMapping("/getScheduleBoard")
+    @ResponseBody
+    public List<ElectricScheduleInfo> getScheduleBoard() {
+        System.out.println("testManIndexService.getAllSchedules():"+testManIndexService.getAllSchedules());
+        return testManIndexService.getAllSchedules();
+    }
+
+
+    @PostMapping("/passback/saveScheduleDays")
+    @ResponseBody
+    public Map<String, Object> saveScheduleDays(@RequestBody Map<String, Object> params) {
+        String sampleId = (String) params.get("sample_id");
+        String scheduleDays = (String) params.get("scheduleDays");
+
+        System.out.println("sample_id: " + sampleId + ", scheduleDays: " + scheduleDays);
+        int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("status", "ok");
+        result.put("message", "排期天数保存成功！");
+        return result;
+    }
+
+
+
 
 }

@@ -3,6 +3,7 @@ package com.lu.ddwyydemo04.controller.DQE;
 
 import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 
+import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.CombinedTaskNode;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 import com.lu.ddwyydemo04.pojo.Samples;
@@ -23,7 +24,8 @@ public class DQEIndexController {
     @Autowired
     private DQEIndexService dqeIndexService;
 
-
+    @Autowired
+    private TestManIndexService testManIndexService;
 
 
     @GetMapping("/DQEIndex") // 处理页面跳转请求
@@ -223,11 +225,6 @@ public class DQEIndexController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("更新超时原因时出错");
         }
     }
-
-//    @GetMapping("/getEletricInfo")
-//    public List<PassbackData> getElectricInfo() {
-//        return dqeIndexService.getElectricInfo();
-//    }
 
 
 

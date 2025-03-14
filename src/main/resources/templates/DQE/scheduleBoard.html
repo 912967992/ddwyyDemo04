@@ -3,54 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <title>项目池子展示</title>
-    <style>
-        #projectPool {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 20px;
-            width: 90%;
-            background-color: #f9f9f9;
-        }
-        .project-item {
-            padding: 8px;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
+    <!-- 引入外部CSS文件 -->
+    <link rel="stylesheet" href="/css/scheduleBoard.css">
+
 </head>
 <body>
-<h2>项目池子</h2>
-<div id="projectPool">加载中...</div>
+
+<div id="projectList" class="project-container">
+    <h2>项目池子</h2>
+    <div id="projectPool">加载中...</div>
+</div>
+
+<!-- 排期面板区域 -->
+<div class="schedule-board-container">
+    <h3>排期面板</h3>
+    <div id="scheduleBoard">加载中...</div>
+</div>
+
+<!-- 模态框 -->
+<div id="modal">
+    <div id="modalContent">
+        <h3>项目详情</h3>
+        <div id="modalBody"></div>
+
+        <div style="margin-top: 10px;">
+            <label for="scheduleDays"><strong>排期天数：</strong></label>
+            <input type="number" id="scheduleDays" placeholder="请输入排期天数">
+            <button id="saveScheduleBtn">保存排期</button>
+        </div>
+
+        <button id="closeBtn">关闭</button>
+    </div>
+</div>
+
+<!-- 右键菜单 -->
+<div id="contextMenu" class="context-menu">撤回排期</div>
+<!--<div id="projectMenu" class="context-menu">设置排期天数</div>-->
+
+<!-- 返回按钮 -->
+<div class="header-container">
+    <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+</div>
 
 <script>
-    // 页面加载完成后立即调用接口
-    window.onload = function() {
-        fetch('/api/getEletricInfo')
+    const localScheduleChanges = [];
+    const projectListContainer = document.getElementById('projectList');
+    const contextMenu = document.getElementById('contextMenu');
+    // const projectMenu = document.getElementById('projectMenu');
+    let currentRightClickCell = null;
+    let currentRightClickProject = null;
+
+    // 设置拖拽
+    function setDraggable(projectEl, isProject) {
+        projectEl.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('project-id', projectEl.getAttribute('data-id'));
+            e.dataTransfer.setData('project-days', projectEl.getAttribute('data-days'));
+            e.dataTransfer.setData('project-sizecoding', projectEl.getAttribute('data-sizecoding'));
+            e.dataTransfer.setData('project-electric_info_id', projectEl.getAttribute('data-sample_id'));
+
+        });
+
+        if(isProject){
+
+        }else{
+            projectEl.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                currentRightClickProject = projectEl;
+                projectMenu.style.top = e.pageY + 'px';
+                projectMenu.style.left = e.pageX + 'px';
+                projectMenu.style.display = 'block';
+            });
+        }
+
+    }
+
+
+
+
+    // 点击其他区域隐藏菜单
+    document.addEventListener('click', e => {
+        if (!e.target.classList.contains('context-menu')) {
+            contextMenu.style.display = 'none';
+            // projectMenu.style.display = 'none';
+        }
+    });
+
+        // 页面加载后请求数据
+    window.onload = function () {
+        // 加载项目池子数据
+        // 加载项目池子数据
+        fetch('/passback/getReceivedData')
             .then(response => response.json())
             .then(data => {
                 const container = document.getElementById('projectPool');
-                container.innerHTML = ''; // 清空初始文字
+                container.innerHTML = '';
                 if (data.length === 0) {
                     container.innerHTML = '暂无项目数据。';
                     return;
                 }
 
+                // 循环渲染项目卡片
                 data.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'project-item';
-                    div.innerHTML = `
-                            <strong>项目名称：</strong> ${item.projectName}<br>
-                            <strong>地点：</strong> ${item.location}<br>
-                            <strong>状态：</strong> ${item.status}
-                        `;
-                    container.appendChild(div);
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+                    card.textContent = item.sample_model + item.materialCode + "(" + item.scheduleDays + ")天";
+
+                    // 添加 data-id 和 data-days 属性
+                    card.setAttribute('data-id', item.sample_id);
+                    card.setAttribute('data-sizecoding', item.sample_model + " " +item.materialCode);
+                    card.setAttribute('data-days', item.scheduleDays != null ? item.scheduleDays : '');
+                    card.setAttribute('draggable', 'true');
+                    card.setAttribute('data-sample_id', item.sample_id);
+
+
+
+                    // ✅ 在创建时立刻绑定拖拽事件
+                    setDraggable(card,true);
+
+                    // 右键触发
+                    card.oncontextmenu = function (event) {
+                        event.preventDefault(); // 阻止浏览器默认右键菜单
+
+                        // 设置项目详情内容（包含当前排期天数）
+                        document.getElementById('modalBody').innerHTML = `
+                    <p><strong>电气编号：</strong>${item.sample_id}</p>
+                    <p><strong>项目名称：</strong>${item.sample_name}</p>
+                    <p><strong>大小编码：</strong>${item.model + item.materialCode}</p>
+                    <p><strong>产品类别：</strong>${item.sample_category}</p>
+                    <p><strong>版本：</strong>${item.version}</p>
+                    <p><strong>优先级：</strong>${item.priority}</p>
+                    <p><strong>项目负责人：</strong>${item.sample_leader}</p>
+                    <p><strong>供应商：</strong>${item.supplier}</p>
+                    <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
+                    <p><strong>测试子项目：</strong>${item.testProjects}</p>
+                    <p><strong>状态：</strong>${item.schedule}</p>
+                    <p><strong>创建时间：</strong>${item.create_time}</p>
+                `;
+
+                        // 设置输入框的默认值为已有的 scheduleDays（若为空则设置为空字符串）
+                        document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
+
+                        // 保存按钮绑定事件
+                        document.getElementById('saveScheduleBtn').onclick = function () {
+                            const days = document.getElementById('scheduleDays').value;
+                            if (!days || isNaN(days) || days < 0) {
+                                alert("请输入有效的排期天数！");
+                                return;
+                            }
+
+                            // 更新数据数组中的该项目的排期天数
+                            item.scheduleDays = days;
+
+                            // 示例：控制台打印
+                            console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
+
+                            fetch('/passback/saveScheduleDays', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+                            })
+                                .then(resp => resp.json())
+                                .then(resp => {
+                                    alert(resp.message); // 显示“排期天数保存成功！”
+
+                                    // 保存成功后，可以立即更新该项目卡片的排期天数（如显示在卡片上）
+                                    // card.textContent = `${item.sample_model} ${item.materialCode} 排期天数：${days}`;
+                                })
+                                .catch(err => console.error(err));
+                        };
+
+                        document.getElementById('modal').style.display = 'block';
+                    };
+
+                    container.appendChild(card);
                 });
             })
             .catch(error => {
                 document.getElementById('projectPool').innerHTML = '加载失败，请稍后重试。';
-                console.error('Error fetching electric info:', error);
+                console.error('Error fetching project data:', error);
             });
-    }
+
+        // 加载排期面板数据
+        fetch('/getScheduleBoard')
+            .then(response => response.json())
+            .then(data => {
+                const board = document.getElementById('scheduleBoard');
+                if (!data || data.length === 0) {
+                    board.innerHTML = '暂无排期数据。';
+                    return;
+                }
+
+                // 提取所有 tester 和所有排期覆盖到的日期（逐日拆分）
+                const testersSet = new Set();
+                const allDatesSet = new Set();
+
+                // 工具函数：生成某范围内所有日期字符串数组
+                function getDateRange(start, end) {
+                    const dates = [];
+                    const current = new Date(start);
+                    const last = new Date(end);
+                    while (current <= last) {
+                        const yyyy = current.getFullYear();
+                        const mm = String(current.getMonth() + 1).padStart(2, '0');
+                        const dd = String(current.getDate()).padStart(2, '0');
+                        dates.push(`${yyyy}-${mm}-${dd}`);
+                        current.setDate(current.getDate() + 1);
+                    }
+                    return dates;
+                }
+
+                // 构建 tester->dateList 映射
+                const dateMap = {}; // tester => array of { startDate, endDate, electric_info_id }
+
+
+                data.forEach(item => {
+                    if (item.tester) testersSet.add(item.tester);
+
+                    const startDate = item.schedule_start_date;
+                    const endDate = item.schedule_end_date || startDate;
+                    const dateRange = getDateRange(startDate, endDate);
+
+                    dateRange.forEach(date => allDatesSet.add(date));
+
+                    // 将 startDate 和 endDate 转换为 Date 对象
+                    const startDateTime = new Date(startDate);
+                    const endDateTime = new Date(endDate);
+                    const timeDifference = endDateTime - startDateTime; // 得到的是毫秒数
+
+                    const dayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // 转换为天数
+
+                    if (!dateMap[item.tester]) dateMap[item.tester] = [];
+                    dateMap[item.tester].push({
+                        startDate,
+                        endDate,
+                        electric_info_id: item.electric_info_id,
+                        sizecoding: item.sizecoding,
+                        days : dayDifference
+                    });
+                });
+
+                const testers = Array.from(testersSet);
+                const allDates = Array.from(allDatesSet).sort(); // 所有日期排序后的表头
+
+                // 构建表格
+                let html = '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
+
+                // 表头
+                html += '<thead><tr>';
+                html += '<th>测试人员 / 日期</th>';
+                allDates.forEach(date => {
+                    html += `<th>${date}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+
+                // 渲染每个 tester 行
+                testers.forEach(tester => {
+                    html += `<tr><td><strong>${tester}</strong></td>`;
+
+                    let colIndex = 0;
+                    while (colIndex < allDates.length) {
+                        const currentDate = allDates[colIndex];
+                        const task = dateMap[tester]?.find(t => {
+                            // 当前日期为任务开始日期
+                            return t.startDate === currentDate;
+                        });
+
+                        if (task) {
+                            // 合并单元格长度 = 任务所占的天数
+                            const rangeDates = getDateRange(task.startDate, task.endDate);
+                            const colspan = rangeDates.length;
+
+                            // ✅ 任务占据的合并单元格也加上 drop-cell
+                            html += `<td class="drop-cell" colspan="${colspan}" data-tester="${tester}" data-date="${currentDate}" data-electric_info_id="${task.electric_info_id}">${task.sizecoding} (${task.days}天)</td>`;
+                            colIndex += colspan;
+                        } else {
+                            // 判断该单元格是否被前面的任务合并过了
+                            const isCovered = dateMap[tester]?.some(t => {
+                                return t.startDate < currentDate && t.endDate >= currentDate;
+                            });
+                            if (!isCovered) {
+                                // ✅ 普通空单元格也加上 drop-cell
+                                html += `<td class="drop-cell" data-tester="${tester}" data-date="${currentDate}"></td>`;
+                            }
+                            colIndex += 1;
+                        }
+                    }
+
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                board.innerHTML = html;
+
+                // 拖拽目标
+                const cells = document.querySelectorAll('.drop-cell');
+
+                cells.forEach(cell => {
+                    const tester = cell.getAttribute('data-tester');
+                    const date = cell.getAttribute('data-date');
+                    console.log(`tester: ${tester}, date: ${date}`);
+                });
+
+
+                cells.forEach((cell, cellIndex, cellList) => {
+                    cell.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        cell.classList.add('over');
+                    });
+
+                    cell.addEventListener('dragleave', () => cell.classList.remove('over'));
+
+                    cell.addEventListener('drop', e => {
+                        e.preventDefault();
+                        cell.classList.remove('over');
+
+                        const projectId = e.dataTransfer.getData('project-id');
+                        const days = parseInt(e.dataTransfer.getData('project-days')) || 1;
+                        const sizecoding = e.dataTransfer.getData('project-sizecoding') || 1;
+                        const electric_info_id = e.dataTransfer.getData('project-electric_info_id') || 1;
+                        const tester = cell.getAttribute('data-tester');
+                        const startDate = cell.getAttribute('data-date');
+
+                        // 找到所有同一行的单元格（同行）
+                        const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+                        const startIndex = rowCells.indexOf(cell);
+
+                        if (startIndex + days > rowCells.length) {
+                            alert("排期超出可排范围！");
+                            return;
+                        }
+
+                        for (let i = startIndex; i < startIndex + days; i++) {
+                            if (rowCells[i].innerText.trim() !== '') {
+                                alert('排期区域已占用，无法安排！');
+                                return;
+                            }
+                        }
+
+                        // 合并单元格
+                        const startCell = rowCells[startIndex];
+                        startCell.innerText = `${sizecoding}（${days}天）`;
+                        startCell.classList.add('assigned');
+                        //这里是拖拽进入排期面板的时候给元素添加属性的地方
+                        startCell.setAttribute('colspan', days);
+                        startCell.setAttribute('data-electric_info_id', electric_info_id);
+                        for (let i = startIndex + 1; i < startIndex + days; i++) {
+                            rowCells[i].style.display = 'none';
+                        }
+
+                        // 删除项目
+                        const projectEl = document.querySelector(`.project-card[data-id="${projectId}"]`);
+                        if (projectEl) projectEl.remove();
+
+                        // 缓存记录
+                        const endDate = rowCells[startIndex + days - 1].getAttribute('data-date');
+                        localScheduleChanges.push({
+                            project_id: projectId,
+                            project_coding: sizecoding,
+                            tester,
+                            start_date: startDate,
+                            end_date: endDate,
+                            days
+                        });
+
+                        console.log('当前缓存：', localScheduleChanges);
+                    });
+
+                    // 撤回菜单
+                    cell.addEventListener('contextmenu', e => {
+                        e.preventDefault();
+                        if (cell.innerText.trim() === '') return;
+                        currentRightClickCell = cell;
+                        contextMenu.style.top = e.pageY + 'px';
+                        contextMenu.style.left = e.pageX + 'px';
+                        contextMenu.style.display = 'block';
+                    });
+                });
+
+                // 撤回排期功能
+                contextMenu.addEventListener('click', () => {
+                    if (!currentRightClickCell) return;
+
+                    const text = currentRightClickCell.innerText.trim();
+                    const match = text.match(/(\d+)[^\d]*（(\d+)天）/);
+                    if (!match) return;
+
+                    const [_, projectId, daysStr] = match;
+                    const days = parseInt(daysStr, 10);
+                    const tester = currentRightClickCell.getAttribute('data-tester');
+
+                    // 获取所在行的所有 drop-cell
+                    const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
+                    const startIndex = rowCells.indexOf(currentRightClickCell);
+
+                    // 清空当前单元格内容和样式
+                    currentRightClickCell.innerText = '';
+                    currentRightClickCell.removeAttribute('colspan');
+                    currentRightClickCell.classList.remove('assigned');
+
+                    // 恢复被隐藏的单元格
+                    for (let i = startIndex + 1; i < startIndex + days; i++) {
+                        rowCells[i].style.display = '';
+                    }
+
+                    // 将撤回的项目重新添加到项目池（projectPool）
+                    const restoredProject = document.createElement('div');
+                    restoredProject.className = 'project-card';
+                    restoredProject.setAttribute('draggable', 'true');
+                    restoredProject.setAttribute('data-id', projectId);
+                    restoredProject.setAttribute('data-days', days);
+                    restoredProject.textContent = `项目 ${projectId}（${days}天）`;
+
+                    // 绑定拖拽
+                    setDraggable(restoredProject);
+
+                    // 可选：右键也绑定详情查看
+                    restoredProject.oncontextmenu = (event) => {
+                        event.preventDefault();
+                        // 此处你可以调用之前的 modal 设置逻辑，例如 showProjectDetails(projectId);
+                    };
+
+                    const projectPool = document.getElementById('projectPool');
+                    projectPool.appendChild(restoredProject);
+
+                    // 删除缓存中的排期记录
+                    const index = localScheduleChanges.findIndex(item => item.project_id === projectId && item.tester === tester);
+                    if (index !== -1) {
+                        localScheduleChanges.splice(index, 1);
+                    }
+
+                    // 可选：同步通知后端撤回排期
+                    fetch('/passback/undoSchedule', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ project_id: projectId, tester })
+                    }).then(res => res.json()).then(res => {
+                        console.log("撤回排期完成：", res.message);
+                    });
+
+                    // 关闭右键菜单
+                    contextMenu.style.display = 'none';
+                });
+
+
+
+            })
+            .catch(error => {
+                document.getElementById('scheduleBoard').innerHTML = '排期加载失败。';
+                console.error('Error loading schedule board:', error);
+            });
+
+
+        // 模态框关闭
+        document.getElementById('closeBtn').onclick = function () {
+            document.getElementById('modal').style.display = 'none';
+        };
+        document.getElementById('modal').onclick = function (e) {
+            if (e.target.id === 'modal') {
+                document.getElementById('modal').style.display = 'none';
+            }
+        };
+    };
 </script>
+
 </body>
 </html>

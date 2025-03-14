@@ -1,140 +1,142 @@
-body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    display: flex;
-    gap: 20px;
-    width: 100%;
-}
-
-/* 按钮区域 */
-#addProjectBtn {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
-#addProjectBtn:hover {
-    background-color: #45a049;
-}
-
-/* 项目池 */
-#projectPool {
-    width: 250px;
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    box-sizing: border-box;
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.project {
-    padding: 10px;
-    background-color: #f1f1f1;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+.BackBtn {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    padding: 8px 16px;
     text-align: center;
+    white-space: nowrap;
+    border-radius: 20px;
+    border: none;
+    outline: none;
     cursor: pointer;
-    margin-bottom: 10px;
+    background-color: #FFDAB9;
+    color: #000000;
+    font-size: 16px;
 }
 
-.project span {
-    font-weight: bold;
+.project-container {
+    margin-top: 70px;
 }
 
-/* 排期面板 */
-#schedulePanel {
-    flex-grow: 1; /* 占据剩余空间 */
+#projectPool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     padding: 10px;
-    border: 1px solid #ddd;
     background-color: #f9f9f9;
+    justify-content: flex-start;
+    height: 100px;
     overflow-y: auto;
-    min-height: 300px; /* 确保有最小的高度 */
 }
 
-#schedulePanel h2 {
+.project-card {
+    width: 150px;
+    height: 30px;
+    background-color: #e8f0fe;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 从左边开始 */
+    text-align: left;            /* 文字左对齐 */
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+
+    /* 防止文字溢出 */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding-left: 8px; /* 可选：让文字不要贴边 */
+}
+
+.project-card:hover {
+    transform: scale(1.05);
+}
+
+
+#modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+}
+
+#modalContent {
+    background-color: #fff;
+    width: 300px;
+    padding: 20px;
+    border-radius: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#modalContent h3 {
     margin-top: 0;
 }
 
-.button-container {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 20px;
-}
-
-.button-container button {
-    padding: 10px 20px;
-    background-color: #007BFF;
+#closeBtn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
     color: white;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
-    margin-right: 10px;
 }
 
-.button-container button:hover {
+#closeBtn:hover {
     background-color: #0056b3;
 }
 
-/* 排期表格 */
-#scheduleTable {
+.header-container {
+    margin-top: 10px;
+}
+
+/* 排期面板样式 */
+.schedule-board-container {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border-radius: 10px;
+}
+
+.schedule-board-container h3 {
+    margin-bottom: 10px;
+}
+
+#scheduleBoardTable {
     width: 100%;
     border-collapse: collapse;
+    background-color: #ffffff;
 }
 
-#scheduleTable th, #scheduleTable td {
-    border: 1px solid #ddd;
-    padding: 10px;
+#scheduleBoardTable th,
+#scheduleBoardTable td {
+    border: 1px solid #ccc;
+    padding: 8px;
     text-align: center;
 }
 
-#scheduleTable th {
-    background-color: #f1f1f1;
+#scheduleBoardTable th {
+    background-color: #d9edf7;
+    font-weight: bold;
 }
 
-/* 拖拽项目 */
-.draggable {
-    background-color: #f1f1f1;
-    border: 1px solid #ddd;
-    padding: 5px;
-    cursor: move;
-    margin: 0;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%; /* 让项目充满单元格 */
-    width: 100%; /* 让项目充满单元格 */
-    box-sizing: border-box; /* 确保内外边距不影响大小 */
-}
-
-/* 拖拽区域 */
-td {
-    position: relative;
-}
-
-/* 右键菜单 */
 .context-menu {
     position: absolute;
-    display: none;
     background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    z-index: 100;
-}
-
-.context-menu li {
-    list-style: none;
-    padding: 8px 16px;
+    border: 1px solid #ccc;
+    padding: 4px 10px;
     cursor: pointer;
-}
-
-.context-menu li:hover {
-    background-color: #f1f1f1;
+    display: none;
+    z-index: 999;
 }

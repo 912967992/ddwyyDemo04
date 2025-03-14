@@ -393,6 +393,19 @@
         WHERE sample_id = #{sampleId}
     </update>
 
+    <select id="getAllSchedules" resultType="ElectricScheduleInfo">
+        SELECT * FROM electric_schedule_info
+    </select>
+
+    <update id="saveScheduleDays" >
+        UPDATE electric_info
+        SET
+            scheduleDays = #{scheduleDays}
+        WHERE
+            sample_id = #{sample_id}
+
+    </update>
+
 
 
 </mapper>

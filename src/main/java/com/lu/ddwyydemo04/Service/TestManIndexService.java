@@ -11,10 +11,7 @@ import com.dingtalk.api.response.OapiFileUploadTransactionResponse;
 import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
-import com.lu.ddwyydemo04.pojo.PassbackData;
-import com.lu.ddwyydemo04.pojo.Samples;
-import com.lu.ddwyydemo04.pojo.TestIssues;
-import com.lu.ddwyydemo04.pojo.TotalData;
+import com.lu.ddwyydemo04.pojo.*;
 import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
 import com.taobao.api.internal.util.WebUtils;
@@ -247,6 +244,14 @@ public class TestManIndexService {
     public int updateElectricInfo(PassbackData passbackData){
         return testManDao.updateElectricInfo(passbackData);
 
+    }
+
+    public List<ElectricScheduleInfo> getAllSchedules(){
+        return testManDao.getAllSchedules();
+    }
+
+    public int saveScheduleDays(String sample_id,String scheduleDays){
+        return testManDao.saveScheduleDays(sample_id, scheduleDays);
     }
 
 

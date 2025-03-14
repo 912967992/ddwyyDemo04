@@ -77,4 +77,14 @@ public interface TestManDao {
     public int queryElectricalCode(@Param("sample_id")String sample_id);
     public int insertElectricInfo(PassbackData passbackData);
     public int updateElectricInfo(PassbackData passbackData);
+
+    public List<ElectricScheduleInfo> getAllSchedules();
+
+    public int saveScheduleDays(@Param("sample_id")String sample_id, @Param("scheduleDays")String scheduleDays);
+
+
+
+
+
+
 }

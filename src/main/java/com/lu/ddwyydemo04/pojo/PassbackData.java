@@ -2,6 +2,7 @@ package com.lu.ddwyydemo04.pojo;
 
 import java.time.LocalDateTime;
 
+// 这个PassbackData实体类，是eletric_info的封装对象类
 public class PassbackData {
 
     private int id;
@@ -19,8 +20,9 @@ public class PassbackData {
     private String testProjectCategory;
     private String testProjects;
     private String schedule;
-
     private LocalDateTime create_time;
+
+    private Integer scheduleDays;
 
     public int getId() {
         return id;
@@ -150,6 +152,13 @@ public class PassbackData {
         this.create_time = create_time;
     }
 
+    public Integer getScheduleDays() {
+        return scheduleDays;
+    }
+
+    public void setScheduleDays(Integer scheduleDays) {
+        this.scheduleDays = scheduleDays;
+    }
 
     @Override
     public String toString() {
@@ -170,7 +179,7 @@ public class PassbackData {
                 ", testProjects='" + testProjects + '\'' +
                 ", schedule='" + schedule + '\'' +
                 ", create_time=" + create_time +
+                ", scheduleDays=" + scheduleDays +
                 '}';
     }
-
 }
