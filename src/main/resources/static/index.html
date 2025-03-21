@@ -129,7 +129,7 @@
                 await alertModal('姓名: ' + response.username + '，角色：' + response.job + '，你好！');
 
                 // if(response.username === "卢健"){
-                if(response.username === "陈少侠"){
+                if(response.username === "陈少侠" || response.username === "郭丽纯" || response.username === "占海英" ){
                     window.location.href = '/loginTestEnvironment';
                 } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
                     window.location.href = '/DQEIndex';

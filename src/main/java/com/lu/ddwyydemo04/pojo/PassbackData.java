@@ -9,7 +9,7 @@ public class PassbackData {
     private String sample_id;
     private String sample_category;
     private String sample_model;
-    private String sample_coding;
+//    private String sample_coding;
     private String materialCode;
     private String sample_frequency;
     private String sample_name;
@@ -21,6 +21,8 @@ public class PassbackData {
     private String testProjects;
     private String schedule;
     private LocalDateTime create_time;
+
+    private int isUsed;
 
     private Integer scheduleDays;
 
@@ -54,14 +56,6 @@ public class PassbackData {
 
     public void setSample_model(String sample_model) {
         this.sample_model = sample_model;
-    }
-
-    public String getSample_coding() {
-        return sample_coding;
-    }
-
-    public void setSample_coding(String sample_coding) {
-        this.sample_coding = sample_coding;
     }
 
     public String getMaterialCode() {
@@ -160,6 +154,14 @@ public class PassbackData {
         this.scheduleDays = scheduleDays;
     }
 
+    public int getIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(int isUsed) {
+        this.isUsed = isUsed;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -167,7 +169,6 @@ public class PassbackData {
                 ", sample_id='" + sample_id + '\'' +
                 ", sample_category='" + sample_category + '\'' +
                 ", sample_model='" + sample_model + '\'' +
-                ", sample_coding='" + sample_coding + '\'' +
                 ", materialCode='" + materialCode + '\'' +
                 ", sample_frequency='" + sample_frequency + '\'' +
                 ", sample_name='" + sample_name + '\'' +
@@ -180,6 +181,7 @@ public class PassbackData {
                 ", schedule='" + schedule + '\'' +
                 ", create_time=" + create_time +
                 ", scheduleDays=" + scheduleDays +
+                ", isUsed=" + isUsed +
                 '}';
     }
 }

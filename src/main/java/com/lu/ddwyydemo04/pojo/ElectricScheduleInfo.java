@@ -99,4 +99,20 @@ public class ElectricScheduleInfo {
     public void setSizecoding(String sizecoding) {
         this.sizecoding = sizecoding;
     }
+
+    @Override
+    public String toString() {
+        return "ElectricScheduleInfo{" +
+                "id=" + id +
+                ", electric_info_id=" + electric_info_id +
+                ", tester='" + tester + '\'' +
+                ", schedule_start_date=" + schedule_start_date +
+                ", schedule_end_date=" + schedule_end_date +
+                ", row_index=" + row_index +
+                ", column_index=" + column_index +
+                ", create_time=" + create_time +
+                ", update_time=" + update_time +
+                ", sizecoding='" + sizecoding + '\'' +
+                '}';
+    }
 }

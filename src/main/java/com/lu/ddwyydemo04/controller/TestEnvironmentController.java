@@ -1,9 +1,12 @@
 package com.lu.ddwyydemo04.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
 import com.lu.ddwyydemo04.pojo.PassbackData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class TestEnvironmentController {
@@ -35,13 +36,12 @@ public class TestEnvironmentController {
 
     @PostMapping("/passback/receiveData")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> receiveData(@RequestBody PassbackData requestData) {
+    public ResponseEntity<Map<String, Object>> receiveData(@RequestBody PassbackData requestData) throws JsonProcessingException {
 
         // 获取传入的请求数据
         String sampleId = requestData.getSample_id();
         String sampleCategory = requestData.getSample_category();
         String sampleModel = requestData.getSample_model();
-        String sampleCoding = requestData.getSample_coding();
         String materialCode = requestData.getMaterialCode();
         String sampleFrequency = requestData.getSample_frequency();
         String sampleName = requestData.getSample_name();
@@ -52,6 +52,10 @@ public class TestEnvironmentController {
         String testProjectCategory = requestData.getTestProjectCategory();
         String testProjects = requestData.getTestProjects();
         String schedule = requestData.getSchedule();
+        int isUsed = requestData.getIsUsed();
+
+//        logger.info("接收到IT系统传入的数据: {}", new ObjectMapper().writeValueAsString(requestData));
+
 
         // TODO: 这里你可以将数据保存到数据库
         int exist = testManIndexService.queryElectricalCode(sampleId);
@@ -95,12 +99,75 @@ public class TestEnvironmentController {
         return ResponseEntity.ok(receivedData);
     }
 
-    @GetMapping("/getScheduleBoard")
-    @ResponseBody
-    public List<ElectricScheduleInfo> getScheduleBoard() {
-        System.out.println("testManIndexService.getAllSchedules():"+testManIndexService.getAllSchedules());
-        return testManIndexService.getAllSchedules();
+//    @GetMapping("/getScheduleBoard")
+//    @ResponseBody
+//    public List<ElectricScheduleInfo> getScheduleBoard() {
+//        System.out.println("testManIndexService.getAllSchedules():"+testManIndexService.getAllSchedules());
+//
+//        return testManIndexService.getAllSchedules();
+//    }
+@GetMapping("/getScheduleBoard")
+@ResponseBody
+public List<Map<String, Object>> getScheduleBoard() {
+    List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
+//    System.out.println("testManIndexService.getAllSchedules(): " + scheduleList);
+
+    List<Integer> electricInfoIds = scheduleList.stream()
+            .map(ElectricScheduleInfo::getElectric_info_id)
+            .distinct()
+            .collect(Collectors.toList());
+
+    List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
+
+    // 将 PassbackData 映射成 Map<Integer, PassbackData>
+    Map<Integer, PassbackData> passbackMap = passbackList.stream()
+            .filter(p -> p.getSample_id() != null)
+            .collect(Collectors.toMap(p -> Integer.parseInt(p.getSample_id()), p -> p));
+
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    for (ElectricScheduleInfo schedule : scheduleList) {
+        Map<String, Object> merged = new LinkedHashMap<>(); // 保证字段顺序一致
+
+        // 将 ElectricScheduleInfo 的属性写入 map
+        merged.put("id", schedule.getId());
+        merged.put("electric_info_id", schedule.getElectric_info_id());
+        merged.put("tester", schedule.getTester());
+        merged.put("schedule_start_date", schedule.getSchedule_start_date());
+        merged.put("schedule_end_date", schedule.getSchedule_end_date());
+        merged.put("row_index", schedule.getRow_index());
+        merged.put("column_index", schedule.getColumn_index());
+        merged.put("create_time", schedule.getCreate_time());
+        merged.put("update_time", schedule.getUpdate_time());
+        merged.put("sizecoding", schedule.getSizecoding());
+
+        // 合并对应的 PassbackData 字段
+        PassbackData passback = passbackMap.get(schedule.getElectric_info_id());
+        if (passback != null) {
+            merged.put("sample_id", passback.getSample_id());
+            merged.put("sample_category", passback.getSample_category());
+            merged.put("sample_model", passback.getSample_model());
+            merged.put("materialCode", passback.getMaterialCode());
+            merged.put("sample_frequency", passback.getSample_frequency());
+            merged.put("sample_name", passback.getSample_name());
+            merged.put("version", passback.getVersion());
+            merged.put("priority", passback.getPriority());
+            merged.put("sample_leader", passback.getSample_leader());
+            merged.put("supplier", passback.getSupplier());
+            merged.put("testProjectCategory", passback.getTestProjectCategory());
+            merged.put("testProjects", passback.getTestProjects());
+            merged.put("schedule", passback.getSchedule());
+            merged.put("create_time", passback.getCreate_time()); // 避免与 schedule 的 create_time 重名
+            merged.put("scheduleDays", passback.getScheduleDays());
+            merged.put("isUsed", passback.getIsUsed());
+        }
+
+        result.add(merged);
     }
+//    System.out.println("result:"+result);
+    return result;
+}
+
 
 
     @PostMapping("/passback/saveScheduleDays")

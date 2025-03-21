@@ -263,7 +263,7 @@ public class DingTalkH5Controller {
         }
 
         //20250526新增官旺华
-        if ("官旺华".equals(username) || "赵梓宇".equals(username)) {
+        if ("官旺华".equals(username) || "赵梓宇".equals(username) || "刘鹏飞".equals(username)) {
             return "tester";
         } else {
             if ("卢绮敏".equals(username)) {

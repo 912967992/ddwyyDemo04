@@ -66,7 +66,6 @@
                         <td>${item.sample_id || ''}</td>
                         <td>${item.sample_category || ''}</td>
                         <td>${item.sample_model || ''}</td>
-                        <td>${item.sample_coding || ''}</td>
                         <td>${item.materialCode || ''}</td>
                         <td>${item.sample_frequency || ''}</td>
                         <td>${item.sample_name || ''}</td>
@@ -111,7 +110,6 @@
                         sample_id: randomSampleId ,
                         sample_category:  "测试类别",
                         sample_model:  "型号A",
-                        sample_coding:  "001",
                         materialCode: "M001",
                         sample_frequency:  "1",
                         sample_name:  "测试样品",
@@ -121,7 +119,8 @@
                         supplier: "供应商A",
                         testProjectCategory: "试验项目A",
                         testProjects: "子项目A",
-                        schedule: "2025-03-10"
+                        schedule: "2025-03-10",
+                        isUsed: 0
                     })
                 });
 
@@ -156,7 +155,7 @@
             <th>电气编号</th>
             <th>产品类别</th>
             <th>大编码</th>
-            <th>小编码</th>
+<!--            <th>小编码</th>-->
             <th>物料编码</th>
             <th>送样次数</th>
             <th>产品名称</th>

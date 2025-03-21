@@ -329,7 +329,7 @@
     </update>
 
     <select id="getReceivedData" resultType="PassbackData">
-        SELECT * FROM electric_info
+        SELECT * FROM electric_info WHERE isUsed = 0 OR isUsed IS NULL
     </select>
 
     <select id="queryElectricalCode" resultType="Integer">
@@ -341,7 +341,6 @@
             sample_id,
             sample_category,
             sample_model,
-            sample_coding,
             materialCode,
             sample_frequency,
             sample_name,
@@ -352,13 +351,13 @@
             testProjectCategory,
             testProjects,
             schedule,
-            create_time
+            create_time,
+            isUsed
         )
         VALUES (
                    #{sample_id},
                    #{sample_category},
                    #{sample_model},
-                   #{sample_coding},
                    #{materialCode},
                    #{sample_frequency},
                    #{sample_name},
@@ -369,7 +368,8 @@
                    #{testProjectCategory},
                    #{testProjects},
                    #{schedule},
-                   NOW()
+                   NOW(),
+                    #{isUsed}
                )
     </insert>
 
@@ -378,7 +378,6 @@
         SET
             sample_category = #{sample_category},
             sample_model = #{sample_model},
-            sample_coding = #{sample_coding},
             materialCode = #{materialCode},
             sample_frequency = #{sample_frequency},
             sample_name = #{sample_name},
@@ -389,7 +388,8 @@
             testProjectCategory = #{testProjectCategory},
             testProjects = #{testProjects},
             schedule = #{schedule},
-            create_time = NOW()
+            create_time = NOW(),
+            isUsed = #{isUsed}
         WHERE sample_id = #{sampleId}
     </update>
 
@@ -405,6 +405,15 @@
             sample_id = #{sample_id}
 
     </update>
+
+    <select id="getPassbackByElectricInfoIds" resultType="PassbackData">
+        SELECT *
+        FROM electric_info
+        WHERE sample_id IN
+        <foreach collection="electricInfoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 
 
 

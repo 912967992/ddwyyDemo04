@@ -56,10 +56,25 @@
     // 设置拖拽
     function setDraggable(projectEl, isProject) {
         projectEl.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('project-id', projectEl.getAttribute('data-id'));
-            e.dataTransfer.setData('project-days', projectEl.getAttribute('data-days'));
-            e.dataTransfer.setData('project-sizecoding', projectEl.getAttribute('data-sizecoding'));
-            e.dataTransfer.setData('project-electric_info_id', projectEl.getAttribute('data-sample_id'));
+            const sampleModel = projectEl.getAttribute('data-sample_model');
+            const materialCode = projectEl.getAttribute('data-materialCode');
+            e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode}`);
+
+            e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
+            e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
+            e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
+            e.dataTransfer.setData('project-sample_model', projectEl.getAttribute('data-sample_model'));
+            e.dataTransfer.setData('project-materialCode', projectEl.getAttribute('data-materialCode'));
+            e.dataTransfer.setData('project-sample_category', projectEl.getAttribute('data-sample_category'));
+            e.dataTransfer.setData('project-version', projectEl.getAttribute('data-version'));
+            e.dataTransfer.setData('project-priority', projectEl.getAttribute('data-priority'));
+            e.dataTransfer.setData('project-sample_leader', projectEl.getAttribute('data-sample_leader'));
+            e.dataTransfer.setData('project-supplier', projectEl.getAttribute('data-supplier'));
+            e.dataTransfer.setData('project-test_project_category', projectEl.getAttribute('data-test_project_category'));
+            e.dataTransfer.setData('project-test_projects', projectEl.getAttribute('data-test_projects'));
+            e.dataTransfer.setData('project-schedule', projectEl.getAttribute('data-schedule'));
+            e.dataTransfer.setData('project-create_time', projectEl.getAttribute('data-create_time'));
+            e.dataTransfer.setData('project-schedule_days', projectEl.getAttribute('data-schedule_days'));
 
         });
 
@@ -67,6 +82,7 @@
 
         }else{
             projectEl.addEventListener('contextmenu', e => {
+                // console.log("触发找个contextmenu了")
                 e.preventDefault();
                 currentRightClickProject = projectEl;
                 projectMenu.style.top = e.pageY + 'px';
@@ -88,100 +104,65 @@
         }
     });
 
-        // 页面加载后请求数据
-    window.onload = function () {
-        // 加载项目池子数据
-        // 加载项目池子数据
+
+
+
+    function loadProjectPoolData() {
         fetch('/passback/getReceivedData')
             .then(response => response.json())
             .then(data => {
-                const container = document.getElementById('projectPool');
-                container.innerHTML = '';
-                if (data.length === 0) {
-                    container.innerHTML = '暂无项目数据。';
-                    return;
-                }
-
-                // 循环渲染项目卡片
-                data.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'project-card';
-                    card.textContent = item.sample_model + item.materialCode + "(" + item.scheduleDays + ")天";
-
-                    // 添加 data-id 和 data-days 属性
-                    card.setAttribute('data-id', item.sample_id);
-                    card.setAttribute('data-sizecoding', item.sample_model + " " +item.materialCode);
-                    card.setAttribute('data-days', item.scheduleDays != null ? item.scheduleDays : '');
-                    card.setAttribute('draggable', 'true');
-                    card.setAttribute('data-sample_id', item.sample_id);
-
-
-
-                    // ✅ 在创建时立刻绑定拖拽事件
-                    setDraggable(card,true);
-
-                    // 右键触发
-                    card.oncontextmenu = function (event) {
-                        event.preventDefault(); // 阻止浏览器默认右键菜单
-
-                        // 设置项目详情内容（包含当前排期天数）
-                        document.getElementById('modalBody').innerHTML = `
-                    <p><strong>电气编号：</strong>${item.sample_id}</p>
-                    <p><strong>项目名称：</strong>${item.sample_name}</p>
-                    <p><strong>大小编码：</strong>${item.model + item.materialCode}</p>
-                    <p><strong>产品类别：</strong>${item.sample_category}</p>
-                    <p><strong>版本：</strong>${item.version}</p>
-                    <p><strong>优先级：</strong>${item.priority}</p>
-                    <p><strong>项目负责人：</strong>${item.sample_leader}</p>
-                    <p><strong>供应商：</strong>${item.supplier}</p>
-                    <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
-                    <p><strong>测试子项目：</strong>${item.testProjects}</p>
-                    <p><strong>状态：</strong>${item.schedule}</p>
-                    <p><strong>创建时间：</strong>${item.create_time}</p>
-                `;
-
-                        // 设置输入框的默认值为已有的 scheduleDays（若为空则设置为空字符串）
-                        document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
-
-                        // 保存按钮绑定事件
-                        document.getElementById('saveScheduleBtn').onclick = function () {
-                            const days = document.getElementById('scheduleDays').value;
-                            if (!days || isNaN(days) || days < 0) {
-                                alert("请输入有效的排期天数！");
-                                return;
-                            }
-
-                            // 更新数据数组中的该项目的排期天数
-                            item.scheduleDays = days;
-
-                            // 示例：控制台打印
-                            console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
-
-                            fetch('/passback/saveScheduleDays', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
-                            })
-                                .then(resp => resp.json())
-                                .then(resp => {
-                                    alert(resp.message); // 显示“排期天数保存成功！”
-
-                                    // 保存成功后，可以立即更新该项目卡片的排期天数（如显示在卡片上）
-                                    // card.textContent = `${item.sample_model} ${item.materialCode} 排期天数：${days}`;
-                                })
-                                .catch(err => console.error(err));
-                        };
-
-                        document.getElementById('modal').style.display = 'block';
-                    };
-
-                    container.appendChild(card);
-                });
+                renderProjectPool(data);
             })
             .catch(error => {
                 document.getElementById('projectPool').innerHTML = '加载失败，请稍后重试。';
                 console.error('Error fetching project data:', error);
             });
+    }
+
+    function renderProjectPool(data) {
+        const container = document.getElementById('projectPool');
+        container.innerHTML = '';
+        if (data.length === 0) {
+            container.innerHTML = '暂无项目数据。';
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.textContent = item.sample_model + item.materialCode + "(" + item.scheduleDays + "天)";
+
+            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode);
+            card.setAttribute('data-sample_id', item.sample_id || '');
+            card.setAttribute('data-sample_name', item.sample_name || '');
+            card.setAttribute('data-sample_model', item.sample_model || '');
+            card.setAttribute('data-material_code', item.materialCode || '');
+            card.setAttribute('data-sample_category', item.sample_category || '');
+            card.setAttribute('data-version', item.version || '');
+            card.setAttribute('data-priority', item.priority || '');
+            card.setAttribute('data-sample_leader', item.sample_leader || '');
+            card.setAttribute('data-supplier', item.supplier || '');
+            card.setAttribute('data-test_project_category', item.testProjectCategory || '');
+            card.setAttribute('data-test_projects', item.testProjects || '');
+            card.setAttribute('data-schedule', item.schedule || '');
+            card.setAttribute('data-create_time', item.create_time || '');
+            card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '');
+            card.setAttribute('draggable', 'true');
+
+            setDraggable(card, true);
+            bindCardContextMenu(card, item);
+
+            container.appendChild(card);
+        });
+    }
+
+
+        // 页面加载后请求数据
+    window.onload = function () {
+        // 加载项目池子数据
+        loadProjectPoolData(); // ✅ 页面初始化调用加载函数
+
+
 
         // 加载排期面板数据
         fetch('/getScheduleBoard')
@@ -225,20 +206,35 @@
 
                     dateRange.forEach(date => allDatesSet.add(date));
 
+
                     // 将 startDate 和 endDate 转换为 Date 对象
                     const startDateTime = new Date(startDate);
                     const endDateTime = new Date(endDate);
                     const timeDifference = endDateTime - startDateTime; // 得到的是毫秒数
 
-                    const dayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // 转换为天数
+                    const dayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)) + 1; // 转换为天数
 
                     if (!dateMap[item.tester]) dateMap[item.tester] = [];
                     dateMap[item.tester].push({
                         startDate,
                         endDate,
-                        electric_info_id: item.electric_info_id,
+                        sample_id: item.electric_info_id,
                         sizecoding: item.sizecoding,
-                        days : dayDifference
+                        days : dayDifference,
+                        sample_category : item.sample_category,
+                        sample_model : item.sample_model,
+                        sample_name : item.sample_name,
+                        priority : item.priority,
+                        version : item.version,
+                        materialCode: item.materialCode,
+                        sample_leader: item.sample_leader,
+                        supplier: item.supplier,
+                        test_project_category: item.testProjectCategory,
+                        testProjects: item.testProjects,
+                        schedule: item.schedule,
+                        create_time: item.create_time,
+                        schudule_days: item.scheduleDays
+
                     });
                 });
 
@@ -273,8 +269,43 @@
                             const rangeDates = getDateRange(task.startDate, task.endDate);
                             const colspan = rangeDates.length;
 
-                            // ✅ 任务占据的合并单元格也加上 drop-cell
-                            html += `<td class="drop-cell" colspan="${colspan}" data-tester="${tester}" data-date="${currentDate}" data-electric_info_id="${task.electric_info_id}">${task.sizecoding} (${task.days}天)</td>`;
+                            // // ✅ 任务占据的合并单元格也加上 drop-cell
+                            // html += `<td class="drop-cell" colspan="${colspan}" data-tester="${tester}" data-date="${currentDate}" data-sample_id="${task.sample_id}">${task.sizecoding}(${task.days}天)</td>`;
+                            // ✅ 在任务单元格中添加更多 data-* 标签
+                            html += `
+                            <td class="drop-cell assigned"
+                                data-tester="${tester}"
+                                data-date="${currentDate}"
+                                colspan="${colspan}"
+                                data-sample_id="${task.sample_id || ''}"
+                                data-sample_name="${task.sample_name || ''}"
+                                data-sample_model="${task.sample_model || ''}"
+                                data-materialCode="${task.materialCode || ''}"
+                                data-sample_category="${task.sample_category || ''}"
+                                data-version="${task.version || ''}"
+                                data-priority="${task.priority || ''}"
+                                data-sample_leader="${task.sample_leader || ''}"
+                                data-supplier="${task.supplier || ''}"
+                                data-test_project_category="${task.test_project_category || ''}"
+                                data-test_projects="${task.test_projects || ''}"
+                                data-schedule="${task.schedule || ''}"
+                                data-create_time="${task.create_time || ''}"
+                                data-schedule_days="${task.schudule_days || ''}"
+
+
+                                data-sizecoding="${task.sizecoding || ''}"
+                            >${task.sizecoding} (${task.days}天)</td>
+                        `;
+
+
+                            // data-schedule_start_date="${task.startDate || ''}"
+                            // data-schedule_end_date="${task.endDate || ''}"
+
+                            // 生成隐藏的单元格
+                            for (let i = 1; i < colspan; i++) {
+                                html += `<td class="drop-cell" style="display: none;" data-tester="${tester}" data-date="${allDates[colIndex + i]}"></td>`;
+                            }
+
                             colIndex += colspan;
                         } else {
                             // 判断该单元格是否被前面的任务合并过了
@@ -301,7 +332,7 @@
                 cells.forEach(cell => {
                     const tester = cell.getAttribute('data-tester');
                     const date = cell.getAttribute('data-date');
-                    console.log(`tester: ${tester}, date: ${date}`);
+                    // console.log(`tester: ${tester}, date: ${date}`);
                 });
 
 
@@ -317,17 +348,38 @@
                         e.preventDefault();
                         cell.classList.remove('over');
 
-                        const projectId = e.dataTransfer.getData('project-id');
+                        const sample_id = e.dataTransfer.getData('project-sample_id');
                         const days = parseInt(e.dataTransfer.getData('project-days')) || 1;
                         const sizecoding = e.dataTransfer.getData('project-sizecoding') || 1;
-                        const electric_info_id = e.dataTransfer.getData('project-electric_info_id') || 1;
+
                         const tester = cell.getAttribute('data-tester');
                         const startDate = cell.getAttribute('data-date');
+
+
+                        // const sample_id = e.dataTransfer.getData('project-sample_id') ;
+                        const sample_name = e.dataTransfer.getData('project-sample_name') ;
+                        const sample_model = e.dataTransfer.getData('project-sample_model') ;
+                        const materialCode = e.dataTransfer.getData('project-materialCode') ;
+                        const sample_category = e.dataTransfer.getData('project-sample_category') ;
+                        const version = e.dataTransfer.getData('project-version') ;
+                        const priority = e.dataTransfer.getData('project-priority') ;
+                        const sample_leader = e.dataTransfer.getData('project-sample_leader') ;
+                        const supplier = e.dataTransfer.getData('project-supplier') ;
+                        const test_project_category = e.dataTransfer.getData('project-test_project_category') ;
+                        const test_projects = e.dataTransfer.getData('project-test_projects') ;
+                        const schedule = e.dataTransfer.getData('project-schedule') ;
+                        const create_time = e.dataTransfer.getData('project-create_time') ;
+                        const schedule_days = e.dataTransfer.getData('project-schedule_days') ;
+
+
 
                         // 找到所有同一行的单元格（同行）
                         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
                         const startIndex = rowCells.indexOf(cell);
 
+                        console.log("startIndex:"+startIndex)
+                        console.log("days:"+days)
+                        console.log("rowCells.length:"+rowCells.length)
                         if (startIndex + days > rowCells.length) {
                             alert("排期超出可排范围！");
                             return;
@@ -342,28 +394,48 @@
 
                         // 合并单元格
                         const startCell = rowCells[startIndex];
-                        startCell.innerText = `${sizecoding}（${days}天）`;
+                        startCell.innerText = `${sizecoding}(${days}天)`;
                         startCell.classList.add('assigned');
                         //这里是拖拽进入排期面板的时候给元素添加属性的地方
                         startCell.setAttribute('colspan', days);
-                        startCell.setAttribute('data-electric_info_id', electric_info_id);
+                        startCell.setAttribute('data-sample_id', sample_id);
+
+                        // startCell.setAttribute('data-sample_id', sample_id);
+                        startCell.setAttribute('data-sample_name', sample_name);
+                        startCell.setAttribute('data-sample_model', sample_model);
+                        startCell.setAttribute('data-materialCode', materialCode);
+                        startCell.setAttribute('data-sample_category', sample_category);
+                        startCell.setAttribute('data-version', version);
+                        startCell.setAttribute('data-priority', priority);
+                        startCell.setAttribute('data-sample_leader', sample_leader);
+                        startCell.setAttribute('data-supplier', supplier);
+                        startCell.setAttribute('data-test_project_category', test_project_category);
+                        startCell.setAttribute('data-test_projects', test_projects);
+                        startCell.setAttribute('data-schedule', schedule);
+                        startCell.setAttribute('data-create_time', create_time);
+                        startCell.setAttribute('data-schedule_days', schedule_days);
+
+                        startCell.setAttribute('data-sizecoding', sizecoding);
+
+
                         for (let i = startIndex + 1; i < startIndex + days; i++) {
                             rowCells[i].style.display = 'none';
                         }
 
                         // 删除项目
-                        const projectEl = document.querySelector(`.project-card[data-id="${projectId}"]`);
+                        console.log("sample_id:"+sample_id)
+                        const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
                         if (projectEl) projectEl.remove();
 
                         // 缓存记录
                         const endDate = rowCells[startIndex + days - 1].getAttribute('data-date');
                         localScheduleChanges.push({
-                            project_id: projectId,
-                            project_coding: sizecoding,
+                            project_id: sample_id,
+                            sizecoding: sizecoding,
                             tester,
                             start_date: startDate,
-                            end_date: endDate,
-                            days
+                            end_date: endDate
+
                         });
 
                         console.log('当前缓存：', localScheduleChanges);
@@ -385,12 +457,29 @@
                     if (!currentRightClickCell) return;
 
                     const text = currentRightClickCell.innerText.trim();
-                    const match = text.match(/(\d+)[^\d]*（(\d+)天）/);
+                    const match = text.match(/(\d+)[^\d]*((\d+)天)/);
                     if (!match) return;
 
                     const [_, projectId, daysStr] = match;
+                    console.log("projectId:"+projectId)
                     const days = parseInt(daysStr, 10);
                     const tester = currentRightClickCell.getAttribute('data-tester');
+                    const sample_id  = currentRightClickCell.getAttribute('data-sample_id');
+
+                    const sizecoding = currentRightClickCell.getAttribute('data-sizecoding');
+                    const sample_name = currentRightClickCell.getAttribute('data-sample_name');
+                    const sample_model = currentRightClickCell.getAttribute('data-sample_model');
+                    const materialCode = currentRightClickCell.getAttribute('data-materialCode');
+                    const sample_category = currentRightClickCell.getAttribute('data-sample_category');
+                    const version = currentRightClickCell.getAttribute('data-version');
+                    const priority = currentRightClickCell.getAttribute('data-priority');
+                    const sample_leader = currentRightClickCell.getAttribute('data-sample_leader');
+                    const supplier = currentRightClickCell.getAttribute('data-supplier');
+                    const test_project_category = currentRightClickCell.getAttribute('data-test_project_category');
+                    const test_projects = currentRightClickCell.getAttribute('data-test_projects');
+                    const schedule = currentRightClickCell.getAttribute('data-schedule');
+                    const create_time = currentRightClickCell.getAttribute('data-create_time');
+                    const schedule_days = currentRightClickCell.getAttribute('data-schedule_days');
 
                     // 获取所在行的所有 drop-cell
                     const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
@@ -401,6 +490,23 @@
                     currentRightClickCell.removeAttribute('colspan');
                     currentRightClickCell.classList.remove('assigned');
 
+                    // console.log('currentRightClickCell:', currentRightClickCell); // 打印 sample_id
+                    // 清除除了 class、data-tester 和 data-date 以外的所有属性
+                    const allowedAttributes = ['class', 'data-tester', 'data-date'];
+                    [...currentRightClickCell.attributes].forEach(attr => {
+                        if (!allowedAttributes.includes(attr.name)) {
+                            currentRightClickCell.removeAttribute(attr.name);
+                        }
+                    });
+                    // 打印结果验证
+                    // console.log('cleaned currentRightClickCell:', currentRightClickCell.outerHTML);
+
+                    console.log("rowCells:", rowCells.map(cell => cell.outerHTML));
+
+                    console.log("startIndex:"+startIndex)
+                    console.log("days:"+days)
+                    // 移除 colspan
+                    currentRightClickCell.removeAttribute('colspan');
                     // 恢复被隐藏的单元格
                     for (let i = startIndex + 1; i < startIndex + days; i++) {
                         rowCells[i].style.display = '';
@@ -410,36 +516,67 @@
                     const restoredProject = document.createElement('div');
                     restoredProject.className = 'project-card';
                     restoredProject.setAttribute('draggable', 'true');
-                    restoredProject.setAttribute('data-id', projectId);
+                    restoredProject.setAttribute('data-sample_id', sample_id);
                     restoredProject.setAttribute('data-days', days);
-                    restoredProject.textContent = `项目 ${projectId}（${days}天）`;
+                    restoredProject.textContent = `${text}`;
+
+                    // 额外添加的标签字段名
+                    restoredProject.setAttribute('data-sizecoding', sizecoding);
+                    restoredProject.setAttribute('data-sample_name', sample_name);
+                    restoredProject.setAttribute('data-sample_model', sample_model);
+                    restoredProject.setAttribute('data-materialCode', materialCode);
+                    restoredProject.setAttribute('data-sample_category', sample_category);
+                    restoredProject.setAttribute('data-version', version);
+                    restoredProject.setAttribute('data-priority', priority);
+                    restoredProject.setAttribute('data-sample_leader', sample_leader);
+                    restoredProject.setAttribute('data-supplier', supplier);
+                    restoredProject.setAttribute('data-test_project_category', test_project_category);
+                    restoredProject.setAttribute('data-test_projects', test_projects);
+                    restoredProject.setAttribute('data-schedule', schedule);
+                    restoredProject.setAttribute('data-create_time', create_time);
+                    restoredProject.setAttribute('data-schedule_days', schedule_days);
 
                     // 绑定拖拽
-                    setDraggable(restoredProject);
+                    setDraggable(restoredProject,true);
+
+                    const restoredItem = {
+                        sample_id: sample_id,
+                        sample_name: sample_name,
+                        sample_model: sample_model,
+                        materialCode: materialCode,
+                        sample_category: sample_category,
+                        version: version,
+                        priority: priority,
+                        sample_leader: sample_leader,
+                        supplier: supplier,
+                        testProjectCategory: test_project_category,
+                        testProjects: test_projects,
+                        schedule: schedule,
+                        create_time: create_time,
+                        scheduleDays: schedule_days
+                    };
+
+
 
                     // 可选：右键也绑定详情查看
                     restoredProject.oncontextmenu = (event) => {
                         event.preventDefault();
                         // 此处你可以调用之前的 modal 设置逻辑，例如 showProjectDetails(projectId);
+                        bindCardContextMenu(restoredProject, restoredItem);
                     };
 
                     const projectPool = document.getElementById('projectPool');
                     projectPool.appendChild(restoredProject);
 
                     // 删除缓存中的排期记录
-                    const index = localScheduleChanges.findIndex(item => item.project_id === projectId && item.tester === tester);
+                    const index = localScheduleChanges.findIndex(item => {
+                        // console.log('item sample_id:', item); // 打印 sample_id
+                        return item.project_id === projectId && item.tester === tester;
+                    });
                     if (index !== -1) {
                         localScheduleChanges.splice(index, 1);
                     }
 
-                    // 可选：同步通知后端撤回排期
-                    fetch('/passback/undoSchedule', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ project_id: projectId, tester })
-                    }).then(res => res.json()).then(res => {
-                        console.log("撤回排期完成：", res.message);
-                    });
 
                     // 关闭右键菜单
                     contextMenu.style.display = 'none';
@@ -464,6 +601,70 @@
             }
         };
     };
+
+    function bindCardContextMenu(card, item) {
+        card.oncontextmenu = function (event) {
+            event.preventDefault(); // 阻止浏览器默认右键菜单
+
+            // 设置模态框内容
+            document.getElementById('modalBody').innerHTML = `
+            <p><strong>电气编号：</strong>${item.sample_id}</p>
+            <p><strong>项目名称：</strong>${item.sample_name}</p>
+            <p><strong>大小编码：</strong>${item.sample_model + item.materialCode}</p>
+            <p><strong>产品类别：</strong>${item.sample_category}</p>
+            <p><strong>版本：</strong>${item.version}</p>
+            <p><strong>优先级：</strong>${item.priority}</p>
+            <p><strong>项目负责人：</strong>${item.sample_leader}</p>
+            <p><strong>供应商：</strong>${item.supplier}</p>
+            <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
+            <p><strong>测试子项目：</strong>${item.testProjects}</p>
+            <p><strong>状态：</strong>${item.schedule}</p>
+            <p><strong>创建时间：</strong>${item.create_time}</p>
+        `;
+
+            document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
+
+            document.getElementById('saveScheduleBtn').onclick = function () {
+                const days = document.getElementById('scheduleDays').value;
+                if (!days || isNaN(days) || days < 0) {
+                    alert("请输入有效的排期天数！");
+                    return;
+                }
+
+                item.scheduleDays = days;
+                console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
+
+                fetch('/passback/saveScheduleDays', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+                })
+                    .then(resp => resp.json())
+                    .then(resp => {
+                        // 更新卡片展示（可选）
+                        // card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+                        alert(resp.message);
+
+                        // ✅ 更新当前卡片显示内容
+                        card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+
+                        // ✅ 如果需要更新属性值
+                        card.setAttribute('data-schedule_days', days);
+
+                        document.getElementById('modal').style.display = 'none';
+
+
+                    })
+                    .catch(err => console.error(err));
+            };
+
+            document.getElementById('modal').style.display = 'block';
+        };
+    }
+
+
+
+
 </script>
 
 </body>

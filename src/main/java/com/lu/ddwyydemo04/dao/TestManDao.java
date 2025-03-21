@@ -82,7 +82,7 @@ public interface TestManDao {
 
     public int saveScheduleDays(@Param("sample_id")String sample_id, @Param("scheduleDays")String scheduleDays);
 
-
+    public List<PassbackData> getPassbackByElectricInfoIds(@Param("electricInfoIds")List<Integer> electricInfoIds);
 
 
 
