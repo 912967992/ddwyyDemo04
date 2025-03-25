@@ -12,10 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -168,6 +165,91 @@ public List<Map<String, Object>> getScheduleBoard() {
     return result;
 }
 
+    @GetMapping("/getSchedulesByStartDate")
+    @ResponseBody
+    public List<Map<String, Object>> getScheduleBoardWithTime(@RequestParam("startDate") String startDate,
+                                                              @RequestParam("endDate") String endDate) {
+        System.out.println(startDate);
+        System.out.println(endDate);
+        List<ElectricScheduleInfo> scheduleList;
+        if (endDate == null || endDate.isEmpty()) {
+            scheduleList = testManIndexService.getSchedulesByStartDate(startDate);
+        } else {
+            scheduleList = testManIndexService.getSchedulesByStartAndEndDate(startDate, endDate);
+        }
+
+
+//        List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
+
+        List<Integer> electricInfoIds = scheduleList.stream()
+                .map(ElectricScheduleInfo::getElectric_info_id)
+                .distinct()
+                .collect(Collectors.toList());
+
+        System.out.println("electricInfoIds:"+electricInfoIds);
+        // 如果electricInfoIds为空，直接返回空的结果列表
+        if (electricInfoIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+
+        List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
+
+        // 将 PassbackData 映射成 Map<Integer, PassbackData>
+        Map<Integer, PassbackData> passbackMap = passbackList.stream()
+                .filter(p -> p.getSample_id() != null)
+                .collect(Collectors.toMap(
+                        p -> Integer.parseInt(p.getSample_id()),
+                        p -> p,
+                        (existing, replacement) -> existing // 处理键冲突
+                ));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ElectricScheduleInfo schedule : scheduleList) {
+            result.add(mergeScheduleAndPassback(schedule, passbackMap));
+        }
+
+        return result;
+    }
+
+    private Map<String, Object> mergeScheduleAndPassback(ElectricScheduleInfo schedule, Map<Integer, PassbackData> passbackMap) {
+        Map<String, Object> merged = new LinkedHashMap<>(); // 保证字段顺序一致
+
+        // 将 ElectricScheduleInfo 的属性写入 map
+        merged.put("id", schedule.getId());
+        merged.put("electric_info_id", schedule.getElectric_info_id());
+        merged.put("tester", schedule.getTester());
+        merged.put("schedule_start_date", schedule.getSchedule_start_date());
+        merged.put("schedule_end_date", schedule.getSchedule_end_date());
+        merged.put("row_index", schedule.getRow_index());
+        merged.put("column_index", schedule.getColumn_index());
+        merged.put("create_time", schedule.getCreate_time());
+        merged.put("update_time", schedule.getUpdate_time());
+        merged.put("sizecoding", schedule.getSizecoding());
+
+        // 合并对应的 PassbackData 字段
+        PassbackData passback = passbackMap.get(schedule.getElectric_info_id());
+        if (passback != null) {
+            merged.put("sample_id", passback.getSample_id());
+            merged.put("sample_category", passback.getSample_category());
+            merged.put("sample_model", passback.getSample_model());
+            merged.put("materialCode", passback.getMaterialCode());
+            merged.put("sample_frequency", passback.getSample_frequency());
+            merged.put("sample_name", passback.getSample_name());
+            merged.put("version", passback.getVersion());
+            merged.put("priority", passback.getPriority());
+            merged.put("sample_leader", passback.getSample_leader());
+            merged.put("supplier", passback.getSupplier());
+            merged.put("testProjectCategory", passback.getTestProjectCategory());
+            merged.put("testProjects", passback.getTestProjects());
+            merged.put("schedule", passback.getSchedule());
+            merged.put("passback_create_time", passback.getCreate_time()); // 避免与 schedule 的 create_time 重名
+            merged.put("scheduleDays", passback.getScheduleDays());
+            merged.put("isUsed", passback.getIsUsed());
+        }
+
+        return merged;
+    }
 
 
     @PostMapping("/passback/saveScheduleDays")

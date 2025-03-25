@@ -258,4 +258,12 @@ public class TestManIndexService {
         return testManDao.getPassbackByElectricInfoIds(electricInfoIds);
     }
 
+
+    public List<ElectricScheduleInfo> getSchedulesByStartDate(String startDate){
+        return testManDao.getSchedulesByStartDate(startDate);
+    }
+    public List<ElectricScheduleInfo> getSchedulesByStartAndEndDate(String startDate, String endDate){
+        return testManDao.getSchedulesByStartAndEndDate(startDate, endDate);
+    }
+
 }

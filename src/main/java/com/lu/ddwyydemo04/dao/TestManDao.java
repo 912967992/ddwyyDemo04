@@ -85,6 +85,12 @@ public interface TestManDao {
     public List<PassbackData> getPassbackByElectricInfoIds(@Param("electricInfoIds")List<Integer> electricInfoIds);
 
 
+    public List<ElectricScheduleInfo> getSchedulesByStartDate(@Param("schedule_start_date")String schedule_start_date);
+
+    public List<ElectricScheduleInfo> getSchedulesByStartAndEndDate(@Param("schedule_start_date")String schedule_start_date,
+                                                                    @Param("schedule_end_date")String schedule_end_date);
+
+
 
 
 }
