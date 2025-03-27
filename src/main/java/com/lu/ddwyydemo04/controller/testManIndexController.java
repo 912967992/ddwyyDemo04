@@ -183,7 +183,7 @@ public class testManIndexController {
         } else {
             // 使用 username 查询数据
             logger.info(username+"getTestManPanel查询成功：");
-            System.out.println(testManIndexService.getTestManPanel(username));
+//            System.out.println(testManIndexService.getTestManPanel(username));
 
             return testManIndexService.getTestManPanel(username);
 

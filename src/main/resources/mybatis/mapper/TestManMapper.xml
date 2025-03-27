@@ -402,14 +402,15 @@
         SELECT *
         FROM electric_schedule_info
         WHERE schedule_start_date >= #{schedule_start_date}
+        OR (schedule_end_date >= #{schedule_start_date} AND schedule_end_date IS NOT NULL)
     </select>
 
-    <!-- 根据开始日期和结束日期查询排期信息 -->
     <select id="getSchedulesByStartAndEndDate" resultType="ElectricScheduleInfo">
         SELECT *
         FROM electric_schedule_info
-        WHERE schedule_start_date >= #{schedule_start_date}
-        AND (schedule_end_date &lt;= #{schedule_end_date} OR schedule_end_date IS NULL)
+        WHERE (schedule_start_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
+        OR (schedule_end_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
+        OR (schedule_start_date &lt;= #{schedule_start_date} AND (schedule_end_date >= #{schedule_end_date} OR schedule_end_date IS NULL))
     </select>
 
 

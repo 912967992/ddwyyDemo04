@@ -153,8 +153,8 @@ public class TestManIndexService {
         request.setHttpMethod("GET");
         OapiFileUploadTransactionResponse response = client.execute(request,access_token);
         String uploadId = response.getUploadId();
-        System.out.println("chunkNumbers:"+chunkNumbers);
-        System.out.println("response.getBody():"+response.getBody());
+//        System.out.println("chunkNumbers:"+chunkNumbers);
+//        System.out.println("response.getBody():"+response.getBody());
 
 //        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
 

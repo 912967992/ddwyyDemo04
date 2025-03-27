@@ -37,19 +37,19 @@ public class TestEnvironmentController {
 
         // 获取传入的请求数据
         String sampleId = requestData.getSample_id();
-        String sampleCategory = requestData.getSample_category();
-        String sampleModel = requestData.getSample_model();
-        String materialCode = requestData.getMaterialCode();
-        String sampleFrequency = requestData.getSample_frequency();
-        String sampleName = requestData.getSample_name();
-        String version = requestData.getVersion();
-        String priority = requestData.getPriority();
-        String sampleLeader = requestData.getSample_leader();
-        String supplier = requestData.getSupplier();
-        String testProjectCategory = requestData.getTestProjectCategory();
-        String testProjects = requestData.getTestProjects();
-        String schedule = requestData.getSchedule();
-        int isUsed = requestData.getIsUsed();
+//        String sampleCategory = requestData.getSample_category();
+//        String sampleModel = requestData.getSample_model();
+//        String materialCode = requestData.getMaterialCode();
+//        String sampleFrequency = requestData.getSample_frequency();
+//        String sampleName = requestData.getSample_name();
+//        String version = requestData.getVersion();
+//        String priority = requestData.getPriority();
+//        String sampleLeader = requestData.getSample_leader();
+//        String supplier = requestData.getSupplier();
+//        String testProjectCategory = requestData.getTestProjectCategory();
+//        Object testProjects = requestData.getTestProjects();
+//        String schedule = requestData.getSchedule();
+//        int isUsed = requestData.getIsUsed();
 
 //        logger.info("接收到IT系统传入的数据: {}", new ObjectMapper().writeValueAsString(requestData));
 
@@ -92,7 +92,7 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getReceivedData();
-//        System.out.println("receivedData:"+receivedData.toString());
+        System.out.println("receivedData:"+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 

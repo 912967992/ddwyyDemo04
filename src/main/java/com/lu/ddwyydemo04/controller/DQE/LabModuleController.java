@@ -22,21 +22,21 @@ public class LabModuleController {
     @ResponseBody
     public ResponseEntity<String> uploadSystemInfo(@RequestBody SystemInfo systemInfo) {
         // 打印接收到的系统信息
-        System.out.println("Received System Info:");
-        System.out.println("Version: " + systemInfo.getVersion());
-        System.out.println("Installation Date: " + systemInfo.getInstallationDate());
-        System.out.println("Operating System Version: " + systemInfo.getOsVersion());
-        System.out.println("System Architecture: " + systemInfo.getArchitecture());
-        System.out.println("Computer Name: " + systemInfo.getComputerName());
-        System.out.println("System Model: " + systemInfo.getSystemModel());
-        System.out.println("fullOS: " + systemInfo.getFullOS());
-        System.out.println("cpu: " + systemInfo.getCpu());
-        System.out.println("memory: " + systemInfo.getMemory());
-        System.out.println("displays: " + systemInfo.getDisplays());
-        System.out.println("networkAdapters: " + systemInfo.getNetworkAdapters());
-
-        System.out.println("maxResolution: " + systemInfo.getMaxResolution());
-        System.out.println("maxRefreshRate: " + systemInfo.getMaxRefreshRate());
+//        System.out.println("Received System Info:");
+//        System.out.println("Version: " + systemInfo.getVersion());
+//        System.out.println("Installation Date: " + systemInfo.getInstallationDate());
+//        System.out.println("Operating System Version: " + systemInfo.getOsVersion());
+//        System.out.println("System Architecture: " + systemInfo.getArchitecture());
+//        System.out.println("Computer Name: " + systemInfo.getComputerName());
+//        System.out.println("System Model: " + systemInfo.getSystemModel());
+//        System.out.println("fullOS: " + systemInfo.getFullOS());
+//        System.out.println("cpu: " + systemInfo.getCpu());
+//        System.out.println("memory: " + systemInfo.getMemory());
+//        System.out.println("displays: " + systemInfo.getDisplays());
+//        System.out.println("networkAdapters: " + systemInfo.getNetworkAdapters());
+//
+//        System.out.println("maxResolution: " + systemInfo.getMaxResolution());
+//        System.out.println("maxRefreshRate: " + systemInfo.getMaxRefreshRate());
 
         // 判断 Computer Name 是否在数据库中存在
         int exists = labModuleService.checkIfComputerNameExists(systemInfo.getComputerName());
