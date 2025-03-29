@@ -268,6 +268,27 @@ public List<Map<String, Object>> getScheduleBoard() {
     }
 
 
+    @PostMapping("/scheduleBoard/saveSchedule")
+    public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, Object>> scheduleChanges) {
+        if (scheduleChanges == null || scheduleChanges.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "没有需要保存的排期变更");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 处理数据
+        System.out.println("收到的排期变更数据: " + scheduleChanges);
+
+        // 这里可以调用服务层将数据保存到数据库或文件
+        // scheduleService.saveChanges(scheduleChanges);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "排期变更已成功保存");
+        return ResponseEntity.ok(response);
+    }
+
+
+
 
 
 }

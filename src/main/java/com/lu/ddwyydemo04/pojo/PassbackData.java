@@ -1,5 +1,6 @@
 package com.lu.ddwyydemo04.pojo;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 // 这个PassbackData实体类，是eletric_info的封装对象类
@@ -24,7 +25,7 @@ public class PassbackData {
 
     private int isUsed;
 
-    private Integer scheduleDays;
+    private BigDecimal scheduleDays;
 
     public int getId() {
         return id;
@@ -146,11 +147,11 @@ public class PassbackData {
         this.create_time = create_time;
     }
 
-    public Integer getScheduleDays() {
+    public BigDecimal getScheduleDays() {
         return scheduleDays;
     }
 
-    public void setScheduleDays(Integer scheduleDays) {
+    public void setScheduleDays(BigDecimal scheduleDays) {
         this.scheduleDays = scheduleDays;
     }
 

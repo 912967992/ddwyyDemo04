@@ -23,7 +23,7 @@
             <span>至</span>
             <input type="date" id="endDate" class="date-picker">
             <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
-            <button class="save-schedule-btn" onclick="saveSchedule()">打印排期</button>
+            <button class="save-schedule-btn" onclick="saveSchedule()">保存排期</button>
         </div>
     </div>
     <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
@@ -58,7 +58,7 @@
 </div>
 
 <script>
-    const localScheduleChanges = [];
+    let localScheduleChanges = [];
     const projectListContainer = document.getElementById('projectList');
     const contextMenu = document.getElementById('contextMenu');
     // const projectMenu = document.getElementById('projectMenu');
@@ -71,6 +71,7 @@
             const sampleModel = projectEl.getAttribute('data-sample_model');
             const materialCode = projectEl.getAttribute('data-materialCode');
             e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode}`);
+            // console.log(projectEl.getAttribute('data-schedule_days'))
             e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
             e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
             e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
@@ -204,7 +205,7 @@
                 }
 
                 item.scheduleDays = days;
-                console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
+                // console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
 
                 fetch('/passback/saveScheduleDays', {
                     method: 'POST',
@@ -235,19 +236,39 @@
     }
 
 
-    function saveSchedule() {
-        // 示例逻辑：获取排期内容并打印
-        // const scheduleContent = document.getElementById('scheduleBoard').innerText;
+    async function saveSchedule() {
+        if (!localScheduleChanges || localScheduleChanges.length === 0) {
+            alert('没有需要保存的排期变更');
+            return;
+        }
 
-        // 实际可改为 Ajax 请求或其他处理逻辑
-        // console.log('正在打印排期内容:', scheduleContent);
-        console.log('正在打印localScheduleChanges排期内容:', localScheduleChanges);
+        console.log('正在发送排期变更数据:', localScheduleChanges);
 
+        try {
+            const response = await fetch('/scheduleBoard/saveSchedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(localScheduleChanges)
+            });
 
+            if (!response.ok) {
+                throw new Error(`保存失败: ${response.statusText}`);
+            }
 
-        // 提示用户保存成功（可替换为真实保存逻辑）
-        alert('排期已保存！');
+            const result = await response.json(); // 确保解析 JSON
+            console.log('排期保存成功:', result.message);
+            alert(result.message);
+
+            // 清空本地缓存
+            localScheduleChanges = [];
+        } catch (error) {
+            console.error('保存排期失败:', error);
+            alert('保存失败，请稍后重试！');
+        }
     }
+
 
     function refreshSchedule() {
         const startDate = document.getElementById("startDate").value;
@@ -256,13 +277,6 @@
         if (!startDate) {
             alert("请至少选择初始时间！");
             return;
-        }
-
-        // 这里可以加你的请求逻辑，比如调用 API 或重新渲染数据
-        if (endDate) {
-            console.log("刷新排期面板，时间范围：" + startDate + " 至 " + endDate);
-        } else {
-            console.log("刷新排期面板，起始时间：" + startDate);
         }
 
         document.getElementById('scheduleBoard').innerHTML = '';
@@ -341,15 +355,14 @@
                     if (!dateMap[item.tester]) dateMap[item.tester] = [];
                     dateMap[item.tester].push(task);
 
-                    // localScheduleChanges.push({
-                    //     sample_id: item.sample_id,
-                    //     sizecoding: item.sample_model + " " + item.materialCode,
-                    //     tester: item.tester,
-                    //     start_date: item.schedule_start_date,
-                    //     end_date: item.schedule_end_date
-                    // });
-                    // console.log('正在打印localScheduleChanges排期内容1111:', localScheduleChanges);
+
                 });
+
+                // **确保 allDates 包含完整的 startDate 到 endDate**
+                if (endDate) {
+                    getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
+                }
+
 
                 const testers = Array.from(testersSet);
                 const allDates = Array.from(allDatesSet).sort(); // 所有日期排序后的表头
@@ -422,7 +435,8 @@
                         cell.classList.remove('over');
 
                         const sample_id = e.dataTransfer.getData('project-sample_id');
-                        const days = parseInt(e.dataTransfer.getData('project-days')) || 1;
+                        const days = parseFloat(e.dataTransfer.getData('project-days')) || 1;
+
                         // console.log("days:"+days)
 
                         // console.log("days:"+days)
@@ -430,6 +444,14 @@
 
                         const tester = cell.getAttribute('data-tester');
                         const startDate = cell.getAttribute('data-date');
+
+                        const schedule_days = parseFloat(e.dataTransfer.getData('project-schedule_days')) || 1;
+
+                        // 计算 schedule_end_date
+                        const startDateObj = new Date(startDate);
+                        startDateObj.setDate(startDateObj.getDate() + Math.ceil(schedule_days));
+                        const schedule_end_date = startDateObj.toISOString().split('T')[0]; // 格式化为 YYYY-MM-DD
+                        console.log("schedule_end_date:"+schedule_end_date)
 
                         const taskData = {
                             sample_id,
@@ -452,8 +474,8 @@
                             // schedule_days: e.dataTransfer.getData('project-schedule_days')
 
                             schedule_days: e.dataTransfer.getData('project-schedule_days'),
-                            schedule_start_date: cell.getAttribute('data-date')
-                            // schedule_end_date: e.dataTransfer.getData('project-schedule_end_date')
+                            schedule_start_date: cell.getAttribute('data-date'),
+                            schedule_end_date: schedule_end_date
 
                     };
 
@@ -478,13 +500,8 @@
                     if (!currentRightClickCell) return;
                     const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
                     const startIndex = rowCells.indexOf(currentRightClickCell);
-                    const text = currentRightClickCell.innerText.trim();
-                    // const match = text.match(/(\d+)[^\d]*((\d+)天)/);
-                    // if (!match) return;
-                    //
-                    // const [_, daysStr] = match;
-                    // const days = parseInt(daysStr, 10);
-                    // console.log("days:"+days)
+                    // const text = currentRightClickCell.innerText.trim();
+
                     const tester = currentRightClickCell.getAttribute('data-tester');
                     const sample_id = currentRightClickCell.getAttribute('data-sample_id');
 
@@ -562,18 +579,16 @@
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData) {
         const { sample_id, days, sizecoding, tester, startDate } = taskData;
+        const roundedDays = Math.ceil(days); // 向上取整
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
 
-        console.log("startIndex:"+startIndex)
-        console.log("schedule_days:"+days)
-        console.log("rowCells.length:"+rowCells.length)
-        if (startIndex + days > rowCells.length) {
+        if (startIndex + roundedDays > rowCells.length) {
             alert("排期超出可排范围！");
             return;
         }
 
-        for (let i = startIndex; i < startIndex + days; i++) {
+        for (let i = startIndex; i < startIndex + roundedDays; i++) {
             if (rowCells[i].innerText.trim() !== '') {
                 alert('排期区域已占用，无法安排！');
                 return;
@@ -581,9 +596,10 @@
         }
 
         const startCell = rowCells[startIndex];
+        // console.log("最终渲染的天数:", roundedDays);
         startCell.innerText = `${sizecoding} (${days}天)`;
         startCell.classList.add('assigned');
-        startCell.setAttribute('colspan', days);
+        startCell.setAttribute('colspan', roundedDays);
 
         Object.keys(taskData).forEach(key => {
             if (key!== 'days') {
@@ -591,14 +607,14 @@
             }
         });
 
-        for (let i = startIndex + 1; i < startIndex + days; i++) {
+        for (let i = startIndex + 1; i < startIndex + roundedDays; i++) {
             rowCells[i].style.display = 'none';
         }
 
         const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
         if (projectEl) projectEl.remove();
 
-        const endDate = rowCells[startIndex + days - 1].getAttribute('data-date');
+        const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
         localScheduleChanges.push({
             change: "add",
             sample_id: sample_id,
@@ -627,11 +643,8 @@
             }
         });
 
-        console.log("startIndex:"+startIndex)
-        console.log("schedule_days:"+schedule_days)
-        console.log("rowCells.length:"+rowCells.length)
         for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
-            console.log("i:"+i)
+            // console.log("i:"+i)
             if (rowCells[i]) rowCells[i].style.display = '';
         }
 
