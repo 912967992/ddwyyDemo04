@@ -433,5 +433,30 @@
     </select>
 
 
+    <update id="cancelElectricalCode">
+        UPDATE electric_info
+        SET
+            isCancel = 1,
+            cancel_reason = CASE
+                                WHEN cancel_reason IS NULL OR cancel_reason = '' THEN #{cancel_reason}
+                                ELSE CONCAT(cancel_reason, ' | ', #{cancel_reason})
+                END,
+            cancel_by = CASE
+                            WHEN cancel_by IS NULL OR cancel_by = '' THEN #{cancel_by}
+                            ELSE CONCAT(cancel_by, ' | ', #{cancel_by})
+                END,
+            cancel_code = CASE
+                              WHEN cancel_code IS NULL OR cancel_code = '' THEN #{cancel_code}
+                              ELSE CONCAT(cancel_code, ' | ', #{cancel_code})
+                END,
+            cancel_date = CASE
+                              WHEN cancel_date IS NULL OR cancel_date = '' THEN #{cancel_date}
+                              ELSE CONCAT(cancel_date, ' | ', #{cancel_date})
+                END
+        WHERE sample_id = #{sample_id}
+    </update>
+
+
+
 
 </mapper>

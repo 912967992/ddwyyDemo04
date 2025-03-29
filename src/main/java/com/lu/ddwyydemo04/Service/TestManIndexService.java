@@ -266,4 +266,9 @@ public class TestManIndexService {
         return testManDao.getSchedulesByStartAndEndDate(startDate, endDate);
     }
 
+    public boolean cancelElectricalCode(String sample_id, String cancel_reason, String cancel_by, String cancel_code, LocalDateTime cancel_date){
+        return testManDao.cancelElectricalCode(sample_id,cancel_reason,cancel_by,
+                cancel_code,cancel_date);
+    }
+
 }

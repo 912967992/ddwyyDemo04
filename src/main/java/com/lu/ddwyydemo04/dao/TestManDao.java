@@ -91,6 +91,7 @@ public interface TestManDao {
                                                                     @Param("schedule_end_date")String schedule_end_date);
 
 
-
+    public boolean cancelElectricalCode(@Param("sample_id") String sample_id,@Param("cancel_reason")  String cancel_reason, @Param("cancel_by") String cancel_by,
+                                        @Param("cancel_code") String cancel_code,@Param("cancel_date")  LocalDateTime cancel_date);
 
 }

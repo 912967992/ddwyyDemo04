@@ -4,51 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据接收状态</title>
-    <style>
-        /* 固定按钮的基本样式 */
-        .fixed-button {
-            position: fixed;
-            top: 20px; /* 距离页面顶部的距离 */
-            left: 20px; /* 距离页面左边的距离 */
-            margin-bottom: 10px; /* 按钮之间的间距 */
-            padding: 10px 20px; /* 内边距 */
-            font-size: 16px; /* 字体大小 */
-            cursor: pointer; /* 鼠标指针样式 */
-            border: none; /* 移除默认边框 */
-            border-radius: 5px; /* 圆角边框 */
-            background-color: #007BFF; /* 背景颜色 */
-            color: white; /* 文字颜色 */
-            transition: background-color 0.3s ease; /* 过渡效果 */
-        }
+    <!-- 引入外部CSS文件 -->
+    <link rel="stylesheet" href="/css/testEnvironment.css">
 
-        /* 当鼠标悬停时改变背景颜色 */
-        .fixed-button:hover {
-            background-color: #0056b3;
-        }
-
-        /* 第二个按钮的位置调整 */
-        .fixed-button + .fixed-button {
-            left: 150px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
-        }
-
-
-        /* 给页面其他内容加点上边距 */
-        .content {
-            margin-top: 60px; /* 增加上边距避免按钮被遮挡 */
-            padding: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-    </style>
     <script>
         async function fetchData() {
             try {
@@ -118,8 +76,8 @@
                         sample_leader:  "张三",
                         supplier: "供应商A",
                         testProjectCategory: "试验项目A",
-                        testProjects: JSON.stringify({ "项目A": "子项目A", "项目B": "子项目B" }), // 先转换成字符串
-                        schedule: "2025-03-10",
+                        testProjects: JSON.stringify(["子项目A","子项目B"]), // 先转换成字符串
+                        schedule: "0",
                         isUsed: 0
                     })
                 });
@@ -133,6 +91,57 @@
                 alert('请求发送失败');
             }
         }
+
+
+        // 打开模态框
+        function openModal() {
+            document.getElementById("cancelModal").style.display = "block";
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById("cancelModal").style.display = "none";
+        }
+
+        // 提交作废请求
+        function submitCancel() {
+            const sampleId = document.getElementById("sampleId").value.trim();
+            const cancelReason = document.getElementById("cancelReason").value.trim();
+            const cancelBy = document.getElementById("cancelBy").value.trim();
+            const cancelCode = document.getElementById("cancelCode").value.trim();
+            const cancelDate = new Date().toISOString().replace("T", " ").substring(0, 19); // 获取当前时间
+
+            // 输入校验
+            if (!sampleId || !cancelReason || !cancelBy || !cancelCode) {
+                alert("请填写所有字段");
+                return;
+            }
+
+            const requestData = {
+                sample_id: sampleId,
+                cancel_reason: cancelReason,
+                cancel_by: cancelBy,
+                cancel_code: cancelCode,
+                cancel_date: cancelDate
+            };
+
+            // 发送POST请求
+            fetch("/passback/cancelData", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    closeModal();
+                })
+                .catch(error => {
+                    alert("请求失败：" + error);
+                });
+        }
     </script>
 </head>
 <body>
@@ -142,8 +151,7 @@
 <!-- 测试数据发送按钮 -->
 <button class="fixed-button" onclick="sendTestData()">发送测试数据</button>
 
-
-
+<button class="fixed-button" onclick="openModal()">作废数据按钮</button>
 
 <!-- 内容区域 -->
 <div class="content">
@@ -172,5 +180,24 @@
         <tbody id="dataBody"></tbody>
     </table>
 </div>
+
+<!-- 模态框 -->
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>填写作废信息</h3>
+        <label>样品ID：</label>
+        <input type="text" id="sampleId" class="input-field" placeholder="请输入样品ID">
+        <label>作废原因：</label>
+        <input type="text" id="cancelReason" class="input-field" placeholder="请输入作废原因">
+        <label>作废人：</label>
+        <input type="text" id="cancelBy" class="input-field" placeholder="请输入作废人">
+        <label>作废人工号：</label>
+        <input type="text" id="cancelCode" class="input-field" placeholder="请输入作废人工号">
+        <button class="submit-btn" onclick="submitCancel()">提交</button>
+    </div>
+</div>
+
+
 </body>
 </html>
