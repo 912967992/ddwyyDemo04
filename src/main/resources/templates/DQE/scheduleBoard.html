@@ -378,6 +378,8 @@
                 });
                 html += '</tr></thead><tbody>';
 
+                console.log("testers:", testers, "type:", typeof testers, "isArray:", Array.isArray(testers));
+
                 // 渲染每个 tester 行
                 testers.forEach(tester => {
                     html += `<tr><td><strong>${tester}</strong></td>`;
@@ -388,8 +390,10 @@
                         const task = dateMap[tester]?.find(t => t.startDate === currentDate);
 
                         if (task) {
+                            console.log("task.endDate:"+task.endDate)
                             const rangeDates = getDateRange(task.startDate, task.endDate);
                             const colspan = rangeDates.length;
+                            console.log("colspan:", colspan, "task:", task);
 
                             html += createTaskCell(task, tester, currentDate, colspan);
 

@@ -10,11 +10,14 @@ import com.lu.ddwyydemo04.pojo.PassbackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -268,6 +271,7 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
+        System.out.println("result:"+result);
 
         return result;
     }
@@ -328,6 +332,25 @@ public class TestEnvironmentController {
     }
 
 
+//    @PostMapping("/scheduleBoard/saveSchedule")
+//    public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, Object>> scheduleChanges) {
+//        if (scheduleChanges == null || scheduleChanges.isEmpty()) {
+//            Map<String, String> response = new HashMap<>();
+//            response.put("message", "没有需要保存的排期变更");
+//            return ResponseEntity.badRequest().body(response);
+//        }
+//
+//        // 处理数据
+//        System.out.println("收到的排期变更数据: " + scheduleChanges);
+//
+//        // 这里可以调用服务层将数据保存到数据库或文件
+//        // scheduleService.saveChanges(scheduleChanges);
+//
+//        Map<String, String> response = new HashMap<>();
+//        response.put("message", "排期变更已成功保存");
+//        return ResponseEntity.ok(response);
+//    }
+
     @PostMapping("/scheduleBoard/saveSchedule")
     public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, Object>> scheduleChanges) {
         if (scheduleChanges == null || scheduleChanges.isEmpty()) {
@@ -339,14 +362,136 @@ public class TestEnvironmentController {
         // 处理数据
         System.out.println("收到的排期变更数据: " + scheduleChanges);
 
-        // 这里可以调用服务层将数据保存到数据库或文件
-        // scheduleService.saveChanges(scheduleChanges);
+        // 遍历排期变更数据并发送 HTTP 请求
+        RestTemplate restTemplate = new RestTemplate();
+        String updateScheduleUrl = "http://localhost:8080/Api/ElectricalTest/UpdateScheduleElectricalTest";
+
+        for (Map<String, Object> schedule : scheduleChanges) {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("ETTestCode", schedule.get("sample_id"));
+            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
+            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
+            requestBody.put("TestLeaderName", schedule.get("tester"));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
+                System.out.println("更新结果：" + response.getBody());
+            } catch (Exception e) {
+                System.err.println("更新失败：" + e.getMessage());
+            }
+        }
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "排期变更已成功保存");
+        response.put("message", "排期变更已成功保存，并已同步到 ElectricalTest 接口");
         return ResponseEntity.ok(response);
     }
 
+    //更新排期的 模拟调试
+    @PostMapping("/Api/ElectricalTest/UpdateScheduleElectricalTest")
+    public ResponseEntity<Map<String, Object>> updateSchedule(@RequestBody Map<String, Object> requestData) {
+        System.out.println("收到的排期更新请求：" + requestData);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 200);
+        response.put("message", "成功接收排期变更");
+        response.put("receivedData", requestData);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/passback/StartTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> startTest(@RequestBody Map<String, String> requestData) {
+        String testNumber = requestData.get("test_number");
+        String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        System.out.println(ZoneId.systemDefault());
+
+        if (testNumber == null || testNumber.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 400);
+            response.put("message", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 构造请求数据
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("ETTestCode", testNumber);
+        requestPayload.put("ActualTestStartDate", actual_time);
+
+        // 发送 POST 请求到目标接口
+        String targetUrl = "http://localhost:8080/Api/ElectricalTest/StartTestElectricalTest";
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
+
+        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+    }
+
+
+
+    //开始测试  的模拟调试
+    @PostMapping("/Api/ElectricalTest/StartTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> startTestMoni(@RequestBody Map<String, Object> requestData) {
+        System.out.println("开始测试成功：" + requestData);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 200);
+        response.put("message", "成功开始测试");
+        response.put("receivedData", requestData);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/passback/FinishTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> finishTest(@RequestBody Map<String, String> requestData) {
+        String testNumber = requestData.get("test_number");
+        String actualTestEndDate = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String actual_work_time = requestData.get("actual_work_time");
+
+        System.out.println(ZoneId.systemDefault());
+
+        if (testNumber == null || testNumber.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 400);
+            response.put("message", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 构造请求数据
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("ETTestCode", testNumber);
+        requestPayload.put("ActualTestEndDate", actualTestEndDate);
+        requestPayload.put("ActualTestWrokHour", actual_work_time);
+
+        // 发送 POST 请求到目标接口
+        String targetUrl = "http://localhost:8080/Api/ElectricalTest/StartTestElectricalTest";
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
+
+        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+    }
+
+
+
+    //开始测试  的模拟调试
+    @PostMapping("/Api/ElectricalTest/FinishTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> finishTestMoni(@RequestBody Map<String, Object> requestData) {
+        System.out.println("开始测试成功：" + requestData);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 200);
+        response.put("message", "成功开始测试");
+        response.put("receivedData", requestData);
+
+        return ResponseEntity.ok(response);
+    }
 
 
 

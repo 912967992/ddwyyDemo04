@@ -28,6 +28,14 @@
     left: 310px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
 }
 
+.fixed-button + .fixed-button + .fixed-button + .fixed-button  {
+    left: 470px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
+}
+
+.fixed-button + .fixed-button + .fixed-button + .fixed-button + .fixed-button {
+    left: 630px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
+}
+
 /* 给页面其他内容加点上边距 */
 .content {
     margin-top: 60px; /* 增加上边距避免按钮被遮挡 */

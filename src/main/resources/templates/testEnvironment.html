@@ -35,6 +35,11 @@
                         <td>${item.testProjects || ''}</td>
                         <td>${item.schedule || ''}</td>
                         <td>${item.create_time || ''}</td>
+                        <td>${item.isCancel || ''}</td>
+                        <td>${item.cancel_reason || ''}</td>
+                        <td>${item.cancel_by || ''}</td>
+                        <td>${item.cancel_code || ''}</td>
+                        <td>${item.cancel_date || ''}</td>
                     </tr>`;
                     tableBody.innerHTML += row;
                 });
@@ -142,6 +147,91 @@
                     alert("请求失败：" + error);
                 });
         }
+
+
+
+        // 打开测试模态框
+        function openTestModal() {
+            document.getElementById("testModal").style.display = "block";
+        }
+
+        // 关闭测试模态框
+        function closeTestModal() {
+            document.getElementById("testModal").style.display = "none";
+            document.getElementById("testFinishModal").style.display = "none";
+        }
+
+        // 提交测试编号
+        function submitTest() {
+            const testNumber = document.getElementById("testNumber").value.trim();
+            const actual_time = new Date().toISOString().replace("T", " ").substring(0, 19); // 获取当前时间
+
+            if (!testNumber) {
+                alert("请输入测试编号");
+                return;
+            }
+
+            const requestData = {
+                test_number: testNumber,
+                actual_time: actual_time
+            };
+
+            // 发送POST请求
+            fetch("/passback/StartTestElectricalTest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("测试已开始，状态码: " + data.status + " 信息: " + data.message);
+                    closeTestModal();
+                })
+                .catch(error => {
+                    alert("请求失败: " + error);
+                });
+        }
+
+
+
+        function finishTestModal() {
+            document.getElementById("testFinishModal").style.display = "block";
+        }
+
+
+        // 提交测试编号
+        function submitFinishTest() {
+            const testFinishNumber = document.getElementById("testFinishNumber").value.trim();
+
+            if (!testFinishNumber) {
+                alert("请输入测试编号");
+                return;
+            }
+
+            const requestData = {
+                test_number: testFinishNumber,
+                actual_work_time: "8"
+            };
+
+            // 发送POST请求
+            fetch("/passback/FinishTestElectricalTest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("测试已开始，状态码: " + data.status + " 信息: " + data.message);
+                    closeTestModal();
+                })
+                .catch(error => {
+                    alert("请求失败: " + error);
+                });
+        }
     </script>
 </head>
 <body>
@@ -152,6 +242,36 @@
 <button class="fixed-button" onclick="sendTestData()">发送测试数据</button>
 
 <button class="fixed-button" onclick="openModal()">作废数据按钮</button>
+
+<!-- "开始测试" 按钮 -->
+<button class="fixed-button" onclick="openTestModal()">开始测试按钮</button>
+
+<button class="fixed-button" onclick="finishTestModal()">结束时间按钮</button>
+
+
+<!-- 测试编号模态框 -->
+<div id="testModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTestModal()">&times;</span>
+        <h3>填写测试编号</h3>
+        <label>测试编号：</label>
+        <input type="text" id="testNumber" class="input-field" placeholder="请输入测试编号">
+        <button class="submit-btn" onclick="submitTest()">确定</button>
+    </div>
+</div>
+
+<!-- 测试编号模态框 -->
+<div id="testFinishModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTestModal()">&times;</span>
+        <h3>填写测试编号</h3>
+        <label>测试编号：</label>
+        <input type="text" id="testFinishNumber" class="input-field" placeholder="请输入测试编号">
+        <button class="submit-btn" onclick="submitFinishTest()">确定</button>
+    </div>
+</div>
+
+
 
 <!-- 内容区域 -->
 <div class="content">
@@ -175,6 +295,11 @@
             <th>测试子项目</th>
             <th>状态</th>
             <th>创建时间</th>
+            <th>是否作废</th>
+            <th>作废原因</th>
+            <th>作废人</th>
+            <th>作废工号</th>
+            <th>作废时间</th>
         </tr>
         </thead>
         <tbody id="dataBody"></tbody>

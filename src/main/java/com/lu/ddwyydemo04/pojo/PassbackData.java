@@ -27,6 +27,13 @@ public class PassbackData {
 
     private BigDecimal scheduleDays;
 
+    private int isCancel;
+    private String cancel_reason;
+    private String cancel_by;
+    private String cancel_date;
+    private String cancel_code;
+
+
     public int getId() {
         return id;
     }
@@ -163,6 +170,46 @@ public class PassbackData {
         this.isUsed = isUsed;
     }
 
+    public int getIsCancel() {
+        return isCancel;
+    }
+
+    public void setIsCancel(int isCancel) {
+        this.isCancel = isCancel;
+    }
+
+    public String getCancel_reason() {
+        return cancel_reason;
+    }
+
+    public void setCancel_reason(String cancel_reason) {
+        this.cancel_reason = cancel_reason;
+    }
+
+    public String getCancel_by() {
+        return cancel_by;
+    }
+
+    public void setCancel_by(String cancel_by) {
+        this.cancel_by = cancel_by;
+    }
+
+    public String getCancel_date() {
+        return cancel_date;
+    }
+
+    public void setCancel_date(String cancel_date) {
+        this.cancel_date = cancel_date;
+    }
+
+    public String getCancel_code() {
+        return cancel_code;
+    }
+
+    public void setCancel_code(String cancel_code) {
+        this.cancel_code = cancel_code;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -181,8 +228,13 @@ public class PassbackData {
                 ", testProjects='" + testProjects + '\'' +
                 ", schedule='" + schedule + '\'' +
                 ", create_time=" + create_time +
-                ", scheduleDays=" + scheduleDays +
                 ", isUsed=" + isUsed +
+                ", scheduleDays=" + scheduleDays +
+                ", isCancel=" + isCancel +
+                ", cancel_reason='" + cancel_reason + '\'' +
+                ", cancel_by='" + cancel_by + '\'' +
+                ", cancel_date='" + cancel_date + '\'' +
+                ", cancel_code='" + cancel_code + '\'' +
                 '}';
     }
 }
