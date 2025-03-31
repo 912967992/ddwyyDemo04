@@ -329,7 +329,7 @@
     </update>
 
     <select id="getReceivedData" resultType="PassbackData">
-        SELECT * FROM electric_info WHERE isUsed = 0 OR isUsed IS NULL
+        SELECT * FROM electric_info WHERE isUsed = 0 OR isUsed IS NULL and isCancel = 0
     </select>
 
     <select id="queryElectricalCode" resultType="Integer">
@@ -456,7 +456,21 @@
         WHERE sample_id = #{sample_id}
     </update>
 
+    <update id="StartTestElectricalTest">
+        UPDATE electric_info
+        SET
+            actual_start_time = #{actual_start_time}
+        WHERE
+            sample_id = #{sample_id}
+    </update>
 
+    <update id="FinishTestElectricalTest">
+        UPDATE electric_info
+        SET
+            actual_finish_time = #{actual_finish_time}
+        WHERE
+            sample_id = #{sample_id}
+    </update>
 
 
 </mapper>

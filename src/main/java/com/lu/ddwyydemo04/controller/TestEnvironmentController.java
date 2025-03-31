@@ -410,12 +410,20 @@ public class TestEnvironmentController {
         String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        System.out.println(ZoneId.systemDefault());
-
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", 400);
             response.put("message", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        boolean updateStartTime = testManIndexService.StartTestElectricalTest(testNumber,actual_time);
+        System.out.println("updateStartTime:"+updateStartTime);
+
+        if (!updateStartTime) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 400);
+            response.put("message", "没有找到该测试编号，请输入正确的测试编号");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -455,6 +463,60 @@ public class TestEnvironmentController {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String actual_work_time = requestData.get("actual_work_time");
 
+        if (testNumber == null || testNumber.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 400);
+            response.put("message", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        boolean updateFinishTime = testManIndexService.FinishTestElectricalTest(testNumber,actualTestEndDate);
+        System.out.println("updateFinishTime:"+updateFinishTime);
+
+        if (!updateFinishTime) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 400);
+            response.put("message", "没有找到该测试编号，请输入正确的测试编号");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 构造请求数据
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("ETTestCode", testNumber);
+        requestPayload.put("ActualTestEndDate", actualTestEndDate);
+        requestPayload.put("ActualTestWrokHour", actual_work_time);
+
+        // 发送 POST 请求到目标接口
+        String targetUrl = "http://localhost:8080/Api/ElectricalTest/FinishTestElectricalTest";
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
+
+        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+    }
+
+
+
+    //结束测试  的模拟调试
+    @PostMapping("/Api/ElectricalTest/FinishTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> finishTestMoni(@RequestBody Map<String, Object> requestData) {
+        System.out.println("结束测试成功：" + requestData);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 200);
+        response.put("message", "成功结束测试");
+        response.put("receivedData", requestData);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/passback/ProcessTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> processTest(@RequestBody Map<String, String> requestData) {
+        String testNumber = requestData.get("test_number");
+        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String sampleRecognizeResult = requestData.get("sampleRecognizeResult");
+
         System.out.println(ZoneId.systemDefault());
 
         if (testNumber == null || testNumber.isEmpty()) {
@@ -467,11 +529,11 @@ public class TestEnvironmentController {
         // 构造请求数据
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("ETTestCode", testNumber);
-        requestPayload.put("ActualTestEndDate", actualTestEndDate);
-        requestPayload.put("ActualTestWrokHour", actual_work_time);
+        requestPayload.put("ReportReviewTime", reportReviewTime);
+        requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "http://localhost:8080/Api/ElectricalTest/StartTestElectricalTest";
+        String targetUrl = "http://localhost:8080/Api/ElectricalTest/ProcessTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
@@ -480,20 +542,18 @@ public class TestEnvironmentController {
 
 
 
-    //开始测试  的模拟调试
-    @PostMapping("/Api/ElectricalTest/FinishTestElectricalTest")
-    public ResponseEntity<Map<String, Object>> finishTestMoni(@RequestBody Map<String, Object> requestData) {
-        System.out.println("开始测试成功：" + requestData);
+    //结束测试  的模拟调试
+    @PostMapping("/Api/ElectricalTest/ProcessTestElectricalTest")
+    public ResponseEntity<Map<String, Object>> processTestMoni(@RequestBody Map<String, Object> requestData) {
+        System.out.println("结报告审核成功：" + requestData);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", 200);
-        response.put("message", "成功开始测试");
+        response.put("message", "成功结束测试");
         response.put("receivedData", requestData);
 
         return ResponseEntity.ok(response);
     }
-
-
 
 
 }

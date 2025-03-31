@@ -94,4 +94,15 @@ public interface TestManDao {
     public boolean cancelElectricalCode(@Param("sample_id") String sample_id,@Param("cancel_reason")  String cancel_reason, @Param("cancel_by") String cancel_by,
                                         @Param("cancel_code") String cancel_code,@Param("cancel_date")  LocalDateTime cancel_date);
 
+    public boolean StartTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_start_time")String actual_start_time);
+    public boolean FinishTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_finish_time")String actual_finish_time);
+
+
+
+
+
+
+
+
+
 }

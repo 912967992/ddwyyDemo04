@@ -16,37 +16,72 @@
                 let tableBody = document.getElementById("dataBody");
                 tableBody.innerHTML = "";
 
-                console.log(data)
+                console.log(data);
 
                 data.forEach(item => {
+                    let scheduleText = "";
+                    let isCancel = "";
+                    switch (item.schedule) {
+                        case "15":
+                            scheduleText = "待排期";
+                            break;
+                        case "16":
+                            scheduleText = "已排期待测试";
+                            break;
+                        case "0":
+                            scheduleText = "测试中";
+                            break;
+                        case "1":
+                            scheduleText = "待DQE和研发审核";
+                            break;
+                        case "2":
+                            scheduleText = "审核完成";
+                            break;
+                        default:
+                            scheduleText = item.schedule || "";
+                    }
+                    switch (item.isCancel) {
+                        case 0:
+                            isCancel = "";
+                            break;
+                        case 1:
+                            isCancel = "已作废";
+                            break;
+                        default:
+                            isCancel = item.isCancel || "";
+                    }
+
                     let row = `<tr>
-                        <td>${item.id || ''}</td>
-                        <td>${item.sample_id || ''}</td>
-                        <td>${item.sample_category || ''}</td>
-                        <td>${item.sample_model || ''}</td>
-                        <td>${item.materialCode || ''}</td>
-                        <td>${item.sample_frequency || ''}</td>
-                        <td>${item.sample_name || ''}</td>
-                        <td>${item.version || ''}</td>
-                        <td>${item.priority || ''}</td>
-                        <td>${item.sample_leader || ''}</td>
-                        <td>${item.supplier || ''}</td>
-                        <td>${item.testProjectCategory || ''}</td>
-                        <td>${item.testProjects || ''}</td>
-                        <td>${item.schedule || ''}</td>
-                        <td>${item.create_time || ''}</td>
-                        <td>${item.isCancel || ''}</td>
-                        <td>${item.cancel_reason || ''}</td>
-                        <td>${item.cancel_by || ''}</td>
-                        <td>${item.cancel_code || ''}</td>
-                        <td>${item.cancel_date || ''}</td>
-                    </tr>`;
+                <td>${item.id || ''}</td>
+                <td>${item.sample_id || ''}</td>
+                <td>${item.sample_category || ''}</td>
+                <td>${item.sample_model || ''}</td>
+                <td>${item.materialCode || ''}</td>
+                <td>${item.sample_frequency || ''}</td>
+                <td>${item.sample_name || ''}</td>
+                <td>${item.version || ''}</td>
+                <td>${item.priority || ''}</td>
+                <td>${item.sample_leader || ''}</td>
+                <td>${item.supplier || ''}</td>
+                <td>${item.testProjectCategory || ''}</td>
+                <td>${item.testProjects || ''}</td>
+                <td>${scheduleText}</td>  <!-- 这里替换为转换后的文本 -->
+                <td>${item.create_time || ''}</td>
+                <td>${item.actual_start_time || ''}</td>
+                <td>${item.actual_finish_time || ''}</td>
+                <td>${isCancel}</td>
+                <td>${item.cancel_reason || ''}</td>
+                <td>${item.cancel_by || ''}</td>
+                <td>${item.cancel_code || ''}</td>
+                <td>${item.cancel_date || ''}</td>
+            </tr>`;
                     tableBody.innerHTML += row;
                 });
             } catch (error) {
                 console.error('获取数据失败:', error);
             }
         }
+
 
         window.onload = fetchData;
 
@@ -159,6 +194,7 @@
         function closeTestModal() {
             document.getElementById("testModal").style.display = "none";
             document.getElementById("testFinishModal").style.display = "none";
+            document.getElementById("testProcessModal").style.display = "none";
         }
 
         // 提交测试编号
@@ -225,7 +261,45 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert("测试已开始，状态码: " + data.status + " 信息: " + data.message);
+                    alert("测试已结束，状态码: " + data.status + " 信息: " + data.message);
+                    closeTestModal();
+                })
+                .catch(error => {
+                    alert("请求失败: " + error);
+                });
+        }
+
+
+        function processTestModal() {
+            document.getElementById("testProcessModal").style.display = "block";
+        }
+
+
+        // 提交测试编号
+        function submitProcessTest() {
+            const testProcessNumber = document.getElementById("testProcessNumber").value.trim();
+
+            if (!testProcessNumber) {
+                alert("请输入测试编号");
+                return;
+            }
+
+            const requestData = {
+                test_number: testProcessNumber,
+                sampleRecognizeResult: "签样"
+            };
+
+            // 发送POST请求
+            fetch("/passback/ProcessTestElectricalTest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("报告审核按钮成功，状态码: " + data.status + " 信息: " + data.message);
                     closeTestModal();
                 })
                 .catch(error => {
@@ -248,8 +322,10 @@
 
 <button class="fixed-button" onclick="finishTestModal()">结束时间按钮</button>
 
+<button class="fixed-button" onclick="processTestModal()">报告审核按钮</button>
 
-<!-- 测试编号模态框 -->
+
+<!-- 测试编号测试开始模态框 -->
 <div id="testModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTestModal()">&times;</span>
@@ -260,7 +336,7 @@
     </div>
 </div>
 
-<!-- 测试编号模态框 -->
+<!-- 测试编号结束测试模态框 -->
 <div id="testFinishModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTestModal()">&times;</span>
@@ -268,6 +344,17 @@
         <label>测试编号：</label>
         <input type="text" id="testFinishNumber" class="input-field" placeholder="请输入测试编号">
         <button class="submit-btn" onclick="submitFinishTest()">确定</button>
+    </div>
+</div>
+
+<!-- 报告审核按钮模态框 -->
+<div id="testProcessModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTestModal()">&times;</span>
+        <h3>填写测试编号</h3>
+        <label>测试编号：</label>
+        <input type="text" id="testProcessNumber" class="input-field" placeholder="请输入测试编号">
+        <button class="submit-btn" onclick="submitProcessTest()">确定</button>
     </div>
 </div>
 
@@ -283,7 +370,6 @@
             <th>电气编号</th>
             <th>产品类别</th>
             <th>大编码</th>
-<!--            <th>小编码</th>-->
             <th>物料编码</th>
             <th>送样次数</th>
             <th>产品名称</th>
@@ -293,8 +379,10 @@
             <th>供应商</th>
             <th>试验项目类别</th>
             <th>测试子项目</th>
-            <th>状态</th>
+            <th>当前进度</th>
             <th>创建时间</th>
+            <th>实际开始时间</th>
+            <th>实际结束时间</th>
             <th>是否作废</th>
             <th>作废原因</th>
             <th>作废人</th>

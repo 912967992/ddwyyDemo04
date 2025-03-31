@@ -271,4 +271,11 @@ public class TestManIndexService {
                 cancel_code,cancel_date);
     }
 
+    public boolean StartTestElectricalTest(String sample_id,String actual_start_time){
+        return testManDao.StartTestElectricalTest(sample_id,actual_start_time);
+    }
+    public boolean FinishTestElectricalTest(String sample_id,String actual_finish_time){
+        return testManDao.FinishTestElectricalTest(sample_id,actual_finish_time);
+    }
+
 }

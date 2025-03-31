@@ -33,6 +33,9 @@ public class PassbackData {
     private String cancel_date;
     private String cancel_code;
 
+    private LocalDateTime actual_start_time;
+    private LocalDateTime actual_finish_time;
+
 
     public int getId() {
         return id;
@@ -210,6 +213,23 @@ public class PassbackData {
         this.cancel_code = cancel_code;
     }
 
+
+    public LocalDateTime getActual_start_time() {
+        return actual_start_time;
+    }
+
+    public void setActual_start_time(LocalDateTime actual_start_time) {
+        this.actual_start_time = actual_start_time;
+    }
+
+    public LocalDateTime getActual_finish_time() {
+        return actual_finish_time;
+    }
+
+    public void setActual_finish_time(LocalDateTime actual_finish_time) {
+        this.actual_finish_time = actual_finish_time;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -235,6 +255,8 @@ public class PassbackData {
                 ", cancel_by='" + cancel_by + '\'' +
                 ", cancel_date='" + cancel_date + '\'' +
                 ", cancel_code='" + cancel_code + '\'' +
+                ", actual_start_time=" + actual_start_time +
+                ", actual_finish_time=" + actual_finish_time +
                 '}';
     }
 }
