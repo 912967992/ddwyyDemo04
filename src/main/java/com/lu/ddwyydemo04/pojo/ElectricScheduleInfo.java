@@ -20,6 +20,7 @@ public class ElectricScheduleInfo {
 
     private String sizecoding;
 
+
     public Integer getId() {
         return id;
     }

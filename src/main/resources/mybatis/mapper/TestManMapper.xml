@@ -532,6 +532,78 @@
         SELECT test_engineer_name FROM tb_test_engineer_info
     </select>
 
+    <!-- 正确绑定方法名 insertElectricalTestItem -->
+    <insert id="insertElectricalTestItem">
+        INSERT INTO electrical_test_items (
+        sample_id, ETTestCode, testProjectCategory, testProjects
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),
+            #{item.ETTestCode},
+            #{item.testProjectCategory},
+            #{item.testProjects}
+            )
+        </foreach>
+    </insert>
+
+
+
+    <!-- 插入 material_items -->
+    <insert id="insertMaterialItem">
+        INSERT INTO material_items (
+        sample_id, STTestCode, materialCode, sample_frequency
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),
+            #{item.STTestCode},
+            #{item.materialCode},
+            #{item.sample_frequency}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getAllReceivedData" resultType="PassbackData">
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_category,
+            ei.sample_model,
+--             ei.materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+--             ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_code,
+            ei.cancel_date,
+            -- 合并 electrical_test_items 表中的数据
+            GROUP_CONCAT(CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
+            -- 合并 material_items 表中的数据
+            GROUP_CONCAT(CONCAT(mi.STTestCode, '-', mi.materialCode) SEPARATOR ', ') AS materialCode
+        FROM
+            electric_info ei
+                LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
+                LEFT JOIN material_items mi ON ei.sample_id = mi.sample_id
+        GROUP BY
+            ei.id
+        ORDER BY
+            ei.create_time DESC;
+    </select>
+
+
+
 
 
 

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
+import com.lu.ddwyydemo04.pojo.ElectricalTestItem;
+import com.lu.ddwyydemo04.pojo.MaterialItem;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 
 import org.slf4j.Logger;
@@ -38,31 +40,34 @@ public class TestEnvironmentController {
 
     @PostMapping("/passback/receiveData")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> receiveData(@RequestBody PassbackData requestData) throws JsonProcessingException {
+    public ResponseEntity<Map<String, Object>> receiveData(@RequestBody List<PassbackData> requestData) {
+        System.out.println("requestData:"+requestData.toString());
+        // 遍历接收到的 PassbackData 列表
+        for (PassbackData data : requestData) {
+            String sampleId = data.getSample_id();
 
-        // 获取传入的请求数据
-        String sampleId = requestData.getSample_id();
 
-        // TODO: 这里你可以将数据保存到数据库
-        int exist = testManIndexService.queryElectricalCode(sampleId);
-        if (exist == 0) {
-            int insertTestEnvir = testManIndexService.insertElectricInfo(requestData);
-            if (insertTestEnvir > 0) {
-                logger.info("接收到数据，插入electric_info库成功,电气编号为:" + sampleId);
+            // TODO: 这里你可以将数据保存到数据库
+            int exist = testManIndexService.queryElectricalCode(sampleId);
+            if (exist == 0) {
+                int insertTestEnvir = testManIndexService.insertElectricInfo(data);
+                if (insertTestEnvir > 0) {
+                    logger.info("接收到数据，插入electric_info库成功,电气编号为:" + sampleId);
+                }
+            } else {
+                int updateTestEnvir = testManIndexService.updateElectricInfo(data);
+                if (updateTestEnvir > 0) {
+                    logger.info("接收到数据，更新electric_info库成功,电气编号为:" + sampleId);
+                }
             }
-        } else {
-            int updateTestEnvir = testManIndexService.updateElectricInfo(requestData);
-            if (updateTestEnvir > 0) {
-                logger.info("接收到数据，更新electric_info库成功,电气编号为:" + sampleId);
-            }
+
+
+            testManIndexService.insertElectricalTestItem(sampleId,data.getElectricalTestItems());
+
+            testManIndexService.insertMaterialItem(sampleId,data.getMaterialItems());
+
+
         }
-
-        // 调用sendFeedbackMessage，反馈给 IT 系统
-        // 这里不再需要发送请求给外部接口了，只需要记录反馈信息
-        String feedbackMessage = "研发质量管理系统接收数据成功";
-
-        // 你可以记录反馈信息或做其他处理，避免发送 HTTP 请求到未知目标
-        logger.info(feedbackMessage);
 
         // 构造返回报文
         Map<String, Object> response = new HashMap<>();
@@ -70,18 +75,18 @@ public class TestEnvironmentController {
         response.put("message", "数据接收成功");
 
         Map<String, String> data = new HashMap<>();
-        data.put("sample_id", sampleId);
+        data.put("sample_id", requestData.get(0).getSample_id());  // 假设数组内每个对象的 sample_id 相同
         response.put("data", data);
 
-        return ResponseEntity.ok(response);  // 返回给 IT 接口 200 状态码
+        return ResponseEntity.ok(response);  // 返回 200 状态码
     }
 
 
-    @GetMapping("/passback/getReceivedData")
+    @GetMapping("/passback/getAllReceivedData")
     @ResponseBody
-    public ResponseEntity<List<PassbackData>> getReceivedData() {
-        List<PassbackData> receivedData =  testManIndexService.getReceivedData();
-        logger.info("/passback/getReceivedData接收到的数据是："+receivedData.toString());
+    public ResponseEntity<List<PassbackData>> getAllReceivedData() {
+        List<PassbackData> receivedData =  testManIndexService.getAllReceivedData();
+        logger.info("/passback/getAllReceivedData："+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 

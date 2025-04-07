@@ -333,7 +333,17 @@ public class TestManIndexService {
         return testManDao.getAllTesters();
     }
 
+    public void insertElectricalTestItem(String sample_id,  List<ElectricalTestItem> list){
+        testManDao.insertElectricalTestItem(sample_id, list);
+    }
+    public void insertMaterialItem(String sample_id, List<MaterialItem> list){
+        testManDao.insertMaterialItem(sample_id, list);
+    }
 
+
+    public List<PassbackData> getAllReceivedData(){
+        return testManDao.getAllReceivedData();
+    }
 
 
 }

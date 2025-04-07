@@ -10,7 +10,7 @@
     <script>
         async function fetchData() {
             try {
-                const response = await fetch('/passback/getReceivedData');
+                const response = await fetch('/passback/getAllReceivedData');
                 const data = await response.json();
 
                 let tableBody = document.getElementById("dataBody");
@@ -92,34 +92,102 @@
 
 
         // 发送测试数据到 /passback/receiveData
+        // async function sendTestData() {
+        //     try {
+        //         // 生成一个5位随机数（字符串）
+        //         const randomSampleId = Math.floor(10000 + Math.random() * 90000).toString();
+        //
+        //
+        //
+        //         const response = await fetch('/passback/receiveData', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json'
+        //             },
+        //             body: JSON.stringify({
+        //                 sample_id: randomSampleId ,
+        //                 sample_category:  "测试类别",
+        //                 sample_model:  "型号A",
+        //                 materialCode: "M001",
+        //                 sample_frequency:  "1",
+        //                 sample_name:  "测试样品",
+        //                 version: "1.0",
+        //                 priority: "高",
+        //                 sample_leader:  "张三",
+        //                 supplier: "供应商A",
+        //                 testProjectCategory: "试验项目A",
+        //                 testProjects: JSON.stringify(["子项目A","子项目B"]), // 先转换成字符串
+        //                 schedule: "0",
+        //                 isUsed: 0
+        //             })
+        //         });
+        //
+        //         const data = await response.json();
+        //         console.log('Response:', data);
+        //         alert('接口接收成功，状态码: ' + data.status + ' 信息: ' + data.message);
+        //         refreshPage();
+        //     } catch (error) {
+        //         console.error('发送请求失败:', error);
+        //         alert('请求发送失败');
+        //     }
+        // }
+
         async function sendTestData() {
             try {
-                // 生成一个5位随机数（字符串）
                 const randomSampleId = Math.floor(10000 + Math.random() * 90000).toString();
+                const testCode = 'ET' + Date.now(); // 用时间戳模拟一个唯一编号
+                const stTestCode = 'ST' + Date.now();
 
-
+                const payload = [
+                    {
+                        sample_id: testCode,
+                        sample_category: "20250319001",
+                        sample_model: "LP153",
+                        sample_coding: null,
+                        sample_name: "其他保护膜",
+                        version: "1",
+                        priority: null,
+                        sample_leader: "王翔",
+                        supplier: "银马",
+                        schedule: "待测试",
+                        materialItems: [
+                            {
+                                STTestCode: stTestCode,
+                                materialCode: "50728",
+                                sample_frequency: 2
+                            },
+                            {
+                                STTestCode: stTestCode,
+                                materialCode: "50729",
+                                sample_frequency: 2
+                            }
+                        ],
+                        electricalTestItems: [
+                            {
+                                ETTestCode: testCode,
+                                testProjectCategory: "456qq",
+                                testProjects: "789qq"
+                            },
+                            {
+                                ETTestCode: testCode,
+                                testProjectCategory: "789qq",
+                                testProjects: "123qq"
+                            },
+                            {
+                                ETTestCode: testCode,
+                                testProjectCategory: "qq123",
+                                testProjects: "456qq"
+                            }
+                        ]
+                    }
+                ];
 
                 const response = await fetch('/passback/receiveData', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        sample_id: randomSampleId ,
-                        sample_category:  "测试类别",
-                        sample_model:  "型号A",
-                        materialCode: "M001",
-                        sample_frequency:  "1",
-                        sample_name:  "测试样品",
-                        version: "1.0",
-                        priority: "高",
-                        sample_leader:  "张三",
-                        supplier: "供应商A",
-                        testProjectCategory: "试验项目A",
-                        testProjects: JSON.stringify(["子项目A","子项目B"]), // 先转换成字符串
-                        schedule: "0",
-                        isUsed: 0
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -131,6 +199,7 @@
                 alert('请求发送失败');
             }
         }
+
 
 
         // 打开模态框

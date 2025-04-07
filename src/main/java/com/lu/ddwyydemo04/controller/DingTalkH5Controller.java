@@ -106,6 +106,13 @@ public class DingTalkH5Controller {
             // 调用方法检查部门
             String job = checkParentDepartment(responseDeptBody,username);
             System.out.println(job);
+
+            // 特殊用户名覆盖 job 为 "it"
+            if ("陈少侠".equals(username) || "郭丽纯".equals(username) ||
+                    "占海英".equals(username) || "刘定荣".equals(username)) {
+                job = "projectLeader";
+            }
+
             result.put("job", job);
 
             //将想要返回的结果保存起来

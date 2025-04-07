@@ -121,6 +121,14 @@ public interface TestManDao {
 
     public List<String> getAllTesters();
 
+    public void insertElectricalTestItem(@Param("sample_id") String sample_id,
+                                         @Param("list") List<ElectricalTestItem> list);
+
+    public void insertMaterialItem(@Param("sample_id") String sample_id,
+                                   @Param("list") List<MaterialItem> list);
+
+    public List<PassbackData> getAllReceivedData();
+
 
 
 }

@@ -2,6 +2,7 @@ package com.lu.ddwyydemo04.pojo;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 // 这个PassbackData实体类，是eletric_info的封装对象类
 public class PassbackData {
@@ -35,6 +36,10 @@ public class PassbackData {
 
     private LocalDateTime actual_start_time;
     private LocalDateTime actual_finish_time;
+
+    private List<MaterialItem> materialItems;  // List for material items
+    private List<ElectricalTestItem> electricalTestItems;  // List for electrical test items
+
 
 
     public int getId() {
@@ -230,6 +235,22 @@ public class PassbackData {
         this.actual_finish_time = actual_finish_time;
     }
 
+    public List<MaterialItem> getMaterialItems() {
+        return materialItems;
+    }
+
+    public void setMaterialItems(List<MaterialItem> materialItems) {
+        this.materialItems = materialItems;
+    }
+
+    public List<ElectricalTestItem> getElectricalTestItems() {
+        return electricalTestItems;
+    }
+
+    public void setElectricalTestItems(List<ElectricalTestItem> electricalTestItems) {
+        this.electricalTestItems = electricalTestItems;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -257,6 +278,8 @@ public class PassbackData {
                 ", cancel_code='" + cancel_code + '\'' +
                 ", actual_start_time=" + actual_start_time +
                 ", actual_finish_time=" + actual_finish_time +
+                ", materialItems=" + materialItems +
+                ", electricalTestItems=" + electricalTestItems +
                 '}';
     }
 }
