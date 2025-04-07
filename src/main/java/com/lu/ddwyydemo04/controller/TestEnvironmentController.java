@@ -42,22 +42,6 @@ public class TestEnvironmentController {
 
         // 获取传入的请求数据
         String sampleId = requestData.getSample_id();
-//        String sampleCategory = requestData.getSample_category();
-//        String sampleModel = requestData.getSample_model();
-//        String materialCode = requestData.getMaterialCode();
-//        String sampleFrequency = requestData.getSample_frequency();
-//        String sampleName = requestData.getSample_name();
-//        String version = requestData.getVersion();
-//        String priority = requestData.getPriority();
-//        String sampleLeader = requestData.getSample_leader();
-//        String supplier = requestData.getSupplier();
-//        String testProjectCategory = requestData.getTestProjectCategory();
-//        Object testProjects = requestData.getTestProjects();
-//        String schedule = requestData.getSchedule();
-//        int isUsed = requestData.getIsUsed();
-
-//        logger.info("接收到IT系统传入的数据: {}", new ObjectMapper().writeValueAsString(requestData));
-
 
         // TODO: 这里你可以将数据保存到数据库
         int exist = testManIndexService.queryElectricalCode(sampleId);
@@ -173,7 +157,7 @@ public class TestEnvironmentController {
     //    System.out.println("testManIndexService.getAllSchedules(): " + scheduleList);
 
         List<Integer> electricInfoIds = scheduleList.stream()
-                .map(ElectricScheduleInfo::getElectric_info_id)
+                .map(ElectricScheduleInfo::getSample_id)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -191,7 +175,7 @@ public class TestEnvironmentController {
 
             // 将 ElectricScheduleInfo 的属性写入 map
             merged.put("id", schedule.getId());
-            merged.put("electric_info_id", schedule.getElectric_info_id());
+            merged.put("sample_id", schedule.getSample_id());
             merged.put("tester", schedule.getTester());
             merged.put("schedule_start_date", schedule.getSchedule_start_date());
             merged.put("schedule_end_date", schedule.getSchedule_end_date());
@@ -202,7 +186,7 @@ public class TestEnvironmentController {
             merged.put("sizecoding", schedule.getSizecoding());
 
             // 合并对应的 PassbackData 字段
-            PassbackData passback = passbackMap.get(schedule.getElectric_info_id());
+            PassbackData passback = passbackMap.get(schedule.getSample_id());
             if (passback != null) {
                 merged.put("sample_id", passback.getSample_id());
                 merged.put("sample_category", passback.getSample_category());
@@ -245,7 +229,7 @@ public class TestEnvironmentController {
 //        List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
 
         List<Integer> electricInfoIds = scheduleList.stream()
-                .map(ElectricScheduleInfo::getElectric_info_id)
+                .map(ElectricScheduleInfo::getSample_id)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -281,7 +265,7 @@ public class TestEnvironmentController {
 
         // 将 ElectricScheduleInfo 的属性写入 map
         merged.put("id", schedule.getId());
-        merged.put("electric_info_id", schedule.getElectric_info_id());
+        merged.put("sample_id", schedule.getSample_id());
         merged.put("tester", schedule.getTester());
         merged.put("schedule_start_date", schedule.getSchedule_start_date());
         merged.put("schedule_end_date", schedule.getSchedule_end_date());
@@ -292,7 +276,7 @@ public class TestEnvironmentController {
         merged.put("sizecoding", schedule.getSizecoding());
 
         // 合并对应的 PassbackData 字段
-        PassbackData passback = passbackMap.get(schedule.getElectric_info_id());
+        PassbackData passback = passbackMap.get(schedule.getSample_id());
         if (passback != null) {
             merged.put("sample_id", passback.getSample_id());
             merged.put("sample_category", passback.getSample_category());
@@ -332,27 +316,8 @@ public class TestEnvironmentController {
     }
 
 
-//    @PostMapping("/scheduleBoard/saveSchedule")
-//    public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, Object>> scheduleChanges) {
-//        if (scheduleChanges == null || scheduleChanges.isEmpty()) {
-//            Map<String, String> response = new HashMap<>();
-//            response.put("message", "没有需要保存的排期变更");
-//            return ResponseEntity.badRequest().body(response);
-//        }
-//
-//        // 处理数据
-//        System.out.println("收到的排期变更数据: " + scheduleChanges);
-//
-//        // 这里可以调用服务层将数据保存到数据库或文件
-//        // scheduleService.saveChanges(scheduleChanges);
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "排期变更已成功保存");
-//        return ResponseEntity.ok(response);
-//    }
-
     @PostMapping("/scheduleBoard/saveSchedule")
-    public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, Object>> scheduleChanges) {
+    public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, String>> scheduleChanges) {
         if (scheduleChanges == null || scheduleChanges.isEmpty()) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "没有需要保存的排期变更");
@@ -362,11 +327,39 @@ public class TestEnvironmentController {
         // 处理数据
         System.out.println("收到的排期变更数据: " + scheduleChanges);
 
+        // 按 sample_id 归类变更数据（改用 String 类型）
+        Map<String, List<Map<String, String>>> groupedChanges = new HashMap<>();
+        for (Map<String, String> change : scheduleChanges) {
+            String sampleId = (String) change.get("sample_id");  // 确保 sample_id 是 String 类型
+            groupedChanges.computeIfAbsent(sampleId, k -> new ArrayList<>()).add(change);
+        }
+
+
+        // 打印整理后的数据
+        System.out.println("按 sample_id 分组的排期变更数据: " + groupedChanges);
+
+        //如果change是delete。则进行数据库electric_schedule_info删除该条数据，并且让electric_info里对应的sample_id的数据的isUsed变成0；
+        //如果change是add,则进行数据库electric_schedule_info增加该条数据，并且让electric_info里对应的sample_id的数据的isUsed变成1;
+        // 处理每个 sample_id
+
+        // 处理每个 sample_id
+        for (Map.Entry<String, List<Map<String, String>>> entry : groupedChanges.entrySet()) {
+            String sampleId = entry.getKey();
+            List<Map<String, String>> changes = entry.getValue();
+
+            // 获取最后一个变更数据
+            Map<String, String> latestChange = changes.get(changes.size() - 1);
+
+            // 调用服务层方法
+            testManIndexService.processScheduleUpdate(sampleId, latestChange, changes);
+        }
+
+
         // 遍历排期变更数据并发送 HTTP 请求
         RestTemplate restTemplate = new RestTemplate();
-        String updateScheduleUrl = "http://localhost:8080/Api/ElectricalTest/UpdateScheduleElectricalTest";
+        String updateScheduleUrl = "http://192.168.1.209:30147/Api/ElectricalTest/UpdateScheduleElectricalTest";
 
-        for (Map<String, Object> schedule : scheduleChanges) {
+        for (Map<String, String> schedule : scheduleChanges) {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("ETTestCode", schedule.get("sample_id"));
             requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
@@ -379,7 +372,7 @@ public class TestEnvironmentController {
 
             try {
                 ResponseEntity<String> response = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
-                System.out.println("更新结果：" + response.getBody());
+//                System.out.println("更新结果：" + response.getBody());
             } catch (Exception e) {
                 System.err.println("更新失败：" + e.getMessage());
             }
@@ -393,7 +386,7 @@ public class TestEnvironmentController {
     //更新排期的 模拟调试
     @PostMapping("/Api/ElectricalTest/UpdateScheduleElectricalTest")
     public ResponseEntity<Map<String, Object>> updateSchedule(@RequestBody Map<String, Object> requestData) {
-        System.out.println("收到的排期更新请求：" + requestData);
+//        System.out.println("收到的排期更新请求：" + requestData);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", 200);
@@ -418,7 +411,6 @@ public class TestEnvironmentController {
         }
 
         boolean updateStartTime = testManIndexService.StartTestElectricalTest(testNumber,actual_time);
-        System.out.println("updateStartTime:"+updateStartTime);
 
         if (!updateStartTime) {
             Map<String, Object> response = new HashMap<>();
@@ -431,9 +423,10 @@ public class TestEnvironmentController {
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestStartDate", actual_time);
+        System.out.println("requestPayload:"+requestPayload);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "http://localhost:8080/Api/ElectricalTest/StartTestElectricalTest";
+        String targetUrl = "http://192.168.1.209:30147/Api/ElectricalTest/StartTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
@@ -471,7 +464,6 @@ public class TestEnvironmentController {
         }
 
         boolean updateFinishTime = testManIndexService.FinishTestElectricalTest(testNumber,actualTestEndDate);
-        System.out.println("updateFinishTime:"+updateFinishTime);
 
         if (!updateFinishTime) {
             Map<String, Object> response = new HashMap<>();
@@ -485,9 +477,10 @@ public class TestEnvironmentController {
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestEndDate", actualTestEndDate);
         requestPayload.put("ActualTestWrokHour", actual_work_time);
+        System.out.println("requestPayload:"+requestPayload);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "http://localhost:8080/Api/ElectricalTest/FinishTestElectricalTest";
+        String targetUrl = "http://192.168.1.209:30147/Api/ElectricalTest/FinishTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
@@ -517,8 +510,6 @@ public class TestEnvironmentController {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String sampleRecognizeResult = requestData.get("sampleRecognizeResult");
 
-        System.out.println(ZoneId.systemDefault());
-
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", 400);
@@ -531,9 +522,10 @@ public class TestEnvironmentController {
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ReportReviewTime", reportReviewTime);
         requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
+        System.out.println("requestPayload:"+requestPayload);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "http://localhost:8080/Api/ElectricalTest/ProcessTestElectricalTest";
+        String targetUrl = "http://192.168.1.209:30147/Api/ElectricalTest/ProcessTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
@@ -556,4 +548,9 @@ public class TestEnvironmentController {
     }
 
 
+    @GetMapping("/getTesters")
+    public ResponseEntity<List<String>> getTesters() {
+        List<String> testers = testManIndexService.getAllTesters();
+        return ResponseEntity.ok(testers);
+    }
 }

@@ -97,11 +97,29 @@ public interface TestManDao {
     public boolean StartTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_start_time")String actual_start_time);
     public boolean FinishTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_finish_time")String actual_finish_time);
 
+    public int getCountSchedules(@Param("sample_id")String sample_id);
 
+    public boolean deleteElectric_schedule_info(@Param("sample_id")String sample_id,
+                                                @Param("tester")String tester,
+                                                @Param("schedule_start_date")String schedule_start_date,
+                                                @Param("schedule_end_date")String schedule_end_date);
 
+    public boolean changeIsUsedAsZero(@Param("sample_id")String sample_id);
+    public boolean changeIsUsedAsOne(@Param("sample_id")String sample_id, @Param("scheduleDays") String scheduleDays);
+    public boolean insertElectric_schedule_info(@Param("sample_id")String sample_id,
+                                                @Param("tester")String tester,
+                                                @Param("schedule_start_date")String schedule_start_date,
+                                                @Param("schedule_end_date")String schedule_end_date,
+                                                @Param("sizecoding")String sizecoding);
 
+    public boolean updateElectric_schedule_info(@Param("sample_id")String sample_id,
+                                                @Param("tester")String tester,
+                                                @Param("schedule_start_date")String schedule_start_date,
+                                                @Param("schedule_end_date")String schedule_end_date,
+                                                @Param("sizecoding")String sizecoding,
+                                                @Param("scheduleDays")String scheduleDays);
 
-
+    public List<String> getAllTesters();
 
 
 

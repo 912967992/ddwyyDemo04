@@ -397,21 +397,32 @@
         SELECT * FROM electric_schedule_info
     </select>
 
+    <select id="getCountSchedules" resultType="int">
+        SELECT count(*) FROM electric_schedule_info WHERE sample_id = #{sample_id}
+    </select>
+
     <!-- 根据开始日期查询排期信息 -->
     <select id="getSchedulesByStartDate" resultType="ElectricScheduleInfo">
         SELECT *
         FROM electric_schedule_info
-        WHERE schedule_start_date >= #{schedule_start_date}
-        OR (schedule_end_date >= #{schedule_start_date} AND schedule_end_date IS NOT NULL)
+        WHERE (schedule_start_date >= #{schedule_start_date}
+            OR (schedule_end_date >= #{schedule_start_date} AND schedule_end_date IS NOT NULL))
+          AND isUsed = 1
     </select>
+
 
     <select id="getSchedulesByStartAndEndDate" resultType="ElectricScheduleInfo">
         SELECT *
         FROM electric_schedule_info
-        WHERE (schedule_start_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
+        WHERE (
+        (schedule_start_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
         OR (schedule_end_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
-        OR (schedule_start_date &lt;= #{schedule_start_date} AND (schedule_end_date >= #{schedule_end_date} OR schedule_end_date IS NULL))
+        OR (schedule_start_date &lt;= #{schedule_start_date}
+        AND (schedule_end_date >= #{schedule_end_date} OR schedule_end_date IS NULL))
+        )
+        AND isUsed = 1
     </select>
+
 
 
     <update id="saveScheduleDays" >
@@ -471,6 +482,57 @@
         WHERE
             sample_id = #{sample_id}
     </update>
+
+    <update id="deleteElectric_schedule_info">
+        UPDATE electric_schedule_info es
+            JOIN electric_info ei
+        ON es.sample_id = ei.sample_id
+            SET
+                es.isUsed = 0,
+                es.update_time = NOW(),
+                ei.isUsed = 0
+        WHERE
+            ei.sample_id = #{sample_id}
+    </update>
+
+
+    <update id="changeIsUsedAsOne">
+        UPDATE electric_info
+        SET
+            isUsed = 1,
+            scheduleDays = #{scheduleDays}
+        WHERE
+            sample_id = #{sample_id}
+    </update>
+
+
+    <insert id="insertElectric_schedule_info">
+        INSERT INTO electric_schedule_info(sample_id,tester,schedule_start_date,schedule_end_date,create_time,update_time,sizecoding)
+        VALUES (#{sample_id}, #{tester}, #{schedule_start_date}, #{schedule_end_date} , NOW() , NOW() ,#{sizecoding})
+    </insert>
+
+    <update id="updateElectric_schedule_info">
+        UPDATE electric_schedule_info es
+            JOIN electric_info ei
+        ON es.sample_id = ei.sample_id
+            SET
+                es.tester = #{tester},
+                es.schedule_start_date = #{schedule_start_date},
+                es.schedule_end_date = #{schedule_end_date},
+                es.update_time = NOW(),
+                es.isUsed = 1,
+                ei.isUsed = 1,
+                ei.scheduleDays = #{scheduleDays}
+        WHERE
+            es.sample_id = #{sample_id}
+    </update>
+
+
+    <select id="getAllTesters" resultType="string">
+        SELECT test_engineer_name FROM tb_test_engineer_info
+    </select>
+
+
 
 
 </mapper>
