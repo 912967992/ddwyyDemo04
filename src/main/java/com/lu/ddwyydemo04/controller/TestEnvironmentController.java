@@ -82,6 +82,15 @@ public class TestEnvironmentController {
     }
 
 
+    @GetMapping("/passback/getReceivedData")
+    @ResponseBody
+    public ResponseEntity<List<PassbackData>> getReceivedData() {
+        List<PassbackData> receivedData =  testManIndexService.getReceivedData();
+        logger.info("/passback/getAllReceivedData："+receivedData.toString());
+        return ResponseEntity.ok(receivedData);
+    }
+
+
     @GetMapping("/passback/getAllReceivedData")
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getAllReceivedData() {
@@ -161,7 +170,7 @@ public class TestEnvironmentController {
         List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
     //    System.out.println("testManIndexService.getAllSchedules(): " + scheduleList);
 
-        List<Integer> electricInfoIds = scheduleList.stream()
+        List<String> electricInfoIds = scheduleList.stream()
                 .map(ElectricScheduleInfo::getSample_id)
                 .distinct()
                 .collect(Collectors.toList());
@@ -233,7 +242,7 @@ public class TestEnvironmentController {
 
 //        List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
 
-        List<Integer> electricInfoIds = scheduleList.stream()
+        List<String> electricInfoIds = scheduleList.stream()
                 .map(ElectricScheduleInfo::getSample_id)
                 .distinct()
                 .collect(Collectors.toList());
@@ -248,13 +257,14 @@ public class TestEnvironmentController {
         List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
 
         // 将 PassbackData 映射成 Map<Integer, PassbackData>
-        Map<Integer, PassbackData> passbackMap = passbackList.stream()
-                .filter(p -> p.getSample_id() != null)
+        Map<String, PassbackData> passbackMap = passbackList.stream()
+                .filter(p -> p.getSample_id() != null && !p.getSample_id().isEmpty())
                 .collect(Collectors.toMap(
-                        p -> Integer.parseInt(p.getSample_id()),
+                        PassbackData::getSample_id,
                         p -> p,
-                        (existing, replacement) -> existing // 处理键冲突
+                        (existing, replacement) -> existing
                 ));
+
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (ElectricScheduleInfo schedule : scheduleList) {
@@ -265,7 +275,7 @@ public class TestEnvironmentController {
         return result;
     }
 
-    private Map<String, Object> mergeScheduleAndPassback(ElectricScheduleInfo schedule, Map<Integer, PassbackData> passbackMap) {
+    private Map<String, Object> mergeScheduleAndPassback(ElectricScheduleInfo schedule, Map<String, PassbackData> passbackMap) {
         Map<String, Object> merged = new LinkedHashMap<>(); // 保证字段顺序一致
 
         // 将 ElectricScheduleInfo 的属性写入 map
@@ -370,6 +380,8 @@ public class TestEnvironmentController {
             requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
             requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
             requestBody.put("TestLeaderName", schedule.get("tester"));
+            requestBody.put("TestLeaderCode", "3894");
+            System.out.println("requestBody:"+requestBody);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

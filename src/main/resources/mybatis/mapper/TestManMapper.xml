@@ -390,7 +390,7 @@
             schedule = #{schedule},
             create_time = NOW(),
             isUsed = #{isUsed}
-        WHERE sample_id = #{sampleId}
+        WHERE sample_id = #{sample_id}
     </update>
 
     <select id="getAllSchedules" resultType="ElectricScheduleInfo">
@@ -570,14 +570,14 @@
             ei.sample_id,
             ei.sample_category,
             ei.sample_model,
---             ei.materialCode,
+            -- ei.materialCode,  // 如果不需要，保持注释
             ei.sample_frequency,
             ei.sample_name,
             ei.version,
             ei.priority,
             ei.sample_leader,
             ei.supplier,
---             ei.testProjectCategory,
+            -- ei.testProjectCategory,  // 如果不需要，保持注释
             ei.testProjects,
             ei.schedule,
             ei.create_time,
@@ -588,10 +588,10 @@
             ei.cancel_by,
             ei.cancel_code,
             ei.cancel_date,
-            -- 合并 electrical_test_items 表中的数据
-            GROUP_CONCAT(CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
-            -- 合并 material_items 表中的数据
-            GROUP_CONCAT(CONCAT(mi.STTestCode, '-', mi.materialCode) SEPARATOR ', ') AS materialCode
+            -- 合并 electrical_test_items 表中的数据，使用 DISTINCT 去重
+            GROUP_CONCAT(DISTINCT CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
+            -- 合并 material_items 表中的数据，使用 DISTINCT 去重
+            GROUP_CONCAT(DISTINCT CONCAT(mi.STTestCode, '-', mi.materialCode, '-', mi.sample_frequency) SEPARATOR ', ') AS materialCode
         FROM
             electric_info ei
                 LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
@@ -601,6 +601,7 @@
         ORDER BY
             ei.create_time DESC;
     </select>
+
 
 
 

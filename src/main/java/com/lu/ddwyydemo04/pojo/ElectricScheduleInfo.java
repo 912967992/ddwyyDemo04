@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public class ElectricScheduleInfo {
     private Integer id;
-    private Integer sample_id;
+    private String sample_id;
 
     private String tester;
 
@@ -95,14 +95,13 @@ public class ElectricScheduleInfo {
         this.sizecoding = sizecoding;
     }
 
-    public Integer getSample_id() {
+    public String getSample_id() {
         return sample_id;
     }
 
-    public void setSample_id(Integer sample_id) {
+    public void setSample_id(String sample_id) {
         this.sample_id = sample_id;
     }
-
 
     @Override
     public String toString() {
