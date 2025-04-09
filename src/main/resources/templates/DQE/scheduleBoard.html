@@ -68,7 +68,6 @@
             const sampleModel = projectEl.getAttribute('data-sample_model');
             const materialCode = projectEl.getAttribute('data-materialCode');
             e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode}`);
-            // console.log(projectEl.getAttribute('data-schedule_days'))
             e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
             e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
             e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
@@ -88,13 +87,13 @@
                 'project-schedule_days',
                 projectEl.getAttribute('data-schedule_days') ?? '1'
             );
+            e.dataTransfer.setData('project-schedule_color', projectEl.getAttribute('data-schedule_color'));
 
         });
         if(isProject){
 
         }else{
             projectEl.addEventListener('contextmenu', e => {
-                // console.log("触发找个contextmenu了")
                 e.preventDefault();
                 currentRightClickProject = projectEl;
                 projectMenu.style.top = e.pageY + 'px';
@@ -153,6 +152,7 @@
             card.setAttribute('data-schedule', item.schedule || '');
             card.setAttribute('data-create_time', item.create_time || '');
             card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+            card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, true);
@@ -207,7 +207,6 @@
                 }
 
                 item.scheduleDays = days;
-                // console.log(`项目 ${item.sample_name} 设置排期天数：${days}`);
 
                 fetch('/passback/saveScheduleDays', {
                     method: 'POST',
@@ -246,7 +245,6 @@
             return;
         }
 
-        console.log('正在发送排期变更数据:', localScheduleChanges);
 
         try {
             const response = await fetch('/scheduleBoard/saveSchedule', {
@@ -262,8 +260,8 @@
             }
 
             const result = await response.json(); // 确保解析 JSON
-            console.log('排期保存成功:', result.message);
-            alert(result.message);
+
+            alert(result.statusSummary);
 
             // 清空本地缓存
             localScheduleChanges = [];
@@ -273,6 +271,128 @@
         }
     }
 
+
+//     async function refreshSchedule() {
+//         await saveSchedule(true); // 确保 saveSchedule 执行完毕
+//         const startDate = document.getElementById("startDate").value;
+//         const endDate = document.getElementById("endDate").value;
+//
+//         if (!startDate) {
+//             alert("请至少选择初始时间！");
+//             return;
+//         }
+//
+//         const contextMenu = document.getElementById('contextMenu');
+//         contextMenu.removeEventListener('click', handleContextMenuClick);
+//
+//         document.getElementById('scheduleBoard').innerHTML = '';
+//
+// // 加载排期面板数据
+//         fetch(`/getSchedulesByStartDate?startDate=${startDate}&endDate=${endDate}`)
+//             .then(response => {
+//                 if (!response.ok) {
+//                     throw new Error(`HTTP error! status: ${response.status}`);
+//                 }
+//                 return response.json();
+//             })
+//             .then(data => {
+//                 const board = document.getElementById('scheduleBoard');
+//                 // if (!data || data.length === 0) {
+//                 //     board.innerHTML = '暂无排期数据。';
+//                 //     return;
+//                 // }
+//
+//                 // 提取所有 tester 和所有排期覆盖到的日期（逐日拆分）
+//                 const testersSet = new Set();
+//                 const allDatesSet = new Set();
+//
+//
+//                 // 构建 tester->dateList 映射
+//                 const dateMap = {}; // tester => array of { startDate, endDate, electric_info_id }
+//
+//                 data.forEach(item => {
+//                     if (item.tester) testersSet.add(item.tester);
+//
+//                     const startDate = item.schedule_start_date;
+//                     // const endDate = item.schedule_end_date || startDate;
+//                     const endDate = item.schedule_end_date;
+//
+//                     const dateRange = getDateRange(startDate, endDate);
+//
+//                     dateRange.forEach(date => allDatesSet.add(date));
+//
+//
+//                     const task = {
+//                         startDate,
+//                         endDate,
+//                         sample_id: item.sample_id,
+//                         sizecoding: item.sample_model + " " + item.materialCode,
+//                         sample_category: item.sample_category,
+//                         sample_model: item.sample_model,
+//                         sample_name: item.sample_name,
+//                         priority: item.priority,
+//                         version: item.version,
+//                         materialCode: item.materialCode,
+//                         sample_leader: item.sample_leader,
+//                         supplier: item.supplier,
+//                         test_project_category: item.testProjectCategory,
+//                         testProjects: item.testProjects,
+//                         schedule: item.schedule,
+//                         create_time: item.create_time,
+//                         schudule_days: item.scheduleDays,
+//                         schedule_start_date: item.schedule_start_date,
+//                         schedule_end_date: item.schedule_end_date
+//
+//                     };
+//
+//                     if (!dateMap[item.tester]) dateMap[item.tester] = [];
+//                     dateMap[item.tester].push(task);
+//
+//
+//                 });
+//                 console.log("dateMap:"+dateMap)
+//
+//                 // **确保 allDates 包含完整的 startDate 到 endDate**
+//                 if (endDate) {
+//                     getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
+//                 }
+//
+//
+//                 const testers = Array.from(testersSet);
+//                 const allDates = Array.from(allDatesSet).sort(); // 所有日期排序后的表头
+//
+//             // **如果后端没有返回测试人员，从数据库获取**
+//                 if (testersSet.size === 0) {
+//                     console.log("没有测试人员，尝试从后端获取");
+//                     return fetch('/getTesters') // 获取测试人员
+//                         .then(response => response.json())
+//                         .then(testersData => {
+//                             testersData.forEach(tester => testersSet.add(tester));  // 更新 testersSet
+//                             const updatedTesters = Array.from(testersSet); // **转换 Set 为 Array**
+//                             console.log("从后端获取的 testers:", updatedTesters);
+//
+//                             // **继续执行绘制排期面板**
+//                             drawScheduleBoard(board,updatedTesters, allDates, dateMap);
+//                         })
+//                         .catch(error => {
+//                             console.error("获取测试人员失败:", error);
+//                             document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
+//                         });
+//                 }
+//
+//                 drawScheduleBoard(board,testers, allDates, dateMap);
+//
+//
+//
+//
+//             })
+//             .catch(error => {
+//                 document.getElementById('scheduleBoard').innerHTML = '排期加载失败。';
+//                 console.error('Error loading schedule board:', error);
+//             });
+//
+//
+//     }
 
     async function refreshSchedule() {
         await saveSchedule(true); // 确保 saveSchedule 执行完毕
@@ -289,7 +409,7 @@
 
         document.getElementById('scheduleBoard').innerHTML = '';
 
-// 加载排期面板数据
+        // 加载排期面板数据
         fetch(`/getSchedulesByStartDate?startDate=${startDate}&endDate=${endDate}`)
             .then(response => {
                 if (!response.ok) {
@@ -297,36 +417,16 @@
                 }
                 return response.json();
             })
-            .then(data => {
+            .then(async data => {
                 const board = document.getElementById('scheduleBoard');
-                // if (!data || data.length === 0) {
-                //     board.innerHTML = '暂无排期数据。';
-                //     return;
-                // }
 
-                // 提取所有 tester 和所有排期覆盖到的日期（逐日拆分）
-                const testersSet = new Set();
                 const allDatesSet = new Set();
-
-
-                // 构建 tester->dateList 映射
-                const dateMap = {}; // tester => array of { startDate, endDate, electric_info_id }
+                const dateMap = {}; // tester => array of tasks
 
                 data.forEach(item => {
-                    if (item.tester) testersSet.add(item.tester);
-
-                    const startDate = item.schedule_start_date;
-                    // const endDate = item.schedule_end_date || startDate;
-                    const endDate = item.schedule_end_date;
-
-                    const dateRange = getDateRange(startDate, endDate);
-
-                    dateRange.forEach(date => allDatesSet.add(date));
-
-
                     const task = {
-                        startDate,
-                        endDate,
+                        startDate: item.schedule_start_date,
+                        endDate: item.schedule_end_date,
                         sample_id: item.sample_id,
                         sizecoding: item.sample_model + " " + item.materialCode,
                         sample_category: item.sample_category,
@@ -343,57 +443,38 @@
                         create_time: item.create_time,
                         schudule_days: item.scheduleDays,
                         schedule_start_date: item.schedule_start_date,
-                        schedule_end_date: item.schedule_end_date
-
+                        schedule_end_date: item.schedule_end_date,
+                        schedule_color: item.schedule_color
                     };
 
-                    if (!dateMap[item.tester]) dateMap[item.tester] = [];
-                    dateMap[item.tester].push(task);
+                    const tester = item.tester || '未知测试人员';
+                    if (!dateMap[tester]) dateMap[tester] = [];
+                    dateMap[tester].push(task);
 
-
+                    const dateRange = getDateRange(item.schedule_start_date, item.schedule_end_date);
+                    dateRange.forEach(date => allDatesSet.add(date));
                 });
-                console.log("dateMap:"+dateMap)
 
-                // **确保 allDates 包含完整的 startDate 到 endDate**
-                if (endDate) {
-                    getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
+                // 👉 强制覆盖日期：使用用户选择的完整日期范围
+                getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
+                const allDates = Array.from(allDatesSet).sort();
+
+                // 👉 不使用 data 中的 tester，统一从 /getTesters 获取
+                try {
+                    const testersResponse = await fetch('/getTesters');
+                    const testersData = await testersResponse.json();
+                    const testers = testersData; // 保持数组形式
+
+                    drawScheduleBoard(board, testers, allDates, dateMap);
+                } catch (error) {
+                    console.error("获取测试人员失败:", error);
+                    document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
                 }
-
-
-                const testers = Array.from(testersSet);
-                const allDates = Array.from(allDatesSet).sort(); // 所有日期排序后的表头
-
-            // **如果后端没有返回测试人员，从数据库获取**
-                if (testersSet.size === 0) {
-                    console.log("没有测试人员，尝试从后端获取");
-                    return fetch('/getTesters') // 获取测试人员
-                        .then(response => response.json())
-                        .then(testersData => {
-                            testersData.forEach(tester => testersSet.add(tester));  // 更新 testersSet
-                            const updatedTesters = Array.from(testersSet); // **转换 Set 为 Array**
-                            console.log("从后端获取的 testers:", updatedTesters);
-
-                            // **继续执行绘制排期面板**
-                            drawScheduleBoard(board,updatedTesters, allDates, dateMap);
-                        })
-                        .catch(error => {
-                            console.error("获取测试人员失败:", error);
-                            document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
-                        });
-                }
-
-                drawScheduleBoard(board,testers, allDates, dateMap);
-
-
-
-
             })
             .catch(error => {
                 document.getElementById('scheduleBoard').innerHTML = '排期加载失败。';
                 console.error('Error loading schedule board:', error);
             });
-
-
     }
 
     function drawScheduleBoard(board,testers, allDates, dateMap){
@@ -408,7 +489,6 @@
         });
         html += '</tr></thead><tbody>';
 
-        console.log("testers:", testers, "type:", typeof testers, "isArray:", Array.isArray(testers));
 
         // 渲染每个 tester 行
         testers.forEach(tester => {
@@ -420,10 +500,9 @@
                 const task = dateMap[tester]?.find(t => t.startDate === currentDate);
 
                 if (task) {
-                    // console.log("task.endDate:"+task.endDate)
+
                     const rangeDates = getDateRange(task.startDate, task.endDate);
                     const colspan = rangeDates.length;
-                    // console.log("colspan:", colspan, "task:", task);
 
                     html += createTaskCell(task, tester, currentDate, colspan);
 
@@ -453,7 +532,6 @@
         cells.forEach(cell => {
             const tester = cell.getAttribute('data-tester');
             const date = cell.getAttribute('data-date');
-            // console.log(`tester: ${tester}, date: ${date}`);
         });
 
         cells.forEach((cell, cellIndex, cellList) => {
@@ -471,9 +549,6 @@
                 const sample_id = e.dataTransfer.getData('project-sample_id');
                 const days = parseFloat(e.dataTransfer.getData('project-days')) || 1;
 
-                // console.log("days:"+days)
-
-                // console.log("days:"+days)
                 const sizecoding = e.dataTransfer.getData('project-sizecoding') || 1;
 
                 const tester = cell.getAttribute('data-tester');
@@ -481,12 +556,17 @@
 
                 const schedule_days = parseFloat(e.dataTransfer.getData('project-schedule_days')) || 1;
 
+                // 提前拦截无效拖拽（sample_id 和 schedule_days 同时为空）
+                if ((!sample_id || sample_id.trim() === "")){
+                    console.warn("无效拖拽内容：sample_id 和 schedule_days 都为空，忽略本次拖拽。");
+                    return;
+                }
+
                 // 计算 schedule_end_date
                 const startDateObj = new Date(startDate);
                 startDateObj.setDate(startDateObj.getDate() + Math.ceil(schedule_days) - 1);
                 const schedule_end_date = startDateObj.toISOString().split('T')[0];
 
-                console.log("schedule_end_date:" + schedule_end_date)
 
                 const taskData = {
                     sample_id,
@@ -510,7 +590,8 @@
 
                     schedule_days: e.dataTransfer.getData('project-schedule_days'),
                     schedule_start_date: cell.getAttribute('data-date'),
-                    schedule_end_date: schedule_end_date
+                    schedule_end_date: schedule_end_date,
+                    schedule_color: e.dataTransfer.getData('project-schedule_color')
 
                 };
 
@@ -533,6 +614,14 @@
         const contextMenu = document.getElementById('contextMenu');
         // 绑定事件
         contextMenu.addEventListener('click', handleContextMenuClick);
+
+        // 应用颜色
+        document.querySelectorAll('#scheduleBoardTable td[data-schedule_color]').forEach(cell => {
+            const color = cell.getAttribute('data-schedule_color');
+            if (color) {
+                cell.style.backgroundColor = color;
+            }
+        });
 
 
 
@@ -563,6 +652,7 @@
           data-sizecoding="${task.sizecoding || ''}"
           data-schedule_start_date="${task.schedule_start_date || ''}"
           data-schedule_end_date="${task.schedule_end_date || ''}"
+          data-schedule_color="${task.schedule_color || ''}"
         >${task.sizecoding} (${task.schudule_days}天)</td>
       `;
     }
@@ -593,7 +683,9 @@
             create_time: currentRightClickCell.getAttribute('data-create_time'),
             schedule_days: currentRightClickCell.getAttribute('data-schedule_days'),
             schedule_start_date: currentRightClickCell.getAttribute('data-schedule_start_date'),
-            schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date')
+            schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date'),
+            schedule_color: currentRightClickCell.getAttribute('data-schedule_color')
+
         };
 
         handleUndo(rowCells, startIndex, taskData);
@@ -605,8 +697,8 @@
 
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData) {
-        const { sample_id, days, sizecoding, tester, startDate,schedule_days } = taskData;
-        const roundedDays = Math.ceil(days); // 向上取整
+        const { sample_id, days, sizecoding, tester, startDate, schedule_days, schedule_color } = taskData;
+        const roundedDays = Math.ceil(days);
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
 
@@ -623,13 +715,15 @@
         }
 
         const startCell = rowCells[startIndex];
-        // console.log("最终渲染的天数:", roundedDays);
+
         startCell.innerText = `${sizecoding} (${days}天)`;
         startCell.classList.add('assigned');
+        startCell.style.backgroundColor = schedule_color || "";
+
         startCell.setAttribute('colspan', roundedDays);
 
         Object.keys(taskData).forEach(key => {
-            if (key!== 'days') {
+            if (key !== 'days') {
                 startCell.setAttribute(`data-${key}`, taskData[key]);
             }
         });
@@ -642,25 +736,40 @@
         if (projectEl) projectEl.remove();
 
         const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
-        localScheduleChanges.push({
+
+        // 构造新的变更对象
+        const newChange = {
             change: "add",
             sample_id: sample_id,
             sizecoding: sizecoding,
             tester,
             start_date: startDate,
             end_date: endDate,
-            scheduleDays: schedule_days
-        });
+            scheduleDays: schedule_days,
+            schedule_color: schedule_color
+        };
 
-        console.log('当前缓存：', localScheduleChanges);
+        // 查找并更新已有记录（如果存在），否则添加
+        const existingIndex = localScheduleChanges.findIndex(item =>
+            item.sample_id === sample_id &&
+            item.change === newChange.change
+        );
+
+        if (existingIndex !== -1) {
+            localScheduleChanges[existingIndex] = newChange;
+        } else {
+            localScheduleChanges.push(newChange);
+        }
+
+        console.log(localScheduleChanges);
     }
 
     // 处理撤回排期事件
     function handleUndo(rowCells, startIndex, taskData) {
         const { schedule_days, tester, sample_id } = taskData;
         const currentRightClickCell = rowCells[startIndex];
-        console.log("触发一次")
 
+        // 清除原始内容和属性
         currentRightClickCell.innerText = '';
         currentRightClickCell.removeAttribute('colspan');
         currentRightClickCell.classList.remove('assigned');
@@ -672,11 +781,12 @@
             }
         });
 
+        // 恢复被隐藏的格子
         for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
-            // console.log("i:"+i)
             if (rowCells[i]) rowCells[i].style.display = '';
         }
 
+        // 重新生成拖拽项目卡片
         const restoredProject = document.createElement('div');
         restoredProject.className = 'project-card';
         restoredProject.setAttribute('draggable', 'true');
@@ -684,10 +794,8 @@
         restoredProject.setAttribute('data-schedule_days', schedule_days);
         restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
 
-
         Object.keys(taskData).forEach(key => {
-            if (key!== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date') {
-                // console.log("key:"+key)
+            if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date') {
                 restoredProject.setAttribute(`data-${key}`, taskData[key]);
             }
         });
@@ -708,7 +816,8 @@
             testProjects: taskData.test_projects,
             schedule: taskData.schedule,
             create_time: taskData.create_time,
-            scheduleDays: schedule_days
+            scheduleDays: schedule_days,
+            schedule_color: taskData.schedule_color
         };
 
         restoredProject.oncontextmenu = (event) => {
@@ -719,25 +828,32 @@
         const projectPool = document.getElementById('projectPool');
         projectPool.appendChild(restoredProject);
 
-        const index = localScheduleChanges.findIndex(item => {
-            return item.sample_id === sample_id && item.tester === tester;
-        });
-        if (index!== -1) {
-            localScheduleChanges.splice(index, 1);
-        }
-
-
-        localScheduleChanges.push({
+        // 记录删除操作到 localScheduleChanges，避免重复添加
+        const newChange = {
             change: "delete",
             sample_id: sample_id,
             sizecoding: taskData.sizecoding,
             tester: taskData.tester,
             start_date: taskData.schedule_start_date,
             end_date: taskData.schedule_end_date,
-            scheduleDays: schedule_days
-        });
+            scheduleDays: schedule_days,
+            schedule_color: taskData.schedule_color
+        };
 
+        const existingIndex = localScheduleChanges.findIndex(item =>
+            item.sample_id === sample_id &&
+            item.change === newChange.change
+        );
+
+        if (existingIndex !== -1) {
+            localScheduleChanges[existingIndex] = newChange;
+        } else {
+            localScheduleChanges.push(newChange);
+        }
+
+        console.log(localScheduleChanges);
     }
+
 
 
     // 工具函数：生成某范围内所有日期字符串数组
@@ -752,7 +868,6 @@
             dates.push(`${yyyy}-${mm}-${dd}`);
             current.setDate(current.getDate() + 1);
         }
-        console.log(dates)
         return dates;
 
     }

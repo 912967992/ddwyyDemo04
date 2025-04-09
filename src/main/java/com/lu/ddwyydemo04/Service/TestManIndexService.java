@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -296,8 +297,29 @@ public class TestManIndexService {
 
 
         int count = testManDao.getCountSchedules(sampleId);
-        System.out.println("count:"+count);
+
         if(count>0){
+            // 查询旧数据
+            Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
+            if (oldSchedule != null) {
+                String changeLog = oldSchedule.get("tester") + "-" +
+                        oldSchedule.get("schedule_start_date") + "-" +
+                        oldSchedule.get("schedule_end_date") + "-" +
+                        oldSchedule.get("update_time") + "-" +
+                        oldSchedule.get("schedule_color") + "-" +
+                        oldSchedule.get("isUsed");
+
+                // 获取 electric_info 表原有的 changeRecord 内容
+                String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
+                String newLog = (existingLog == null || existingLog.isEmpty())
+                        ? changeLog
+                        : existingLog + " | " + changeLog;
+
+                // 更新 electric_info.changeRecord 字段
+                testManDao.updateChangeRecord(sampleId, newLog);
+            }
+
+
             if ("delete".equals(latestChange.get("change"))) {
                 // 删除 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 0
@@ -336,6 +358,8 @@ public class TestManIndexService {
     public void insertElectricalTestItem(String sample_id,  List<ElectricalTestItem> list){
         testManDao.insertElectricalTestItem(sample_id, list);
     }
+
+
     public void insertMaterialItem(String sample_id, List<MaterialItem> list){
         testManDao.insertMaterialItem(sample_id, list);
     }
@@ -343,6 +367,42 @@ public class TestManIndexService {
 
     public List<PassbackData> getAllReceivedData(){
         return testManDao.getAllReceivedData();
+    }
+
+    @Transactional
+    public void saveAll(List<PassbackData> requestData) {
+        for (PassbackData data : requestData) {
+            String sampleId = data.getSample_id();
+
+            int exist = queryElectricalCode(sampleId);
+            if (exist == 0) {
+                int insert = insertElectricInfo(data);
+                if (insert <= 0) {
+                    throw new RuntimeException("插入 electric_info 失败: " + sampleId);
+                }
+            } else {
+                int update = updateElectricInfo(data);
+                if (update <= 0) {
+                    throw new RuntimeException("更新 electric_info 失败: " + sampleId);
+                }
+            }
+            System.out.println("data.getElectricalTestItems():"+data.getElectricalTestItems());
+
+            if (data.getElectricalTestItems() != null && !data.getElectricalTestItems().isEmpty()) {
+                insertElectricalTestItem(sampleId, data.getElectricalTestItems());
+            } else {
+                // 无电性测试项目
+                logger.info("Sample " + sampleId + " 没有electrical_test_items电性测试项目");
+            }
+
+            if(data.getMaterialItems()!=null  && !data.getMaterialItems().isEmpty()){
+                insertMaterialItem(sampleId, data.getMaterialItems());
+            }else{
+                logger.info("Sample " + sampleId + " 没有material_items测试项目");
+            }
+
+
+        }
     }
 
 

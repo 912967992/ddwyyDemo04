@@ -124,11 +124,22 @@ public interface TestManDao {
     public void insertElectricalTestItem(@Param("sample_id") String sample_id,
                                          @Param("list") List<ElectricalTestItem> list);
 
+
+
     public void insertMaterialItem(@Param("sample_id") String sample_id,
                                    @Param("list") List<MaterialItem> list);
 
     public List<PassbackData> getAllReceivedData();
 
+
+    // 查询 electric_schedule_info 表中记录
+    Map<String, Object> getScheduleInfoBySampleId(@Param("sample_id") String sample_id);
+
+    // 查询 changeRecord 原内容
+    String getChangeRecordBySampleId(@Param("sample_id") String sample_id);
+
+    // 更新 electric_info 表中 changeRecord 字段
+    boolean updateChangeRecord(@Param("sample_id") String sample_id, @Param("changeRecord") String changeRecord);
 
 
 }

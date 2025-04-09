@@ -533,13 +533,26 @@
     </select>
 
     <!-- 正确绑定方法名 insertElectricalTestItem -->
+<!--    <insert id="insertElectricalTestItem">-->
+<!--        INSERT INTO electrical_test_items (-->
+<!--        sample_id, ETTestCode, testProjectCategory, testProjects-->
+<!--        ) VALUES-->
+<!--        <foreach collection="list" item="item" separator=",">-->
+<!--            (-->
+<!--            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),-->
+<!--            #{item.ETTestCode},-->
+<!--            #{item.testProjectCategory},-->
+<!--            #{item.testProjects}-->
+<!--            )-->
+<!--        </foreach>-->
+<!--    </insert>-->
     <insert id="insertElectricalTestItem">
         INSERT INTO electrical_test_items (
         sample_id, ETTestCode, testProjectCategory, testProjects
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),
+            #{sample_id},
             #{item.ETTestCode},
             #{item.testProjectCategory},
             #{item.testProjects}
@@ -603,6 +616,26 @@
     </select>
 
 
+    <!-- 查询 electric_schedule_info 中记录 -->
+    <select id="getScheduleInfoBySampleId" resultType="map">
+        SELECT tester, schedule_start_date, schedule_end_date, update_time, schedule_color, isUsed
+        FROM electric_schedule_info
+        WHERE sample_id = #{sample_id}
+    </select>
+
+    <!-- 查询 electric_info 表中的 changeRecord 字段 -->
+    <select id="getChangeRecordBySampleId" resultType="string">
+        SELECT changeRecord
+        FROM electric_info
+        WHERE sample_id = #{sample_id}
+    </select>
+
+    <!-- 更新 electric_info 表中的 changeRecord 字段 -->
+    <update id="updateChangeRecord">
+        UPDATE electric_info
+        SET changeRecord = #{changeRecord}
+        WHERE sample_id = #{sample_id}
+    </update>
 
 
 

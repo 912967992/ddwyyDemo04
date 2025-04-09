@@ -41,6 +41,7 @@ public class PassbackData {
     private List<ElectricalTestItem> electricalTestItems;  // List for electrical test items
 
 
+    private String schedule_color;
 
     public int getId() {
         return id;
@@ -251,6 +252,14 @@ public class PassbackData {
         this.electricalTestItems = electricalTestItems;
     }
 
+    public String getSchedule_color() {
+        return schedule_color;
+    }
+
+    public void setSchedule_color(String schedule_color) {
+        this.schedule_color = schedule_color;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -280,6 +289,7 @@ public class PassbackData {
                 ", actual_finish_time=" + actual_finish_time +
                 ", materialItems=" + materialItems +
                 ", electricalTestItems=" + electricalTestItems +
+                ", schedule_color='" + schedule_color + '\'' +
                 '}';
     }
 }
