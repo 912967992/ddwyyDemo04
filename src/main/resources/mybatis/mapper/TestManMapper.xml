@@ -470,7 +470,9 @@
     <update id="StartTestElectricalTest">
         UPDATE electric_info
         SET
-            actual_start_time = #{actual_start_time}
+            actual_start_time = #{actual_start_time},
+            schedule = "0"
+
         WHERE
             sample_id = #{sample_id}
     </update>
@@ -478,7 +480,8 @@
     <update id="FinishTestElectricalTest">
         UPDATE electric_info
         SET
-            actual_finish_time = #{actual_finish_time}
+            actual_finish_time = #{actual_finish_time},
+            schedule = "1"
         WHERE
             sample_id = #{sample_id}
     </update>
@@ -637,6 +640,17 @@
         WHERE sample_id = #{sample_id}
     </update>
 
+    <update id="updateElectricInfoColor" parameterType="map">
+        UPDATE electric_info
+        SET schedule_color = #{schedule_color}
+        WHERE sample_id = #{sample_id}
+    </update>
+
+    <update id="updateScheduleInfoColorIfExists" parameterType="map">
+        UPDATE electric_schedule_info
+        SET schedule_color = #{schedule_color}
+        WHERE sample_id = #{sample_id}
+    </update>
 
 
 

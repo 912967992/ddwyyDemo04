@@ -406,4 +406,11 @@ public class TestManIndexService {
     }
 
 
+    public void updateElectricInfoColor(String sample_id,String schedule_color){
+        testManDao.updateElectricInfoColor(sample_id,schedule_color);
+    }
+    public void updateScheduleInfoColorIfExists(String sample_id,String schedule_color){
+        testManDao.updateScheduleInfoColorIfExists(sample_id,schedule_color);
+    }
+
 }

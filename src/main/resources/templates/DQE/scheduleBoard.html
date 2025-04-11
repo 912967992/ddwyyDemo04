@@ -41,6 +41,19 @@
             <button id="saveScheduleBtn">确定排期</button>
         </div>
 
+        <!-- 添加颜色选择功能 -->
+        <div style="margin-top: 10px;">
+            <label><strong>设置颜色：</strong></label>
+            <div>
+                <label><input type="radio" name="schedule_color" value="gray" checked> 灰色</label>
+                <label><input type="radio" name="schedule_color" value="green"> 绿色</label>
+                <label><input type="radio" name="schedule_color" value="yellow"> 黄色</label>
+                <label><input type="radio" name="schedule_color" value="red"> 红色</label>
+            </div>
+            <button id="confirmColorBtn" style="margin-top: 5px;">确认修改颜色</button>
+        </div>
+
+
         <button id="closeBtn">关闭</button>
     </div>
 </div>
@@ -233,8 +246,40 @@
             };
 
             document.getElementById('modal').style.display = 'block';
+
+            document.getElementById("confirmColorBtn").onclick = function () {
+                const selectedColor = document.querySelector('input[name="schedule_color"]:checked').value;
+                console.log("用户选择的颜色是：", selectedColor);
+
+                fetch('/schedule/saveScheduleColor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        color: selectedColor,
+                        sample_id: item.sample_id
+                    })
+                })
+                    .then(response => response.text())
+                    .then(result => {
+                        alert(result);
+                        document.getElementById('modal').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error("颜色设置失败:", error);
+                        alert("设置颜色失败，请重试");
+                    });
+            };
+
+
+
+
         };
     }
+
+
+
 
 
     async function saveSchedule(isRefrenshBtn) {

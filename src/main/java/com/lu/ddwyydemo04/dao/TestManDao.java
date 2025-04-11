@@ -141,5 +141,6 @@ public interface TestManDao {
     // 更新 electric_info 表中 changeRecord 字段
     boolean updateChangeRecord(@Param("sample_id") String sample_id, @Param("changeRecord") String changeRecord);
 
-
+    void updateElectricInfoColor(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
+    void updateScheduleInfoColorIfExists(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
 }

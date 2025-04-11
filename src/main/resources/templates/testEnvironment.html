@@ -91,47 +91,6 @@
         }
 
 
-        // 发送测试数据到 /passback/receiveData
-        // async function sendTestData() {
-        //     try {
-        //         // 生成一个5位随机数（字符串）
-        //         const randomSampleId = Math.floor(10000 + Math.random() * 90000).toString();
-        //
-        //
-        //
-        //         const response = await fetch('/passback/receiveData', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             },
-        //             body: JSON.stringify({
-        //                 sample_id: randomSampleId ,
-        //                 sample_category:  "测试类别",
-        //                 sample_model:  "型号A",
-        //                 materialCode: "M001",
-        //                 sample_frequency:  "1",
-        //                 sample_name:  "测试样品",
-        //                 version: "1.0",
-        //                 priority: "高",
-        //                 sample_leader:  "张三",
-        //                 supplier: "供应商A",
-        //                 testProjectCategory: "试验项目A",
-        //                 testProjects: JSON.stringify(["子项目A","子项目B"]), // 先转换成字符串
-        //                 schedule: "0",
-        //                 isUsed: 0
-        //             })
-        //         });
-        //
-        //         const data = await response.json();
-        //         console.log('Response:', data);
-        //         alert('接口接收成功，状态码: ' + data.status + ' 信息: ' + data.message);
-        //         refreshPage();
-        //     } catch (error) {
-        //         console.error('发送请求失败:', error);
-        //         alert('请求发送失败');
-        //     }
-        // }
-
         async function sendTestData() {
             try {
                 const payload = Array.from({ length: 5 }, (_, i) => {
@@ -282,7 +241,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert("测试已开始，状态码: " + data.status + " 信息: " + data.message);
+                    alert("测试已开始，状态码: " + data.staus + " 信息: " + data.msg);
                     closeTestModal();
                 })
                 .catch(error => {
@@ -321,7 +280,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert("测试已结束，状态码: " + data.status + " 信息: " + data.message);
+                    alert("测试已结束，状态码: " + data.staus + " 信息: " + data.msg);
                     closeTestModal();
                 })
                 .catch(error => {
@@ -359,7 +318,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert("报告审核按钮成功，状态码: " + data.status + " 信息: " + data.message);
+                    alert("报告审核按钮成功，状态码: " + data.staus + " 信息: " + data.msg);
                     closeTestModal();
                 })
                 .catch(error => {

@@ -12,6 +12,7 @@
     background-color: #007BFF; /* 背景颜色 */
     color: white; /* 文字颜色 */
     transition: background-color 0.3s ease; /* 过渡效果 */
+    z-index: 10;
 }
 
 /* 当鼠标悬停时改变背景颜色 */
@@ -109,4 +110,20 @@ table th, table td {
 
 .submit-btn:hover {
     background-color: darkgreen;
+}
+
+/* 表格容器，设置垂直滚动区域 */
+.table-container {
+    max-height: calc(100vh - 100px); /* 预留按钮和其他空间 */
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+/* 固定表头在按钮下方 */
+table thead th {
+    position: sticky;
+    top: 60px; /* 保证在按钮下方开始固定（你可以根据按钮实际高度调整） */
+    background-color: #f1f1f1;
+    z-index: 2;
 }

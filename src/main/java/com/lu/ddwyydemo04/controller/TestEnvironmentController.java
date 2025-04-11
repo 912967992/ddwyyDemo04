@@ -65,7 +65,7 @@ public class TestEnvironmentController {
     public ResponseEntity<List<PassbackData>> getReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getReceivedData();
 //        List<PassbackData> receivedData =  testManIndexService.getAllReceivedData();
-        logger.info("/passback/getAllReceivedData："+receivedData.toString());
+//        logger.info("/passback/getAllReceivedData："+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 
@@ -74,7 +74,7 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getAllReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getAllReceivedData();
-        logger.info("/passback/getAllReceivedData："+receivedData.toString());
+//        logger.info("/passback/getAllReceivedData："+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 
@@ -409,17 +409,17 @@ public class TestEnvironmentController {
 
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
-            response.put("status", 400);
-            response.put("message", "测试编号不能为空");
+            response.put("staus", 400);
+            response.put("msg", "测试编号不能为空");
             return ResponseEntity.badRequest().body(response);
         }
 
-        boolean updateStartTime = testManIndexService.StartTestElectricalTest(testNumber,actual_time);
+        boolean updateStartTime = testManIndexService.StartTestElectricalTest(testNumber, actual_time);
 
         if (!updateStartTime) {
             Map<String, Object> response = new HashMap<>();
-            response.put("status", 400);
-            response.put("message", "没有找到该测试编号，请输入正确的测试编号");
+            response.put("staus", 400);
+            response.put("msg", "没有找到该测试编号，请输入正确的测试编号");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -427,15 +427,34 @@ public class TestEnvironmentController {
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestStartDate", actual_time);
-        System.out.println("requestPayload:"+requestPayload);
+        System.out.println("requestPayload:" + requestPayload);
+
+        // 添加认证头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
         // 发送 POST 请求到目标接口
         String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/StartTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
-        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        try {
+            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
+            logger.info("远程接口响应体: {}", apiResponse.getBody());
+
+            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("staus", 500);
+            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
+            logger.info("远程接口调用失败:"+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
+
 
 
 
@@ -462,8 +481,8 @@ public class TestEnvironmentController {
 
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
-            response.put("status", 400);
-            response.put("message", "测试编号不能为空");
+            response.put("staus", 400);
+            response.put("msg", "测试编号不能为空");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -471,8 +490,8 @@ public class TestEnvironmentController {
 
         if (!updateFinishTime) {
             Map<String, Object> response = new HashMap<>();
-            response.put("status", 400);
-            response.put("message", "没有找到该测试编号，请输入正确的测试编号");
+            response.put("staus", 400);
+            response.put("msg", "没有找到该测试编号，请输入正确的测试编号");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -483,12 +502,31 @@ public class TestEnvironmentController {
         requestPayload.put("ActualTestWrokHour", actual_work_time);
         System.out.println("requestPayload:"+requestPayload);
 
+        // 添加认证头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
+
+
         // 发送 POST 请求到目标接口
         String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/FinishTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
-        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        try {
+            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
+            logger.info("远程接口响应体: {}", apiResponse.getBody());
+
+            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("staus", 500);
+            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+
     }
 
 
@@ -527,13 +565,34 @@ public class TestEnvironmentController {
         requestPayload.put("ReportReviewTime", reportReviewTime);
         requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
         System.out.println("requestPayload:"+requestPayload);
+        //这里差个参数。文件！！！周末的时候加吧
+
+
+        // 添加认证头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ProcessTestElectricalTest";
+        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ReportReviewElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> apiResponse = restTemplate.postForEntity(targetUrl, requestPayload, Map.class);
 
-        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        try {
+            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+
+            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
+            logger.info("远程接口响应体: {}", apiResponse.getBody());
+
+            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("staus", 500);
+            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+
     }
 
 
@@ -557,4 +616,26 @@ public class TestEnvironmentController {
         List<String> testers = testManIndexService.getAllTesters();
         return ResponseEntity.ok(testers);
     }
+
+    @PostMapping("/schedule/saveScheduleColor")
+    public ResponseEntity<String> saveScheduleColor(@RequestParam("color") String color,@RequestParam("sample_id") String sample_id) {
+        // 打印接收到的颜色
+        logger.info("接收到的颜色值为: " + color);
+        logger.info("接收到的sample_id值为: " + sample_id);
+
+
+        testManIndexService.updateElectricInfoColor(sample_id, color);
+        testManIndexService.updateScheduleInfoColorIfExists(sample_id, color);
+
+        // 这里可以根据实际需求执行逻辑，比如保存颜色到某个排期记录
+
+
+        return ResponseEntity.ok("颜色设置成功：" + color);
+    }
+
+
+
+
+
+
 }
