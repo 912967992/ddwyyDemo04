@@ -148,7 +148,7 @@
         data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'project-card';
-            card.textContent = item.sample_model + item.materialCode + "(" + item.scheduleDays + "天)";
+            card.textContent = item.sample_model + " " + item.materialCode + "(" + item.scheduleDays + "天)";
 
             card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode);
             card.setAttribute('data-sample_id', item.sample_id || '');

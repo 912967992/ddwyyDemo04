@@ -8,45 +8,39 @@
     <link rel="stylesheet" href="/css/testEnvironment.css">
 
     <script>
-        async function fetchData() {
+        async function fetchData(sampleId = "") {
             try {
-                const response = await fetch('/passback/getAllReceivedData');
+                const query = sampleId ? `?sample_id=${encodeURIComponent(sampleId)}` : "";
+                const response = await fetch('/passback/getAllReceivedData' + query);
                 const data = await response.json();
 
                 let tableBody = document.getElementById("dataBody");
                 tableBody.innerHTML = "";
 
-                console.log(data);
-
                 data.forEach(item => {
                     let scheduleText = "";
                     let isCancel = "";
+
                     switch (item.schedule) {
                         case "15":
-                            scheduleText = "待排期";
-                            break;
+                            scheduleText = "待排期"; break;
                         case "16":
-                            scheduleText = "已排期待测试";
-                            break;
+                            scheduleText = "已排期待测试"; break;
                         case "0":
-                            scheduleText = "测试中";
-                            break;
+                            scheduleText = "测试中"; break;
                         case "1":
-                            scheduleText = "待DQE和研发审核";
-                            break;
+                            scheduleText = "待审核"; break;
                         case "2":
-                            scheduleText = "审核完成";
-                            break;
+                            scheduleText = "审核完成"; break;
                         default:
                             scheduleText = item.schedule || "";
                     }
+
                     switch (item.isCancel) {
                         case 0:
-                            isCancel = "";
-                            break;
+                            isCancel = ""; break;
                         case 1:
-                            isCancel = "已作废";
-                            break;
+                            isCancel = "已作废"; break;
                         default:
                             isCancel = item.isCancel || "";
                     }
@@ -62,18 +56,23 @@
                 <td>${item.version || ''}</td>
                 <td>${item.priority || ''}</td>
                 <td>${item.sample_leader || ''}</td>
+                <td>${item.tester || ''}</td>
                 <td>${item.supplier || ''}</td>
                 <td>${item.testProjectCategory || ''}</td>
                 <td>${item.testProjects || ''}</td>
-                <td>${scheduleText}</td>  <!-- 这里替换为转换后的文本 -->
+                <td>${scheduleText}</td>
                 <td>${item.create_time || ''}</td>
                 <td>${item.actual_start_time || ''}</td>
                 <td>${item.actual_finish_time || ''}</td>
+                <td>${item.testDuration || ''}</td>
+                <td>${item.reportReviewTime || ''}</td>
+                <td>${item.sampleRecognizeResult || ''}</td>
                 <td>${isCancel}</td>
                 <td>${item.cancel_reason || ''}</td>
                 <td>${item.cancel_by || ''}</td>
                 <td>${item.cancel_code || ''}</td>
                 <td>${item.cancel_date || ''}</td>
+                <td>${item.filepath || ''}</td>
             </tr>`;
                     tableBody.innerHTML += row;
                 });
@@ -82,13 +81,18 @@
             }
         }
 
-
-        window.onload = fetchData;
-
+        function applySampleIdFilter() {
+            const sampleId = document.getElementById("sampleIdFilter").value.trim();
+            fetchData(sampleId);
+        }
         // 刷新页面函数
         function refreshPage() {
-            location.reload(); // 重新加载页面
+            document.getElementById("sampleIdFilter").value = "";
+            fetchData(); // 清空过滤
         }
+
+        window.onload = () => fetchData(); // 默认加载全部
+
 
 
         async function sendTestData() {
@@ -325,6 +329,43 @@
                     alert("请求失败: " + error);
                 });
         }
+
+
+        function showTestUploadModal() {
+            document.getElementById('testUploadModal').style.display = 'block';
+        }
+
+        function hideTestUploadModal() {
+            document.getElementById('testUploadModal').style.display = 'none';
+        }
+
+        function submitReport() {
+            const testId = document.getElementById('testIdInput').value;
+            const file = document.getElementById('fileInput').files[0];
+
+            if (!testId || !file) {
+                alert("请填写测试编号并选择文件");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('testId', testId);
+            formData.append('file', file);
+
+            fetch('/passback/uploadXlsx', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    hideTestUploadModal();
+                })
+                .catch(err => {
+                    alert("上传失败");
+                    console.error(err);
+                });
+        }
     </script>
 </head>
 <body>
@@ -342,6 +383,8 @@
 <button class="fixed-button" onclick="finishTestModal()">结束时间按钮</button>
 
 <button class="fixed-button" onclick="processTestModal()">报告审核按钮</button>
+
+<button class="fixed-button" onclick="showTestUploadModal()">上传文件(测试流程用)</button>
 
 
 <!-- 测试编号测试开始模态框 -->
@@ -381,7 +424,7 @@
 
 <!-- 内容区域 -->
 <div class="content">
-    <h2>接收的数据</h2>
+<!--    <h2>接收的数据</h2>-->
     <table border="1">
         <thead>
         <tr>
@@ -395,6 +438,7 @@
             <th>版本号</th>
             <th>优先级</th>
             <th>项目负责人</th>
+            <th>测试负责人1111</th>
             <th>供应商</th>
             <th>试验项目类别</th>
             <th>测试子项目</th>
@@ -402,11 +446,15 @@
             <th>创建时间</th>
             <th>实际开始时间</th>
             <th>实际结束时间</th>
+            <th>实际测试工时2222</th>
+            <th>报告审核时间333</th>
+            <th>样品承认结果444</th>
             <th>是否作废</th>
             <th>作废原因</th>
             <th>作废人</th>
             <th>作废工号</th>
             <th>作废时间</th>
+            <th>文件存放路径</th>
         </tr>
         </thead>
         <tbody id="dataBody"></tbody>
@@ -428,6 +476,26 @@
         <input type="text" id="cancelCode" class="input-field" placeholder="请输入作废人工号">
         <button class="submit-btn" onclick="submitCancel()">提交</button>
     </div>
+</div>
+
+<!-- 弹出 Modal -->
+<div id="testUploadModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+    <h3>上传报告</h3>
+    <label>测试编号：</label>
+    <input type="text" id="testIdInput" placeholder="请输入测试编号" /><br/><br/>
+
+    <label>上传文件（.xlsx）：</label>
+    <input type="file" id="fileInput" accept=".xlsx" /><br/><br/>
+
+    <button onclick="submitReport()">提交</button>
+    <button onclick="hideTestUploadModal()">取消</button>
+</div>
+
+<div class="filter-bar">
+    <label>测试编号：</label>
+    <input type="text" id="sampleIdFilter" placeholder="请输入测试编号">
+    <button onclick="applySampleIdFilter()">查询</button>
+    <button onclick="refreshPage()">重置</button>
 </div>
 
 

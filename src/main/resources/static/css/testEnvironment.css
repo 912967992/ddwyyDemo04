@@ -40,6 +40,11 @@
 .fixed-button + .fixed-button + .fixed-button + .fixed-button + .fixed-button + .fixed-button{
     left: 790px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
 }
+
+.fixed-button + .fixed-button + .fixed-button + .fixed-button + .fixed-button + .fixed-button+ .fixed-button{
+    left: 950px; /* 第二个按钮距离左边的距离（第一个按钮的基础上增加20px） */
+}
+
 /* 给页面其他内容加点上边距 */
 .content {
     margin-top: 60px; /* 增加上边距避免按钮被遮挡 */
@@ -126,4 +131,19 @@ table thead th {
     top: 60px; /* 保证在按钮下方开始固定（你可以根据按钮实际高度调整） */
     background-color: #f1f1f1;
     z-index: 2;
+}
+
+.filter-bar {
+    position: fixed;
+    top: 70px; /* 按钮的 top 是 20px，加上按钮高度 40px 和间距 10px，刚好是 70px */
+    left: 20px;
+    width: calc(100% - 40px); /* 给两边各留出20px间距 */
+    background-color: #ffffff;
+    padding: 10px;
+    z-index: 9; /* 比按钮低一点，避免挡住按钮 */
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }

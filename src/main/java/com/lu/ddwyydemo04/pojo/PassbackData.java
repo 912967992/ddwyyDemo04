@@ -1,5 +1,7 @@
 package com.lu.ddwyydemo04.pojo;
 
+import org.apache.tomcat.jni.Local;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,8 +42,13 @@ public class PassbackData {
     private List<MaterialItem> materialItems;  // List for material items
     private List<ElectricalTestItem> electricalTestItems;  // List for electrical test items
 
-
     private String schedule_color;
+    private LocalDateTime reportReviewTime;
+    private String sampleRecognizeResult;
+    private String tester;
+    private String testDuration;
+
+    private String filepath;
 
     public int getId() {
         return id;
@@ -260,6 +267,46 @@ public class PassbackData {
         this.schedule_color = schedule_color;
     }
 
+    public LocalDateTime getReportReviewTime() {
+        return reportReviewTime;
+    }
+
+    public void setReportReviewTime(LocalDateTime reportReviewTime) {
+        this.reportReviewTime = reportReviewTime;
+    }
+
+    public String getSampleRecognizeResult() {
+        return sampleRecognizeResult;
+    }
+
+    public void setSampleRecognizeResult(String sampleRecognizeResult) {
+        this.sampleRecognizeResult = sampleRecognizeResult;
+    }
+
+    public String getTester() {
+        return tester;
+    }
+
+    public void setTester(String tester) {
+        this.tester = tester;
+    }
+
+    public String getTestDuration() {
+        return testDuration;
+    }
+
+    public void setTestDuration(String testDuration) {
+        this.testDuration = testDuration;
+    }
+
+    public String getFilepath() {
+        return filepath;
+    }
+
+    public void setFilepath(String filepath) {
+        this.filepath = filepath;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -290,6 +337,11 @@ public class PassbackData {
                 ", materialItems=" + materialItems +
                 ", electricalTestItems=" + electricalTestItems +
                 ", schedule_color='" + schedule_color + '\'' +
+                ", reportReviewTime=" + reportReviewTime +
+                ", sampleRecognizeResult='" + sampleRecognizeResult + '\'' +
+                ", tester='" + tester + '\'' +
+                ", testDuration='" + testDuration + '\'' +
+                ", filepath='" + filepath + '\'' +
                 '}';
     }
 }

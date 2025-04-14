@@ -140,7 +140,8 @@
         <div class="grid-container">
             <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
             <div class="module highlighted" onclick="location.href='/labModule'">实验室<br>模块</div>
-            <div class="module" onclick="location.href='/scheduleBoard'">项目<br>排期</div>
+            <div class="module" onclick="goToScheduleBoard()">项目<br>排期</div>
+<!--            <div class="module" onclick="location.href='/scheduleBoard'">项目<br>排期</div>-->
 <!--            <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>-->
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
         </div>
@@ -196,6 +197,14 @@
             // } else {
             //     alert('无权限访问该模块，仅限卢健操作');
             // }
+        }
+
+        function goToScheduleBoard() {
+            if (username === "卢健" || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏") {
+                location.href = "/scheduleBoard";
+            } else {
+                alert("您无权限进入该页面");
+            }
         }
 
         // 覆盖原生 alert 方法

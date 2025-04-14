@@ -481,10 +481,12 @@
         UPDATE electric_info
         SET
             actual_finish_time = #{actual_finish_time},
-            schedule = "1"
+            schedule = "1",
+            testDuration = DATEDIFF(#{actual_finish_time}, actual_start_time)
         WHERE
             sample_id = #{sample_id}
     </update>
+
 
     <update id="deleteElectric_schedule_info">
         UPDATE electric_schedule_info es
@@ -525,7 +527,8 @@
                 es.update_time = NOW(),
                 es.isUsed = 1,
                 ei.isUsed = 1,
-                ei.scheduleDays = #{scheduleDays}
+                ei.scheduleDays = #{scheduleDays},
+                ei.tester = #{tester}
         WHERE
             es.sample_id = #{sample_id}
     </update>
@@ -604,6 +607,11 @@
             ei.cancel_by,
             ei.cancel_code,
             ei.cancel_date,
+            ei.tester,
+            ei.testDuration,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.filepath,
             -- 合并 electrical_test_items 表中的数据，使用 DISTINCT 去重
             GROUP_CONCAT(DISTINCT CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
             -- 合并 material_items 表中的数据，使用 DISTINCT 去重
@@ -612,6 +620,11 @@
             electric_info ei
                 LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
                 LEFT JOIN material_items mi ON ei.sample_id = mi.sample_id
+        <where>
+            <if test="sample_id != null and sample_id != ''">
+                ei.sample_id LIKE CONCAT('%', #{sample_id}, '%')
+            </if>
+        </where>
         GROUP BY
             ei.id
         ORDER BY
@@ -653,6 +666,28 @@
     </update>
 
 
+    <update id="updateElectricInfoReview">
+        UPDATE electric_info
+        SET
+            reportReviewTime = #{reportReviewTime},
+            sampleRecognizeResult = #{sampleRecognizeResult},
+            schedule = "2"
+        WHERE
+            sample_id = #{sample_id}
+    </update>
+
+    <update id="saveElectricInfoFilePath">
+        UPDATE electric_info
+        SET
+            filepath = #{filepath}
+        WHERE
+            sample_id = #{sample_id}
+    </update>
+
+    <select id="queryElectricInfoFilepath" resultType="java.lang.String">
+        SELECT  filepath FROM electric_info
+        WHERE sample_id = #{sample_id}
+    </select>
 
 
 </mapper>

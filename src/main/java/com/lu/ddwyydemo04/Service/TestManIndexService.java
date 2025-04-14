@@ -329,6 +329,7 @@ public class TestManIndexService {
                 System.out.println("count>0的delete的:"+latestChange);
             } else if ("add".equals(latestChange.get("change"))) {
                 // 新增 electric_schedule_info 数据
+                System.out.println("n小玲玲");
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
                 boolean update = testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays);
                 System.out.println("count>0的add的:"+latestChange);
@@ -365,8 +366,8 @@ public class TestManIndexService {
     }
 
 
-    public List<PassbackData> getAllReceivedData(){
-        return testManDao.getAllReceivedData();
+    public List<PassbackData> getAllReceivedData(String sample_id){
+        return testManDao.getAllReceivedData(sample_id);
     }
 
     @Transactional
@@ -411,6 +412,19 @@ public class TestManIndexService {
     }
     public void updateScheduleInfoColorIfExists(String sample_id,String schedule_color){
         testManDao.updateScheduleInfoColorIfExists(sample_id,schedule_color);
+    }
+
+    public void updateElectricInfoReview(String sample_id,String reportReviewTime,String sampleRecognizeResult){
+        testManDao.updateElectricInfoReview(sample_id,reportReviewTime,sampleRecognizeResult);
+    }
+
+
+    public void saveElectricInfoFilePath(String sample_id,String filepath){
+        testManDao.saveElectricInfoFilePath(sample_id,filepath);
+    }
+
+    public String queryElectricInfoFilepath(String sample_id){
+        return testManDao.queryElectricInfoFilepath(sample_id);
     }
 
 }

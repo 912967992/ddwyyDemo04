@@ -1,6 +1,7 @@
 package com.lu.ddwyydemo04.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
@@ -12,11 +13,18 @@ import com.lu.ddwyydemo04.pojo.PassbackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -28,6 +36,8 @@ import java.util.stream.Collectors;
 public class TestEnvironmentController {
     private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
 
+    @Value("${file.storage.savepath}")
+    private String jsonpath;
 
     @Autowired
     private TestManIndexService testManIndexService;
@@ -72,11 +82,12 @@ public class TestEnvironmentController {
 
     @GetMapping("/passback/getAllReceivedData")
     @ResponseBody
-    public ResponseEntity<List<PassbackData>> getAllReceivedData() {
-        List<PassbackData> receivedData =  testManIndexService.getAllReceivedData();
-//        logger.info("/passback/getAllReceivedData："+receivedData.toString());
+    public ResponseEntity<List<PassbackData>> getAllReceivedData(@RequestParam(required = false) String sample_id) {
+        List<PassbackData> receivedData = testManIndexService.getAllReceivedData(sample_id);
+        logger.info("/passback/getAllReceivedData 查询参数 sample_id = " + sample_id);
         return ResponseEntity.ok(receivedData);
     }
+
 
     @PostMapping("/passback/cancelData")
     @ResponseBody
@@ -350,36 +361,49 @@ public class TestEnvironmentController {
 
 
         // 遍历排期变更数据并发送 HTTP 请求
-//        RestTemplate restTemplate = new RestTemplate();
-//        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
-//
-//        for (Map<String, String> schedule : scheduleChanges) {
-//            Map<String, Object> requestBody = new HashMap<>();
-//            requestBody.put("ETTestCode", schedule.get("sample_id"));
-//            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
-//            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
-//            requestBody.put("TestLeaderName", schedule.get("tester"));
-//            requestBody.put("TestLeaderCode", "3894");
-//            System.out.println("requestBody:"+requestBody);
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_JSON);
-//            // IT那边需要认证
-//            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
-//
-//            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-//
-//            try {
-//                ResponseEntity<String> response = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
-//                HttpStatus statusCode = response.getStatusCode();
-//                System.out.println("接口调用成功，状态码：" + statusCode.value());
-//                logger.info("更新排期发送数据成功:"+"sample_id: " + schedule.get("sample_id") + " -> 状态码: " + statusCode.value());
-//                statusList.add("sample_id: " + schedule.get("sample_id") + " -> 状态码: " + statusCode.value());
-//            } catch (Exception e) {
-//                logger.info("更新排期发送数据失败:"+"sample_id: " + schedule.get("sample_id") + " -> 更新失败: " + e.getMessage());
-//                statusList.add("sample_id: " + schedule.get("sample_id") + " -> 更新失败: " + e.getMessage());
-//            }
-//        }
+        RestTemplate restTemplate = new RestTemplate();
+        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
+
+        for (Map<String, String> schedule : scheduleChanges) {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("ETTestCode", schedule.get("sample_id"));
+            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
+            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
+            requestBody.put("TestLeaderName", schedule.get("tester"));
+            requestBody.put("TestLeaderCode", "3894");
+            System.out.println("requestBody:"+requestBody);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            // IT那边需要认证
+            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            try {
+                ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
+                HttpStatus statusCode = responseEntity.getStatusCode();
+                String body = responseEntity.getBody();
+
+                // 解析 JSON 返回体
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(body);
+                String apiStatus = jsonNode.path("status").asText();
+                String apiMsg = jsonNode.path("msg").asText();
+
+                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +
+                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+                statusList.add("sample_id: " + schedule.get("sample_id") +
+                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+
+            } catch (Exception e) {
+                logger.info("更新排期发送数据失败: sample_id: " + schedule.get("sample_id") +
+                        " -> 更新失败: " + e.getMessage());
+                statusList.add("sample_id: " + schedule.get("sample_id") +
+                        " -> 更新失败: " + e.getMessage());
+            }
+
+        }
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "排期变更已成功保存，并已同步到 ElectricalTest 接口");
@@ -545,54 +569,145 @@ public class TestEnvironmentController {
     }
 
 
+//    @PostMapping("/passback/ProcessTestElectricalTest")
+//    public ResponseEntity<Map<String, Object>> processTest(@RequestBody Map<String, String> requestData) {
+//        String testNumber = requestData.get("test_number");
+//        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+//                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//        String sampleRecognizeResult = requestData.get("sampleRecognizeResult");
+//
+//        if (testNumber == null || testNumber.isEmpty()) {
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("status", 400);
+//            response.put("message", "测试编号不能为空");
+//            return ResponseEntity.badRequest().body(response);
+//        }
+//
+//        testManIndexService.updateElectricInfoReview(testNumber,reportReviewTime,sampleRecognizeResult);
+//
+//        // 构造请求数据
+//        Map<String, String> requestPayload = new HashMap<>();
+//        requestPayload.put("ETTestCode", testNumber);
+//        requestPayload.put("ReportReviewTime", reportReviewTime);
+//        requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
+//        System.out.println("requestPayload:"+requestPayload);
+//        //这里差个参数。文件！！！周末的时候加吧
+//
+//
+//        // 添加认证头
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+//
+//        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
+//
+//        // 发送 POST 请求到目标接口
+//        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ReportReviewElectricalTest";
+//        RestTemplate restTemplate = new RestTemplate();
+//
+//        try {
+//            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+//
+//            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
+//            logger.info("远程接口响应体: {}", apiResponse.getBody());
+//
+//            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+//        } catch (Exception e) {
+//            Map<String, Object> errorResponse = new HashMap<>();
+//            errorResponse.put("staus", 500);
+//            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+//        }
+//
+//    }
+
     @PostMapping("/passback/ProcessTestElectricalTest")
     public ResponseEntity<Map<String, Object>> processTest(@RequestBody Map<String, String> requestData) {
         String testNumber = requestData.get("test_number");
+//        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+//                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);  // 输出 2025-04-14T16:34:23
+
         String sampleRecognizeResult = requestData.get("sampleRecognizeResult");
 
+        System.out.println("reportReviewTime:"+reportReviewTime);
+
+        Map<String, Object> result = new HashMap<>();
+
         if (testNumber == null || testNumber.isEmpty()) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", 400);
-            response.put("message", "测试编号不能为空");
-            return ResponseEntity.badRequest().body(response);
+            result.put("staus", 400);
+            result.put("msg", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(result);
         }
 
-        // 构造请求数据
-        Map<String, String> requestPayload = new HashMap<>();
-        requestPayload.put("ETTestCode", testNumber);
-        requestPayload.put("ReportReviewTime", reportReviewTime);
-        requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
-        System.out.println("requestPayload:"+requestPayload);
-        //这里差个参数。文件！！！周末的时候加吧
+        // 本地保存数据库状态
+        testManIndexService.updateElectricInfoReview(testNumber, reportReviewTime, sampleRecognizeResult);
 
-
-        // 添加认证头
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
-
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
-
-        // 发送 POST 请求到目标接口
-        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ReportReviewElectricalTest";
-        RestTemplate restTemplate = new RestTemplate();
-
+//        System.out.println("testNumber:"+testNumber);
         try {
-            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+            // 拼接文件路径
+            String filePath = testManIndexService.queryElectricInfoFilepath(testNumber);
+            File file = new File(filePath);
 
-            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
-            logger.info("远程接口响应体: {}", apiResponse.getBody());
+            // 日志输出文件信息
+            System.out.println("准备上传文件路径：" + filePath);
+            System.out.println("文件是否存在：" + file.exists());
+            System.out.println("文件大小：" + file.length());
 
-            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+            if (!file.exists()) {
+                result.put("staus", 404);
+                result.put("msg", "未找到对应的文件: " + filePath);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
+
+            // request JSON 字符串
+            Map<String, String> jsonMap = new HashMap<>();
+            jsonMap.put("ETTestCode", testNumber);
+            jsonMap.put("ReportReviewTime", reportReviewTime);
+            jsonMap.put("SampleRecognizeResult", sampleRecognizeResult);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(jsonMap);
+
+            System.out.println("发送 JSON 参数：" + jsonString);
+
+            // 构造 multipart/form-data 请求体
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("request", jsonString); // 不再用 HttpEntity 包裹
+            body.add("fileList", new FileSystemResource(file));
+
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // 发送请求
+            String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ReportReviewElectricalTest";
+            RestTemplate restTemplate = new RestTemplate();
+
+            ResponseEntity<Map> response = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+
+            System.out.println("远程接口响应状态码：" + response.getStatusCode());
+            System.out.println("远程接口响应体：" + response.getBody());
+
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+
         } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("staus", 500);
-            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            e.printStackTrace(); // 打印异常堆栈
+            result.put("staus", 500);
+            result.put("msg",e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
+    }
 
+    // 创建 request 字段的 text/plain Header
+    private HttpHeaders createTextPartHeaders() {
+        HttpHeaders partHeaders = new HttpHeaders();
+        partHeaders.setContentType(MediaType.APPLICATION_JSON);
+        return partHeaders;
     }
 
 
@@ -633,8 +748,53 @@ public class TestEnvironmentController {
         return ResponseEntity.ok("颜色设置成功：" + color);
     }
 
+    @PostMapping("/passback/uploadXlsx")
+    public ResponseEntity<Map<String, Object>> uploadReport(
+            @RequestParam("testId") String testId,
+            @RequestParam("file") MultipartFile file) {
 
+        System.out.println("testId:"+testId);
+        Map<String, Object> response = new HashMap<>();
 
+        if (file.isEmpty()) {
+            response.put("message", "文件为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            // 确保保存路径存在
+            File dir = new File(jsonpath);
+            if (!dir.exists() && !dir.mkdirs()) {
+                response.put("message", "保存路径创建失败");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+
+            // 目标文件名：测试编号.xlsx
+            String fileName = sanitizeFileName(testId) + ".xlsx";
+            File destFile = new File(dir, fileName);
+
+            // 保存文件
+            file.transferTo(destFile);
+
+            // ✅ 保存完整路径
+            String fullPath = destFile.getAbsolutePath();
+            testManIndexService.saveElectricInfoFilePath(testId, fullPath);
+
+            response.put("message", "上传成功");
+            response.put("savedPath", destFile.getAbsolutePath());
+            return ResponseEntity.ok(response);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("message", "文件保存失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    private String sanitizeFileName(String input) {
+        // 只过滤掉 Windows 文件名不允许的字符：\ / : * ? " < > |
+        return input.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
+    }
 
 
 
