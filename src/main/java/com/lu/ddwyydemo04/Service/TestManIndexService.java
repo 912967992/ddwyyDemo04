@@ -292,6 +292,7 @@ public class TestManIndexService {
         String start_date = latestChange.get("start_date");
         String end_date = latestChange.get("end_date");
         String scheduleDays = latestChange.get("scheduleDays");
+        String schedule_color = latestChange.get("schedule_color");
         // 如果scheduleDays没有值，这里会显示为null
         System.out.println("scheduleDays:"+scheduleDays);
 
@@ -324,14 +325,13 @@ public class TestManIndexService {
                 // 删除 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 0
 
-                boolean delete = testManDao.deleteElectric_schedule_info(sample_id,tester,start_date,end_date);
+                testManDao.deleteElectric_schedule_info(sample_id);
 
                 System.out.println("count>0的delete的:"+latestChange);
             } else if ("add".equals(latestChange.get("change"))) {
                 // 新增 electric_schedule_info 数据
-                System.out.println("n小玲玲");
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
-                boolean update = testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays);
+                testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays,schedule_color);
                 System.out.println("count>0的add的:"+latestChange);
             }
         }else{
@@ -341,8 +341,8 @@ public class TestManIndexService {
             } else if ("add".equals(latestChange.get("change"))) {
                 // 新增 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
-                boolean insert = testManDao.insertElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding);
-                boolean changeIsUsed = testManDao.changeIsUsedAsOne(sample_id,scheduleDays);
+                testManDao.insertElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,schedule_color);
+                testManDao.changeIsUsedAsOne(sample_id,scheduleDays);
                 System.out.println("count<0的add的:" + latestChange);
             }
         }

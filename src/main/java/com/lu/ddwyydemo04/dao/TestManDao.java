@@ -99,25 +99,26 @@ public interface TestManDao {
 
     public int getCountSchedules(@Param("sample_id")String sample_id);
 
-    public boolean deleteElectric_schedule_info(@Param("sample_id")String sample_id,
-                                                @Param("tester")String tester,
-                                                @Param("schedule_start_date")String schedule_start_date,
-                                                @Param("schedule_end_date")String schedule_end_date);
+    public void deleteElectric_schedule_info(@Param("sample_id")String sample_id);
 
     public boolean changeIsUsedAsZero(@Param("sample_id")String sample_id);
-    public boolean changeIsUsedAsOne(@Param("sample_id")String sample_id, @Param("scheduleDays") String scheduleDays);
-    public boolean insertElectric_schedule_info(@Param("sample_id")String sample_id,
-                                                @Param("tester")String tester,
-                                                @Param("schedule_start_date")String schedule_start_date,
-                                                @Param("schedule_end_date")String schedule_end_date,
-                                                @Param("sizecoding")String sizecoding);
-
-    public boolean updateElectric_schedule_info(@Param("sample_id")String sample_id,
+    public void changeIsUsedAsOne(@Param("sample_id")String sample_id, @Param("scheduleDays") String scheduleDays);
+    public void insertElectric_schedule_info(@Param("sample_id")String sample_id,
                                                 @Param("tester")String tester,
                                                 @Param("schedule_start_date")String schedule_start_date,
                                                 @Param("schedule_end_date")String schedule_end_date,
                                                 @Param("sizecoding")String sizecoding,
-                                                @Param("scheduleDays")String scheduleDays);
+                                                @Param("schedule_color")String schedule_color
+                                             );
+
+    public void updateElectric_schedule_info(@Param("sample_id")String sample_id,
+                                                @Param("tester")String tester,
+                                                @Param("schedule_start_date")String schedule_start_date,
+                                                @Param("schedule_end_date")String schedule_end_date,
+                                                @Param("sizecoding")String sizecoding,
+                                                @Param("scheduleDays")String scheduleDays,
+                                                @Param("schedule_color")String schedule_color
+                                             );
 
     public List<String> getAllTesters();
 

@@ -42,13 +42,26 @@
         </div>
 
         <!-- 添加颜色选择功能 -->
+        <!-- 添加颜色选择功能 -->
+        <!-- 添加颜色选择功能 -->
         <div style="margin-top: 10px;">
             <label><strong>设置颜色：</strong></label>
             <div>
-                <label><input type="radio" name="schedule_color" value="gray" checked> 灰色</label>
-                <label><input type="radio" name="schedule_color" value="green"> 绿色</label>
-                <label><input type="radio" name="schedule_color" value="yellow"> 黄色</label>
-                <label><input type="radio" name="schedule_color" value="red"> 红色</label>
+                <label>
+                    <input type="radio" id="color_null" name="schedule_color" value="null" checked> 无
+                </label>
+                <label>
+                    <input type="radio" id="color_gray" name="schedule_color" value="gray" checked> 灰色
+                </label>
+                <label>
+                    <input type="radio" id="color_green" name="schedule_color" value="green"> 绿色
+                </label>
+                <label>
+                    <input type="radio" id="color_yellow" name="schedule_color" value="yellow"> 黄色
+                </label>
+                <label>
+                    <input type="radio" id="color_red" name="schedule_color" value="red"> 红色
+                </label>
             </div>
             <button id="confirmColorBtn" style="margin-top: 5px;">确认修改颜色</button>
         </div>
@@ -74,6 +87,34 @@
     // const projectMenu = document.getElementById('projectMenu');
     let currentRightClickCell = null;
     let currentRightClickProject = null;
+
+    //默认让endDate+14天，进入页面的时候
+    document.addEventListener('DOMContentLoaded', function () {
+        // 获取当前 UTC 时间
+        const now = new Date();
+
+        // 北京时间偏移（UTC+8）
+        const beijingOffset = 8 * 60 * 60 * 1000;
+        const beijingTime = new Date(now.getTime() + beijingOffset);
+
+        // 格式化开始日期（今天）
+        const startYear = beijingTime.getUTCFullYear();
+        const startMonth = String(beijingTime.getUTCMonth() + 1).padStart(2, '0');
+        const startDay = String(beijingTime.getUTCDate()).padStart(2, '0');
+        const startDate = `${startYear}-${startMonth}-${startDay}`;
+
+        // 计算结束日期（+14天）
+        const endTime = new Date(beijingTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+        const endYear = endTime.getUTCFullYear();
+        const endMonth = String(endTime.getUTCMonth() + 1).padStart(2, '0');
+        const endDay = String(endTime.getUTCDate()).padStart(2, '0');
+        const endDate = `${endYear}-${endMonth}-${endDay}`;
+
+        // 设置 input 的默认值
+        document.getElementById('startDate').value = startDate;
+        document.getElementById('endDate').value = endDate;
+    });
+
 
     // 设置拖拽，拖拽进去的时候，如果排期天数没有设置，则不允许拖拽
     function setDraggable(projectEl, isProject) {
@@ -147,7 +188,11 @@
 
         data.forEach(item => {
             const card = document.createElement('div');
+
             card.className = 'project-card';
+
+            const scheduleColor = item.schedule_color || 'null';
+            card.classList.add(scheduleColor);
             card.textContent = item.sample_model + " " + item.materialCode + "(" + item.scheduleDays + "天)";
 
             card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode);
@@ -190,9 +235,12 @@
         };
     };
 
+    // 项目卡片右键触发的绑定事件
     function bindCardContextMenu(card, item) {
         card.oncontextmenu = function (event) {
             event.preventDefault(); // 阻止浏览器默认右键菜单
+
+            console.log("这个触发bindCardContextMenu")
 
             // 设置模态框内容
             document.getElementById('modalBody').innerHTML = `
@@ -211,71 +259,99 @@
         `;
 
             document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
+            // 设置选中的颜色，默认选无色
+            const selectedColor = item.schedule_color ? item.schedule_color : 'null';
+            const colorRadio = document.querySelector(`input[name="schedule_color"][value="${selectedColor}"]`);
+            if (colorRadio) {
+                colorRadio.checked = true;
+            }
 
             document.getElementById('saveScheduleBtn').onclick = function () {
-                const days = document.getElementById('scheduleDays').value;
-                if (!days || isNaN(days) || days < 0) {
-                    alert("请输入有效的排期天数！");
-                    return;
-                }
-
-                item.scheduleDays = days;
-
-                fetch('/passback/saveScheduleDays', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
-                })
-                    .then(resp => resp.json())
-                    .then(resp => {
-                        // 更新卡片展示（可选）
-                        // card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
-                        alert(resp.message);
-
-                        // ✅ 更新当前卡片显示内容
-                        card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
-
-                        // ✅ 如果需要更新属性值
-                        card.setAttribute('data-schedule_days', days);
-
-                        document.getElementById('modal').style.display = 'none';
-
-
-                    })
-                    .catch(err => console.error(err));
+                saveScheduleAndColor(card,item);
             };
+
+            document.getElementById('confirmColorBtn').onclick = function () {
+                saveScheduleAndColor(card,item);
+            };
+
 
             document.getElementById('modal').style.display = 'block';
 
-            document.getElementById("confirmColorBtn").onclick = function () {
-                const selectedColor = document.querySelector('input[name="schedule_color"]:checked').value;
-                console.log("用户选择的颜色是：", selectedColor);
 
-                fetch('/schedule/saveScheduleColor', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        color: selectedColor,
-                        sample_id: item.sample_id
-                    })
-                })
-                    .then(response => response.text())
-                    .then(result => {
-                        alert(result);
-                        document.getElementById('modal').style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error("颜色设置失败:", error);
-                        alert("设置颜色失败，请重试");
-                    });
-            };
 
 
 
 
         };
+    }
+
+    function saveScheduleAndColor(card,item) {
+        const days = document.getElementById('scheduleDays').value;
+        if (!days || isNaN(days) || days < 0) {
+            alert("请输入有效的排期天数！");
+            return;
+        }
+
+        const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
+        if (!selectedColor) {
+            alert("请选择一个颜色！");
+            return;
+        }
+
+        // 1️⃣ 保存天数
+        fetch('/passback/saveScheduleDays', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+        })
+            .then(resp => resp.json())
+            .then(resp => {
+                // alert("排期天数保存成功：" + resp.message);
+
+                // 更新卡片显示和属性
+                card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+                card.setAttribute('data-schedule_days', days);
+                item.scheduleDays = days;
+            })
+            .catch(err => {
+                console.error("保存天数失败：", err);
+                alert("保存天数失败！");
+            });
+
+        // 2️⃣ 保存颜色
+        fetch('/schedule/saveScheduleColor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                color: selectedColor,
+                sample_id: item.sample_id
+            })
+        })
+            .then(response => response.text())
+            .then(result => {
+                // 判断是否为 null、空字符串或 undefined
+                if (!result || result === 'null') {
+                    result = '无色';
+                }
+
+                alert("排期天数和颜色设置成功：" + result);
+                document.getElementById('modal').style.display = 'none';
+
+                // 更新卡片颜色样式
+                const card = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
+                if (card) {
+                    card.classList.remove('gray', 'green', 'yellow', 'red');
+                    card.classList.add(selectedColor);
+                    card.dataset.schedule_color = selectedColor;
+                    item.schedule_color = selectedColor;
+                }
+            })
+            .catch(error => {
+                console.error("保存颜色失败：", error);
+                alert("设置颜色失败，请重试");
+            });
     }
 
 
@@ -316,128 +392,6 @@
         }
     }
 
-
-//     async function refreshSchedule() {
-//         await saveSchedule(true); // 确保 saveSchedule 执行完毕
-//         const startDate = document.getElementById("startDate").value;
-//         const endDate = document.getElementById("endDate").value;
-//
-//         if (!startDate) {
-//             alert("请至少选择初始时间！");
-//             return;
-//         }
-//
-//         const contextMenu = document.getElementById('contextMenu');
-//         contextMenu.removeEventListener('click', handleContextMenuClick);
-//
-//         document.getElementById('scheduleBoard').innerHTML = '';
-//
-// // 加载排期面板数据
-//         fetch(`/getSchedulesByStartDate?startDate=${startDate}&endDate=${endDate}`)
-//             .then(response => {
-//                 if (!response.ok) {
-//                     throw new Error(`HTTP error! status: ${response.status}`);
-//                 }
-//                 return response.json();
-//             })
-//             .then(data => {
-//                 const board = document.getElementById('scheduleBoard');
-//                 // if (!data || data.length === 0) {
-//                 //     board.innerHTML = '暂无排期数据。';
-//                 //     return;
-//                 // }
-//
-//                 // 提取所有 tester 和所有排期覆盖到的日期（逐日拆分）
-//                 const testersSet = new Set();
-//                 const allDatesSet = new Set();
-//
-//
-//                 // 构建 tester->dateList 映射
-//                 const dateMap = {}; // tester => array of { startDate, endDate, electric_info_id }
-//
-//                 data.forEach(item => {
-//                     if (item.tester) testersSet.add(item.tester);
-//
-//                     const startDate = item.schedule_start_date;
-//                     // const endDate = item.schedule_end_date || startDate;
-//                     const endDate = item.schedule_end_date;
-//
-//                     const dateRange = getDateRange(startDate, endDate);
-//
-//                     dateRange.forEach(date => allDatesSet.add(date));
-//
-//
-//                     const task = {
-//                         startDate,
-//                         endDate,
-//                         sample_id: item.sample_id,
-//                         sizecoding: item.sample_model + " " + item.materialCode,
-//                         sample_category: item.sample_category,
-//                         sample_model: item.sample_model,
-//                         sample_name: item.sample_name,
-//                         priority: item.priority,
-//                         version: item.version,
-//                         materialCode: item.materialCode,
-//                         sample_leader: item.sample_leader,
-//                         supplier: item.supplier,
-//                         test_project_category: item.testProjectCategory,
-//                         testProjects: item.testProjects,
-//                         schedule: item.schedule,
-//                         create_time: item.create_time,
-//                         schudule_days: item.scheduleDays,
-//                         schedule_start_date: item.schedule_start_date,
-//                         schedule_end_date: item.schedule_end_date
-//
-//                     };
-//
-//                     if (!dateMap[item.tester]) dateMap[item.tester] = [];
-//                     dateMap[item.tester].push(task);
-//
-//
-//                 });
-//                 console.log("dateMap:"+dateMap)
-//
-//                 // **确保 allDates 包含完整的 startDate 到 endDate**
-//                 if (endDate) {
-//                     getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
-//                 }
-//
-//
-//                 const testers = Array.from(testersSet);
-//                 const allDates = Array.from(allDatesSet).sort(); // 所有日期排序后的表头
-//
-//             // **如果后端没有返回测试人员，从数据库获取**
-//                 if (testersSet.size === 0) {
-//                     console.log("没有测试人员，尝试从后端获取");
-//                     return fetch('/getTesters') // 获取测试人员
-//                         .then(response => response.json())
-//                         .then(testersData => {
-//                             testersData.forEach(tester => testersSet.add(tester));  // 更新 testersSet
-//                             const updatedTesters = Array.from(testersSet); // **转换 Set 为 Array**
-//                             console.log("从后端获取的 testers:", updatedTesters);
-//
-//                             // **继续执行绘制排期面板**
-//                             drawScheduleBoard(board,updatedTesters, allDates, dateMap);
-//                         })
-//                         .catch(error => {
-//                             console.error("获取测试人员失败:", error);
-//                             document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
-//                         });
-//                 }
-//
-//                 drawScheduleBoard(board,testers, allDates, dateMap);
-//
-//
-//
-//
-//             })
-//             .catch(error => {
-//                 document.getElementById('scheduleBoard').innerHTML = '排期加载失败。';
-//                 console.error('Error loading schedule board:', error);
-//             });
-//
-//
-//     }
 
     async function refreshSchedule() {
         await saveSchedule(true); // 确保 saveSchedule 执行完毕
@@ -809,7 +763,7 @@
         console.log(localScheduleChanges);
     }
 
-    // 处理撤回排期事件
+    // 处理撤回排期事件，撤回排期按钮触发这个方法
     function handleUndo(rowCells, startIndex, taskData) {
         const { schedule_days, tester, sample_id } = taskData;
         const currentRightClickCell = rowCells[startIndex];
@@ -834,6 +788,11 @@
         // 重新生成拖拽项目卡片
         const restoredProject = document.createElement('div');
         restoredProject.className = 'project-card';
+
+        // ✅ 设置颜色 class（默认 gray）
+        const colorClass = taskData.schedule_color || 'gray';
+        restoredProject.classList.add(colorClass);
+
         restoredProject.setAttribute('draggable', 'true');
         restoredProject.setAttribute('data-sample_id', sample_id);
         restoredProject.setAttribute('data-schedule_days', schedule_days);

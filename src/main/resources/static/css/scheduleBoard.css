@@ -32,7 +32,7 @@
 .project-card {
     width: 150px;
     height: 30px;
-    background-color: #e8f0fe;
+    background-color: #ffffff;
     border: 1px solid #ccc;
     border-radius: 8px;
     display: flex;
@@ -55,6 +55,23 @@
 .project-card:hover {
     transform: scale(1.05);
 }
+
+.project-card.gray {
+    background-color: gray;
+}
+
+.project-card.green {
+    background-color: green;
+}
+
+.project-card.yellow {
+    background-color: yellow;
+}
+
+.project-card.red {
+    background-color: red;
+}
+
 
 
 #modal {
