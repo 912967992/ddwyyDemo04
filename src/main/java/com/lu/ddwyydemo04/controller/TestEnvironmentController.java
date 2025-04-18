@@ -361,49 +361,49 @@ public class TestEnvironmentController {
 
 
         // 遍历排期变更数据并发送 HTTP 请求
-//        RestTemplate restTemplate = new RestTemplate();
-//        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
-//
-//        for (Map<String, String> schedule : scheduleChanges) {
-//            Map<String, Object> requestBody = new HashMap<>();
-//            requestBody.put("ETTestCode", schedule.get("sample_id"));
-//            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
-//            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
-//            requestBody.put("TestLeaderName", schedule.get("tester"));
-//            requestBody.put("TestLeaderCode", "3894");
-//            System.out.println("requestBody:"+requestBody);
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_JSON);
-//            // IT那边需要认证
-//            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
-//
-//            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-//
-//            try {
-//                ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
-//                HttpStatus statusCode = responseEntity.getStatusCode();
-//                String body = responseEntity.getBody();
-//
-//                // 解析 JSON 返回体
-//                ObjectMapper objectMapper = new ObjectMapper();
-//                JsonNode jsonNode = objectMapper.readTree(body);
-//                String apiStatus = jsonNode.path("status").asText();
-//                String apiMsg = jsonNode.path("msg").asText();
-//
-//                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +
-//                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
-//                statusList.add("sample_id: " + schedule.get("sample_id") +
-//                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
-//
-//            } catch (Exception e) {
-//                logger.info("更新排期发送数据失败: sample_id: " + schedule.get("sample_id") +
-//                        " -> 更新失败: " + e.getMessage());
-//                statusList.add("sample_id: " + schedule.get("sample_id") +
-//                        " -> 更新失败: " + e.getMessage());
-//            }
-//
-//        }
+        RestTemplate restTemplate = new RestTemplate();
+        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
+
+        for (Map<String, String> schedule : scheduleChanges) {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("ETTestCode", schedule.get("sample_id"));
+            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
+            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
+            requestBody.put("TestLeaderName", schedule.get("tester"));
+            requestBody.put("TestLeaderCode", "3894");
+            System.out.println("requestBody:"+requestBody);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            // IT那边需要认证
+            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            try {
+                ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
+                HttpStatus statusCode = responseEntity.getStatusCode();
+                String body = responseEntity.getBody();
+
+                // 解析 JSON 返回体
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(body);
+                String apiStatus = jsonNode.path("status").asText();
+                String apiMsg = jsonNode.path("msg").asText();
+
+                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +
+                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+                statusList.add("sample_id: " + schedule.get("sample_id") +
+                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+
+            } catch (Exception e) {
+                logger.info("更新排期发送数据失败: sample_id: " + schedule.get("sample_id") +
+                        " -> 更新失败: " + e.getMessage());
+                statusList.add("sample_id: " + schedule.get("sample_id") +
+                        " -> 更新失败: " + e.getMessage());
+            }
+
+        }
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "排期变更已成功保存，并已同步到 ElectricalTest 接口");
@@ -501,7 +501,7 @@ public class TestEnvironmentController {
         String testNumber = requestData.get("test_number");
         String actualTestEndDate = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String actual_work_time = requestData.get("actual_work_time");
+//        String actual_work_time = requestData.get("actual_work_time");
 
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
@@ -511,6 +511,8 @@ public class TestEnvironmentController {
         }
 
         boolean updateFinishTime = testManIndexService.FinishTestElectricalTest(testNumber,actualTestEndDate);
+        String actual_work_time = testManIndexService.queryActualWorkTime(testNumber);
+//        System.out.println("actual_work_time:"+actual_work_time);
 
         if (!updateFinishTime) {
             Map<String, Object> response = new HashMap<>();
@@ -524,7 +526,6 @@ public class TestEnvironmentController {
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestEndDate", actualTestEndDate);
         requestPayload.put("ActualTestWrokHour", actual_work_time);
-        System.out.println("requestPayload:"+requestPayload);
 
         // 添加认证头
         HttpHeaders headers = new HttpHeaders();

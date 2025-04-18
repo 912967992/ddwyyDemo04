@@ -106,7 +106,7 @@ public interface DQEDao {
     int deleteTaskNodeBefore(@Param("sample_id") int sample_id);
 
 
-    List<SystemInfo> performSysInfo(@Param("id")String id, @Param("computerName")String computerName,
+    List<SystemInfo> performSysInfo(@Param("id")String id, @Param("computerName")String computerName,@Param("deviceType")String deviceType,
                                     @Param("version")String version,
                                     @Param("installationDate")String installationDate,@Param("osVersion")String osVersion,
                                     @Param("fullOS")String fullOS,

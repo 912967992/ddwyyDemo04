@@ -96,7 +96,7 @@ public interface TestManDao {
 
     public boolean StartTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_start_time")String actual_start_time);
     public boolean FinishTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_finish_time")String actual_finish_time);
-
+    public String queryActualWorkTime(@Param("sample_id")String sample_id);
     public int getCountSchedules(@Param("sample_id")String sample_id);
 
     public void deleteElectric_schedule_info(@Param("sample_id")String sample_id);
@@ -149,6 +149,12 @@ public interface TestManDao {
     void saveElectricInfoFilePath(@Param("sample_id") String sample_id,@Param("filepath")String filepath);
 
     String queryElectricInfoFilepath(@Param("sample_id") String sample_id);
+    void saveSystemInfoChange(SystemInfo systemInfo);
+    int  findByComputerName(String computerName);
+    void  updateSystemInfoByXlsx(SystemInfo systemInfo);
+    void  insertSystemInfoByXlsx(SystemInfo systemInfo);
+
+    void deleteSystemInfoById(int id);
 
 
 }

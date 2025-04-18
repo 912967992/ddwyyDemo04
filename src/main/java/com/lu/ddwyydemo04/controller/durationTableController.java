@@ -25,15 +25,25 @@ public class durationTableController {
     private DurationTableService durationTableService;
 
     @GetMapping("/home") // 处理页面跳转请求
-    public String loginHome() {
+    public String loginHome(String role) {
+        // 如果 role 为 null 或为空字符串，默认跳转到 "testManIndex"
+        if (role == null || role.trim().isEmpty()) {
+            return "testManIndex";
+        }
+
+        if(role.equals("tester")){
+            return "testManIndex";
+        }else{
+            return "DQEIndex";
+        }
         // 返回跳转页面的视图名称
-        return "testManIndex";
+
     }
 
 
     @GetMapping("/durationTable") // 处理页面跳转请求
     public String loginCloud(String role) {
-        System.out.println(role);
+//        System.out.println(role);
         if(role.equals("DQE")){
             return "DQE/durationTableDQE";
         }else{

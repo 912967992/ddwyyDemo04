@@ -279,6 +279,10 @@ public class TestManIndexService {
         return testManDao.FinishTestElectricalTest(sample_id,actual_finish_time);
     }
 
+    public String queryActualWorkTime(String sample_id){
+        return testManDao.queryActualWorkTime(sample_id);
+    }
+
     public void processScheduleUpdate(String sampleId, Map<String, String> latestChange, List<Map<String, String>> allChanges) {
         // 这里写你的数据库操作逻辑
 //        System.out.println("处理 sample_id: " + sampleId);
@@ -426,5 +430,37 @@ public class TestManIndexService {
     public String queryElectricInfoFilepath(String sample_id){
         return testManDao.queryElectricInfoFilepath(sample_id);
     }
+
+
+    public void saveSystemInfoChange(List<SystemInfo> list) {
+        for (SystemInfo info : list) {
+            System.out.println("info:"+info);
+            testManDao.saveSystemInfoChange(info);
+        }
+    }
+
+    public int findByComputerName(String computerName){
+        return testManDao.findByComputerName(computerName);
+    }
+
+    public void updateSystemInfoByXlsx(SystemInfo systemInfo){
+        testManDao.updateSystemInfoByXlsx(systemInfo);
+    }
+
+    public void insertSystemInfoByXlsx(SystemInfo systemInfo){
+        testManDao.insertSystemInfoByXlsx(systemInfo);
+    }
+
+    @Transactional
+    public void deleteSystemInfoById(List<Integer> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            for (Integer id : ids) {
+                // 逐个删除每个 ID
+                testManDao.deleteSystemInfoById(id);
+            }
+        }
+    }
+
+
 
 }

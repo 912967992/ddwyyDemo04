@@ -67,6 +67,7 @@ public class LabModuleController {
     @ResponseBody
     public List<SystemInfo> performSysInfo(@RequestParam(required = false) String id,
                                           @RequestParam(required = false) String computerName,
+                                          @RequestParam(required = false) String deviceType,
                                           @RequestParam(required = false) String version,
                                           @RequestParam(required = false) String installationDate,
                                           @RequestParam(required = false) String osVersion,
@@ -85,6 +86,7 @@ public class LabModuleController {
         // 将空字符串转换为 null
         id = (id != null && !id.isEmpty()) ? id : null;
         computerName = (computerName != null && !computerName.isEmpty()) ? computerName : null;
+        deviceType = (deviceType != null && !deviceType.isEmpty()) ? deviceType : null;
         version = (version != null && !version.isEmpty()) ? version : null;
         installationDate = (installationDate != null && !installationDate.isEmpty()) ? installationDate : null;
         osVersion = (osVersion != null && !osVersion.isEmpty()) ? osVersion : null;
@@ -104,7 +106,7 @@ public class LabModuleController {
         interfaceInfo = (interfaceInfo != null && !interfaceInfo.isEmpty()) ? interfaceInfo : null;
 
 
-        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,version,installationDate,osVersion,fullOS,
+        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,deviceType,version,installationDate,osVersion,fullOS,
                 architecture,systemModel,cpu,memory,displays,networkAdapters,maxResolution,maxRefreshRate,interfaceInfo);
 //        System.out.println(systemInfos);
 

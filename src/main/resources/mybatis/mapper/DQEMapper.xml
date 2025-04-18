@@ -499,6 +499,7 @@
         WHERE
             (#{id} IS NULL OR id LIKE CONCAT('%', #{id}, '%'))
           AND (#{computerName} IS NULL OR computerName LIKE CONCAT('%', #{computerName}, '%'))
+          AND (#{deviceType} IS NULL OR deviceType LIKE CONCAT('%', #{deviceType}, '%'))
           AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
           AND (#{installationDate} IS NULL OR installationDate LIKE CONCAT('%', #{installationDate}, '%'))
           AND (#{osVersion} IS NULL OR osVersion LIKE CONCAT('%', #{osVersion}, '%'))

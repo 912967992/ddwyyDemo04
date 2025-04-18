@@ -47,11 +47,11 @@ public class DQEIndexController {
         return "DQE/problemMoudle";
     }
 
-    @GetMapping("/labModule") // 处理页面跳转请求
-    public String loginSampleData() {
-        // 返回跳转页面的视图名称
-        return "DQE/labModule";
-    }
+//    @GetMapping("/labModuleTester") // 处理页面跳转请求
+//    public String loginSampleData() {
+//        // 返回跳转页面的视图名称
+//        return "labModuleTester";
+//    }
 
     @GetMapping("/otherMoudle") // 处理页面跳转请求
     public String loginOtherMoudle() {

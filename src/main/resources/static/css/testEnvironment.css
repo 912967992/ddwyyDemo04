@@ -48,7 +48,8 @@
 /* 给页面其他内容加点上边距 */
 .content {
     margin-top: 60px; /* 增加上边距避免按钮被遮挡 */
-    padding: 10px;
+    /*padding: 10px;*/
+    padding-top: 100px;  /* 向下推移内容 */
 }
 
 table {

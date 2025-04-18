@@ -10,18 +10,18 @@ import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
-import com.lu.ddwyydemo04.pojo.FileData;
+import com.lu.ddwyydemo04.pojo.*;
 
-import com.lu.ddwyydemo04.pojo.Samples;
-import com.lu.ddwyydemo04.pojo.TestIssues;
-import com.lu.ddwyydemo04.pojo.TotalData;
 import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
 import com.taobao.api.internal.util.WebUtils;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -84,6 +85,15 @@ public class testManIndexController {
     public String loginTestManIndex() {
         // 返回跳转页面的视图名称
         return "testManIndex";
+    }
+
+    @GetMapping("/returnBtn")
+    public String returbBtn(String role){
+        if(role.equals("tester")){
+            return "testManIndex";
+        }else{
+            return "DQEIndex";
+        }
     }
 
     @GetMapping("/labModuleTester") // 处理页面跳转请求
@@ -1156,9 +1166,19 @@ public class testManIndexController {
     }
 
     @GetMapping("/testManProfile") // 处理页面跳转请求
-    public String loginTestManProfile() {
-        // 返回跳转页面的视图名称
-        return "testManProfile";
+    public String loginTestManProfile(String role) {
+        // 如果 role 为 null 或为空字符串，默认跳转到 "testManIndex"
+        if (role == null || role.trim().isEmpty()) {
+            return "testManProfile";
+        }
+
+        // 根据 role 的值返回不同的视图名称
+        if (role.equals("tester")) {
+            return "testManProfile";
+        } else {
+            return "DQE/DQEprofile";
+        }
+
     }
 
 
@@ -1221,6 +1241,228 @@ public class testManIndexController {
         System.out.println("result: " + result);
 
         return result;
+    }
+
+    @PostMapping("/labModuleTester/saveChanges")
+    @ResponseBody
+    public String saveSystemInfoChange(@RequestBody List<SystemInfo> updatedDevices) {
+        try {
+            System.out.println("updatedDevices: " + updatedDevices);
+            testManIndexService.saveSystemInfoChange(updatedDevices);
+            return "保存成功";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "保存失败";
+        }
+    }
+
+    @PostMapping("/labModuleTester/exportSystemInfo")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportSystemInfo(@RequestBody List<Map<String, Object>> data) {
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("SystemInfo");
+
+            // 定义列标题
+            String[] columns = {
+                    "设备ID", "名称", "设备类型", "操作系统版本", "操作系统安装日期", "操作系统详细版本号",
+                    "版本号", "系统架构", "系统型号", "记录更新时间", "处理器",
+                    "内存", "显卡", "网络适配器", "内置屏最大分辨率", "内置屏最大刷新率", "接口信息"
+            };
+
+            // 创建样式（居中）
+            CellStyle style = workbook.createCellStyle();
+            style.setAlignment(HorizontalAlignment.CENTER);
+            style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+            // 表头行
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(style);
+
+                // 设置列宽（根据内容稍作不同设置）
+                if (i == 0) {
+                    sheet.setColumnWidth(i, 8 * 256);
+                } else if (i >= 1 && i <= 4) {
+                    sheet.setColumnWidth(i, 25 * 256);
+                } else {
+                    sheet.setColumnWidth(i, 20 * 256);
+                }
+            }
+
+            // 写入数据
+            for (int i = 0; i < data.size(); i++) {
+                Map<String, Object> item = data.get(i);
+                Row row = sheet.createRow(i + 1);
+
+                for (int j = 0; j < columns.length; j++) {
+                    Cell cell = row.createCell(j);
+                    Object value = null;
+
+                    switch (j) {
+                        case 0: value = item.get("id"); break;
+                        case 1: value = item.get("computerName"); break;
+                        case 2: value = item.get("deviceType"); break;
+                        case 3: value = item.get("version"); break;
+                        case 4: value = item.get("installationDate"); break;
+                        case 5: value = item.get("osVersion"); break;
+                        case 6: value = item.get("fullOS"); break;
+                        case 7: value = item.get("architecture"); break;
+                        case 8: value = item.get("systemModel"); break;
+                        case 9: value = item.get("created_at"); break;
+                        case 10: value = item.get("cpu"); break;
+                        case 11: value = item.get("memory"); break;
+                        case 12: value = item.get("displays"); break;
+                        case 13: value = item.get("networkAdapters"); break;
+                        case 14: value = item.get("maxResolution"); break;
+                        case 15: value = item.get("maxRefreshRate"); break;
+                        case 16: value = item.get("interfaceInfo"); break;
+                    }
+
+                    cell.setCellValue(value != null ? value.toString() : "");
+                    cell.setCellStyle(style);
+                }
+            }
+
+            // 写入到输出流
+            workbook.write(outputStream);
+            byte[] bytes = outputStream.toByteArray();
+
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=system_info.xlsx");
+            headers.add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/labModuleTester/importSystemInfo")
+    public ResponseEntity<String> importSystemInfo(@RequestParam("file") MultipartFile file) {
+        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            List<Map<String, Object>> parsedData = new ArrayList<>();
+
+            // 假设第一行是表头，从第二行开始读
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("id", getCellStringValue(row.getCell(0)));
+                item.put("computerName", getCellStringValue(row.getCell(1)));
+                item.put("deviceType", getCellStringValue(row.getCell(2)));
+                item.put("version", getCellStringValue(row.getCell(3)));
+                item.put("installationDate", getCellStringValue(row.getCell(4)));
+                item.put("osVersion", getCellStringValue(row.getCell(5)));
+                item.put("fullOS", getCellStringValue(row.getCell(6)));
+                item.put("architecture", getCellStringValue(row.getCell(7)));
+                item.put("systemModel", getCellStringValue(row.getCell(8)));
+                item.put("created_at", getCellStringValue(row.getCell(9)));
+                item.put("cpu", getCellStringValue(row.getCell(10)));
+                item.put("memory", getCellStringValue(row.getCell(11)));
+                item.put("displays", getCellStringValue(row.getCell(12)));
+                item.put("networkAdapters", getCellStringValue(row.getCell(13)));
+                item.put("maxResolution", getCellStringValue(row.getCell(14)));
+                item.put("maxRefreshRate", getCellStringValue(row.getCell(15)));
+                item.put("interfaceInfo", getCellStringValue(row.getCell(16)));
+
+                parsedData.add(item);
+            }
+
+            // 打印整理后的数据
+            System.out.println("解析到的系统信息：");
+            for (Map<String, Object> item : parsedData) {
+                String computerName = (String) item.get("computerName");
+                if (computerName == null || computerName.trim().isEmpty()) continue;
+
+                System.out.println("computerName:"+computerName);
+                int existing = testManIndexService.findByComputerName(computerName);
+                SystemInfo info = new SystemInfo();
+
+                info.setComputerName(computerName);
+                info.setDeviceType((String) item.get("deviceType"));
+                info.setVersion((String) item.get("version"));
+
+                // 处理 installationDate，空字符串转为 null
+                String installationDate = (String) item.get("installationDate");
+                if (installationDate.isEmpty()) {
+                    installationDate = null;  // 如果为空字符串，将其转换为 null
+                }
+                info.setInstallationDate(installationDate);
+
+                info.setInstallationDate((String) item.get("installationDate"));
+                info.setOsVersion((String) item.get("osVersion"));
+                info.setFullOS((String) item.get("fullOS"));
+                info.setArchitecture((String) item.get("architecture"));
+                info.setSystemModel((String) item.get("systemModel"));
+                info.setCpu((String) item.get("cpu"));
+                info.setMemory((String) item.get("memory"));
+                info.setDisplays((String) item.get("displays"));
+                info.setNetworkAdapters((String) item.get("networkAdapters"));
+                info.setMaxResolution((String) item.get("maxResolution"));
+                info.setMaxRefreshRate((String) item.get("maxRefreshRate"));
+                info.setInterfaceInfo((String) item.get("interfaceInfo"));
+
+                if(existing > 0){
+                    testManIndexService.updateSystemInfoByXlsx(info);
+                }else{
+                    testManIndexService.insertSystemInfoByXlsx(info);
+                }
+
+            }
+
+            return ResponseEntity.ok("文件解析成功，共解析到 " + parsedData.size() + " 条记录。");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("文件解析失败：" + e.getMessage());
+        }
+    }
+
+    private String getCellStringValue(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toString().replace("T", " ");
+                } else {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            default:
+                return "";
+        }
+    }
+
+    @RequestMapping(value = "/labModuleTester/deleteSystemInfoByIds")
+    public ResponseEntity<String> deleteDataByIds(@RequestBody Map<String, List<Integer>> request) {
+        List<Integer> ids = request.get("idRange");
+
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.badRequest().body("ID范围不能为空");
+        }
+
+        // 打印 ID 列表
+        System.out.println("删除的 ID 列表: " + ids);
+
+        try {
+            // 删除操作
+            testManIndexService.deleteSystemInfoById(ids);
+            return ResponseEntity.ok("删除成功");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败");
+        }
     }
 
 

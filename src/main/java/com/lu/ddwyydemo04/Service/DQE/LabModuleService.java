@@ -27,12 +27,12 @@ public class LabModuleService {
 
 
 
-    public List<SystemInfo> performSysInfo(String id, String computerName,String version,
+    public List<SystemInfo> performSysInfo(String id, String computerName,String deviceType,String version,
                                            String installationDate,String osVersion, String fullOS,
                                            String architecture, String systemModel,String cpu,String memory,
                                            String displays,String networkAdapters,
                                            String maxResolution, String maxRefreshRate,String interfaceInfo){
-        return dqeDao.performSysInfo(id,computerName,version,installationDate,osVersion, fullOS,
+        return dqeDao.performSysInfo(id,computerName,deviceType , version,installationDate,osVersion, fullOS,
                 architecture,systemModel,cpu,memory,displays,networkAdapters,
                 maxResolution,maxRefreshRate,interfaceInfo);
     }

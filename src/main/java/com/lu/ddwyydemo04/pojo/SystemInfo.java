@@ -2,19 +2,25 @@ package com.lu.ddwyydemo04.pojo;
 
 public class SystemInfo {
     private int id;                          // 自增主键
+
+    private String computerName;             // 计算机名称
+
+    private String deviceType;   // 设备类型：屏幕，主机，显示器，游戏机等
     private String version;                  // 操作系统版本
     private String installationDate;  // 安装日期
     private String osVersion;                // 操作系统详细版本号
+
+    private String fullOS;
     private String architecture;             // 系统架构
-    private String computerName;             // 计算机名称
+
     private String systemModel;              // 系统型号
     private String created_at;
-    private String fullOS;
+
     private String cpu;
     private String memory;
     private String displays;
     private String networkAdapters;
-    private double roundedScreenSize;  //屏幕尺寸
+//    private double roundedScreenSize;  //屏幕尺寸
     private String maxResolution;  //最大分辨率
     private String maxRefreshRate;  //刷新率
     private String interfaceInfo;  //接口信息
@@ -141,13 +147,6 @@ public class SystemInfo {
         this.networkAdapters = networkAdapters;
     }
 
-    public double getRoundedScreenSize() {
-        return roundedScreenSize;
-    }
-
-    public void setRoundedScreenSize(double roundedScreenSize) {
-        this.roundedScreenSize = roundedScreenSize;
-    }
 
     public String getMaxResolution() {
         return maxResolution;
@@ -174,23 +173,32 @@ public class SystemInfo {
         this.interfaceInfo = interfaceInfo;
     }
 
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
     @Override
     public String toString() {
         return "SystemInfo{" +
                 "id=" + id +
+                ", computerName='" + computerName + '\'' +
+                ", deviceType='" + deviceType + '\'' +
                 ", version='" + version + '\'' +
                 ", installationDate='" + installationDate + '\'' +
                 ", osVersion='" + osVersion + '\'' +
+                ", fullOS='" + fullOS + '\'' +
                 ", architecture='" + architecture + '\'' +
-                ", computerName='" + computerName + '\'' +
                 ", systemModel='" + systemModel + '\'' +
                 ", created_at='" + created_at + '\'' +
-                ", fullOS='" + fullOS + '\'' +
                 ", cpu='" + cpu + '\'' +
                 ", memory='" + memory + '\'' +
-                ", display='" + displays + '\'' +
+                ", displays='" + displays + '\'' +
                 ", networkAdapters='" + networkAdapters + '\'' +
-                ", roundedScreenSize='" + roundedScreenSize + '\'' +
                 ", maxResolution='" + maxResolution + '\'' +
                 ", maxRefreshRate='" + maxRefreshRate + '\'' +
                 ", interfaceInfo='" + interfaceInfo + '\'' +

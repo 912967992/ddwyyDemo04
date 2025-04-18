@@ -487,6 +487,12 @@
             sample_id = #{sample_id}
     </update>
 
+    <select id="queryActualWorkTime" parameterType="String" resultType="String">
+        SELECT testDuration FROM electric_info
+        WHERE
+            sample_id = #{sample_id}
+    </select>
+
 
     <update id="deleteElectric_schedule_info">
         UPDATE electric_schedule_info es
@@ -689,6 +695,98 @@
         SELECT  filepath FROM electric_info
         WHERE sample_id = #{sample_id}
     </select>
+
+    <update id="saveSystemInfoChange" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
+        UPDATE system_info
+        SET
+            deviceType = #{deviceType},
+            version = #{version},
+            installationDate = #{installationDate},
+            osVersion = #{osVersion},
+            architecture = #{architecture},
+            computerName = #{computerName},
+            systemModel = #{systemModel},
+            fullOS = #{fullOS},
+            cpu = #{cpu},
+            memory = #{memory},
+            displays = #{displays},
+            networkAdapters = #{networkAdapters},
+            maxResolution = #{maxResolution},
+            maxRefreshRate = #{maxRefreshRate},
+            created_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+
+    <select id="findByComputerName" parameterType="String" resultType="int">
+        SELECT count(*) From system_info WHERE computerName = #{computerName}
+
+    </select>
+
+    <insert id="insertSystemInfoByXlsx" parameterType="SystemInfo">
+        INSERT INTO system_info (
+            deviceType,
+            version,
+            installationDate,
+            osVersion,
+            architecture,
+            computerName,
+            systemModel,
+            created_at,
+            fullOS,
+            cpu,
+            memory,
+            displays,
+            networkAdapters,
+            maxResolution,
+            maxRefreshRate,
+            interfaceInfo
+        ) VALUES (
+                     #{deviceType},
+                     #{version},
+                     #{installationDate},
+                     #{osVersion},
+                     #{architecture},
+                     #{computerName},
+                     #{systemModel},
+                     NOW(),
+                     #{fullOS},
+                     #{cpu},
+                     #{memory},
+                     #{displays},
+                     #{networkAdapters},
+                     #{maxResolution},
+                     #{maxRefreshRate},
+                     #{interfaceInfo}
+                 );
+
+    </insert>
+
+    <update id="updateSystemInfoByXlsx" parameterType="SystemInfo">
+        UPDATE system_info
+        SET
+        deviceType = #{deviceType},
+        version = #{version},
+        installationDate = #{installationDate},
+        osVersion = #{osVersion},
+        architecture = #{architecture},
+        systemModel = #{systemModel},
+        fullOS = #{fullOS},
+        cpu = #{cpu},
+        memory = #{memory},
+        displays = #{displays},
+        networkAdapters = #{networkAdapters},
+        maxResolution = #{maxResolution},
+        maxRefreshRate = #{maxRefreshRate},
+        interfaceInfo = #{interfaceInfo},
+        created_at = NOW()  <!-- 可选，假如你要更新创建时间 -->
+        WHERE computerName = #{computerName};
+    </update>
+
+    <delete id="deleteSystemInfoById">
+        DELETE FROM system_info WHERE id = #{id}
+    </delete>
+
 
 
 </mapper>
