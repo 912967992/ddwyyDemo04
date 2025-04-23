@@ -277,11 +277,6 @@
 
             document.getElementById('modal').style.display = 'block';
 
-
-
-
-
-
         };
     }
 
@@ -366,7 +361,6 @@
             return;
         }
 
-
         try {
             const response = await fetch('/scheduleBoard/saveSchedule', {
                 method: 'POST',
@@ -443,7 +437,8 @@
                         schudule_days: item.scheduleDays,
                         schedule_start_date: item.schedule_start_date,
                         schedule_end_date: item.schedule_end_date,
-                        schedule_color: item.schedule_color
+                        schedule_color: item.schedule_color,
+                        job_number: item.job_number
                     };
 
                     const tester = item.tester || '未知测试人员';
@@ -462,9 +457,8 @@
                 try {
                     const testersResponse = await fetch('/getTesters');
                     const testersData = await testersResponse.json();
-                    const testers = testersData; // 保持数组形式
 
-                    drawScheduleBoard(board, testers, allDates, dateMap);
+                    drawScheduleBoard(board, testersData, allDates, dateMap);
                 } catch (error) {
                     console.error("获取测试人员失败:", error);
                     document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
@@ -476,7 +470,7 @@
             });
     }
 
-    function drawScheduleBoard(board,testers, allDates, dateMap){
+    function drawScheduleBoard(board, testers, allDates, dateMap) {
         // 构建表格
         let html = '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
 
@@ -491,29 +485,31 @@
 
         // 渲染每个 tester 行
         testers.forEach(tester => {
-            html += `<tr><td><strong>${tester}</strong></td>`;
+            const testerName = tester.test_engineer_name;  // 名字
+            const jobNumber = tester.engineer_id;          // 工号
+
+            html += `<tr><td><strong>${testerName}</strong></td>`;
 
             let colIndex = 0;
             while (colIndex < allDates.length) {
                 const currentDate = allDates[colIndex];
-                const task = dateMap[tester]?.find(t => t.startDate === currentDate);
+                const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
 
                 if (task) {
-
                     const rangeDates = getDateRange(task.startDate, task.endDate);
                     const colspan = rangeDates.length;
 
-                    html += createTaskCell(task, tester, currentDate, colspan);
+                    html += createTaskCell(task, testerName, currentDate, colspan);
 
                     for (let i = 1; i < colspan; i++) {
-                        html += `<td class="drop-cell" style="display: none;" data-tester="${tester}" data-date="${allDates[colIndex + i]}"></td>`;
+                        html += `<td class="drop-cell" style="display: none;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
                     }
 
                     colIndex += colspan;
                 } else {
-                    const isCovered = dateMap[tester]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
+                    const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
                     if (!isCovered) {
-                        html += `<td class="drop-cell" data-tester="${tester}" data-date="${currentDate}"></td>`;
+                        html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
                     }
                     colIndex += 1;
                 }
@@ -528,10 +524,10 @@
         // 拖拽目标
         const cells = document.querySelectorAll('.drop-cell');
 
-        cells.forEach(cell => {
-            const tester = cell.getAttribute('data-tester');
-            const date = cell.getAttribute('data-date');
-        });
+        // cells.forEach(cell => {
+        //     const tester = cell.getAttribute('data-tester');
+        //     const date = cell.getAttribute('data-date');
+        // });
 
         cells.forEach((cell, cellIndex, cellList) => {
             cell.addEventListener('dragover', e => {
@@ -547,16 +543,16 @@
 
                 const sample_id = e.dataTransfer.getData('project-sample_id');
                 const days = parseFloat(e.dataTransfer.getData('project-days')) || 1;
-
                 const sizecoding = e.dataTransfer.getData('project-sizecoding') || 1;
 
                 const tester = cell.getAttribute('data-tester');
+                const job_number = cell.getAttribute('data-job_number');
                 const startDate = cell.getAttribute('data-date');
 
                 const schedule_days = parseFloat(e.dataTransfer.getData('project-schedule_days')) || 1;
 
-                // 提前拦截无效拖拽（sample_id 和 schedule_days 同时为空）
-                if ((!sample_id || sample_id.trim() === "")){
+                // 提前拦截无效拖拽
+                if ((!sample_id || sample_id.trim() === "")) {
                     console.warn("无效拖拽内容：sample_id 和 schedule_days 都为空，忽略本次拖拽。");
                     return;
                 }
@@ -566,12 +562,12 @@
                 startDateObj.setDate(startDateObj.getDate() + Math.ceil(schedule_days) - 1);
                 const schedule_end_date = startDateObj.toISOString().split('T')[0];
 
-
                 const taskData = {
                     sample_id,
                     days,
                     sizecoding,
                     tester,
+                    job_number,
                     startDate,
                     sample_name: e.dataTransfer.getData('project-sample_name'),
                     sample_model: e.dataTransfer.getData('project-sample_model'),
@@ -585,13 +581,10 @@
                     test_projects: e.dataTransfer.getData('project-test_projects'),
                     schedule: e.dataTransfer.getData('project-schedule'),
                     create_time: e.dataTransfer.getData('project-create_time'),
-                    // schedule_days: e.dataTransfer.getData('project-schedule_days')
-
                     schedule_days: e.dataTransfer.getData('project-schedule_days'),
-                    schedule_start_date: cell.getAttribute('data-date'),
+                    schedule_start_date: startDate,
                     schedule_end_date: schedule_end_date,
                     schedule_color: e.dataTransfer.getData('project-schedule_color')
-
                 };
 
                 handleDrop(cell, cellList, taskData);
@@ -611,7 +604,6 @@
 
         // 撤回排期功能
         const contextMenu = document.getElementById('contextMenu');
-        // 绑定事件
         contextMenu.addEventListener('click', handleContextMenuClick);
 
         // 应用颜色
@@ -621,18 +613,16 @@
                 cell.style.backgroundColor = color;
             }
         });
-
-
-
     }
 
 
-    // 创建任务单元格
+    // 创建排期面板的单元格
     function createTaskCell(task, tester, currentDate, colspan) {
         return `
         <td class="drop-cell assigned"
           data-tester="${tester}"
           data-date="${currentDate}"
+          data-job_number="${task.job_number}"
           colspan="${colspan}"
           data-sample_id="${task.sample_id || ''}"
           data-sample_name="${task.sample_name || ''}"
@@ -663,9 +653,12 @@
 
         const tester = currentRightClickCell.getAttribute('data-tester');
         const sample_id = currentRightClickCell.getAttribute('data-sample_id');
+        const job_number = currentRightClickCell.getAttribute('data-job_number');
+        console.log(job_number)
 
         const taskData = {
             tester,
+            job_number,
             sample_id,
             sizecoding: currentRightClickCell.getAttribute('data-sizecoding'),
             sample_name: currentRightClickCell.getAttribute('data-sample_name'),
@@ -683,7 +676,7 @@
             schedule_days: currentRightClickCell.getAttribute('data-schedule_days'),
             schedule_start_date: currentRightClickCell.getAttribute('data-schedule_start_date'),
             schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date'),
-            schedule_color: currentRightClickCell.getAttribute('data-schedule_color')
+            schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
 
         };
 
@@ -696,7 +689,7 @@
 
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData) {
-        const { sample_id, days, sizecoding, tester, startDate, schedule_days, schedule_color } = taskData;
+        const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
         const roundedDays = Math.ceil(days);
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
@@ -745,7 +738,8 @@
             start_date: startDate,
             end_date: endDate,
             scheduleDays: schedule_days,
-            schedule_color: schedule_color
+            schedule_color: schedule_color,
+            job_number: job_number
         };
 
         // 查找并更新已有记录（如果存在），否则添加
@@ -765,7 +759,7 @@
 
     // 处理撤回排期事件，撤回排期按钮触发这个方法
     function handleUndo(rowCells, startIndex, taskData) {
-        const { schedule_days, tester, sample_id } = taskData;
+        const { schedule_days, sample_id } = taskData;
         const currentRightClickCell = rowCells[startIndex];
 
         // 清除原始内容和属性
@@ -798,8 +792,10 @@
         restoredProject.setAttribute('data-schedule_days', schedule_days);
         restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
 
+        //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
         Object.keys(taskData).forEach(key => {
-            if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date') {
+            if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number'
+            && key!== 'tester') {
                 restoredProject.setAttribute(`data-${key}`, taskData[key]);
             }
         });
@@ -841,7 +837,8 @@
             start_date: taskData.schedule_start_date,
             end_date: taskData.schedule_end_date,
             scheduleDays: schedule_days,
-            schedule_color: taskData.schedule_color
+            schedule_color: taskData.schedule_color,
+            job_number: taskData.job_number
         };
 
         const existingIndex = localScheduleChanges.findIndex(item =>

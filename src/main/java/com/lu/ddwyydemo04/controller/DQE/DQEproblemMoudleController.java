@@ -537,7 +537,7 @@ public class DQEproblemMoudleController {
 
         //查看DQE和研发是否都给出了承认结果
         int updateResult = dqeproblemMoudleService.updateResult(sampleId , job, selectedOption);
-        System.out.println("updateResult:"+updateResult);
+//        System.out.println("updateResult:"+updateResult);
         int allHaveValue = dqeproblemMoudleService.queryResults(sampleId);
 
         return allHaveValue;

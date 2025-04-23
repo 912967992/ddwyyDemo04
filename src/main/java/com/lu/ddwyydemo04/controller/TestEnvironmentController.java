@@ -1,13 +1,9 @@
 package com.lu.ddwyydemo04.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
-import com.lu.ddwyydemo04.pojo.ElectricalTestItem;
-import com.lu.ddwyydemo04.pojo.MaterialItem;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 
 import org.slf4j.Logger;
@@ -74,8 +70,6 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getReceivedData();
-//        List<PassbackData> receivedData =  testManIndexService.getAllReceivedData();
-//        logger.info("/passback/getAllReceivedData："+receivedData.toString());
         return ResponseEntity.ok(receivedData);
     }
 
@@ -220,8 +214,8 @@ public class TestEnvironmentController {
     @ResponseBody
     public List<Map<String, Object>> getScheduleBoardWithTime(@RequestParam("startDate") String startDate,
                                                               @RequestParam("endDate") String endDate) {
-        System.out.println(startDate);
-        System.out.println(endDate);
+//        System.out.println(startDate);
+//        System.out.println(endDate);
         List<ElectricScheduleInfo> scheduleList;
         if (endDate == null || endDate.isEmpty()) {
             scheduleList = testManIndexService.getSchedulesByStartDate(startDate);
@@ -237,7 +231,7 @@ public class TestEnvironmentController {
                 .distinct()
                 .collect(Collectors.toList());
 
-        System.out.println("electricInfoIds:"+electricInfoIds);
+//        System.out.println("electricInfoIds:"+electricInfoIds);
         // 如果electricInfoIds为空，直接返回空的结果列表
         if (electricInfoIds.isEmpty()) {
             return new ArrayList<>();
@@ -260,23 +254,28 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
-        System.out.println("result:"+result);
+//        System.out.println("result:"+result);
 
         return result;
     }
 
     private Map<String, Object> mergeScheduleAndPassback(ElectricScheduleInfo schedule, Map<String, PassbackData> passbackMap) {
         Map<String, Object> merged = new LinkedHashMap<>(); // 保证字段顺序一致
+        String username = schedule.getTester();
 
         // 将 ElectricScheduleInfo 的属性写入 map
         merged.put("id", schedule.getId());
-        merged.put("sample_id", schedule.getSample_id());
+        merged.put("sample_id",  schedule.getSample_id());
         merged.put("tester", schedule.getTester());
         merged.put("schedule_start_date", schedule.getSchedule_start_date());
         merged.put("schedule_end_date", schedule.getSchedule_end_date());
         merged.put("create_time", schedule.getCreate_time());
         merged.put("update_time", schedule.getUpdate_time());
         merged.put("sizecoding", schedule.getSizecoding());
+
+        //从user数据库里根据名字获取工号
+        String job_number = testManIndexService.queryJobnumberFromUser(username);
+        merged.put("job_number",job_number);
 
         // 合并对应的 PassbackData 字段
         PassbackData passback = passbackMap.get(schedule.getSample_id());
@@ -321,6 +320,7 @@ public class TestEnvironmentController {
 
 
     @PostMapping("/scheduleBoard/saveSchedule")
+    @ResponseBody
     public ResponseEntity<Map<String, String>> saveSchedule(@RequestBody List<Map<String, String>> scheduleChanges) {
         List<String> statusList = new ArrayList<>();
         if (scheduleChanges == null || scheduleChanges.isEmpty()) {
@@ -370,7 +370,7 @@ public class TestEnvironmentController {
             requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
             requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
             requestBody.put("TestLeaderName", schedule.get("tester"));
-            requestBody.put("TestLeaderCode", "3894");
+            requestBody.put("TestLeaderCode", schedule.get("job_number"));
             System.out.println("requestBody:"+requestBody);
 
             HttpHeaders headers = new HttpHeaders();
@@ -426,6 +426,7 @@ public class TestEnvironmentController {
 
 
     @PostMapping("/passback/StartTestElectricalTest")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> startTest(@RequestBody Map<String, String> requestData) {
         String testNumber = requestData.get("test_number");
         String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
@@ -497,6 +498,7 @@ public class TestEnvironmentController {
 
 
     @PostMapping("/passback/FinishTestElectricalTest")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> finishTest(@RequestBody Map<String, String> requestData) {
         String testNumber = requestData.get("test_number");
         String actualTestEndDate = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
@@ -512,7 +514,7 @@ public class TestEnvironmentController {
 
         boolean updateFinishTime = testManIndexService.FinishTestElectricalTest(testNumber,actualTestEndDate);
         String actual_work_time = testManIndexService.queryActualWorkTime(testNumber);
-//        System.out.println("actual_work_time:"+actual_work_time);
+        logger.info("结束测试的出来的实际工时为:"+actual_work_time);
 
         if (!updateFinishTime) {
             Map<String, Object> response = new HashMap<>();
@@ -525,6 +527,7 @@ public class TestEnvironmentController {
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestEndDate", actualTestEndDate);
+        requestPayload.put("ActualTestWorkHour", actual_work_time);
         requestPayload.put("ActualTestWrokHour", actual_work_time);
 
         // 添加认证头
@@ -570,59 +573,8 @@ public class TestEnvironmentController {
     }
 
 
-//    @PostMapping("/passback/ProcessTestElectricalTest")
-//    public ResponseEntity<Map<String, Object>> processTest(@RequestBody Map<String, String> requestData) {
-//        String testNumber = requestData.get("test_number");
-//        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
-//                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//        String sampleRecognizeResult = requestData.get("sampleRecognizeResult");
-//
-//        if (testNumber == null || testNumber.isEmpty()) {
-//            Map<String, Object> response = new HashMap<>();
-//            response.put("status", 400);
-//            response.put("message", "测试编号不能为空");
-//            return ResponseEntity.badRequest().body(response);
-//        }
-//
-//        testManIndexService.updateElectricInfoReview(testNumber,reportReviewTime,sampleRecognizeResult);
-//
-//        // 构造请求数据
-//        Map<String, String> requestPayload = new HashMap<>();
-//        requestPayload.put("ETTestCode", testNumber);
-//        requestPayload.put("ReportReviewTime", reportReviewTime);
-//        requestPayload.put("SampleRecognizeResult", sampleRecognizeResult);
-//        System.out.println("requestPayload:"+requestPayload);
-//        //这里差个参数。文件！！！周末的时候加吧
-//
-//
-//        // 添加认证头
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
-//
-//        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
-//
-//        // 发送 POST 请求到目标接口
-//        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/ReportReviewElectricalTest";
-//        RestTemplate restTemplate = new RestTemplate();
-//
-//        try {
-//            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
-//
-//            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
-//            logger.info("远程接口响应体: {}", apiResponse.getBody());
-//
-//            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
-//        } catch (Exception e) {
-//            Map<String, Object> errorResponse = new HashMap<>();
-//            errorResponse.put("staus", 500);
-//            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-//        }
-//
-//    }
-
     @PostMapping("/passback/ProcessTestElectricalTest")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> processTest(@RequestBody Map<String, String> requestData) {
         String testNumber = requestData.get("test_number");
 //        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
@@ -728,17 +680,17 @@ public class TestEnvironmentController {
 
 
     @GetMapping("/getTesters")
-    public ResponseEntity<List<String>> getTesters() {
-        List<String> testers = testManIndexService.getAllTesters();
+    public ResponseEntity<List<Map<String, Object>>> getTesters() {
+        List<Map<String, Object>> testers = testManIndexService.getAllTesters();
+//        System.out.println("testers:"+testers);
         return ResponseEntity.ok(testers);
     }
 
     @PostMapping("/schedule/saveScheduleColor")
     public ResponseEntity<String> saveScheduleColor(@RequestParam("color") String color,@RequestParam("sample_id") String sample_id) {
         // 打印接收到的颜色
-        logger.info("接收到的颜色值为: " + color);
-        logger.info("接收到的sample_id值为: " + sample_id);
-
+//        logger.info("接收到的颜色值为: " + color);
+//        logger.info("接收到的sample_id值为: " + sample_id);
 
         testManIndexService.updateElectricInfoColor(sample_id, color);
         testManIndexService.updateScheduleInfoColorIfExists(sample_id, color);
@@ -752,6 +704,7 @@ public class TestEnvironmentController {
     }
 
     @PostMapping("/passback/uploadXlsx")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> uploadReport(
             @RequestParam("testId") String testId,
             @RequestParam("file") MultipartFile file) {

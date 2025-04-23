@@ -21,22 +21,6 @@ public class LabModuleController {
     @PostMapping("/uploadSys")
     @ResponseBody
     public ResponseEntity<String> uploadSystemInfo(@RequestBody SystemInfo systemInfo) {
-        // 打印接收到的系统信息
-//        System.out.println("Received System Info:");
-//        System.out.println("Version: " + systemInfo.getVersion());
-//        System.out.println("Installation Date: " + systemInfo.getInstallationDate());
-//        System.out.println("Operating System Version: " + systemInfo.getOsVersion());
-//        System.out.println("System Architecture: " + systemInfo.getArchitecture());
-//        System.out.println("Computer Name: " + systemInfo.getComputerName());
-//        System.out.println("System Model: " + systemInfo.getSystemModel());
-//        System.out.println("fullOS: " + systemInfo.getFullOS());
-//        System.out.println("cpu: " + systemInfo.getCpu());
-//        System.out.println("memory: " + systemInfo.getMemory());
-//        System.out.println("displays: " + systemInfo.getDisplays());
-//        System.out.println("networkAdapters: " + systemInfo.getNetworkAdapters());
-//
-//        System.out.println("maxResolution: " + systemInfo.getMaxResolution());
-//        System.out.println("maxRefreshRate: " + systemInfo.getMaxRefreshRate());
 
         // 判断 Computer Name 是否在数据库中存在
         int exists = labModuleService.checkIfComputerNameExists(systemInfo.getComputerName());
@@ -69,15 +53,12 @@ public class LabModuleController {
                                           @RequestParam(required = false) String computerName,
                                           @RequestParam(required = false) String deviceType,
                                           @RequestParam(required = false) String version,
-                                          @RequestParam(required = false) String installationDate,
                                           @RequestParam(required = false) String osVersion,
                                           @RequestParam(required = false) String fullOS,
                                           @RequestParam(required = false) String architecture,
-                                          @RequestParam(required = false) String systemModel,
                                           @RequestParam(required = false) String cpu,
                                           @RequestParam(required = false) String memory,
                                           @RequestParam(required = false) String displays,
-                                          @RequestParam(required = false) String networkAdapters,
                                           @RequestParam(required = false) String maxResolution,
                                           @RequestParam(required = false) String maxRefreshRate,
                                           @RequestParam(required = false) String interfaceInfo
@@ -88,17 +69,14 @@ public class LabModuleController {
         computerName = (computerName != null && !computerName.isEmpty()) ? computerName : null;
         deviceType = (deviceType != null && !deviceType.isEmpty()) ? deviceType : null;
         version = (version != null && !version.isEmpty()) ? version : null;
-        installationDate = (installationDate != null && !installationDate.isEmpty()) ? installationDate : null;
         osVersion = (osVersion != null && !osVersion.isEmpty()) ? osVersion : null;
         fullOS = (fullOS != null && !fullOS.isEmpty()) ? fullOS : null;
 
         architecture = (architecture != null && !architecture.isEmpty()) ? architecture : null;
-        systemModel = (systemModel != null && !systemModel.isEmpty()) ? systemModel : null;
 
         cpu = (cpu != null && !cpu.isEmpty()) ? cpu : null;
         memory = (memory != null && !memory.isEmpty()) ? memory : null;
         displays = (displays != null && !displays.isEmpty()) ? displays : null;
-        networkAdapters = (networkAdapters != null && !networkAdapters.isEmpty()) ? networkAdapters : null;
 
         maxResolution = (maxResolution != null && !maxResolution.isEmpty()) ? maxResolution : null;
         maxRefreshRate = (maxRefreshRate != null && !maxRefreshRate.isEmpty()) ? maxRefreshRate : null;
@@ -106,8 +84,8 @@ public class LabModuleController {
         interfaceInfo = (interfaceInfo != null && !interfaceInfo.isEmpty()) ? interfaceInfo : null;
 
 
-        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,deviceType,version,installationDate,osVersion,fullOS,
-                architecture,systemModel,cpu,memory,displays,networkAdapters,maxResolution,maxRefreshRate,interfaceInfo);
+        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,deviceType,version,osVersion,fullOS,
+                architecture,cpu,memory,displays,maxResolution,maxRefreshRate,interfaceInfo);
 //        System.out.println(systemInfos);
 
         return systemInfos;

@@ -12,6 +12,7 @@ import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TaskNode;
 import com.lu.ddwyydemo04.pojo.User;
 import com.taobao.api.ApiException;
+import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,16 +107,27 @@ public class AccessTokenService {
         return rsp.getResult().getUseridList();
     }
 
-    public String getUsernameByUserid(String userid) throws ApiException {
+    public Map<String, String> getUsernameByUserid(String userid) throws ApiException {
         // 使用userId获取用户的详细信息
         DingTalkClient infoClient = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/v2/user/get");
         OapiV2UserGetRequest infoReq = new OapiV2UserGetRequest();
         infoReq.setUserid(userid);
         infoReq.setLanguage("zh_CN");
         OapiV2UserGetResponse infoRsp = infoClient.execute(infoReq, getAccessToken());
-        String username = extractParamOfResult(infoRsp.getBody(),"name");
+//        System.out.println("infoRsp.getBody():"+infoRsp.getBody());
+        // 提取所需的字段
+        String username = extractParamOfResult(infoRsp.getBody(), "name");
+        String jobNumber = extractParamOfResult(infoRsp.getBody(), "job_number");
+        // result的create_time才是入职日期，我看了日志的
+        String hire_date = extractParamOfResult(infoRsp.getBody(), "create_time");
 
-        return username;
+        // 将结果存入Map
+        Map<String, String> userInfo = new HashMap<>();
+        userInfo.put("username", username);
+        userInfo.put("job_number", jobNumber);
+        userInfo.put("hire_date", hire_date);
+
+        return userInfo;
     }
 
 
@@ -405,8 +417,15 @@ public class AccessTokenService {
 
         // 查找用户 ID
         for (String userId : userIdList) {
-            String username = getUsernameByUserid(userId); // 获取用户名
+            Map<String, String> userInfo = getUsernameByUserid(userId); // 获取用户名
+            // 提取用户名和工号
+            String username = userInfo.get("username");
+            String jobNumber = userInfo.get("job_number");
+            String hire_date = userInfo.get("hire_date");
+
             User user = new User();
+            user.setJob_number(jobNumber);
+            user.setHire_date(hire_date);
             user.setUserId(userId); // 设置用户 ID
             user.setUsername(username); // 设置用户名
             user.setDeptId(deptId); // 设置小部门 ID
@@ -593,6 +612,7 @@ public class AccessTokenService {
     @Scheduled(cron = "0 10 2 * * ?") // 每天北京时间的 10:12
     public void refreshUserIds() throws ApiException {
         List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L); // 示例大部门 ID
+//        List<Long> targetDeptIds = Arrays.asList( 523528658L); // 示例大部门 ID
         List<User> allUsers = new ArrayList<>(); // 用于存放所有用户的列表
 
         for (Long targetDeptId : targetDeptIds) {
@@ -624,8 +644,8 @@ public class AccessTokenService {
             }  else if (majorDeptId.equals(62712385L)) { // 产品研发部
                 user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
-                // 进一步检查是否在电子测试组
-                if (user.getDepartmentName() != null && user.getDepartmentName().equals("电子测试组")) {
+                // 进一步检查是否在测试组
+                if (user.getDepartmentName() != null && user.getDepartmentName().equals("测试组")) {
                     user.setPosition("tester");
                 } else {
                     user.setPosition("DQE");
@@ -678,6 +698,7 @@ public class AccessTokenService {
         for (User user : userMap.values()) {
             dqeDao.insertOrUpdateUser(user); // 保存用户到数据库
         }
+
     }
 
 
@@ -747,6 +768,89 @@ public class AccessTokenService {
             return "更新状态栏失败: " + e.getMessage();
         }
     }
+
+    // 每天凌晨3:10执行
+    @Scheduled(cron = "0 10 3 * * ?")
+    public void syncEngineers() {
+        String[] engineerNames = {
+                "郭喆", "游宏", "殷嘉俊", "唐日顺", "官旺华", "刘鹏飞", "赵梓宇", "段平", "魏民",
+                "程奕阳", "赵爽", "罗清虎", "龙运", "黄兰姣", "李智龙", "肖灶炜", "肖龙生", "张国鹏",
+                "戴杏华", "李素欣1", "张锐", "阮晓晴", "廖建伟", "蔡义会"
+        }; // 测试人员数组
+
+        // 定义组别
+        Map<String, String> groupMap = new HashMap<>();
+        groupMap.put("龙运", "线材组");
+        groupMap.put("张国鹏", "线材组");
+        groupMap.put("唐日顺", "新人");
+        groupMap.put("殷嘉俊", "新人");
+        groupMap.put("赵梓宇", "新人");
+        groupMap.put("游宏", "新人");
+        groupMap.put("郭喆", "新人");
+        groupMap.put("戴杏华", "视频组");
+        groupMap.put("李智龙", "视频组");
+        groupMap.put("魏民", "视频组");
+        groupMap.put("肖灶炜", "视频组");
+        groupMap.put("李素欣1", "视频组");
+        groupMap.put("程奕阳", "视频组");
+        groupMap.put("张锐", "数据网通组");
+        groupMap.put("赵爽", "数据网通组");
+        groupMap.put("肖龙生", "数据网通组");
+        groupMap.put("黄兰姣", "蓝牙组");
+        groupMap.put("刘鹏飞", "蓝牙组");
+        groupMap.put("段平", "蓝牙组");
+        groupMap.put("罗清虎", "蓝牙组");
+        groupMap.put("阮晓晴", "耳机组");
+        groupMap.put("官旺华", "耳机组");
+        groupMap.put("廖建伟", "高频组");
+        groupMap.put("蔡义会", "高频组");
+
+        for (String name : engineerNames) {
+            Map<String, String> userInfo = findUserByUsername(name);
+
+            if (userInfo != null) {
+                String engineerId = userInfo.get("engineerId");
+                String testEngineerName = userInfo.get("testEngineerName");
+                String hire_date = userInfo.get("hire_date");
+                String responsible_category = groupMap.getOrDefault(testEngineerName, null); // 获取组别
+
+                Integer count = countEngineerByName(testEngineerName);
+
+                if (count != null && count > 0) {
+                    // 已存在，更新
+                    updateEngineer(engineerId, testEngineerName, hire_date, responsible_category);
+                } else {
+                    // 不存在，插入
+                    insertEngineer(engineerId, testEngineerName, hire_date, responsible_category);
+                }
+            }
+        }
+        logger.info("定时任务更新测试人员数据库已完毕!");
+    }
+
+
+    public Map<String, String> findUserByUsername(String username){
+        return dqeDao.findUserByUsername(username);
+    }
+
+    // 查tb_test_engineer_info表，看工程师是不是已经存在
+    public Integer countEngineerByName(String testEngineerName){
+        return dqeDao.countEngineerByName(testEngineerName);
+    }
+
+    // 插入新工程师
+    public void insertEngineer(String engineerId, String testEngineerName,String hire_date,String responsible_category){
+        dqeDao.insertEngineer(engineerId,testEngineerName,hire_date,responsible_category);
+    }
+
+    // 更新已有工程师信息
+    public void updateEngineer( String engineerId,String testEngineerName,String hire_date,String responsible_category){
+        dqeDao.updateEngineer(engineerId,testEngineerName,hire_date,responsible_category);
+    }
+
+
+
+
 
     public int insertTaskNode(TaskNode taskNode){
         return dqeDao.insertTaskNode(taskNode);

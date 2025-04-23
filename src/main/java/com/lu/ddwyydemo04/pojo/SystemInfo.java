@@ -7,40 +7,23 @@ public class SystemInfo {
 
     private String deviceType;   // 设备类型：屏幕，主机，显示器，游戏机等
     private String version;                  // 操作系统版本
-    private String installationDate;  // 安装日期
     private String osVersion;                // 操作系统详细版本号
 
     private String fullOS;
     private String architecture;             // 系统架构
 
-    private String systemModel;              // 系统型号
     private String created_at;
 
     private String cpu;
     private String memory;
     private String displays;
-    private String networkAdapters;
+
 //    private double roundedScreenSize;  //屏幕尺寸
     private String maxResolution;  //最大分辨率
     private String maxRefreshRate;  //刷新率
     private String interfaceInfo;  //接口信息
 
 
-    // 无参构造函数
-//    public SystemInfo() {
-//    }
-
-    // 全参构造函数
-//    public SystemInfo(int id, String version, String installationDate, String osVersion, String architecture,
-//                      String computerName, String systemModel, String created_at) {
-//        this.id = id;
-//        this.version = version;
-//        this.installationDate = installationDate;
-//        this.osVersion = osVersion;
-//        this.architecture = architecture;
-//        this.computerName = computerName;
-//        this.systemModel = systemModel;
-//    }
 
     // Getter 和 Setter 方法
     public int getId() {
@@ -59,13 +42,7 @@ public class SystemInfo {
         this.version = version;
     }
 
-    public String getInstallationDate() {
-        return installationDate;
-    }
 
-    public void setInstallationDate(String installationDate) {
-        this.installationDate = installationDate;
-    }
 
     public String getOsVersion() {
         return osVersion;
@@ -91,13 +68,6 @@ public class SystemInfo {
         this.computerName = computerName;
     }
 
-    public String getSystemModel() {
-        return systemModel;
-    }
-
-    public void setSystemModel(String systemModel) {
-        this.systemModel = systemModel;
-    }
 
     public String getCreated_at() {
         return created_at;
@@ -139,13 +109,7 @@ public class SystemInfo {
         this.displays = displays;
     }
 
-    public String getNetworkAdapters() {
-        return networkAdapters;
-    }
 
-    public void setNetworkAdapters(String networkAdapters) {
-        this.networkAdapters = networkAdapters;
-    }
 
 
     public String getMaxResolution() {
@@ -189,16 +153,13 @@ public class SystemInfo {
                 ", computerName='" + computerName + '\'' +
                 ", deviceType='" + deviceType + '\'' +
                 ", version='" + version + '\'' +
-                ", installationDate='" + installationDate + '\'' +
                 ", osVersion='" + osVersion + '\'' +
                 ", fullOS='" + fullOS + '\'' +
                 ", architecture='" + architecture + '\'' +
-                ", systemModel='" + systemModel + '\'' +
                 ", created_at='" + created_at + '\'' +
                 ", cpu='" + cpu + '\'' +
                 ", memory='" + memory + '\'' +
                 ", displays='" + displays + '\'' +
-                ", networkAdapters='" + networkAdapters + '\'' +
                 ", maxResolution='" + maxResolution + '\'' +
                 ", maxRefreshRate='" + maxRefreshRate + '\'' +
                 ", interfaceInfo='" + interfaceInfo + '\'' +

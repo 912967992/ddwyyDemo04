@@ -9,6 +9,9 @@ public class User {
     private String departmentName; // 小部门名称
     private String position; // 职位
 
+    private String job_number;  // 工号
+    private String hire_date;  // 入职日期
+
     // 其他属性、构造函数、getter 和 setter 方法...
 
 
@@ -60,5 +63,19 @@ public class User {
         this.position = position; // 设置职位
     }
 
-    // 其他 getter 和 setter 方法...
+    public String getJob_number() {
+        return job_number;
+    }
+
+    public void setJob_number(String job_number) {
+        this.job_number = job_number;
+    }
+
+    public String getHire_date() {
+        return hire_date;
+    }
+
+    public void setHire_date(String hire_date) {
+        this.hire_date = hire_date;
+    }
 }

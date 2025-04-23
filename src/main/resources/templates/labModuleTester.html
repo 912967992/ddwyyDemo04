@@ -62,12 +62,7 @@
             </div>
 
 
-            <!-- 操作系统安装日期 -->
-            <div class="input-group">
-                <label for="installationDate">系统<br>安装日期:</label>
-                <input type="text" id="installationDate" name="installationDate" placeholder="操作系统安装日期">
-            </div>
-
+<
             <!-- 操作系统详细版本号 -->
             <div class="input-group">
                 <label for="osVersion">系统<br>版本号:</label>
@@ -85,11 +80,6 @@
                 <input type="text" id="architecture" name="architecture" placeholder="">
             </div>
 
-            <!-- 系统型号 -->
-            <div class="input-group">
-                <label for="systemModel">系统型号:</label>
-                <input type="text" id="systemModel" name="systemModel" placeholder="">
-            </div>
 
             <!-- 处理器 -->
             <div class="input-group">
@@ -109,11 +99,6 @@
                 <input type="text" id="displays" name="displays" placeholder="">
             </div>
 
-            <!-- 网络适配器 -->
-            <div class="input-group">
-                <label for="networkAdapters">网络适配器:</label>
-                <input type="text" id="networkAdapters" name="networkAdapters" placeholder="">
-            </div>
 
 
             <!-- 最大分辨率 -->
@@ -335,8 +320,8 @@
         const headerRow = document.createElement('tr');
 
         const headers = [
-            "设备ID", "名称", "设备类型" ,"操作系统版本", "操作系统安装日期", "操作系统详细版本号", "版本号", "系统架构", "系统型号",
-            "记录更新时间", "处理器", "内存", "显卡", "网络适配器", "内置屏最大分辨率", "内置屏最大刷新率", "接口信息"
+            "设备ID", "名称", "设备类型" ,"操作系统版本",  "操作系统详细版本号", "版本号", "系统架构",
+            "记录更新时间", "处理器", "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
         ];
 
         headers.forEach(headerText => {
@@ -353,9 +338,9 @@
             const row = document.createElement('tr');
 
             const cells = [
-                item.id, item.computerName, item.deviceType, item.version, item.installationDate, item.osVersion, item.fullOS,
-                item.architecture, item.systemModel, item.created_at, item.cpu, item.memory,
-                item.displays, item.networkAdapters, item.maxResolution, item.maxRefreshRate,
+                item.id, item.computerName, item.deviceType, item.version, item.osVersion, item.fullOS,
+                item.architecture, item.created_at, item.cpu, item.memory,
+                item.displays,  item.maxResolution, item.maxRefreshRate,
                 item.interfaceInfo
             ];
 
@@ -390,9 +375,9 @@
                         row.classList.add('editing-row');
 
                         const fieldKeys = [
-                            "id", "computerName", "deviceType", "version", "installationDate", "osVersion", "fullOS",
-                            "architecture", "systemModel", "created_at", "cpu", "memory",
-                            "displays", "networkAdapters", "maxResolution", "maxRefreshRate"
+                            "id", "computerName", "deviceType", "version", "osVersion", "fullOS",
+                            "architecture", "created_at", "cpu", "memory",
+                            "displays", "maxResolution", "maxRefreshRate"
                         ];
                         const key = fieldKeys[index];
 
@@ -603,7 +588,7 @@
         exportButton.classList.add('export-button');
         exportButton.style.marginRight = '10px';
         exportButton.addEventListener('click', () => {
-            if (!stopClick()) return; // 如果返回 false，停止执行后续操作
+            // if (!stopClick()) return; // 如果返回 false，停止执行后续操作
             exportToExcel(data); // 👈 你需要定义这个函数
         });
         pagination.appendChild(exportButton);

@@ -1222,7 +1222,6 @@ public class testManIndexController {
         if (rawData == null) {
             return new ArrayList<>();
         }
-        System.out.println("rawData: " + rawData);
 
         // 按行分割数据
         String[] rows = rawData.split("\n"); // 假设每一行的数据以换行符分隔
@@ -1238,7 +1237,6 @@ public class testManIndexController {
                 result.add(Arrays.asList(parts));
             }
         }
-        System.out.println("result: " + result);
 
         return result;
     }
@@ -1266,9 +1264,9 @@ public class testManIndexController {
 
             // 定义列标题
             String[] columns = {
-                    "设备ID", "名称", "设备类型", "操作系统版本", "操作系统安装日期", "操作系统详细版本号",
-                    "版本号", "系统架构", "系统型号", "记录更新时间", "处理器",
-                    "内存", "显卡", "网络适配器", "内置屏最大分辨率", "内置屏最大刷新率", "接口信息"
+                    "设备ID", "名称", "设备类型", "操作系统版本", "操作系统详细版本号",
+                    "版本号", "系统架构", "记录更新时间", "处理器",
+                    "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
             };
 
             // 创建样式（居中）
@@ -1307,19 +1305,16 @@ public class testManIndexController {
                         case 1: value = item.get("computerName"); break;
                         case 2: value = item.get("deviceType"); break;
                         case 3: value = item.get("version"); break;
-                        case 4: value = item.get("installationDate"); break;
-                        case 5: value = item.get("osVersion"); break;
-                        case 6: value = item.get("fullOS"); break;
-                        case 7: value = item.get("architecture"); break;
-                        case 8: value = item.get("systemModel"); break;
-                        case 9: value = item.get("created_at"); break;
-                        case 10: value = item.get("cpu"); break;
-                        case 11: value = item.get("memory"); break;
-                        case 12: value = item.get("displays"); break;
-                        case 13: value = item.get("networkAdapters"); break;
-                        case 14: value = item.get("maxResolution"); break;
-                        case 15: value = item.get("maxRefreshRate"); break;
-                        case 16: value = item.get("interfaceInfo"); break;
+                        case 4: value = item.get("osVersion"); break;
+                        case 5: value = item.get("fullOS"); break;
+                        case 6: value = item.get("architecture"); break;
+                        case 7: value = item.get("created_at"); break;
+                        case 8: value = item.get("cpu"); break;
+                        case 9: value = item.get("memory"); break;
+                        case 10: value = item.get("displays"); break;
+                        case 11: value = item.get("maxResolution"); break;
+                        case 12: value = item.get("maxRefreshRate"); break;
+                        case 13: value = item.get("interfaceInfo"); break;
                     }
 
                     cell.setCellValue(value != null ? value.toString() : "");
@@ -1359,30 +1354,30 @@ public class testManIndexController {
                 item.put("computerName", getCellStringValue(row.getCell(1)));
                 item.put("deviceType", getCellStringValue(row.getCell(2)));
                 item.put("version", getCellStringValue(row.getCell(3)));
-                item.put("installationDate", getCellStringValue(row.getCell(4)));
-                item.put("osVersion", getCellStringValue(row.getCell(5)));
-                item.put("fullOS", getCellStringValue(row.getCell(6)));
-                item.put("architecture", getCellStringValue(row.getCell(7)));
-                item.put("systemModel", getCellStringValue(row.getCell(8)));
-                item.put("created_at", getCellStringValue(row.getCell(9)));
-                item.put("cpu", getCellStringValue(row.getCell(10)));
-                item.put("memory", getCellStringValue(row.getCell(11)));
-                item.put("displays", getCellStringValue(row.getCell(12)));
-                item.put("networkAdapters", getCellStringValue(row.getCell(13)));
-                item.put("maxResolution", getCellStringValue(row.getCell(14)));
-                item.put("maxRefreshRate", getCellStringValue(row.getCell(15)));
-                item.put("interfaceInfo", getCellStringValue(row.getCell(16)));
+//                item.put("installationDate", getCellStringValue(row.getCell(4)));
+                item.put("osVersion", getCellStringValue(row.getCell(4)));
+                item.put("fullOS", getCellStringValue(row.getCell(5)));
+                item.put("architecture", getCellStringValue(row.getCell(6)));
+//                item.put("systemModel", getCellStringValue(row.getCell(8)));
+                item.put("created_at", getCellStringValue(row.getCell(7)));
+                item.put("cpu", getCellStringValue(row.getCell(8)));
+                item.put("memory", getCellStringValue(row.getCell(9)));
+                item.put("displays", getCellStringValue(row.getCell(10)));
+//                item.put("networkAdapters", getCellStringValue(row.getCell(13)));
+                item.put("maxResolution", getCellStringValue(row.getCell(11)));
+                item.put("maxRefreshRate", getCellStringValue(row.getCell(12)));
+                item.put("interfaceInfo", getCellStringValue(row.getCell(13)));
 
                 parsedData.add(item);
             }
 
             // 打印整理后的数据
-            System.out.println("解析到的系统信息：");
+//            System.out.println("解析到的系统信息：");
             for (Map<String, Object> item : parsedData) {
                 String computerName = (String) item.get("computerName");
                 if (computerName == null || computerName.trim().isEmpty()) continue;
 
-                System.out.println("computerName:"+computerName);
+//                System.out.println("computerName:"+computerName);
                 int existing = testManIndexService.findByComputerName(computerName);
                 SystemInfo info = new SystemInfo();
 
@@ -1391,21 +1386,20 @@ public class testManIndexController {
                 info.setVersion((String) item.get("version"));
 
                 // 处理 installationDate，空字符串转为 null
-                String installationDate = (String) item.get("installationDate");
-                if (installationDate.isEmpty()) {
-                    installationDate = null;  // 如果为空字符串，将其转换为 null
-                }
-                info.setInstallationDate(installationDate);
+//                String installationDate = (String) item.get("installationDate");
+//                if (installationDate.isEmpty()) {
+//                    installationDate = null;  // 如果为空字符串，将其转换为 null
+//                }
+//                info.setInstallationDate(installationDate);
 
-                info.setInstallationDate((String) item.get("installationDate"));
                 info.setOsVersion((String) item.get("osVersion"));
                 info.setFullOS((String) item.get("fullOS"));
                 info.setArchitecture((String) item.get("architecture"));
-                info.setSystemModel((String) item.get("systemModel"));
+//                info.setSystemModel((String) item.get("systemModel"));
                 info.setCpu((String) item.get("cpu"));
                 info.setMemory((String) item.get("memory"));
                 info.setDisplays((String) item.get("displays"));
-                info.setNetworkAdapters((String) item.get("networkAdapters"));
+//                info.setNetworkAdapters((String) item.get("networkAdapters"));
                 info.setMaxResolution((String) item.get("maxResolution"));
                 info.setMaxRefreshRate((String) item.get("maxRefreshRate"));
                 info.setInterfaceInfo((String) item.get("interfaceInfo"));

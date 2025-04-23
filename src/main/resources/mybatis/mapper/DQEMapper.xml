@@ -257,14 +257,16 @@
 
 <!--    定时任务。每天12点去获取userid并覆盖-->
     <insert id="insertOrUpdateUser" parameterType="com.lu.ddwyydemo04.pojo.User">
-        INSERT INTO users (userId, username, deptId, majorDeptId, departmentName, position)
-        VALUES (#{userId}, #{username}, #{deptId}, #{majorDeptId}, #{departmentName}, #{position})
+        INSERT INTO users (userId, username, deptId, majorDeptId, departmentName, position,job_number, hire_date)
+        VALUES (#{userId}, #{username}, #{deptId}, #{majorDeptId}, #{departmentName}, #{position}, #{job_number},#{hire_date})
             ON DUPLICATE KEY UPDATE
                                  username = #{username},
                                  deptId = #{deptId},
                                  majorDeptId = #{majorDeptId},
                                  departmentName = #{departmentName},
-                                 position = #{position}
+                                 position = #{position},
+                                 job_number = #{job_number},
+                                  hire_date = #{hire_date}
     </insert>
 
 
@@ -445,13 +447,13 @@
 
     <!-- 插入系统信息 -->
     <insert id="insertSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
-        INSERT INTO system_info (version, installationDate, osVersion,
-                                 architecture, computerName, systemModel, fullOS,
-                                 cpu, memory, displays , networkAdapters , created_at,
+        INSERT INTO system_info (version, osVersion,
+                                 architecture, computerName, fullOS,
+                                 cpu, memory, displays  , created_at,
                                  maxResolution,maxRefreshRate)
-        VALUES (#{version}, #{installationDate}, #{osVersion},
-                #{architecture}, #{computerName}, #{systemModel}, #{fullOS},
-                #{cpu},#{memory},#{displays},#{networkAdapters}, NOW(),
+        VALUES (#{version},#{osVersion},
+                #{architecture}, #{computerName}, #{fullOS},
+                #{cpu},#{memory},#{displays}, NOW(),
                 #{maxResolution},#{maxRefreshRate})
     </insert>
 
@@ -467,15 +469,12 @@
         UPDATE system_info
         SET
         version = #{version},
-        installationDate = #{installationDate},
         osVersion = #{osVersion},
         architecture = #{architecture},
-        systemModel = #{systemModel},
         fullOS = #{fullOS},
         cpu = #{cpu},
         memory = #{memory},
         displays = #{displays},
-        networkAdapters = #{networkAdapters},
         created_at =  NOW(),
         maxResolution = #{maxResolution},
         maxRefreshRate = #{maxRefreshRate}
@@ -501,15 +500,12 @@
           AND (#{computerName} IS NULL OR computerName LIKE CONCAT('%', #{computerName}, '%'))
           AND (#{deviceType} IS NULL OR deviceType LIKE CONCAT('%', #{deviceType}, '%'))
           AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
-          AND (#{installationDate} IS NULL OR installationDate LIKE CONCAT('%', #{installationDate}, '%'))
           AND (#{osVersion} IS NULL OR osVersion LIKE CONCAT('%', #{osVersion}, '%'))
           AND (#{fullOS} IS NULL OR fullOS LIKE CONCAT('%', #{fullOS}, '%'))
           AND (#{architecture} IS NULL OR architecture LIKE CONCAT('%', #{architecture}, '%'))
-          AND (#{systemModel} IS NULL OR systemModel LIKE CONCAT('%', #{systemModel}, '%'))
           AND (#{cpu} IS NULL OR cpu LIKE CONCAT('%', #{cpu}, '%'))
           AND (#{memory} IS NULL OR memory LIKE CONCAT('%', #{memory}, '%'))
           AND (#{displays} IS NULL OR displays LIKE CONCAT('%', #{displays}, '%'))
-          AND (#{networkAdapters} IS NULL OR networkAdapters LIKE CONCAT('%', #{networkAdapters}, '%'))
           AND (#{maxResolution} IS NULL OR maxResolution LIKE CONCAT('%', #{maxResolution}, '%'))
           AND (#{maxRefreshRate} IS NULL OR maxRefreshRate LIKE CONCAT('%', #{maxRefreshRate}, '%'))
           AND (#{interfaceInfo} IS NULL OR interfaceInfo LIKE CONCAT('%', #{interfaceInfo}, '%'))
@@ -536,5 +532,40 @@
           and
             node_number = "2"
     </update>
+    <!-- 查users -->
+    <select id="findUserByUsername" resultType="map">
+        SELECT job_number AS engineerId, username AS testEngineerName,hire_date
+        FROM users
+        WHERE username = #{username}
+            LIMIT 1
+    </select>
+
+    <!-- 查tb_test_engineer_info -->
+    <select id="countEngineerByName" resultType="int">
+        SELECT COUNT(1)
+        FROM tb_test_engineer_info
+        WHERE test_engineer_name = #{testEngineerName}
+    </select>
+
+    <!-- 插入 -->
+    <insert id="insertEngineer">
+        INSERT INTO tb_test_engineer_info (engineer_id, test_engineer_name, hire_date,responsible_category)
+        VALUES (#{engineerId}, #{testEngineerName}, #{hire_date}, #{responsible_category})
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateEngineer">
+        UPDATE tb_test_engineer_info
+        SET engineer_id = #{engineerId},
+            hire_date = #{hire_date},
+            updated_at = NOW(),
+            responsible_category = #{responsible_category}
+        WHERE test_engineer_name = #{testEngineerName}
+    </update>
+
+
+
+
+
 
 </mapper>

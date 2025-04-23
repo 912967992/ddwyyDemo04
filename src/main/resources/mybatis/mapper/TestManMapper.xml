@@ -388,7 +388,6 @@
             testProjectCategory = #{testProjectCategory},
             testProjects = #{testProjects},
             schedule = #{schedule},
-            create_time = NOW(),
             isUsed = #{isUsed}
         WHERE sample_id = #{sample_id}
     </update>
@@ -482,10 +481,11 @@
         SET
             actual_finish_time = #{actual_finish_time},
             schedule = "1",
-            testDuration = DATEDIFF(#{actual_finish_time}, actual_start_time)
+            testDuration = TIMESTAMPDIFF(SECOND, actual_start_time, #{actual_finish_time}) / 3600.0
         WHERE
             sample_id = #{sample_id}
     </update>
+
 
     <select id="queryActualWorkTime" parameterType="String" resultType="String">
         SELECT testDuration FROM electric_info
@@ -541,9 +541,14 @@
     </update>
 
 
-    <select id="getAllTesters" resultType="string">
-        SELECT test_engineer_name FROM tb_test_engineer_info
+<!--    <select id="getAllTesters" resultType="string">-->
+<!--        SELECT test_engineer_name,engineer_id FROM tb_test_engineer_info-->
+<!--    </select>-->
+
+    <select id="getAllTesters" resultType="map">
+        SELECT test_engineer_name, engineer_id FROM tb_test_engineer_info
     </select>
+
 
     <!-- 正确绑定方法名 insertElectricalTestItem -->
 <!--    <insert id="insertElectricalTestItem">-->
@@ -701,16 +706,13 @@
         SET
             deviceType = #{deviceType},
             version = #{version},
-            installationDate = #{installationDate},
             osVersion = #{osVersion},
             architecture = #{architecture},
             computerName = #{computerName},
-            systemModel = #{systemModel},
             fullOS = #{fullOS},
             cpu = #{cpu},
             memory = #{memory},
             displays = #{displays},
-            networkAdapters = #{networkAdapters},
             maxResolution = #{maxResolution},
             maxRefreshRate = #{maxRefreshRate},
             created_at = NOW()
@@ -727,34 +729,28 @@
         INSERT INTO system_info (
             deviceType,
             version,
-            installationDate,
             osVersion,
             architecture,
             computerName,
-            systemModel,
             created_at,
             fullOS,
             cpu,
             memory,
             displays,
-            networkAdapters,
             maxResolution,
             maxRefreshRate,
             interfaceInfo
         ) VALUES (
                      #{deviceType},
                      #{version},
-                     #{installationDate},
                      #{osVersion},
                      #{architecture},
                      #{computerName},
-                     #{systemModel},
                      NOW(),
                      #{fullOS},
                      #{cpu},
                      #{memory},
                      #{displays},
-                     #{networkAdapters},
                      #{maxResolution},
                      #{maxRefreshRate},
                      #{interfaceInfo}
@@ -767,15 +763,12 @@
         SET
         deviceType = #{deviceType},
         version = #{version},
-        installationDate = #{installationDate},
         osVersion = #{osVersion},
         architecture = #{architecture},
-        systemModel = #{systemModel},
         fullOS = #{fullOS},
         cpu = #{cpu},
         memory = #{memory},
         displays = #{displays},
-        networkAdapters = #{networkAdapters},
         maxResolution = #{maxResolution},
         maxRefreshRate = #{maxRefreshRate},
         interfaceInfo = #{interfaceInfo},
@@ -788,5 +781,9 @@
     </delete>
 
 
+    <select id="queryJobnumberFromUser" resultType="String">
+        SELECT job_number FROM users
+        WHERE username = #{username}
+    </select>
 
 </mapper>

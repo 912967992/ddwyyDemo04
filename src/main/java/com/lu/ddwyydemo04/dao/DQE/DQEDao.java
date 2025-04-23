@@ -108,11 +108,11 @@ public interface DQEDao {
 
     List<SystemInfo> performSysInfo(@Param("id")String id, @Param("computerName")String computerName,@Param("deviceType")String deviceType,
                                     @Param("version")String version,
-                                    @Param("installationDate")String installationDate,@Param("osVersion")String osVersion,
+                                    @Param("osVersion")String osVersion,
                                     @Param("fullOS")String fullOS,
-                                    @Param("architecture")String architecture,@Param("systemModel") String systemModel,
+                                    @Param("architecture")String architecture,
                                     @Param("cpu")String cpu,@Param("memory")String memory,
-                                    @Param("displays")String displays,@Param("networkAdapters")String networkAdapters,
+                                    @Param("displays")String displays,
                                     @Param("maxResolution")String maxResolution,
                                     @Param("maxRefreshRate")String maxRefreshRate,@Param("interfaceInfo")String interfaceInfo);
 
@@ -126,5 +126,19 @@ public interface DQEDao {
     int updateNodeAsFinishWithDQE(@Param("sample_id")String sample_id);
     int updateNodeAsFinishWithRD(@Param("sample_id")String sample_id);
 
+    Map<String, String> findUserByUsername(@Param("username") String username);
+
+    // 查tb_test_engineer_info表，看工程师是不是已经存在
+    Integer countEngineerByName(@Param("testEngineerName") String testEngineerName);
+
+    // 插入新工程师
+    void insertEngineer(@Param("engineerId") String engineerId, @Param("testEngineerName") String testEngineerName,
+                        @Param("hire_date") String hire_date,
+                        @Param("responsible_category")String responsible_category);
+
+    // 更新已有工程师信息
+    void updateEngineer(@Param("engineerId") String engineerId, @Param("testEngineerName") String testEngineerName,
+                        @Param("hire_date")String hire_date,
+                        @Param("responsible_category")String responsible_category);
 
 }

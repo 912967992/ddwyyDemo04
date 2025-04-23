@@ -120,7 +120,7 @@ public interface TestManDao {
                                                 @Param("schedule_color")String schedule_color
                                              );
 
-    public List<String> getAllTesters();
+    public List<Map<String, Object>> getAllTesters();
 
     public void insertElectricalTestItem(@Param("sample_id") String sample_id,
                                          @Param("list") List<ElectricalTestItem> list);
@@ -155,6 +155,8 @@ public interface TestManDao {
     void  insertSystemInfoByXlsx(SystemInfo systemInfo);
 
     void deleteSystemInfoById(int id);
+
+    String queryJobnumberFromUser(@Param("username")String username);
 
 
 }
