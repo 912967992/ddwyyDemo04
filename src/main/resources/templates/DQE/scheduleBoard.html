@@ -82,9 +82,7 @@
 
 <script>
     let localScheduleChanges = [];
-    const projectListContainer = document.getElementById('projectList');
     const contextMenu = document.getElementById('contextMenu');
-    // const projectMenu = document.getElementById('projectMenu');
     let currentRightClickCell = null;
     let currentRightClickProject = null;
 
@@ -376,7 +374,7 @@
 
             const result = await response.json(); // 确保解析 JSON
 
-            alert(result.statusSummary);
+            alert(result.message+result.statusSummary);
 
             // 清空本地缓存
             localScheduleChanges = [];
@@ -542,8 +540,8 @@
                     } else {
                         const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
                         if (!isCovered) {
-                            // html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
-                            html += `<td class="drop-cell" style="min-width: 100px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
+                            html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
+                            html += `<!--<td class="drop-cell" style="min-width: 150px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>-->`;
                         }
                         colIndex += 1;
                     }
@@ -772,8 +770,7 @@
 
         // 查找并更新已有记录（如果存在），否则添加
         const existingIndex = localScheduleChanges.findIndex(item =>
-            item.sample_id === sample_id &&
-            item.change === newChange.change
+            item.sample_id === sample_id
         );
 
         if (existingIndex !== -1) {
@@ -870,9 +867,9 @@
         };
 
         const existingIndex = localScheduleChanges.findIndex(item =>
-            item.sample_id === sample_id &&
-            item.change === newChange.change
+            item.sample_id === sample_id
         );
+
 
         if (existingIndex !== -1) {
             localScheduleChanges[existingIndex] = newChange;

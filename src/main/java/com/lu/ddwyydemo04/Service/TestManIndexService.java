@@ -307,11 +307,11 @@ public class TestManIndexService {
             // 查询旧数据
             Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
             if (oldSchedule != null) {
-                String changeLog = oldSchedule.get("tester") + "-" +
-                        oldSchedule.get("schedule_start_date") + "-" +
-                        oldSchedule.get("schedule_end_date") + "-" +
-                        oldSchedule.get("update_time") + "-" +
-                        oldSchedule.get("schedule_color") + "-" +
+                String changeLog = oldSchedule.get("tester") + "#" +
+                        oldSchedule.get("schedule_start_date") + "#" +
+                        oldSchedule.get("schedule_end_date") + "#" +
+                        oldSchedule.get("update_time") + "#" +
+                        oldSchedule.get("schedule_color") + "#" +
                         oldSchedule.get("isUsed");
 
                 // 获取 electric_info 表原有的 changeRecord 内容

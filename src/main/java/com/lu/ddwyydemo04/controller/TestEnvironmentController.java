@@ -332,78 +332,57 @@ public class TestEnvironmentController {
         // 处理数据
         System.out.println("收到的排期变更数据: " + scheduleChanges);
 
-        // 按 sample_id 归类变更数据（改用 String 类型）
-        Map<String, List<Map<String, String>>> groupedChanges = new HashMap<>();
+            // 遍历每条排期变更数据（每个 sample_id 只存在一条记录）
         for (Map<String, String> change : scheduleChanges) {
-            String sampleId = (String) change.get("sample_id");  // 确保 sample_id 是 String 类型
-            groupedChanges.computeIfAbsent(sampleId, k -> new ArrayList<>()).add(change);
-        }
-
-
-        // 打印整理后的数据
-        System.out.println("按 sample_id 分组的排期变更数据: " + groupedChanges);
-
-        //如果change是delete。则进行数据库electric_schedule_info删除该条数据，并且让electric_info里对应的sample_id的数据的isUsed变成0；
-        //如果change是add,则进行数据库electric_schedule_info增加该条数据，并且让electric_info里对应的sample_id的数据的isUsed变成1;
-        // 处理每个 sample_id
-
-        // 处理每个 sample_id
-        for (Map.Entry<String, List<Map<String, String>>> entry : groupedChanges.entrySet()) {
-            String sampleId = entry.getKey();
-            List<Map<String, String>> changes = entry.getValue();
-
-            // 获取最后一个变更数据
-            Map<String, String> latestChange = changes.get(changes.size() - 1);
-
-            // 调用服务层方法
-            testManIndexService.processScheduleUpdate(sampleId, latestChange, changes);
+            String sampleId = change.get("sample_id");
+            testManIndexService.processScheduleUpdate(sampleId, change, null); // 旧参数 changes 传 null 或者干脆改方法签名
         }
 
 
         // 遍历排期变更数据并发送 HTTP 请求
-        RestTemplate restTemplate = new RestTemplate();
-        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
-
-        for (Map<String, String> schedule : scheduleChanges) {
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("ETTestCode", schedule.get("sample_id"));
-            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
-            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
-            requestBody.put("TestLeaderName", schedule.get("tester"));
-            requestBody.put("TestLeaderCode", schedule.get("job_number"));
-            System.out.println("requestBody:"+requestBody);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            // IT那边需要认证
-            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-            try {
-                ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
-                HttpStatus statusCode = responseEntity.getStatusCode();
-                String body = responseEntity.getBody();
-
-                // 解析 JSON 返回体
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(body);
-                String apiStatus = jsonNode.path("status").asText();
-                String apiMsg = jsonNode.path("msg").asText();
-
-                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +
-                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
-                statusList.add("sample_id: " + schedule.get("sample_id") +
-                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
-
-            } catch (Exception e) {
-                logger.info("更新排期发送数据失败: sample_id: " + schedule.get("sample_id") +
-                        " -> 更新失败: " + e.getMessage());
-                statusList.add("sample_id: " + schedule.get("sample_id") +
-                        " -> 更新失败: " + e.getMessage());
-            }
-
-        }
+//        RestTemplate restTemplate = new RestTemplate();
+//        String updateScheduleUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/UpdateScheduleElectricalTest";
+//
+//        for (Map<String, String> schedule : scheduleChanges) {
+//            Map<String, Object> requestBody = new HashMap<>();
+//            requestBody.put("ETTestCode", schedule.get("sample_id"));
+//            requestBody.put("ExpectedTestStartDate", schedule.get("start_date"));
+//            requestBody.put("ExpectedTestEndDate", schedule.get("end_date"));
+//            requestBody.put("TestLeaderName", schedule.get("tester"));
+//            requestBody.put("TestLeaderCode", schedule.get("job_number"));
+//            System.out.println("requestBody:"+requestBody);
+//
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_JSON);
+//            // IT那边需要认证
+//            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+//
+//            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+//
+//            try {
+//                ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
+//                HttpStatus statusCode = responseEntity.getStatusCode();
+//                String body = responseEntity.getBody();
+//
+//                // 解析 JSON 返回体
+//                ObjectMapper objectMapper = new ObjectMapper();
+//                JsonNode jsonNode = objectMapper.readTree(body);
+//                String apiStatus = jsonNode.path("status").asText();
+//                String apiMsg = jsonNode.path("msg").asText();
+//
+//                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +
+//                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+//                statusList.add("sample_id: " + schedule.get("sample_id") +
+//                        " -> 接口状态: " + apiStatus + "，消息: " + apiMsg);
+//
+//            } catch (Exception e) {
+//                logger.info("更新排期发送数据失败: sample_id: " + schedule.get("sample_id") +
+//                        " -> 更新失败: " + e.getMessage());
+//                statusList.add("sample_id: " + schedule.get("sample_id") +
+//                        " -> 更新失败: " + e.getMessage());
+//            }
+//
+//        }
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "排期变更已成功保存，并已同步到 ElectricalTest 接口");
