@@ -1245,7 +1245,7 @@ public class testManIndexController {
     @ResponseBody
     public String saveSystemInfoChange(@RequestBody List<SystemInfo> updatedDevices) {
         try {
-            System.out.println("updatedDevices: " + updatedDevices);
+//            System.out.println("updatedDevices: " + updatedDevices);
             testManIndexService.saveSystemInfoChange(updatedDevices);
             return "保存成功";
         } catch (Exception e) {
@@ -1264,7 +1264,7 @@ public class testManIndexController {
 
             // 定义列标题
             String[] columns = {
-                    "设备ID", "名称", "设备类型", "操作系统版本", "操作系统详细版本号",
+                    "设备ID","统计人", "名称", "品牌", "区域","设备类型", "操作系统版本", "操作系统详细版本号",
                     "版本号", "系统架构", "记录更新时间", "处理器",
                     "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
             };
@@ -1302,19 +1302,22 @@ public class testManIndexController {
 
                     switch (j) {
                         case 0: value = item.get("id"); break;
-                        case 1: value = item.get("computerName"); break;
-                        case 2: value = item.get("deviceType"); break;
-                        case 3: value = item.get("version"); break;
-                        case 4: value = item.get("osVersion"); break;
-                        case 5: value = item.get("fullOS"); break;
-                        case 6: value = item.get("architecture"); break;
-                        case 7: value = item.get("created_at"); break;
-                        case 8: value = item.get("cpu"); break;
-                        case 9: value = item.get("memory"); break;
-                        case 10: value = item.get("displays"); break;
-                        case 11: value = item.get("maxResolution"); break;
-                        case 12: value = item.get("maxRefreshRate"); break;
-                        case 13: value = item.get("interfaceInfo"); break;
+                        case 1: value = item.get("personCharge"); break;
+                        case 2: value = item.get("computerName"); break;
+                        case 3: value = item.get("brand"); break;
+                        case 4: value = item.get("area"); break;
+                        case 5: value = item.get("deviceType"); break;
+                        case 6: value = item.get("version"); break;
+                        case 7: value = item.get("osVersion"); break;
+                        case 8: value = item.get("fullOS"); break;
+                        case 9: value = item.get("architecture"); break;
+                        case 10: value = item.get("created_at"); break;
+                        case 11: value = item.get("cpu"); break;
+                        case 12: value = item.get("memory"); break;
+                        case 13: value = item.get("displays"); break;
+                        case 14: value = item.get("maxResolution"); break;
+                        case 15: value = item.get("maxRefreshRate"); break;
+                        case 16: value = item.get("interfaceInfo"); break;
                     }
 
                     cell.setCellValue(value != null ? value.toString() : "");
@@ -1339,6 +1342,7 @@ public class testManIndexController {
     }
 
     @PostMapping("/labModuleTester/importSystemInfo")
+    @ResponseBody
     public ResponseEntity<String> importSystemInfo(@RequestParam("file") MultipartFile file) {
         try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -1351,22 +1355,25 @@ public class testManIndexController {
 
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("id", getCellStringValue(row.getCell(0)));
-                item.put("computerName", getCellStringValue(row.getCell(1)));
-                item.put("deviceType", getCellStringValue(row.getCell(2)));
-                item.put("version", getCellStringValue(row.getCell(3)));
+                item.put("personCharge", getCellStringValue(row.getCell(1)));
+                item.put("computerName", getCellStringValue(row.getCell(2)));
+                item.put("brand", getCellStringValue(row.getCell(3)));
+                item.put("area", getCellStringValue(row.getCell(4)));
+                item.put("deviceType", getCellStringValue(row.getCell(5)));
+                item.put("version", getCellStringValue(row.getCell(6)));
 //                item.put("installationDate", getCellStringValue(row.getCell(4)));
-                item.put("osVersion", getCellStringValue(row.getCell(4)));
-                item.put("fullOS", getCellStringValue(row.getCell(5)));
-                item.put("architecture", getCellStringValue(row.getCell(6)));
+                item.put("osVersion", getCellStringValue(row.getCell(7)));
+                item.put("fullOS", getCellStringValue(row.getCell(8)));
+                item.put("architecture", getCellStringValue(row.getCell(9)));
 //                item.put("systemModel", getCellStringValue(row.getCell(8)));
-                item.put("created_at", getCellStringValue(row.getCell(7)));
-                item.put("cpu", getCellStringValue(row.getCell(8)));
-                item.put("memory", getCellStringValue(row.getCell(9)));
-                item.put("displays", getCellStringValue(row.getCell(10)));
+                item.put("created_at", getCellStringValue(row.getCell(10)));
+                item.put("cpu", getCellStringValue(row.getCell(11)));
+                item.put("memory", getCellStringValue(row.getCell(12)));
+                item.put("displays", getCellStringValue(row.getCell(13)));
 //                item.put("networkAdapters", getCellStringValue(row.getCell(13)));
-                item.put("maxResolution", getCellStringValue(row.getCell(11)));
-                item.put("maxRefreshRate", getCellStringValue(row.getCell(12)));
-                item.put("interfaceInfo", getCellStringValue(row.getCell(13)));
+                item.put("maxResolution", getCellStringValue(row.getCell(14)));
+                item.put("maxRefreshRate", getCellStringValue(row.getCell(15)));
+                item.put("interfaceInfo", getCellStringValue(row.getCell(16)));
 
                 parsedData.add(item);
             }
@@ -1392,14 +1399,17 @@ public class testManIndexController {
 //                }
 //                info.setInstallationDate(installationDate);
 
+                info.setPersonCharge((String) item.get("personCharge"));
+                info.setBrand((String) item.get("brand"));
+                info.setArea((String) item.get("area"));
+
                 info.setOsVersion((String) item.get("osVersion"));
                 info.setFullOS((String) item.get("fullOS"));
                 info.setArchitecture((String) item.get("architecture"));
-//                info.setSystemModel((String) item.get("systemModel"));
+
                 info.setCpu((String) item.get("cpu"));
                 info.setMemory((String) item.get("memory"));
                 info.setDisplays((String) item.get("displays"));
-//                info.setNetworkAdapters((String) item.get("networkAdapters"));
                 info.setMaxResolution((String) item.get("maxResolution"));
                 info.setMaxRefreshRate((String) item.get("maxRefreshRate"));
                 info.setInterfaceInfo((String) item.get("interfaceInfo"));
@@ -1440,6 +1450,7 @@ public class testManIndexController {
     }
 
     @RequestMapping(value = "/labModuleTester/deleteSystemInfoByIds")
+    @ResponseBody
     public ResponseEntity<String> deleteDataByIds(@RequestBody Map<String, List<Integer>> request) {
         List<Integer> ids = request.get("idRange");
 

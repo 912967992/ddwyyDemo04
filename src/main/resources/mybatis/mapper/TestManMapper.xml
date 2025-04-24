@@ -541,12 +541,8 @@
     </update>
 
 
-<!--    <select id="getAllTesters" resultType="string">-->
-<!--        SELECT test_engineer_name,engineer_id FROM tb_test_engineer_info-->
-<!--    </select>-->
-
     <select id="getAllTesters" resultType="map">
-        SELECT test_engineer_name, engineer_id FROM tb_test_engineer_info
+        SELECT test_engineer_name, engineer_id,responsible_category FROM tb_test_engineer_info
     </select>
 
 
@@ -704,6 +700,9 @@
     <update id="saveSystemInfoChange" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
         UPDATE system_info
         SET
+            personCharge = #{personCharge},
+            brand = #{brand},
+            area = #{area},
             deviceType = #{deviceType},
             version = #{version},
             osVersion = #{osVersion},
@@ -727,6 +726,9 @@
 
     <insert id="insertSystemInfoByXlsx" parameterType="SystemInfo">
         INSERT INTO system_info (
+            personCharge,
+            brand,
+            area,
             deviceType,
             version,
             osVersion,
@@ -741,6 +743,9 @@
             maxRefreshRate,
             interfaceInfo
         ) VALUES (
+                     #{personCharge},
+                     #{brand},
+                     #{area},
                      #{deviceType},
                      #{version},
                      #{osVersion},
@@ -761,6 +766,9 @@
     <update id="updateSystemInfoByXlsx" parameterType="SystemInfo">
         UPDATE system_info
         SET
+        personCharge = #{personCharge},
+        brand = #{brand},
+        area = #{area},
         deviceType = #{deviceType},
         version = #{version},
         osVersion = #{osVersion},

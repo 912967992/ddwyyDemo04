@@ -470,64 +470,94 @@
             });
     }
 
+    function groupTestersByCategory(testers) {
+        const groupMap = {};
+
+        testers.forEach(tester => {
+            const group = tester.responsible_category || '未分组';
+            if (!groupMap[group]) {
+                groupMap[group] = [];
+            }
+            groupMap[group].push(tester);
+        });
+
+        return groupMap;
+    }
+
+
+    //绘制排期面板
     function drawScheduleBoard(board, testers, allDates, dateMap) {
-        // 构建表格
         let html = '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
 
         // 表头
         html += '<thead><tr>';
-        html += '<th>测试人员 / 日期</th>';
+        html += '<th>组别</th>';
+        html += '<th style="min-width: 100px;">测试人员</th>';
         allDates.forEach(date => {
             html += `<th>${date}</th>`;
         });
         html += '</tr></thead><tbody>';
 
 
-        // 渲染每个 tester 行
-        testers.forEach(tester => {
-            const testerName = tester.test_engineer_name;  // 名字
-            const jobNumber = tester.engineer_id;          // 工号
+        const groupedTesters = groupTestersByCategory(testers);
 
-            html += `<tr><td><strong>${testerName}</strong></td>`;
+        // ⭐⭐ 新增：组别顺序数组
+        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组", "高频组"]; // 按你的需求改顺序
 
-            let colIndex = 0;
-            while (colIndex < allDates.length) {
-                const currentDate = allDates[colIndex];
-                const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
+        // ⭐⭐ 新增：先按照 groupOrder 遍历
+        groupOrder.forEach(groupName => {
+            const groupTesters = groupedTesters[groupName];
+            if (!groupTesters) return; // 如果某组没人，跳过
 
-                if (task) {
-                    const rangeDates = getDateRange(task.startDate, task.endDate);
-                    const colspan = rangeDates.length;
+            const groupRowSpan = groupTesters.length;
 
-                    html += createTaskCell(task, testerName, currentDate, colspan);
+            groupTesters.forEach((tester, testerIndex) => {
+                const testerName = tester.test_engineer_name;
+                const jobNumber = tester.engineer_id;
 
-                    for (let i = 1; i < colspan; i++) {
-                        html += `<td class="drop-cell" style="display: none;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
-                    }
+                html += '<tr>';
 
-                    colIndex += colspan;
-                } else {
-                    const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
-                    if (!isCovered) {
-                        html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
-                    }
-                    colIndex += 1;
+                if (testerIndex === 0) {
+                    html += `<td rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
                 }
-            }
 
-            html += '</tr>';
+                html += `<td><strong>${testerName}</strong></td>`;
+
+                let colIndex = 0;
+                while (colIndex < allDates.length) {
+                    const currentDate = allDates[colIndex];
+                    const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
+
+                    if (task) {
+                        const rangeDates = getDateRange(task.startDate, task.endDate);
+                        const colspan = rangeDates.length;
+
+                        html += createTaskCell(task, testerName, currentDate, colspan);
+
+                        for (let i = 1; i < colspan; i++) {
+                            html += `<td class="drop-cell" style="display: none;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
+                        }
+
+                        colIndex += colspan;
+                    } else {
+                        const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
+                        if (!isCovered) {
+                            // html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
+                            html += `<td class="drop-cell" style="min-width: 100px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
+                        }
+                        colIndex += 1;
+                    }
+                }
+
+                html += '</tr>';
+            });
         });
 
         html += '</tbody></table>';
         board.innerHTML = html;
 
-        // 拖拽目标
+        // 下面拖拽、撤回、应用颜色逻辑 都跟你原来保持一致 ✅
         const cells = document.querySelectorAll('.drop-cell');
-
-        // cells.forEach(cell => {
-        //     const tester = cell.getAttribute('data-tester');
-        //     const date = cell.getAttribute('data-date');
-        // });
 
         cells.forEach((cell, cellIndex, cellList) => {
             cell.addEventListener('dragover', e => {
@@ -551,13 +581,11 @@
 
                 const schedule_days = parseFloat(e.dataTransfer.getData('project-schedule_days')) || 1;
 
-                // 提前拦截无效拖拽
                 if ((!sample_id || sample_id.trim() === "")) {
                     console.warn("无效拖拽内容：sample_id 和 schedule_days 都为空，忽略本次拖拽。");
                     return;
                 }
 
-                // 计算 schedule_end_date
                 const startDateObj = new Date(startDate);
                 startDateObj.setDate(startDateObj.getDate() + Math.ceil(schedule_days) - 1);
                 const schedule_end_date = startDateObj.toISOString().split('T')[0];
@@ -587,10 +615,12 @@
                     schedule_color: e.dataTransfer.getData('project-schedule_color')
                 };
 
+                // 加上这一句，设置拖拽进去的时候的单元格的最小宽度
+                cell.style.minWidth = '100px';
+
                 handleDrop(cell, cellList, taskData);
             });
 
-            // 撤回菜单
             cell.addEventListener('contextmenu', e => {
                 e.preventDefault();
                 if (cell.innerText.trim() === '') return;
@@ -602,11 +632,9 @@
             });
         });
 
-        // 撤回排期功能
         const contextMenu = document.getElementById('contextMenu');
         contextMenu.addEventListener('click', handleContextMenuClick);
 
-        // 应用颜色
         document.querySelectorAll('#scheduleBoardTable td[data-schedule_color]').forEach(cell => {
             const color = cell.getAttribute('data-schedule_color');
             if (color) {

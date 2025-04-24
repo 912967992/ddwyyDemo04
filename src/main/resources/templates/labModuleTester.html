@@ -43,10 +43,28 @@
                 <input type="text" id="id" name="id" placeholder="设备ID">
             </div>
 
+            <!-- 统计负责人 -->
+            <div class="input-group">
+                <label for="personCharge">统计<br>人:</label>
+                <input type="text" id="personCharge" name="personCharge" placeholder="">
+            </div>
+
             <!-- 计算机名称 -->
             <div class="input-group">
                 <label for="computerName">设备<br>名称:</label>
                 <input type="text" id="computerName" name="computerName" placeholder="">
+            </div>
+
+            <!-- 品牌 -->
+            <div class="input-group">
+                <label for="brand">品牌:</label>
+                <input type="text" id="brand" name="brand" placeholder="">
+            </div>
+
+            <!-- 区域 -->
+            <div class="input-group">
+                <label for="area">区域:</label>
+                <input type="text" id="area" name="area" placeholder="">
             </div>
 
             <!-- 设备类型 -->
@@ -62,7 +80,6 @@
             </div>
 
 
-<
             <!-- 操作系统详细版本号 -->
             <div class="input-group">
                 <label for="osVersion">系统<br>版本号:</label>
@@ -320,7 +337,7 @@
         const headerRow = document.createElement('tr');
 
         const headers = [
-            "设备ID", "名称", "设备类型" ,"操作系统版本",  "操作系统详细版本号", "版本号", "系统架构",
+            "设备ID", "统计人", "名称", "品牌", "区域", "设备类型" ,"操作系统版本",  "操作系统详细版本号", "版本号", "系统架构",
             "记录更新时间", "处理器", "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
         ];
 
@@ -338,7 +355,7 @@
             const row = document.createElement('tr');
 
             const cells = [
-                item.id, item.computerName, item.deviceType, item.version, item.osVersion, item.fullOS,
+                item.id,item.personCharge, item.computerName,item.brand, item.area, item.deviceType, item.version, item.osVersion, item.fullOS,
                 item.architecture, item.created_at, item.cpu, item.memory,
                 item.displays,  item.maxResolution, item.maxRefreshRate,
                 item.interfaceInfo
@@ -375,7 +392,7 @@
                         row.classList.add('editing-row');
 
                         const fieldKeys = [
-                            "id", "computerName", "deviceType", "version", "osVersion", "fullOS",
+                            "id", "personCharge","computerName", "brand", "area","deviceType", "version", "osVersion", "fullOS",
                             "architecture", "created_at", "cpu", "memory",
                             "displays", "maxResolution", "maxRefreshRate"
                         ];

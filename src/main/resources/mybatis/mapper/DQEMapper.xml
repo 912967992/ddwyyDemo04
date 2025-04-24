@@ -497,7 +497,10 @@
         SELECT * FROM system_info
         WHERE
             (#{id} IS NULL OR id LIKE CONCAT('%', #{id}, '%'))
+          AND (#{personCharge} IS NULL OR personCharge LIKE CONCAT('%', #{personCharge}, '%'))
           AND (#{computerName} IS NULL OR computerName LIKE CONCAT('%', #{computerName}, '%'))
+          AND (#{brand} IS NULL OR brand LIKE CONCAT('%', #{brand}, '%'))
+          AND (#{area} IS NULL OR area LIKE CONCAT('%', #{area}, '%'))
           AND (#{deviceType} IS NULL OR deviceType LIKE CONCAT('%', #{deviceType}, '%'))
           AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
           AND (#{osVersion} IS NULL OR osVersion LIKE CONCAT('%', #{osVersion}, '%'))

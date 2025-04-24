@@ -2,8 +2,11 @@ package com.lu.ddwyydemo04.pojo;
 
 public class SystemInfo {
     private int id;                          // 自增主键
+    private String personCharge;                          //  负责统计的人
 
     private String computerName;             // 计算机名称
+    private String brand;             // 品牌
+    private String area;             // 区域
 
     private String deviceType;   // 设备类型：屏幕，主机，显示器，游戏机等
     private String version;                  // 操作系统版本
@@ -146,11 +149,38 @@ public class SystemInfo {
         this.deviceType = deviceType;
     }
 
+    public String getPersonCharge() {
+        return personCharge;
+    }
+
+    public void setPersonCharge(String personCharge) {
+        this.personCharge = personCharge;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
     @Override
     public String toString() {
         return "SystemInfo{" +
                 "id=" + id +
+                ", personCharge='" + personCharge + '\'' +
                 ", computerName='" + computerName + '\'' +
+                ", brand='" + brand + '\'' +
+                ", area='" + area + '\'' +
                 ", deviceType='" + deviceType + '\'' +
                 ", version='" + version + '\'' +
                 ", osVersion='" + osVersion + '\'' +

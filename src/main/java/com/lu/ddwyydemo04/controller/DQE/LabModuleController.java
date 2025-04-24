@@ -50,7 +50,10 @@ public class LabModuleController {
     @GetMapping("/labModule/performSysInfo")
     @ResponseBody
     public List<SystemInfo> performSysInfo(@RequestParam(required = false) String id,
+                                           @RequestParam(required = false) String personCharge,
                                           @RequestParam(required = false) String computerName,
+                                          @RequestParam(required = false) String brand,
+                                          @RequestParam(required = false) String area,
                                           @RequestParam(required = false) String deviceType,
                                           @RequestParam(required = false) String version,
                                           @RequestParam(required = false) String osVersion,
@@ -67,6 +70,9 @@ public class LabModuleController {
         // 将空字符串转换为 null
         id = (id != null && !id.isEmpty()) ? id : null;
         computerName = (computerName != null && !computerName.isEmpty()) ? computerName : null;
+        personCharge = (personCharge != null && !personCharge.isEmpty()) ? personCharge : null;
+        brand = (brand != null && !brand.isEmpty()) ? brand : null;
+        area = (area != null && !area.isEmpty()) ? area : null;
         deviceType = (deviceType != null && !deviceType.isEmpty()) ? deviceType : null;
         version = (version != null && !version.isEmpty()) ? version : null;
         osVersion = (osVersion != null && !osVersion.isEmpty()) ? osVersion : null;
@@ -84,7 +90,7 @@ public class LabModuleController {
         interfaceInfo = (interfaceInfo != null && !interfaceInfo.isEmpty()) ? interfaceInfo : null;
 
 
-        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,computerName,deviceType,version,osVersion,fullOS,
+        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,personCharge,computerName,brand,area,deviceType,version,osVersion,fullOS,
                 architecture,cpu,memory,displays,maxResolution,maxRefreshRate,interfaceInfo);
 //        System.out.println(systemInfos);
 
