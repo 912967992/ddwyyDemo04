@@ -71,7 +71,6 @@
     </div>
 </div>
 
-<!-- 右键菜单 -->
 <div id="contextMenu" class="context-menu">撤回排期</div>
 <!--<div id="projectMenu" class="context-menu">设置排期天数</div>-->
 
@@ -148,9 +147,10 @@
             projectEl.addEventListener('contextmenu', e => {
                 e.preventDefault();
                 currentRightClickProject = projectEl;
-                projectMenu.style.top = e.pageY + 'px';
-                projectMenu.style.left = e.pageX + 'px';
-                projectMenu.style.display = 'block';
+                // 原代码中 projectMenu 未定义，这里注释掉
+                // projectMenu.style.top = e.pageY + 'px';
+                // projectMenu.style.left = e.pageX + 'px';
+                // projectMenu.style.display = 'block';
             });
         }
     }
@@ -217,7 +217,7 @@
         });
     }
 
-        // 页面加载后请求数据
+    // 页面加载后请求数据
     window.onload = function () {
         // 加载项目池子数据
         loadProjectPoolData(); // ✅ 页面初始化调用加载函数
@@ -347,10 +347,6 @@
             });
     }
 
-
-
-
-
     async function saveSchedule(isRefrenshBtn) {
         if (!localScheduleChanges || localScheduleChanges.length === 0 ) {
             if(!isRefrenshBtn){
@@ -383,7 +379,6 @@
             alert('保存失败，请稍后重试！');
         }
     }
-
 
     async function refreshSchedule() {
         await saveSchedule(true); // 确保 saveSchedule 执行完毕
@@ -482,8 +477,7 @@
         return groupMap;
     }
 
-
-    //绘制排期面板
+    // 绘制排期面板
     function drawScheduleBoard(board, testers, allDates, dateMap) {
         let html = '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
 
@@ -495,7 +489,6 @@
             html += `<th>${date}</th>`;
         });
         html += '</tr></thead><tbody>';
-
 
         const groupedTesters = groupTestersByCategory(testers);
 
@@ -554,8 +547,53 @@
         html += '</tbody></table>';
         board.innerHTML = html;
 
-        // 下面拖拽、撤回、应用颜色逻辑 都跟你原来保持一致 ✅
+        // 为任务单元格添加拖拽事件
+        const assignedCells = document.querySelectorAll('#scheduleBoardTable td.assigned');
+        assignedCells.forEach(cell => {
+            cell.setAttribute('draggable', 'true');
+            cell.addEventListener('dragstart', e => {
+                const taskData = {};
+                const attributes = [
+                    'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                    'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                    'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                ];
+                attributes.forEach(attr => {
+                    taskData[attr] = cell.getAttribute(`data-${attr}`);
+                });
+                Object.entries(taskData).forEach(([key, value]) => {
+                    e.dataTransfer.setData(`project-${key}`, value);
+                });
+            });
+        });
+
         const cells = document.querySelectorAll('.drop-cell');
+        const projectPool = document.getElementById('projectPool');
+
+        // 为项目池子添加拖拽事件
+        projectPool.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+        projectPool.addEventListener('drop', e => {
+            e.preventDefault();
+            const taskData = {};
+            const attributes = [
+                'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+            ];
+            attributes.forEach(attr => {
+                taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
+            });
+            const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+            if (originalCell) {
+                const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                const originalStartIndex = originalRowCells.indexOf(originalCell);
+                handleUndo(originalRowCells, originalStartIndex, taskData);
+            }
+        });
 
         cells.forEach((cell, cellIndex, cellList) => {
             cell.addEventListener('dragover', e => {
@@ -613,8 +651,49 @@
                     schedule_color: e.dataTransfer.getData('project-schedule_color')
                 };
 
-                // 加上这一句，设置拖拽进去的时候的单元格的最小宽度
-                cell.style.minWidth = '100px';
+                const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+                const startIndex = rowCells.indexOf(cell);
+                const roundedDays = Math.ceil(parseFloat(schedule_days));
+
+                // 检查排期是否超出可排范围
+                if (startIndex + roundedDays > rowCells.length) {
+                    alert("排期超出可排范围！");
+                    return;
+                }
+
+                // 检查排期区域是否已被占用
+                for (let i = startIndex; i < startIndex + roundedDays; i++) {
+                    if (rowCells[i].innerText.trim() !== '') {
+                        alert('排期区域已占用，无法安排！');
+                        return;
+                    }
+                }
+
+                // 确认可以放置项目后，再清空原排期
+                const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
+                if (originalCell) {
+                    const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                    const originalStartIndex = originalRowCells.indexOf(originalCell);
+                    const originalScheduleDays = parseInt(originalCell.getAttribute('data-schedule_days')) || 1;
+
+                    // 清除原单元格内容和属性
+                    originalCell.innerText = '';
+                    originalCell.removeAttribute('colspan');
+                    originalCell.classList.remove('assigned');
+                    originalCell.style.backgroundColor = '';
+
+                    const allowedAttributes = ['class', 'data-tester', 'data-date'];
+                    [...originalCell.attributes].forEach(attr => {
+                        if (!allowedAttributes.includes(attr.name)) {
+                            originalCell.removeAttribute(attr.name);
+                        }
+                    });
+
+                    // 恢复被隐藏的格子
+                    for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
+                        if (originalRowCells[i]) originalRowCells[i].style.display = '';
+                    }
+                }
 
                 handleDrop(cell, cellList, taskData);
             });
@@ -640,7 +719,6 @@
             }
         });
     }
-
 
     // 创建排期面板的单元格
     function createTaskCell(task, tester, currentDate, colspan) {
@@ -703,7 +781,6 @@
             schedule_start_date: currentRightClickCell.getAttribute('data-schedule_start_date'),
             schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date'),
             schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
-
         };
 
         handleUndo(rowCells, startIndex, taskData);
@@ -712,11 +789,10 @@
         contextMenu.style.display = 'none';
     }
 
-
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData) {
         const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
-        const roundedDays = Math.ceil(days);
+        const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
 
@@ -734,7 +810,7 @@
 
         const startCell = rowCells[startIndex];
 
-        startCell.innerText = `${sizecoding} (${days}天)`;
+        startCell.innerText = `${sizecoding} (${schedule_days}天)`;
         startCell.classList.add('assigned');
         startCell.style.backgroundColor = schedule_color || "";
 
@@ -779,7 +855,25 @@
             localScheduleChanges.push(newChange);
         }
 
-        console.log(localScheduleChanges);
+        console.log("add的",localScheduleChanges);
+
+        // 重新为新生成的排期单元格添加拖拽功能
+        startCell.setAttribute('draggable', 'true');
+        startCell.addEventListener('dragstart', function (e) {
+            const taskData = {};
+            const attributes = [
+                'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+            ];
+            attributes.forEach(attr => {
+                taskData[attr] = this.getAttribute(`data-${attr}`);
+            });
+            Object.entries(taskData).forEach(([key, value]) => {
+                e.dataTransfer.setData(`project-${key}`, value);
+            });
+        });
     }
 
     // 处理撤回排期事件，撤回排期按钮触发这个方法
@@ -820,7 +914,7 @@
         //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
         Object.keys(taskData).forEach(key => {
             if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number'
-            && key!== 'tester') {
+                && key!== 'tester') {
                 restoredProject.setAttribute(`data-${key}`, taskData[key]);
             }
         });
@@ -870,18 +964,14 @@
             item.sample_id === sample_id
         );
 
-
         if (existingIndex !== -1) {
             localScheduleChanges[existingIndex] = newChange;
         } else {
             localScheduleChanges.push(newChange);
         }
 
-        console.log(localScheduleChanges);
+        console.log("delete的",localScheduleChanges);
     }
-
-
-
     // 工具函数：生成某范围内所有日期字符串数组
     function getDateRange(start, end) {
         const dates = [];
@@ -895,10 +985,7 @@
             current.setDate(current.getDate() + 1);
         }
         return dates;
-
     }
-
-
 </script>
 
 </body>

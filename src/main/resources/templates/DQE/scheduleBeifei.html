@@ -2,277 +2,990 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>排期面板 - 设置排期天数 + 合并单元格</title>
-  <style>
-    body {
-      display: flex;
-      padding: 20px;
-      font-family: Arial;
-    }
+  <title>项目池子展示</title>
+  <!-- 引入外部CSS文件 -->
+  <link rel="stylesheet" href="/css/scheduleBoard.css">
 
-    #projectList {
-      width: 220px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-right: 20px;
-      height: fit-content;
-    }
-
-    .draggable-project {
-      margin: 8px 0;
-      padding: 6px 10px;
-      border: 1px solid #aaa;
-      background-color: #f2f2f2;
-      cursor: grab;
-      position: relative;
-    }
-
-    .draggable-project span {
-      font-size: 12px;
-      color: #666;
-      margin-left: 5px;
-    }
-
-    #scheduleBoard table {
-      border-collapse: collapse;
-    }
-
-    #scheduleBoard td,
-    #scheduleBoard th {
-      border: 1px solid #ccc;
-      padding: 10px;
-      min-width: 100px;
-      text-align: center;
-    }
-
-    .drop-cell {
-      background-color: #fafafa;
-      position: relative;
-      user-select: none;
-    }
-
-    .drop-cell.over {
-      background-color: #e0f7ff;
-    }
-
-    .drop-cell.assigned {
-      background-color: #d7f5d7;
-    }
-
-    .context-menu {
-      position: absolute;
-      background-color: white;
-      border: 1px solid #ccc;
-      padding: 4px 10px;
-      cursor: pointer;
-      display: none;
-      z-index: 999;
-    }
-  </style>
 </head>
 <body>
 
-<div id="projectList">
-  <h3>项目列表</h3>
-  <div class="draggable-project" draggable="true" data-id="P001" data-days="1">项目 P001<span>（1天）</span></div>
-  <div class="draggable-project" draggable="true" data-id="P002" data-days="1">项目 P002<span>（1天）</span></div>
-  <div class="draggable-project" draggable="true" data-id="P003" data-days="1">项目 P003<span>（1天）</span></div>
+<div id="projectList" class="project-container">
+  <h2>项目池子</h2>
+  <div id="projectPool">加载中...</div>
 </div>
 
-<div id="scheduleBoard">
-  <h3>排期面板</h3>
-  <table>
-    <thead>
-    <tr>
-      <th>人员 / 日期</th>
-      <th>2025-03-12</th>
-      <th>2025-03-13</th>
-      <th>2025-03-14</th>
-      <th>2025-03-15</th>
-      <th>2025-03-16</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-      <td>张三</td>
-      <td class="drop-cell" data-tester="张三" data-date="2025-03-12"></td>
-      <td class="drop-cell" data-tester="张三" data-date="2025-03-13"></td>
-      <td class="drop-cell" data-tester="张三" data-date="2025-03-14"></td>
-      <td class="drop-cell" data-tester="张三" data-date="2025-03-15"></td>
-      <td class="drop-cell" data-tester="张三" data-date="2025-03-16"></td>
-    </tr>
-    <tr>
-      <td>李四</td>
-      <td class="drop-cell" data-tester="李四" data-date="2025-03-12"></td>
-      <td class="drop-cell" data-tester="李四" data-date="2025-03-13"></td>
-      <td class="drop-cell" data-tester="李四" data-date="2025-03-14"></td>
-      <td class="drop-cell" data-tester="李四" data-date="2025-03-15"></td>
-      <td class="drop-cell" data-tester="李四" data-date="2025-03-16"></td>
-    </tr>
-    </tbody>
-  </table>
+<!-- 排期面板区域 -->
+<div class="schedule-board-container">
+  <div class="schedule-board-header">
+    <h3>排期面板</h3>
+    <div class="schedule-controls">
+      <input type="date" id="startDate" class="date-picker">
+      <span>至</span>
+      <input type="date" id="endDate" class="date-picker">
+      <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
+      <button class="save-schedule-btn" onclick="saveSchedule()">保存排期</button>
+    </div>
+  </div>
+  <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
 </div>
 
-<!-- 右键菜单 -->
+<!-- 模态框 -->
+<div id="modal">
+  <div id="modalContent">
+    <h3>项目详情</h3>
+    <div id="modalBody"></div>
+
+    <div style="margin-top: 10px;">
+      <label for="scheduleDays"><strong>排期天数：</strong></label>
+      <input type="number" id="scheduleDays" placeholder="请输入排期天数">
+      <button id="saveScheduleBtn">确定排期</button>
+    </div>
+
+    <!-- 添加颜色选择功能 -->
+    <!-- 添加颜色选择功能 -->
+    <!-- 添加颜色选择功能 -->
+    <div style="margin-top: 10px;">
+      <label><strong>设置颜色：</strong></label>
+      <div>
+        <label>
+          <input type="radio" id="color_null" name="schedule_color" value="null" checked> 无
+        </label>
+        <label>
+          <input type="radio" id="color_gray" name="schedule_color" value="gray" checked> 灰色
+        </label>
+        <label>
+          <input type="radio" id="color_green" name="schedule_color" value="green"> 绿色
+        </label>
+        <label>
+          <input type="radio" id="color_yellow" name="schedule_color" value="yellow"> 黄色
+        </label>
+        <label>
+          <input type="radio" id="color_red" name="schedule_color" value="red"> 红色
+        </label>
+      </div>
+      <button id="confirmColorBtn" style="margin-top: 5px;">确认修改颜色</button>
+    </div>
+
+
+    <button id="closeBtn">关闭</button>
+  </div>
+</div>
+
 <div id="contextMenu" class="context-menu">撤回排期</div>
-<div id="projectMenu" class="context-menu">设置排期天数</div>
+<!--<div id="projectMenu" class="context-menu">设置排期天数</div>-->
+
+<!-- 返回按钮 -->
+<div class="header-container">
+  <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+</div>
 
 <script>
-  const localScheduleChanges = [];
-  const projectListContainer = document.getElementById('projectList');
+  let localScheduleChanges = [];
   const contextMenu = document.getElementById('contextMenu');
-  const projectMenu = document.getElementById('projectMenu');
   let currentRightClickCell = null;
   let currentRightClickProject = null;
 
-  // 设置拖拽
-  function setDraggable(projectEl) {
-    projectEl.addEventListener('dragstart', e => {
-      console.log("拖动")
-      e.dataTransfer.setData('project-id', projectEl.getAttribute('data-id'));
-      e.dataTransfer.setData('project-days', projectEl.getAttribute('data-days'));
-    });
+  //默认让endDate+14天，进入页面的时候
+  document.addEventListener('DOMContentLoaded', function () {
+    // 获取当前 UTC 时间
+    const now = new Date();
 
-    projectEl.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      currentRightClickProject = projectEl;
-      projectMenu.style.top = e.pageY + 'px';
-      projectMenu.style.left = e.pageX + 'px';
-      projectMenu.style.display = 'block';
+    // 北京时间偏移（UTC+8）
+    const beijingOffset = 8 * 60 * 60 * 1000;
+    const beijingTime = new Date(now.getTime() + beijingOffset);
+
+    // 格式化开始日期（今天）
+    const startYear = beijingTime.getUTCFullYear();
+    const startMonth = String(beijingTime.getUTCMonth() + 1).padStart(2, '0');
+    const startDay = String(beijingTime.getUTCDate()).padStart(2, '0');
+    const startDate = `${startYear}-${startMonth}-${startDay}`;
+
+    // 计算结束日期（+14天）
+    const endTime = new Date(beijingTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const endYear = endTime.getUTCFullYear();
+    const endMonth = String(endTime.getUTCMonth() + 1).padStart(2, '0');
+    const endDay = String(endTime.getUTCDate()).padStart(2, '0');
+    const endDate = `${endYear}-${endMonth}-${endDay}`;
+
+    // 设置 input 的默认值
+    document.getElementById('startDate').value = startDate;
+    document.getElementById('endDate').value = endDate;
+  });
+
+
+  // 设置拖拽，拖拽进去的时候，如果排期天数没有设置，则不允许拖拽
+  function setDraggable(projectEl, isProject) {
+    projectEl.addEventListener('dragstart', e => {
+      const sampleModel = projectEl.getAttribute('data-sample_model');
+      const materialCode = projectEl.getAttribute('data-materialCode');
+      e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode}`);
+      e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
+      e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
+      e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
+      e.dataTransfer.setData('project-sample_model', projectEl.getAttribute('data-sample_model'));
+      e.dataTransfer.setData('project-materialCode', projectEl.getAttribute('data-materialCode'));
+      e.dataTransfer.setData('project-sample_category', projectEl.getAttribute('data-sample_category'));
+      e.dataTransfer.setData('project-version', projectEl.getAttribute('data-version'));
+      e.dataTransfer.setData('project-priority', projectEl.getAttribute('data-priority'));
+      e.dataTransfer.setData('project-sample_leader', projectEl.getAttribute('data-sample_leader'));
+      e.dataTransfer.setData('project-supplier', projectEl.getAttribute('data-supplier'));
+      e.dataTransfer.setData('project-test_project_category', projectEl.getAttribute('data-test_project_category'));
+      e.dataTransfer.setData('project-test_projects', projectEl.getAttribute('data-test_projects'));
+      e.dataTransfer.setData('project-schedule', projectEl.getAttribute('data-schedule'));
+      e.dataTransfer.setData('project-create_time', projectEl.getAttribute('data-create_time'));
+      // e.dataTransfer.setData('project-schedule_days', projectEl.getAttribute('data-schedule_days'));
+      e.dataTransfer.setData(
+              'project-schedule_days',
+              projectEl.getAttribute('data-schedule_days') ?? '1'
+      );
+      e.dataTransfer.setData('project-schedule_color', projectEl.getAttribute('data-schedule_color'));
+
     });
+    if(isProject){
+
+    }else{
+      projectEl.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        currentRightClickProject = projectEl;
+        // 原代码中 projectMenu 未定义，这里注释掉
+        // projectMenu.style.top = e.pageY + 'px';
+        // projectMenu.style.left = e.pageX + 'px';
+        // projectMenu.style.display = 'block';
+      });
+    }
   }
 
-  document.querySelectorAll('.draggable-project').forEach(setDraggable);
-
-  // 拖拽目标
-  const cells = document.querySelectorAll('.drop-cell');
-  cells.forEach((cell, cellIndex, cellList) => {
-    cell.addEventListener('dragover', e => {
-      e.preventDefault();
-      cell.classList.add('over');
-    });
-
-    cell.addEventListener('dragleave', () => cell.classList.remove('over'));
-
-    cell.addEventListener('drop', e => {
-      e.preventDefault();
-      cell.classList.remove('over');
-
-      const projectId = e.dataTransfer.getData('project-id');
-      const days = parseInt(e.dataTransfer.getData('project-days')) || 1;
-      const tester = cell.getAttribute('data-tester');
-      const startDate = cell.getAttribute('data-date');
-
-      // 找到所有同一行的单元格（同行）
-      const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
-      const startIndex = rowCells.indexOf(cell);
-
-      if (startIndex + days > rowCells.length) {
-        alert("排期超出可排范围！");
-        return;
-      }
-
-      for (let i = startIndex; i < startIndex + days; i++) {
-        if (rowCells[i].innerText.trim() !== '') {
-          alert('排期区域已占用，无法安排！');
-          return;
-        }
-      }
-
-      // 合并单元格
-      const startCell = rowCells[startIndex];
-      startCell.innerText = `${projectId}（${days}天）`;
-      startCell.classList.add('assigned');
-      startCell.setAttribute('colspan', days);
-      for (let i = startIndex + 1; i < startIndex + days; i++) {
-        rowCells[i].style.display = 'none';
-      }
-
-      // 删除项目
-      const projectEl = document.querySelector(`.draggable-project[data-id="${projectId}"]`);
-      if (projectEl) projectEl.remove();
-
-      // 缓存记录
-      const endDate = rowCells[startIndex + days - 1].getAttribute('data-date');
-      localScheduleChanges.push({
-        project_id: projectId,
-        tester,
-        start_date: startDate,
-        end_date: endDate,
-        days
-      });
-
-      console.log('当前缓存：', localScheduleChanges);
-    });
-
-    // 撤回菜单
-    cell.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      if (cell.innerText.trim() === '') return;
-      currentRightClickCell = cell;
-      contextMenu.style.top = e.pageY + 'px';
-      contextMenu.style.left = e.pageX + 'px';
-      contextMenu.style.display = 'block';
-    });
-  });
-
-  // 撤回排期
-  contextMenu.addEventListener('click', () => {
-    if (!currentRightClickCell) return;
-
-    const text = currentRightClickCell.innerText.trim();
-    const match = text.match(/(P\d+).*\（(\d+)天\）/);
-    if (!match) return;
-    const [_, projectId, daysStr] = match;
-    const days = parseInt(daysStr);
-    const tester = currentRightClickCell.getAttribute('data-tester');
-
-    // 同一行cell
-    const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
-    const startIndex = rowCells.indexOf(currentRightClickCell);
-
-    // 清空合并单元格
-    currentRightClickCell.innerText = '';
-    currentRightClickCell.removeAttribute('colspan');
-    currentRightClickCell.classList.remove('assigned');
-
-    for (let i = startIndex + 1; i < startIndex + days; i++) {
-      rowCells[i].style.display = '';
-    }
-
-    // 恢复项目
-    const restoredProject = document.createElement('div');
-    restoredProject.className = 'draggable-project';
-    restoredProject.setAttribute('draggable', 'true');
-    restoredProject.setAttribute('data-id', projectId);
-    restoredProject.setAttribute('data-days', days);
-    restoredProject.innerHTML = `项目 ${projectId}<span>（${days}天）</span>`;
-    projectListContainer.appendChild(restoredProject);
-    setDraggable(restoredProject);
-
-    // 删除缓存
-    const index = localScheduleChanges.findIndex(item => item.project_id === projectId && item.tester === tester);
-    if (index !== -1) localScheduleChanges.splice(index, 1);
-    contextMenu.style.display = 'none';
-  });
-
-  // 设置排期天数菜单
-  projectMenu.addEventListener('click', () => {
-    if (!currentRightClickProject) return;
-    const days = prompt("请输入排期天数（默认1）", "1");
-    if (!days || isNaN(days) || days <= 0) return;
-    currentRightClickProject.setAttribute('data-days', parseInt(days));
-    currentRightClickProject.querySelector('span').innerText = `（${days}天）`;
-    projectMenu.style.display = 'none';
-  });
 
   // 点击其他区域隐藏菜单
   document.addEventListener('click', e => {
     if (!e.target.classList.contains('context-menu')) {
       contextMenu.style.display = 'none';
-      projectMenu.style.display = 'none';
+      // projectMenu.style.display = 'none';
     }
   });
+
+  function loadProjectPoolData() {
+    fetch('/passback/getReceivedData')
+            .then(response => response.json())
+            .then(data => {
+              renderProjectPool(data);
+            })
+            .catch(error => {
+              document.getElementById('projectPool').innerHTML = '加载失败，请稍后重试。';
+              console.error('Error fetching project data:', error);
+            });
+  }
+
+  function renderProjectPool(data) {
+    const container = document.getElementById('projectPool');
+    container.innerHTML = '';
+    if (data.length === 0) {
+      container.innerHTML = '暂无项目数据。';
+      return;
+    }
+
+    data.forEach(item => {
+      const card = document.createElement('div');
+
+      card.className = 'project-card';
+
+      const scheduleColor = item.schedule_color || 'null';
+      card.classList.add(scheduleColor);
+      card.textContent = item.sample_model + " " + item.materialCode + "(" + item.scheduleDays + "天)";
+
+      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode);
+      card.setAttribute('data-sample_id', item.sample_id || '');
+      card.setAttribute('data-sample_name', item.sample_name || '');
+      card.setAttribute('data-sample_model', item.sample_model || '');
+      card.setAttribute('data-materialCode', item.materialCode || '');
+      card.setAttribute('data-sample_category', item.sample_category || '');
+      card.setAttribute('data-version', item.version || '');
+      card.setAttribute('data-priority', item.priority || '');
+      card.setAttribute('data-sample_leader', item.sample_leader || '');
+      card.setAttribute('data-supplier', item.supplier || '');
+      card.setAttribute('data-test_project_category', item.testProjectCategory || '');
+      card.setAttribute('data-test_projects', item.testProjects || '');
+      card.setAttribute('data-schedule', item.schedule || '');
+      card.setAttribute('data-create_time', item.create_time || '');
+      card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+      card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+      card.setAttribute('draggable', 'true');
+
+      setDraggable(card, true);
+      bindCardContextMenu(card, item);
+      container.appendChild(card);
+    });
+  }
+
+  // 页面加载后请求数据
+  window.onload = function () {
+    // 加载项目池子数据
+    loadProjectPoolData(); // ✅ 页面初始化调用加载函数
+
+    // 模态框关闭
+    document.getElementById('closeBtn').onclick = function () {
+      document.getElementById('modal').style.display = 'none';
+    };
+    document.getElementById('modal').onclick = function (e) {
+      if (e.target.id === 'modal') {
+        document.getElementById('modal').style.display = 'none';
+      }
+    };
+  };
+
+  // 项目卡片右键触发的绑定事件
+  function bindCardContextMenu(card, item) {
+    card.oncontextmenu = function (event) {
+      event.preventDefault(); // 阻止浏览器默认右键菜单
+
+      console.log("这个触发bindCardContextMenu")
+
+      // 设置模态框内容
+      document.getElementById('modalBody').innerHTML = `
+            <p><strong>电气编号：</strong>${item.sample_id}</p>
+            <p><strong>项目名称：</strong>${item.sample_name}</p>
+            <p><strong>大小编码：</strong>${item.sample_model + item.materialCode}</p>
+            <p><strong>产品类别：</strong>${item.sample_category}</p>
+            <p><strong>版本：</strong>${item.version}</p>
+            <p><strong>优先级：</strong>${item.priority}</p>
+            <p><strong>项目负责人：</strong>${item.sample_leader}</p>
+            <p><strong>供应商：</strong>${item.supplier}</p>
+            <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
+            <p><strong>测试子项目：</strong>${item.testProjects}</p>
+            <p><strong>状态：</strong>${item.schedule}</p>
+            <p><strong>创建时间：</strong>${item.create_time}</p>
+        `;
+
+      document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
+      // 设置选中的颜色，默认选无色
+      const selectedColor = item.schedule_color ? item.schedule_color : 'null';
+      const colorRadio = document.querySelector(`input[name="schedule_color"][value="${selectedColor}"]`);
+      if (colorRadio) {
+        colorRadio.checked = true;
+      }
+
+      document.getElementById('saveScheduleBtn').onclick = function () {
+        saveScheduleAndColor(card,item);
+      };
+
+      document.getElementById('confirmColorBtn').onclick = function () {
+        saveScheduleAndColor(card,item);
+      };
+
+
+      document.getElementById('modal').style.display = 'block';
+
+    };
+  }
+
+  function saveScheduleAndColor(card,item) {
+    const days = document.getElementById('scheduleDays').value;
+    if (!days || isNaN(days) || days < 0) {
+      alert("请输入有效的排期天数！");
+      return;
+    }
+
+    const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
+    if (!selectedColor) {
+      alert("请选择一个颜色！");
+      return;
+    }
+
+    // 1️⃣ 保存天数
+    fetch('/passback/saveScheduleDays', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+    })
+            .then(resp => resp.json())
+            .then(resp => {
+              // alert("排期天数保存成功：" + resp.message);
+
+              // 更新卡片显示和属性
+              card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+              card.setAttribute('data-schedule_days', days);
+              item.scheduleDays = days;
+            })
+            .catch(err => {
+              console.error("保存天数失败：", err);
+              alert("保存天数失败！");
+            });
+
+    // 2️⃣ 保存颜色
+    fetch('/schedule/saveScheduleColor', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        color: selectedColor,
+        sample_id: item.sample_id
+      })
+    })
+            .then(response => response.text())
+            .then(result => {
+              // 判断是否为 null、空字符串或 undefined
+              if (!result || result === 'null') {
+                result = '无色';
+              }
+
+              alert("排期天数和颜色设置成功：" + result);
+              document.getElementById('modal').style.display = 'none';
+
+              // 更新卡片颜色样式
+              const card = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
+              if (card) {
+                card.classList.remove('gray', 'green', 'yellow', 'red');
+                card.classList.add(selectedColor);
+                card.dataset.schedule_color = selectedColor;
+                item.schedule_color = selectedColor;
+              }
+            })
+            .catch(error => {
+              console.error("保存颜色失败：", error);
+              alert("设置颜色失败，请重试");
+            });
+  }
+
+  async function saveSchedule(isRefrenshBtn) {
+    if (!localScheduleChanges || localScheduleChanges.length === 0 ) {
+      if(!isRefrenshBtn){
+        alert('没有需要保存的排期变更');
+      }
+      return;
+    }
+
+    try {
+      const response = await fetch('/scheduleBoard/saveSchedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(localScheduleChanges)
+      });
+
+      if (!response.ok) {
+        throw new Error(`保存失败: ${response.statusText}`);
+      }
+
+      const result = await response.json(); // 确保解析 JSON
+
+      alert(result.message+result.statusSummary);
+
+      // 清空本地缓存
+      localScheduleChanges = [];
+    } catch (error) {
+      console.error('保存排期失败:', error);
+      alert('保存失败，请稍后重试！');
+    }
+  }
+
+  async function refreshSchedule() {
+    await saveSchedule(true); // 确保 saveSchedule 执行完毕
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    if (!startDate) {
+      alert("请至少选择初始时间！");
+      return;
+    }
+
+    const contextMenu = document.getElementById('contextMenu');
+    contextMenu.removeEventListener('click', handleContextMenuClick);
+
+    document.getElementById('scheduleBoard').innerHTML = '';
+
+    // 加载排期面板数据
+    fetch(`/getSchedulesByStartDate?startDate=${startDate}&endDate=${endDate}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(async data => {
+              const board = document.getElementById('scheduleBoard');
+
+              const allDatesSet = new Set();
+              const dateMap = {}; // tester => array of tasks
+
+              data.forEach(item => {
+                const task = {
+                  startDate: item.schedule_start_date,
+                  endDate: item.schedule_end_date,
+                  sample_id: item.sample_id,
+                  sizecoding: item.sample_model + " " + item.materialCode,
+                  sample_category: item.sample_category,
+                  sample_model: item.sample_model,
+                  sample_name: item.sample_name,
+                  priority: item.priority,
+                  version: item.version,
+                  materialCode: item.materialCode,
+                  sample_leader: item.sample_leader,
+                  supplier: item.supplier,
+                  test_project_category: item.testProjectCategory,
+                  testProjects: item.testProjects,
+                  schedule: item.schedule,
+                  create_time: item.create_time,
+                  schudule_days: item.scheduleDays,
+                  schedule_start_date: item.schedule_start_date,
+                  schedule_end_date: item.schedule_end_date,
+                  schedule_color: item.schedule_color,
+                  job_number: item.job_number
+                };
+
+                const tester = item.tester || '未知测试人员';
+                if (!dateMap[tester]) dateMap[tester] = [];
+                dateMap[tester].push(task);
+
+                const dateRange = getDateRange(item.schedule_start_date, item.schedule_end_date);
+                dateRange.forEach(date => allDatesSet.add(date));
+              });
+
+              // 👉 强制覆盖日期：使用用户选择的完整日期范围
+              getDateRange(startDate, endDate).forEach(date => allDatesSet.add(date));
+              const allDates = Array.from(allDatesSet).sort();
+
+              // 👉 不使用 data 中的 tester，统一从 /getTesters 获取
+              try {
+                const testersResponse = await fetch('/getTesters');
+                const testersData = await testersResponse.json();
+
+                drawScheduleBoard(board, testersData, allDates, dateMap);
+              } catch (error) {
+                console.error("获取测试人员失败:", error);
+                document.getElementById('scheduleBoard').innerHTML = '测试人员加载失败。';
+              }
+            })
+            .catch(error => {
+              document.getElementById('scheduleBoard').innerHTML = '排期加载失败。';
+              console.error('Error loading schedule board:', error);
+            });
+  }
+
+  function groupTestersByCategory(testers) {
+    const groupMap = {};
+
+    testers.forEach(tester => {
+      const group = tester.responsible_category || '未分组';
+      if (!groupMap[group]) {
+        groupMap[group] = [];
+      }
+      groupMap[group].push(tester);
+    });
+
+    return groupMap;
+  }
+
+  // 绘制排期面板
+  function drawScheduleBoard(board, testers, allDates, dateMap) {
+    let html = '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
+
+    // 表头
+    html += '<thead><tr>';
+    html += '<th>组别</th>';
+    html += '<th style="min-width: 100px;">测试人员</th>';
+    allDates.forEach(date => {
+      html += `<th>${date}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    const groupedTesters = groupTestersByCategory(testers);
+
+    // ⭐⭐ 新增：组别顺序数组
+    const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组", "高频组"]; // 按你的需求改顺序
+
+    // ⭐⭐ 新增：先按照 groupOrder 遍历
+    groupOrder.forEach(groupName => {
+      const groupTesters = groupedTesters[groupName];
+      if (!groupTesters) return; // 如果某组没人，跳过
+
+      const groupRowSpan = groupTesters.length;
+
+      groupTesters.forEach((tester, testerIndex) => {
+        const testerName = tester.test_engineer_name;
+        const jobNumber = tester.engineer_id;
+
+        html += '<tr>';
+
+        if (testerIndex === 0) {
+          html += `<td rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
+        }
+
+        html += `<td><strong>${testerName}</strong></td>`;
+
+        let colIndex = 0;
+        while (colIndex < allDates.length) {
+          const currentDate = allDates[colIndex];
+          const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
+
+          if (task) {
+            const rangeDates = getDateRange(task.startDate, task.endDate);
+            const colspan = rangeDates.length;
+
+            html += createTaskCell(task, testerName, currentDate, colspan);
+
+            for (let i = 1; i < colspan; i++) {
+              html += `<td class="drop-cell" style="display: none;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
+            }
+
+            colIndex += colspan;
+          } else {
+            const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
+            if (!isCovered) {
+              html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
+              html += `<!--<td class="drop-cell" style="min-width: 150px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>-->`;
+            }
+            colIndex += 1;
+          }
+        }
+
+        html += '</tr>';
+      });
+    });
+
+    html += '</tbody></table>';
+    board.innerHTML = html;
+
+    // 为任务单元格添加拖拽事件
+    const assignedCells = document.querySelectorAll('#scheduleBoardTable td.assigned');
+    assignedCells.forEach(cell => {
+      cell.setAttribute('draggable', 'true');
+      cell.addEventListener('dragstart', e => {
+        const taskData = {};
+        const attributes = [
+          'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+          'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+          'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+          'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+        ];
+        attributes.forEach(attr => {
+          taskData[attr] = cell.getAttribute(`data-${attr}`);
+        });
+        Object.entries(taskData).forEach(([key, value]) => {
+          e.dataTransfer.setData(`project-${key}`, value);
+        });
+      });
+    });
+
+    const cells = document.querySelectorAll('.drop-cell');
+    const projectPool = document.getElementById('projectPool');
+
+    // 为项目池子添加拖拽事件
+    projectPool.addEventListener('dragover', e => {
+      e.preventDefault();
+    });
+    projectPool.addEventListener('drop', e => {
+      e.preventDefault();
+      const taskData = {};
+      const attributes = [
+        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+      ];
+      attributes.forEach(attr => {
+        taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
+      });
+      const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+      if (originalCell) {
+        const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+        const originalStartIndex = originalRowCells.indexOf(originalCell);
+        handleUndo(originalRowCells, originalStartIndex, taskData);
+      }
+    });
+
+    cells.forEach((cell, cellIndex, cellList) => {
+      cell.addEventListener('dragover', e => {
+        e.preventDefault();
+        cell.classList.add('over');
+      });
+
+      cell.addEventListener('dragleave', () => cell.classList.remove('over'));
+
+      cell.addEventListener('drop', e => {
+        e.preventDefault();
+        cell.classList.remove('over');
+
+        const sample_id = e.dataTransfer.getData('project-sample_id');
+        const days = parseFloat(e.dataTransfer.getData('project-days')) || 1;
+        const sizecoding = e.dataTransfer.getData('project-sizecoding') || 1;
+
+        const tester = cell.getAttribute('data-tester');
+        const job_number = cell.getAttribute('data-job_number');
+        const startDate = cell.getAttribute('data-date');
+
+        const schedule_days = parseFloat(e.dataTransfer.getData('project-schedule_days')) || 1;
+
+        if ((!sample_id || sample_id.trim() === "")) {
+          console.warn("无效拖拽内容：sample_id 和 schedule_days 都为空，忽略本次拖拽。");
+          return;
+        }
+
+        const startDateObj = new Date(startDate);
+        startDateObj.setDate(startDateObj.getDate() + Math.ceil(schedule_days) - 1);
+        const schedule_end_date = startDateObj.toISOString().split('T')[0];
+
+        const taskData = {
+          sample_id,
+          days,
+          sizecoding,
+          tester,
+          job_number,
+          startDate,
+          sample_name: e.dataTransfer.getData('project-sample_name'),
+          sample_model: e.dataTransfer.getData('project-sample_model'),
+          materialCode: e.dataTransfer.getData('project-materialCode'),
+          sample_category: e.dataTransfer.getData('project-sample_category'),
+          version: e.dataTransfer.getData('project-version'),
+          priority: e.dataTransfer.getData('project-priority'),
+          sample_leader: e.dataTransfer.getData('project-sample_leader'),
+          supplier: e.dataTransfer.getData('project-supplier'),
+          test_project_category: e.dataTransfer.getData('project-test_project_category'),
+          test_projects: e.dataTransfer.getData('project-test_projects'),
+          schedule: e.dataTransfer.getData('project-schedule'),
+          create_time: e.dataTransfer.getData('project-create_time'),
+          schedule_days: e.dataTransfer.getData('project-schedule_days'),
+          schedule_start_date: startDate,
+          schedule_end_date: schedule_end_date,
+          schedule_color: e.dataTransfer.getData('project-schedule_color')
+        };
+
+        const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+        const startIndex = rowCells.indexOf(cell);
+        const roundedDays = Math.ceil(parseFloat(schedule_days));
+
+        // 检查排期是否超出可排范围
+        if (startIndex + roundedDays > rowCells.length) {
+          alert("排期超出可排范围！");
+          return;
+        }
+
+        // 检查排期区域是否已被占用
+        for (let i = startIndex; i < startIndex + roundedDays; i++) {
+          if (rowCells[i].innerText.trim() !== '') {
+            alert('排期区域已占用，无法安排！');
+            return;
+          }
+        }
+
+        // 确认可以放置项目后，再清空原排期
+        const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
+        if (originalCell) {
+          const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+          const originalStartIndex = originalRowCells.indexOf(originalCell);
+          const originalScheduleDays = parseInt(originalCell.getAttribute('data-schedule_days')) || 1;
+
+          // 清除原单元格内容和属性
+          originalCell.innerText = '';
+          originalCell.removeAttribute('colspan');
+          originalCell.classList.remove('assigned');
+          originalCell.style.backgroundColor = '';
+
+          const allowedAttributes = ['class', 'data-tester', 'data-date'];
+          [...originalCell.attributes].forEach(attr => {
+            if (!allowedAttributes.includes(attr.name)) {
+              originalCell.removeAttribute(attr.name);
+            }
+          });
+
+          // 恢复被隐藏的格子
+          for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
+            if (originalRowCells[i]) originalRowCells[i].style.display = '';
+          }
+        }
+
+        handleDrop(cell, cellList, taskData);
+      });
+
+      cell.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        if (cell.innerText.trim() === '') return;
+        currentRightClickCell = cell;
+        const contextMenu = document.getElementById('contextMenu');
+        contextMenu.style.top = e.pageY + 'px';
+        contextMenu.style.left = e.pageX + 'px';
+        contextMenu.style.display = 'block';
+      });
+    });
+
+    const contextMenu = document.getElementById('contextMenu');
+    contextMenu.addEventListener('click', handleContextMenuClick);
+
+    document.querySelectorAll('#scheduleBoardTable td[data-schedule_color]').forEach(cell => {
+      const color = cell.getAttribute('data-schedule_color');
+      if (color) {
+        cell.style.backgroundColor = color;
+      }
+    });
+  }
+
+  // 创建排期面板的单元格
+  function createTaskCell(task, tester, currentDate, colspan) {
+    return `
+        <td class="drop-cell assigned"
+          data-tester="${tester}"
+          data-date="${currentDate}"
+          data-job_number="${task.job_number}"
+          colspan="${colspan}"
+          data-sample_id="${task.sample_id || ''}"
+          data-sample_name="${task.sample_name || ''}"
+          data-sample_model="${task.sample_model || ''}"
+          data-materialCode="${task.materialCode || ''}"
+          data-sample_category="${task.sample_category || ''}"
+          data-version="${task.version || ''}"
+          data-priority="${task.priority || ''}"
+          data-sample_leader="${task.sample_leader || ''}"
+          data-supplier="${task.supplier || ''}"
+          data-test_project_category="${task.test_project_category || ''}"
+          data-test_projects="${task.test_projects || ''}"
+          data-schedule="${task.schedule || ''}"
+          data-create_time="${task.create_time || ''}"
+          data-schedule_days="${task.schudule_days || ''}"
+          data-sizecoding="${task.sizecoding || ''}"
+          data-schedule_start_date="${task.schedule_start_date || ''}"
+          data-schedule_end_date="${task.schedule_end_date || ''}"
+          data-schedule_color="${task.schedule_color || ''}"
+        >${task.sizecoding} (${task.schudule_days}天)</td>
+      `;
+  }
+
+  function handleContextMenuClick() {
+    if (!currentRightClickCell) return;
+    const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
+    const startIndex = rowCells.indexOf(currentRightClickCell);
+
+    const tester = currentRightClickCell.getAttribute('data-tester');
+    const sample_id = currentRightClickCell.getAttribute('data-sample_id');
+    const job_number = currentRightClickCell.getAttribute('data-job_number');
+    console.log(job_number)
+
+    const taskData = {
+      tester,
+      job_number,
+      sample_id,
+      sizecoding: currentRightClickCell.getAttribute('data-sizecoding'),
+      sample_name: currentRightClickCell.getAttribute('data-sample_name'),
+      sample_model: currentRightClickCell.getAttribute('data-sample_model'),
+      materialCode: currentRightClickCell.getAttribute('data-materialCode'),
+      sample_category: currentRightClickCell.getAttribute('data-sample_category'),
+      version: currentRightClickCell.getAttribute('data-version'),
+      priority: currentRightClickCell.getAttribute('data-priority'),
+      sample_leader: currentRightClickCell.getAttribute('data-sample_leader'),
+      supplier: currentRightClickCell.getAttribute('data-supplier'),
+      test_project_category: currentRightClickCell.getAttribute('data-test_project_category'),
+      test_projects: currentRightClickCell.getAttribute('data-test_projects'),
+      schedule: currentRightClickCell.getAttribute('data-schedule'),
+      create_time: currentRightClickCell.getAttribute('data-create_time'),
+      schedule_days: currentRightClickCell.getAttribute('data-schedule_days'),
+      schedule_start_date: currentRightClickCell.getAttribute('data-schedule_start_date'),
+      schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date'),
+      schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
+    };
+
+    handleUndo(rowCells, startIndex, taskData);
+
+    // 关闭右键菜单
+    contextMenu.style.display = 'none';
+  }
+
+  // 处理拖拽放下事件
+  function handleDrop(cell, cellList, taskData) {
+    const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
+    const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
+    const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+    const startIndex = rowCells.indexOf(cell);
+
+    if (startIndex + roundedDays > rowCells.length) {
+      alert("排期超出可排范围！");
+      return;
+    }
+
+    for (let i = startIndex; i < startIndex + roundedDays; i++) {
+      if (rowCells[i].innerText.trim() !== '') {
+        alert('排期区域已占用，无法安排！');
+        return;
+      }
+    }
+
+    const startCell = rowCells[startIndex];
+
+    startCell.innerText = `${sizecoding} (${schedule_days}天)`;
+    startCell.classList.add('assigned');
+    startCell.style.backgroundColor = schedule_color || "";
+
+    startCell.setAttribute('colspan', roundedDays);
+
+    Object.keys(taskData).forEach(key => {
+      if (key !== 'days') {
+        startCell.setAttribute(`data-${key}`, taskData[key]);
+      }
+    });
+
+    for (let i = startIndex + 1; i < startIndex + roundedDays; i++) {
+      rowCells[i].style.display = 'none';
+    }
+
+    const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
+    if (projectEl) projectEl.remove();
+
+    const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
+
+    // 构造新的变更对象
+    const newChange = {
+      change: "add",
+      sample_id: sample_id,
+      sizecoding: sizecoding,
+      tester,
+      start_date: startDate,
+      end_date: endDate,
+      scheduleDays: schedule_days,
+      schedule_color: schedule_color,
+      job_number: job_number
+    };
+
+    // 查找并更新已有记录（如果存在），否则添加
+    const existingIndex = localScheduleChanges.findIndex(item =>
+            item.sample_id === sample_id
+    );
+
+    if (existingIndex !== -1) {
+      localScheduleChanges[existingIndex] = newChange;
+    } else {
+      localScheduleChanges.push(newChange);
+    }
+
+    console.log("add的",localScheduleChanges);
+
+    // 重新为新生成的排期单元格添加拖拽功能
+    startCell.setAttribute('draggable', 'true');
+    startCell.addEventListener('dragstart', function (e) {
+      const taskData = {};
+      const attributes = [
+        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+      ];
+      attributes.forEach(attr => {
+        taskData[attr] = this.getAttribute(`data-${attr}`);
+      });
+      Object.entries(taskData).forEach(([key, value]) => {
+        e.dataTransfer.setData(`project-${key}`, value);
+      });
+    });
+  }
+
+  // 处理撤回排期事件，撤回排期按钮触发这个方法
+  function handleUndo(rowCells, startIndex, taskData) {
+    const { schedule_days, sample_id } = taskData;
+    const currentRightClickCell = rowCells[startIndex];
+
+    // 清除原始内容和属性
+    currentRightClickCell.innerText = '';
+    currentRightClickCell.removeAttribute('colspan');
+    currentRightClickCell.classList.remove('assigned');
+
+    const allowedAttributes = ['class', 'data-tester', 'data-date'];
+    [...currentRightClickCell.attributes].forEach(attr => {
+      if (!allowedAttributes.includes(attr.name)) {
+        currentRightClickCell.removeAttribute(attr.name);
+      }
+    });
+
+    // 恢复被隐藏的格子
+    for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
+      if (rowCells[i]) rowCells[i].style.display = '';
+    }
+
+    // 重新生成拖拽项目卡片
+    const restoredProject = document.createElement('div');
+    restoredProject.className = 'project-card';
+
+    // ✅ 设置颜色 class（默认 gray）
+    const colorClass = taskData.schedule_color || 'gray';
+    restoredProject.classList.add(colorClass);
+
+    restoredProject.setAttribute('draggable', 'true');
+    restoredProject.setAttribute('data-sample_id', sample_id);
+    restoredProject.setAttribute('data-schedule_days', schedule_days);
+    restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
+
+    //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
+    Object.keys(taskData).forEach(key => {
+      if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number'
+              && key!== 'tester') {
+        restoredProject.setAttribute(`data-${key}`, taskData[key]);
+      }
+    });
+
+    setDraggable(restoredProject, true);
+
+    const restoredItem = {
+      sample_id: sample_id,
+      sample_name: taskData.sample_name,
+      sample_model: taskData.sample_model,
+      materialCode: taskData.materialCode,
+      sample_category: taskData.sample_category,
+      version: taskData.version,
+      priority: taskData.priority,
+      sample_leader: taskData.sample_leader,
+      supplier: taskData.supplier,
+      testProjectCategory: taskData.test_project_category,
+      testProjects: taskData.test_projects,
+      schedule: taskData.schedule,
+      create_time: taskData.create_time,
+      scheduleDays: schedule_days,
+      schedule_color: taskData.schedule_color
+    };
+
+    restoredProject.oncontextmenu = (event) => {
+      event.preventDefault();
+      bindCardContextMenu(restoredProject, restoredItem);
+    };
+
+    const projectPool = document.getElementById('projectPool');
+    projectPool.appendChild(restoredProject);
+
+    // 记录删除操作到 localScheduleChanges，避免重复添加
+    const newChange = {
+      change: "delete",
+      sample_id: sample_id,
+      sizecoding: taskData.sizecoding,
+      tester: taskData.tester,
+      start_date: taskData.schedule_start_date,
+      end_date: taskData.schedule_end_date,
+      scheduleDays: schedule_days,
+      schedule_color: taskData.schedule_color,
+      job_number: taskData.job_number
+    };
+
+    const existingIndex = localScheduleChanges.findIndex(item =>
+            item.sample_id === sample_id
+    );
+
+    if (existingIndex !== -1) {
+      localScheduleChanges[existingIndex] = newChange;
+    } else {
+      localScheduleChanges.push(newChange);
+    }
+
+    console.log("delete的",localScheduleChanges);
+  }
+  // 工具函数：生成某范围内所有日期字符串数组
+  function getDateRange(start, end) {
+    const dates = [];
+    const current = new Date(start);
+    const last = new Date(end);
+    while (current <= last) {
+      const yyyy = current.getFullYear();
+      const mm = String(current.getMonth() + 1).padStart(2, '0');
+      const dd = String(current.getDate()).padStart(2, '0');
+      dates.push(`${yyyy}-${mm}-${dd}`);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
 </script>
 
 </body>
