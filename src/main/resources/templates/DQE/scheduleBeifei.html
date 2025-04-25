@@ -71,8 +71,10 @@
   </div>
 </div>
 
-<div id="contextMenu" class="context-menu">撤回排期</div>
-<!--<div id="projectMenu" class="context-menu">设置排期天数</div>-->
+<div id="contextMenu" class="context-menu">
+  <!-- <div onclick="handleContextMenuClick()">撤回排期</div> -->
+  <div onclick="showProjectAttributes(event)">查看属性</div>
+</div>
 
 <!-- 返回按钮 -->
 <div class="header-container">
@@ -751,41 +753,8 @@
   }
 
   function handleContextMenuClick() {
-    if (!currentRightClickCell) return;
-    const rowCells = Array.from(currentRightClickCell.parentElement.querySelectorAll('.drop-cell'));
-    const startIndex = rowCells.indexOf(currentRightClickCell);
-
-    const tester = currentRightClickCell.getAttribute('data-tester');
-    const sample_id = currentRightClickCell.getAttribute('data-sample_id');
-    const job_number = currentRightClickCell.getAttribute('data-job_number');
-    console.log(job_number)
-
-    const taskData = {
-      tester,
-      job_number,
-      sample_id,
-      sizecoding: currentRightClickCell.getAttribute('data-sizecoding'),
-      sample_name: currentRightClickCell.getAttribute('data-sample_name'),
-      sample_model: currentRightClickCell.getAttribute('data-sample_model'),
-      materialCode: currentRightClickCell.getAttribute('data-materialCode'),
-      sample_category: currentRightClickCell.getAttribute('data-sample_category'),
-      version: currentRightClickCell.getAttribute('data-version'),
-      priority: currentRightClickCell.getAttribute('data-priority'),
-      sample_leader: currentRightClickCell.getAttribute('data-sample_leader'),
-      supplier: currentRightClickCell.getAttribute('data-supplier'),
-      test_project_category: currentRightClickCell.getAttribute('data-test_project_category'),
-      test_projects: currentRightClickCell.getAttribute('data-test_projects'),
-      schedule: currentRightClickCell.getAttribute('data-schedule'),
-      create_time: currentRightClickCell.getAttribute('data-create_time'),
-      schedule_days: currentRightClickCell.getAttribute('data-schedule_days'),
-      schedule_start_date: currentRightClickCell.getAttribute('data-schedule_start_date'),
-      schedule_end_date: currentRightClickCell.getAttribute('data-schedule_end_date'),
-      schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
-    };
-
-    handleUndo(rowCells, startIndex, taskData);
-
     // 关闭右键菜单
+    const contextMenu = document.getElementById('contextMenu');
     contextMenu.style.display = 'none';
   }
 
@@ -986,6 +955,128 @@
     }
     return dates;
   }
+
+  function showProjectAttributes(event) {
+    if (event) {
+      event.stopPropagation(); // 阻止事件冒泡
+    }
+    if (!currentRightClickCell) return;
+    const taskData = {
+      sample_id: currentRightClickCell.getAttribute('data-sample_id'),
+      sample_name: currentRightClickCell.getAttribute('data-sample_name'),
+      sample_model: currentRightClickCell.getAttribute('data-sample_model'),
+      materialCode: currentRightClickCell.getAttribute('data-materialCode'),
+      sample_category: currentRightClickCell.getAttribute('data-sample_category'),
+      version: currentRightClickCell.getAttribute('data-version'),
+      priority: currentRightClickCell.getAttribute('data-priority'),
+      sample_leader: currentRightClickCell.getAttribute('data-sample_leader'),
+      supplier: currentRightClickCell.getAttribute('data-supplier'),
+      test_project_category: currentRightClickCell.getAttribute('data-test_project_category'),
+      test_projects: currentRightClickCell.getAttribute('data-test_projects'),
+      schedule: currentRightClickCell.getAttribute('data-schedule'),
+      create_time: currentRightClickCell.getAttribute('data-create_time'),
+      scheduleDays: currentRightClickCell.getAttribute('data-schedule_days'),
+      schedule_color: currentRightClickCell.getAttribute('data-schedule_color')
+    };
+
+    // 设置模态框内容
+    document.getElementById('modalBody').innerHTML = `
+            <p><strong>电气编号：</strong>${taskData.sample_id}</p>
+            <p><strong>项目名称：</strong>${taskData.sample_name}</p>
+            <p><strong>大小编码：</strong>${taskData.sample_model + taskData.materialCode}</p>
+            <p><strong>产品类别：</strong>${taskData.sample_category}</p>
+            <p><strong>版本：</strong>${taskData.version}</p>
+            <p><strong>优先级：</strong>${taskData.priority}</p>
+            <p><strong>项目负责人：</strong>${taskData.sample_leader}</p>
+            <p><strong>供应商：</strong>${taskData.supplier}</p>
+            <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
+            <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
+            <p><strong>状态：</strong>${taskData.schedule}</p>
+            <p><strong>创建时间：</strong>${taskData.create_time}</p>
+        `;
+
+    document.getElementById('scheduleDays').value = taskData.scheduleDays != null ? taskData.scheduleDays : '';
+    // 设置选中的颜色，默认选无色
+    const selectedColor = taskData.schedule_color ? taskData.schedule_color : 'null';
+    const colorRadio = document.querySelector(`input[name="schedule_color"][value="${selectedColor}"]`);
+    if (colorRadio) {
+      colorRadio.checked = true;
+    }
+
+    // 禁用确定排期按钮
+    const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+    saveScheduleBtn.disabled = true;
+
+    document.getElementById('saveScheduleBtn').onclick = function () {
+      saveScheduleAndColor(null, taskData);
+    };
+
+    document.getElementById('confirmColorBtn').onclick = function () {
+      const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
+      if (!selectedColor) {
+        alert("请选择一个颜色！");
+        return;
+      }
+
+      // 保存颜色
+      fetch('/schedule/saveScheduleColor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          color: selectedColor,
+          sample_id: taskData.sample_id
+        })
+      })
+              .then(response => response.text())
+              .then(result => {
+                // 判断是否为 null、空字符串或 undefined
+                if (!result || result === 'null') {
+                  result = '无色';
+                }
+
+                alert("颜色设置成功：" + result);
+                document.getElementById('modal').style.display = 'none';
+
+                // 更新排期面板中对应单元格的颜色
+                const cells = document.querySelectorAll(`td[data-sample_id="${taskData.sample_id}"]`);
+                cells.forEach(cell => {
+                  cell.style.backgroundColor = selectedColor;
+                  cell.dataset.schedule_color = selectedColor;
+                });
+
+                // 更新项目池中的卡片颜色
+                const projectCard = document.querySelector(`.project-card[data-sample_id="${taskData.sample_id}"]`);
+                if (projectCard) {
+                  projectCard.classList.remove('gray', 'green', 'yellow', 'red');
+                  projectCard.classList.add(selectedColor);
+                  projectCard.dataset.schedule_color = selectedColor;
+                }
+              })
+              .catch(error => {
+                console.error("保存颜色失败：", error);
+                alert("设置颜色失败，请重试");
+              });
+    };
+
+    document.getElementById('modal').style.display = 'block';
+
+    // 关闭右键菜单
+    const contextMenuForShow = document.getElementById('contextMenu');
+    contextMenuForShow.style.display = 'none';
+  }
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 </body>

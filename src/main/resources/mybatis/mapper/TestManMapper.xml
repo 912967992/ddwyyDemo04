@@ -501,6 +501,9 @@
             SET
                 es.isUsed = 0,
                 es.update_time = NOW(),
+                es.schedule_start_date = NULL,
+                es.schedule_end_date = NULL,
+                es.tester = NULL,
                 ei.isUsed = 0
         WHERE
             ei.sample_id = #{sample_id}

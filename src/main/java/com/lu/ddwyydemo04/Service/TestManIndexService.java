@@ -285,10 +285,6 @@ public class TestManIndexService {
 
     public void processScheduleUpdate(String sampleId, Map<String, String> latestChange, List<Map<String, String>> allChanges) {
         // 这里写你的数据库操作逻辑
-//        System.out.println("处理 sample_id: " + sampleId);
-//        System.out.println("最新变更: " + latestChange);
-//        System.out.println("所有变更记录: " + allChanges);
-
         String change = latestChange.get("change");
         String sample_id = latestChange.get("sample_id");
         String sizecoding = latestChange.get("sizecoding");
