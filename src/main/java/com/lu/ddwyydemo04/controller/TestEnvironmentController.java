@@ -376,7 +376,7 @@ public class TestEnvironmentController {
 //                // 解析 JSON 返回体
 //                ObjectMapper objectMapper = new ObjectMapper();
 //                JsonNode jsonNode = objectMapper.readTree(body);
-//                String apiStatus = jsonNode.path("status").asText();
+//                String apiStatus = jsonNode.path("staus").asText();
 //                String apiMsg = jsonNode.path("msg").asText();
 //
 //                logger.info("更新排期发送数据成功: sample_id: " + schedule.get("sample_id") +

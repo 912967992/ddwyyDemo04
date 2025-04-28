@@ -293,6 +293,81 @@
       return;
     }
 
+    // 计算新的排期结束日期
+    const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
+    let startDate = null;
+    let tester = null;
+    let job_number = null;
+    let originalDays = null;
+    if (startDateCell) {
+      startDate = startDateCell.getAttribute('data-date');
+      tester = startDateCell.getAttribute('data-tester');
+      job_number = startDateCell.getAttribute('data-job_number');
+      originalDays = startDateCell.getAttribute("data-schedule_days");
+
+    }
+    if (!startDate) {
+      // 如果没有找到开始日期，从项目卡片中获取相关信息（可根据实际情况调整）
+      const projectCard = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
+      if (projectCard) {
+        // 这里假设项目卡片中有排期开始日期信息，若没有需要调整逻辑
+        startDate = projectCard.getAttribute('data-schedule_start_date');
+      }
+    }
+    if (!startDate) {
+      console.error('无法获取排期开始日期');
+      return;
+    }
+
+    // 获取排期面板的所有单元格
+    const allCells = document.querySelectorAll('.drop-cell');
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(startDateObj);
+    endDateObj.setDate(endDateObj.getDate() + parseInt(days) - 1);
+    const newEndDate = endDateObj.toISOString().split('T')[0];
+
+    // 生成新排期范围内的所有日期
+    const newDateRange = getDateRange(startDate, newEndDate);
+
+    // 检查新排期是否会占用其他项目
+    for (const date of newDateRange) {
+      const cellsOnDate = Array.from(allCells).filter(cell =>
+              cell.getAttribute('data-date') === date &&
+              cell.getAttribute('data-tester') === tester &&
+              cell.innerText.trim() !== '' &&
+              cell.getAttribute('data-sample_id') !== item.sample_id
+      );
+      if (cellsOnDate.length > 0) {
+        alert('新排期会占用已有项目，请重新选择排期天数！');
+        return;
+      }
+    }
+
+    // 更新 localScheduleChanges
+    const existingIndex = localScheduleChanges.findIndex(change => change.sample_id === item.sample_id);
+    if (existingIndex !== -1) {
+      localScheduleChanges[existingIndex].start_date = startDate;
+      localScheduleChanges[existingIndex].end_date = newEndDate;
+      localScheduleChanges[existingIndex].scheduleDays = days;
+      localScheduleChanges[existingIndex].schedule_color = selectedColor;
+      localScheduleChanges[existingIndex].tester = tester;
+      localScheduleChanges[existingIndex].job_number = job_number;
+    } else {
+      const newChange = {
+        change: "add",
+        sample_id: item.sample_id,
+        sizecoding: `${item.sample_model} ${item.materialCode}`,
+        tester: tester,
+        start_date: startDate,
+        end_date: newEndDate,
+        scheduleDays: days,
+        schedule_color: selectedColor,
+        job_number: job_number
+      };
+      localScheduleChanges.push(newChange);
+    }
+    console.log(localScheduleChanges)
+
     // 1️⃣ 保存天数
     fetch('/passback/saveScheduleDays', {
       method: 'POST',
@@ -301,12 +376,40 @@
     })
             .then(resp => resp.json())
             .then(resp => {
-              // alert("排期天数保存成功：" + resp.message);
-
               // 更新卡片显示和属性
-              card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
-              card.setAttribute('data-schedule_days', days);
-              item.scheduleDays = days;
+              if (card) {
+                card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+                card.setAttribute('data-schedule_days', days);
+                item.scheduleDays = days;
+              }
+
+              // 更新排期面板中对应单元格的 colspan
+              const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
+              cells.forEach(cell => {
+                cell.setAttribute('colspan', days);
+                // 设置 data-schedule_days 属性的值与 colspan 一致
+                cell.setAttribute('data-schedule_days', days);
+                cell.innerText = `${item.sample_model} ${item.materialCode} (${days}天)`;
+
+                // 恢复被隐藏的格子
+                const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+                const startIndex = rowCells.indexOf(cell);
+
+                // 只显示原合并范围内的单元格
+                for (let i = startIndex; i < startIndex + originalDays; i++) {
+                  if (rowCells[i]) {
+
+                    rowCells[i].style.display = '';
+                  }
+                }
+
+                for (let i = startIndex + 1; i < startIndex + parseInt(days); i++) {
+                  if (rowCells[i]){
+                    rowCells[i].style.display = 'none';
+                  }
+                }
+              });
+
             })
             .catch(err => {
               console.error("保存天数失败：", err);
@@ -342,11 +445,20 @@
                 card.dataset.schedule_color = selectedColor;
                 item.schedule_color = selectedColor;
               }
+
+              // 更新排期面板中对应单元格的颜色
+              const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
+              cells.forEach(cell => {
+                cell.style.backgroundColor = selectedColor;
+                cell.dataset.schedule_color = selectedColor;
+              });
             })
             .catch(error => {
               console.error("保存颜色失败：", error);
               alert("设置颜色失败，请重试");
             });
+
+    saveSchedule(true);
   }
 
   async function saveSchedule(isRefrenshBtn) {
@@ -536,7 +648,7 @@
             const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
             if (!isCovered) {
               html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
-              html += `<!--<td class="drop-cell" style="min-width: 150px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>-->`;
+              // html += `<!--<td class="drop-cell" style="min-width: 150px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>-->`;
             }
             colIndex += 1;
           }
@@ -1002,10 +1114,6 @@
     if (colorRadio) {
       colorRadio.checked = true;
     }
-
-    // 禁用确定排期按钮
-    const saveScheduleBtn = document.getElementById('saveScheduleBtn');
-    saveScheduleBtn.disabled = true;
 
     document.getElementById('saveScheduleBtn').onclick = function () {
       saveScheduleAndColor(null, taskData);
