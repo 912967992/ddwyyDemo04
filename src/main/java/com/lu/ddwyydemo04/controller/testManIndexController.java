@@ -43,6 +43,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1223,18 +1224,25 @@ public class testManIndexController {
             return new ArrayList<>();
         }
 
+        // 替换特殊字段，避免被误拆分
+        rawData = rawData.replace("USB-C", "USB_C");
+        rawData = rawData.replace("USB-A", "USB_A");
+
         // 按行分割数据
-        String[] rows = rawData.split("\n"); // 假设每一行的数据以换行符分隔
+        String[] rows = rawData.split("\n");
 
         List<List<String>> result = new ArrayList<>();
 
-        // 处理每一行
         for (String row : rows) {
-            String[] parts = row.split("-"); // 按照 - 分隔字段
+            String[] parts = row.split("-");
 
             if (parts.length == 3) {
-                // 直接将每行数据以字符串列表形式加入结果
-                result.add(Arrays.asList(parts));
+                // 把替换回原本的 USB-C 和 USB-A
+                List<String> fixedParts = Arrays.stream(parts)
+                        .map(s -> s.replace("USB_C", "USB-C").replace("USB_A", "USB-A"))
+                        .collect(Collectors.toList()); // 注意这里改成了 .collect(Collectors.toList())
+
+                result.add(fixedParts);
             }
         }
 

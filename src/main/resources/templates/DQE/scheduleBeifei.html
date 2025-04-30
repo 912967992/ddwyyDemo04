@@ -305,68 +305,72 @@
       job_number = startDateCell.getAttribute('data-job_number');
       originalDays = startDateCell.getAttribute("data-schedule_days");
 
-    }
-    if (!startDate) {
-      // 如果没有找到开始日期，从项目卡片中获取相关信息（可根据实际情况调整）
-      const projectCard = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
-      if (projectCard) {
-        // 这里假设项目卡片中有排期开始日期信息，若没有需要调整逻辑
-        startDate = projectCard.getAttribute('data-schedule_start_date');
-      }
-    }
-    if (!startDate) {
-      console.error('无法获取排期开始日期');
-      return;
-    }
-
-    // 获取排期面板的所有单元格
-    const allCells = document.querySelectorAll('.drop-cell');
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(startDateObj);
-    endDateObj.setDate(endDateObj.getDate() + parseInt(days) - 1);
-    const newEndDate = endDateObj.toISOString().split('T')[0];
-
-    // 生成新排期范围内的所有日期
-    const newDateRange = getDateRange(startDate, newEndDate);
-
-    // 检查新排期是否会占用其他项目
-    for (const date of newDateRange) {
-      const cellsOnDate = Array.from(allCells).filter(cell =>
-              cell.getAttribute('data-date') === date &&
-              cell.getAttribute('data-tester') === tester &&
-              cell.innerText.trim() !== '' &&
-              cell.getAttribute('data-sample_id') !== item.sample_id
-      );
-      if (cellsOnDate.length > 0) {
-        alert('新排期会占用已有项目，请重新选择排期天数！');
+      if (!startDate) {
+        console.error('无法获取排期开始日期');
         return;
       }
-    }
 
-    // 更新 localScheduleChanges
-    const existingIndex = localScheduleChanges.findIndex(change => change.sample_id === item.sample_id);
-    if (existingIndex !== -1) {
-      localScheduleChanges[existingIndex].start_date = startDate;
-      localScheduleChanges[existingIndex].end_date = newEndDate;
-      localScheduleChanges[existingIndex].scheduleDays = days;
-      localScheduleChanges[existingIndex].schedule_color = selectedColor;
-      localScheduleChanges[existingIndex].tester = tester;
-      localScheduleChanges[existingIndex].job_number = job_number;
-    } else {
-      const newChange = {
-        change: "add",
-        sample_id: item.sample_id,
-        sizecoding: `${item.sample_model} ${item.materialCode}`,
-        tester: tester,
-        start_date: startDate,
-        end_date: newEndDate,
-        scheduleDays: days,
-        schedule_color: selectedColor,
-        job_number: job_number
-      };
-      localScheduleChanges.push(newChange);
+      // 获取排期面板的所有单元格
+      const allCells = document.querySelectorAll('.drop-cell');
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(startDateObj);
+      endDateObj.setDate(endDateObj.getDate() + parseInt(days) - 1);
+      const newEndDate = endDateObj.toISOString().split('T')[0];
+
+      // 生成新排期范围内的所有日期
+      const newDateRange = getDateRange(startDate, newEndDate);
+
+      // 检查新排期是否会占用其他项目
+      for (const date of newDateRange) {
+        const cellsOnDate = Array.from(allCells).filter(cell =>
+                cell.getAttribute('data-date') === date &&
+                cell.getAttribute('data-tester') === tester &&
+                cell.innerText.trim() !== '' &&
+                cell.getAttribute('data-sample_id') !== item.sample_id
+        );
+        if (cellsOnDate.length > 0) {
+          alert('新排期会占用已有项目，请重新选择排期天数！');
+          return;
+        }
+      }
+
+      // 更新 localScheduleChanges
+      const existingIndex = localScheduleChanges.findIndex(change => change.sample_id === item.sample_id);
+      if (existingIndex !== -1) {
+        localScheduleChanges[existingIndex].start_date = startDate;
+        localScheduleChanges[existingIndex].end_date = newEndDate;
+        localScheduleChanges[existingIndex].scheduleDays = days;
+        localScheduleChanges[existingIndex].schedule_color = selectedColor;
+        localScheduleChanges[existingIndex].tester = tester;
+        localScheduleChanges[existingIndex].job_number = job_number;
+      } else {
+        const newChange = {
+          change: "add",
+          sample_id: item.sample_id,
+          sizecoding: `${item.sample_model} ${item.materialCode}`,
+          tester: tester,
+          start_date: startDate,
+          end_date: newEndDate,
+          scheduleDays: days,
+          schedule_color: selectedColor,
+          job_number: job_number
+        };
+        localScheduleChanges.push(newChange);
+      }
+      console.log(localScheduleChanges)
+
     }
-    console.log(localScheduleChanges)
+    // if (!startDate) {
+    //     // 如果没有找到开始日期，从项目卡片中获取相关信息（可根据实际情况调整）
+    //     const projectCard = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
+    //     if (projectCard) {
+    //         // 这里假设项目卡片中有排期开始日期信息，若没有需要调整逻辑
+    //         startDate = projectCard.getAttribute('data-schedule_start_date');
+    //     }
+    // }
+
+
+
 
     // 1️⃣ 保存天数
     fetch('/passback/saveScheduleDays', {
@@ -778,10 +782,16 @@
         // 检查排期区域是否已被占用
         for (let i = startIndex; i < startIndex + roundedDays; i++) {
           if (rowCells[i].innerText.trim() !== '') {
-            alert('排期区域已占用，无法安排！');
-            return;
+            // alert('排期区域已占用，无法安排！');
+            // return;
+
+            const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
+            if (!confirmInsert) {
+              return;
+            }
           }
         }
+
 
         // 确认可以放置项目后，再清空原排期
         const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
@@ -796,7 +806,7 @@
           originalCell.classList.remove('assigned');
           originalCell.style.backgroundColor = '';
 
-          const allowedAttributes = ['class', 'data-tester', 'data-date'];
+          const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
           [...originalCell.attributes].forEach(attr => {
             if (!allowedAttributes.includes(attr.name)) {
               originalCell.removeAttribute(attr.name);
@@ -870,6 +880,10 @@
     contextMenu.style.display = 'none';
   }
 
+
+  // 处理拖拽放下事件
+  // ... existing code ...
+
   // 处理拖拽放下事件
   function handleDrop(cell, cellList, taskData) {
     const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
@@ -882,36 +896,127 @@
       return;
     }
 
+    // 检查排期区域是否已被占用
+    let conflictCells = [];
     for (let i = startIndex; i < startIndex + roundedDays; i++) {
       if (rowCells[i].innerText.trim() !== '') {
-        alert('排期区域已占用，无法安排！');
-        return;
+        conflictCells.push(rowCells[i]);
       }
     }
 
-    const startCell = rowCells[startIndex];
+    if (conflictCells.length > 0) {
+      // const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
+      // if (!confirmInsert) {
+      //     return;
+      // }
 
+      // 找到所有需要往后挪的项目
+      const projectsToMove = [];
+      let currentIndex = startIndex;
+      while (currentIndex < rowCells.length) {
+        const currentCell = rowCells[currentIndex];
+        if (currentCell.innerText.trim() !== '') {
+          const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
+          const projectData = {};
+          const attributes = [
+            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+          ];
+          attributes.forEach(attr => {
+            projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+          });
+          projectsToMove.push({
+            startIndex: currentIndex,
+            span: projectSpan,
+            data: projectData
+          });
+          currentIndex += projectSpan;
+        } else {
+          currentIndex++;
+        }
+      }
+
+      // 从后往前移动项目
+      for (let i = projectsToMove.length - 1; i >= 0; i--) {
+        const { startIndex: projectStartIndex, span, data } = projectsToMove[i];
+        const newStartIndex = projectStartIndex + roundedDays;
+        if (newStartIndex + span > rowCells.length) {
+          alert("后续项目移动后超出可排范围！");
+          return;
+        }
+        // 清除原项目
+        const originalStartCell = rowCells[projectStartIndex];
+        originalStartCell.innerText = '';
+        originalStartCell.removeAttribute('colspan');
+        originalStartCell.classList.remove('assigned');
+        originalStartCell.style.backgroundColor = '';
+        const allowedAttributes = ['class', 'data-tester', 'data-date'];
+        [...originalStartCell.attributes].forEach(attr => {
+          if (!allowedAttributes.includes(attr.name)) {
+            originalStartCell.removeAttribute(attr.name);
+          }
+        });
+        // 恢复被隐藏的格子
+        for (let j = projectStartIndex; j < projectStartIndex + span; j++) {
+          if (rowCells[j]) rowCells[j].style.display = '';
+        }
+        // 创建新项目
+        const newStartCell = rowCells[newStartIndex];
+        newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
+        newStartCell.classList.add('assigned');
+        newStartCell.style.backgroundColor = data.schedule_color || "";
+        newStartCell.setAttribute('colspan', span);
+        Object.keys(data).forEach(key => {
+          if (key !== 'days') {
+            newStartCell.setAttribute(`data-${key}`, data[key]);
+          }
+        });
+        for (let j = newStartIndex + 1; j < newStartIndex + span; j++) {
+          rowCells[j].style.display = 'none';
+        }
+        // 更新 localScheduleChanges
+        const newEndDate = rowCells[newStartIndex + span - 1].getAttribute('data-date');
+        const newChange = {
+          change: "add",
+          sample_id: data.sample_id,
+          sizecoding: data.sizecoding,
+          tester: data.tester,
+          start_date: rowCells[newStartIndex].getAttribute('data-date'),
+          end_date: newEndDate,
+          scheduleDays: data.schedule_days,
+          schedule_color: data.schedule_color,
+          job_number: data.job_number
+        };
+        const existingIndex = localScheduleChanges.findIndex(item =>
+                item.sample_id === data.sample_id
+        );
+        if (existingIndex !== -1) {
+          localScheduleChanges[existingIndex] = newChange;
+        } else {
+          localScheduleChanges.push(newChange);
+        }
+      }
+    }
+
+    // 放置新插入的项目
+    const startCell = rowCells[startIndex];
     startCell.innerText = `${sizecoding} (${schedule_days}天)`;
     startCell.classList.add('assigned');
     startCell.style.backgroundColor = schedule_color || "";
-
     startCell.setAttribute('colspan', roundedDays);
-
     Object.keys(taskData).forEach(key => {
       if (key !== 'days') {
         startCell.setAttribute(`data-${key}`, taskData[key]);
       }
     });
-
     for (let i = startIndex + 1; i < startIndex + roundedDays; i++) {
       rowCells[i].style.display = 'none';
     }
-
     const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
     if (projectEl) projectEl.remove();
-
     const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
-
     // 构造新的变更对象
     const newChange = {
       change: "add",
@@ -924,20 +1029,16 @@
       schedule_color: schedule_color,
       job_number: job_number
     };
-
     // 查找并更新已有记录（如果存在），否则添加
     const existingIndex = localScheduleChanges.findIndex(item =>
             item.sample_id === sample_id
     );
-
     if (existingIndex !== -1) {
       localScheduleChanges[existingIndex] = newChange;
     } else {
       localScheduleChanges.push(newChange);
     }
-
     console.log("add的",localScheduleChanges);
-
     // 重新为新生成的排期单元格添加拖拽功能
     startCell.setAttribute('draggable', 'true');
     startCell.addEventListener('dragstart', function (e) {
@@ -957,6 +1058,7 @@
     });
   }
 
+
   // 处理撤回排期事件，撤回排期按钮触发这个方法
   function handleUndo(rowCells, startIndex, taskData) {
     const { schedule_days, sample_id } = taskData;
@@ -967,7 +1069,7 @@
     currentRightClickCell.removeAttribute('colspan');
     currentRightClickCell.classList.remove('assigned');
 
-    const allowedAttributes = ['class', 'data-tester', 'data-date'];
+    const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
     [...currentRightClickCell.attributes].forEach(attr => {
       if (!allowedAttributes.includes(attr.name)) {
         currentRightClickCell.removeAttribute(attr.name);

@@ -32,7 +32,51 @@
     </ul>
 </div>
 
+<div class="rsa-container">
+    <h2>RSA 加密演示</h2>
+    <input type="text" id="inputText" placeholder="请输入内容" style="width:300px;" />
+    <button onclick="encrypt()">加密</button>
+    <p>加密结果：</p>
+    <textarea id="result" rows="5" cols="50"></textarea>
+</div>
 
+<div class="rsa-container" style="margin-top: 50px;">
+    <h2>RSA 解密演示</h2>
+    <textarea id="encryptedText" rows="5" cols="50" placeholder="请输入加密文本"></textarea><br>
+    <button onclick="decrypt()">解密</button>
+    <p>解密结果：</p>
+    <input type="text" id="decryptedResult" style="width:300px;" readonly />
+</div>
+
+
+<script>
+    function encrypt() {
+        const text = document.getElementById('inputText').value;
+        fetch('/encrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: text
+        })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('result').value = data;
+            });
+    }
+
+    function decrypt() {
+        const encrypted = document.getElementById('encryptedText').value;
+        fetch('/decrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: encrypted
+        })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('decryptedResult').value = data;
+            });
+    }
+
+</script>
 
 
 </body>
