@@ -521,8 +521,8 @@
 
 
     <insert id="insertElectric_schedule_info">
-        INSERT INTO electric_schedule_info(sample_id,tester,schedule_start_date,schedule_end_date,create_time,update_time,sizecoding,schedule_color)
-        VALUES (#{sample_id}, #{tester}, #{schedule_start_date}, #{schedule_end_date} , NOW() , NOW() ,#{sizecoding},#{schedule_color})
+        INSERT INTO electric_schedule_info(sample_id,tester,schedule_start_date,schedule_end_date,create_time,update_time,sizecoding,schedule_color,isUsed)
+        VALUES (#{sample_id}, #{tester}, #{schedule_start_date}, #{schedule_end_date} , NOW() , NOW() ,#{sizecoding},#{schedule_color}, 1)
     </insert>
 
     <update id="updateElectric_schedule_info">

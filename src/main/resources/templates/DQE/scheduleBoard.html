@@ -282,10 +282,10 @@
 
     function saveScheduleAndColor(card,item) {
         const days = document.getElementById('scheduleDays').value;
-        if (!days || isNaN(days) || days < 0) {
-            alert("请输入有效的排期天数！");
-            return;
-        }
+        // if (!days || isNaN(days) || days < 0) {
+        //     alert("请输入有效的排期天数！");
+        //     return;
+        // }
 
         const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
         if (!selectedColor) {
@@ -890,9 +890,9 @@
         const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
-        console.log("roundedDays:",roundedDays)
+        // console.log("roundedDays:",roundedDays)
         console.log("startIndex:",startIndex)
-        console.log("rowCells.length:",rowCells.length)
+        // console.log("rowCells.length:",rowCells.length)
 
         if (startIndex + roundedDays > rowCells.length) {
             alert("排期超出可排范围！");
@@ -904,7 +904,7 @@
         for (let i = startIndex; i < startIndex + roundedDays; i++) {
             if (rowCells[i].innerText.trim() !== '') {
                 conflictCells.push(rowCells[i]);
-                console.log("conflictCells.i,",i)
+                // console.log(rowCells[i].innerHTML.trim(),i);
             }
         }
         console.log("conflictCells.length,",conflictCells.length)
@@ -919,7 +919,7 @@
                     const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
                     const projectData = {};
                     const attributes = [
-                        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                        'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
@@ -937,11 +937,25 @@
                     currentIndex++;
                 }
             }
+            // console.log("projectsToMove:",projectsToMove)
+
+            let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
+            // 找到最小的 startIndex
+            minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
+            // console.log("minStartIndex:", minStartIndex);
+
+            // 计算拖拽项目与最小startIndex的差值
+            const diff =  roundedDays - minStartIndex + startIndex;
+            // console.log("拖拽项目与最小startIndex的差值:", diff);
 
             // 从后往前移动项目
             for (let i = projectsToMove.length - 1; i >= 0; i--) {
                 const { startIndex: projectStartIndex, span, data } = projectsToMove[i];
-                const newStartIndex = projectStartIndex + roundedDays;
+                const newStartIndex = projectStartIndex + diff;
+                console.log("项目起始位置: ", projectStartIndex);
+                console.log("挪动的天数: ", diff);
+                console.log("新的起始位置: ", newStartIndex);
+
                 if (newStartIndex + span > rowCells.length) {
                     alert("后续项目移动后超出可排范围！");
                     return;

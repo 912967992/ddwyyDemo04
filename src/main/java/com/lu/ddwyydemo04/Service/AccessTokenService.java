@@ -609,7 +609,7 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 10 2 * * ?") // 每天北京时间的 10:12
+    @Scheduled(cron = "0 17 3 * * ?") // 每天北京时间的 10:12
     public void refreshUserIds() throws ApiException {
         List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L); // 示例大部门 ID
 //        List<Long> targetDeptIds = Arrays.asList( 523528658L); // 示例大部门 ID
@@ -770,7 +770,7 @@ public class AccessTokenService {
     }
 
     // 每天凌晨3:10执行
-    @Scheduled(cron = "0 10 3 * * ?")
+    @Scheduled(cron = "0 30 4 * * ?")
     public void syncEngineers() {
         String[] engineerNames = {
                 "郭喆", "游宏", "殷嘉俊", "唐日顺", "官旺华", "刘鹏飞", "赵梓宇", "段平", "魏民",
