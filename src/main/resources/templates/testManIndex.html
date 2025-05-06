@@ -23,7 +23,29 @@
 <div class="title-container">
     <button id="announcement-btn">查看公告(v2.1，20250111创建报告现在请按计划表来填写三个排期字段)</button>
     <div class="title">主页</div>
+    <!-- 排期项目面板按钮 -->
+    <button id="schedule-panel-btn" class="schedule-panel-btn">排期项目按钮</button>
 </div>
+
+    <!-- 排期项目面板模态框 -->
+    <div id="schedule-panel-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-panel-modal">&times;</span>
+            <h2>排期项目列表</h2>
+            <ul id="schedule-project-list">
+                <!-- 项目列表会通过接口加载 -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- 项目详情模态框 -->
+    <div id="project-detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-project-modal">&times;</span>
+            <h2 id="project-detail-title">项目详情</h2>
+            <p id="project-detail-info">项目的基础信息</p>
+        </div>
+    </div>
 
 
     <!-- 更新日志面板 -->
@@ -3494,6 +3516,81 @@
             .catch(error => {
                 console.error('上传出错:', error);
                 // 在这里处理错误情况，比如提示用户
+            });
+    }
+
+    // 20250506 加排期项目按钮
+    // 获取按钮和模态框元素
+    const schedulePanelBtn = document.getElementById("schedule-panel-btn");
+    const schedulePanelModal = document.getElementById("schedule-panel-modal");
+    const closePanelModal = document.getElementById("close-panel-modal");
+    const projectDetailModal = document.getElementById("project-detail-modal");
+    const closeProjectModal = document.getElementById("close-project-modal");
+    const scheduleProjectList = document.getElementById("schedule-project-list");
+
+    // 打开排期项目面板
+    schedulePanelBtn.addEventListener("click", () => {
+        fetchProjects();
+        schedulePanelModal.style.display = "block";
+    });
+
+    // 关闭排期项目面板
+    closePanelModal.addEventListener("click", () => {
+        schedulePanelModal.style.display = "none";
+    });
+
+    // 关闭项目详情模态框
+    closeProjectModal.addEventListener("click", () => {
+        projectDetailModal.style.display = "none";
+    });
+
+    // 模态框点击外部关闭
+    window.addEventListener("click", (event) => {
+        if (event.target === schedulePanelModal) {
+            schedulePanelModal.style.display = "none";
+        }
+        if (event.target === projectDetailModal) {
+            projectDetailModal.style.display = "none";
+        }
+    });
+
+    // 调用接口获取项目数据
+    function fetchProjects() {
+        // 示例接口调用，实际替换为你数据库接口
+        fetch("/api/projects")
+            .then((response) => response.json())
+            .then((data) => {
+                displayProjects(data);
+            })
+            .catch((error) => {
+                console.error("Error fetching projects:", error);
+            });
+    }
+
+    // 显示项目列表
+    function displayProjects(projects) {
+        scheduleProjectList.innerHTML = ""; // 清空原来的列表
+        projects.forEach((project) => {
+            const li = document.createElement("li");
+            li.textContent = project.name; // 假设每个项目有name字段
+            li.addEventListener("click", () => {
+                showProjectDetails(project.id);
+            });
+            scheduleProjectList.appendChild(li);
+        });
+    }
+
+    // 显示项目详情
+    function showProjectDetails(projectId) {
+        fetch(`/api/project-details/${projectId}`)
+            .then((response) => response.json())
+            .then((data) => {
+                document.getElementById("project-detail-title").textContent = data.name;
+                document.getElementById("project-detail-info").textContent = data.description;
+                projectDetailModal.style.display = "block";
+            })
+            .catch((error) => {
+                console.error("Error fetching project details:", error);
             });
     }
 
