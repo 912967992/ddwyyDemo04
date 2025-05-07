@@ -18,7 +18,8 @@ public class LabModuleController {
     @Autowired
     private LabModuleService labModuleService;
 
-    @PostMapping("/uploadSys")
+    //禁用这个方法，现在改成让大哥手动上传管理好点
+    @PostMapping("/uploadSysStop")
     @ResponseBody
     public ResponseEntity<String> uploadSystemInfo(@RequestBody SystemInfo systemInfo) {
 
