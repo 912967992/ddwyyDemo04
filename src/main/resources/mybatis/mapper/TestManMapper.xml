@@ -500,11 +500,12 @@
         ON es.sample_id = ei.sample_id
             SET
                 es.isUsed = 0,
+                ei.isUsed = 0,
                 es.update_time = NOW(),
                 es.schedule_start_date = NULL,
                 es.schedule_end_date = NULL,
-                es.tester = NULL,
-                ei.isUsed = 0
+                es.tester = NULL
+
         WHERE
             ei.sample_id = #{sample_id}
     </update>
@@ -795,6 +796,14 @@
     <select id="queryJobnumberFromUser" resultType="String">
         SELECT job_number FROM users
         WHERE username = #{username}
+    </select>
+
+    <select id="getScheduleSampleId" resultType="String">
+        SELECT sample_id FROM electric_info
+    </select>
+    
+    <select id="getElectricInfo" resultType="PassbackData">
+        SELECT * FROM electric_info WHERE sample_id = #{sample_id}
     </select>
 
 </mapper>

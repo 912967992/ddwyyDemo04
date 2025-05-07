@@ -321,24 +321,24 @@ public class TestManIndexService {
             }
 
 
-            if ("delete".equals(latestChange.get("change"))) {
+            if ("delete".equals(change)) {
                 // 删除 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 0
 
                 testManDao.deleteElectric_schedule_info(sample_id);
 
                 System.out.println("count>0的delete的:"+latestChange);
-            } else if ("add".equals(latestChange.get("change"))) {
+            } else if ("add".equals(change)) {
                 // 新增 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
                 testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays,schedule_color);
                 System.out.println("count>0的add的:"+latestChange);
             }
         }else{
-            if ("delete".equals(latestChange.get("change"))) {
+            if ("delete".equals(change)) {
                 // 数据库本来就无此条数据，故无需操作
                 System.out.println("count<0的delete的:"+latestChange);
-            } else if ("add".equals(latestChange.get("change"))) {
+            } else if ("add".equals(change)) {
                 // 新增 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
                 testManDao.insertElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,schedule_color);
@@ -461,5 +461,12 @@ public class TestManIndexService {
         return testManDao.queryJobnumberFromUser(username);
     }
 
+    public List<String> getScheduleSampleId(){
+        return testManDao.getScheduleSampleId();
+    }
+
+    public List<PassbackData> getElectricInfo(String sample_id){
+        return testManDao.getElectricInfo(sample_id);
+    }
 
 }

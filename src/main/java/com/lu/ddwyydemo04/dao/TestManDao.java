@@ -158,5 +158,7 @@ public interface TestManDao {
 
     String queryJobnumberFromUser(@Param("username")String username);
 
+    List<String> getScheduleSampleId();
+    List<PassbackData> getElectricInfo(@Param("sample_id")String sample_id);
 
 }

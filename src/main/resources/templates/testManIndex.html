@@ -3565,7 +3565,7 @@
     // 调用接口获取项目数据
     function fetchProjects() {
         // 示例接口调用，实际替换为你数据库接口
-        fetch("/api/projects")
+        fetch("/api/getScheduleSampleId")
             .then((response) => response.json())
             .then((data) => {
                 displayProjects(data);
@@ -3580,9 +3580,9 @@
         scheduleProjectList.innerHTML = ""; // 清空原来的列表
         projects.forEach((project) => {
             const li = document.createElement("li");
-            li.textContent = project.name; // 假设每个项目有name字段
+            li.textContent = project; // 假设每个项目有name字段
             li.addEventListener("click", () => {
-                showProjectDetails(project.id);
+                showProjectDetails(project);
             });
             scheduleProjectList.appendChild(li);
         });
@@ -3593,8 +3593,8 @@
         fetch(`/api/project-details/${projectId}`)
             .then((response) => response.json())
             .then((data) => {
-                document.getElementById("project-detail-title").textContent = data.name;
-                document.getElementById("project-detail-info").textContent = data.description;
+                document.getElementById("project-detail-title").textContent = data.sample_name;
+                document.getElementById("project-detail-info").textContent = data.sample_category;
                 projectDetailModal.style.display = "block";
             })
             .catch((error) => {

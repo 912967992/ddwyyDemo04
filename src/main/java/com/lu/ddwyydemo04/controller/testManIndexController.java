@@ -1478,6 +1478,24 @@ public class testManIndexController {
         }
     }
 
+    @GetMapping("/api/getScheduleSampleId")
+    @ResponseBody
+    public ResponseEntity<List<String>> getScheduleSampleId() {
+        List<String> sampleids = testManIndexService.getScheduleSampleId();
+        System.out.println("sampleids:"+sampleids);
+        return ResponseEntity.ok(sampleids);
+    }
+
+    @GetMapping("/api/project-details/{projectId}")
+    public ResponseEntity<PassbackData> getElectricInfo(@PathVariable String projectId) {
+        List<PassbackData> electricInfoList = testManIndexService.getElectricInfo(projectId);
+
+        if (electricInfoList != null && !electricInfoList.isEmpty()) {
+            return ResponseEntity.ok(electricInfoList.get(0)); // 返回第一个对象
+        } else {
+            return ResponseEntity.notFound().build(); // 返回404
+        }
+    }
 
 
 }
