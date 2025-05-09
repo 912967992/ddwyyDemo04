@@ -167,7 +167,7 @@ public class AccessTokenService {
         // 定义要发送的消息内容
         //下边这个链接很重要，OA消息发送的时候用户点击的话会跳转到工作台直接进入我的应用
 //        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
-        int sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
+        String sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
         String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
 //        String baseUrl = "http://38knkf.natappfree.cc/problemMoudle?dd_orientation=landscape";
         String redirectUrl = String.format(
@@ -885,7 +885,7 @@ public class AccessTokenService {
         return dqeDao.findSecondOverdueSampleIdsRD(currentTime);
     }
 
-    public int deleteTaskNodeBefore(int sample_id){
+    public int deleteTaskNodeBefore(String sample_id){
         return dqeDao.deleteTaskNodeBefore(sample_id);
     }
 

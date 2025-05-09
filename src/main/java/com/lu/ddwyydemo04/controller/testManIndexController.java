@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
+import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.*;
@@ -53,6 +54,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class testManIndexController {
     @Autowired
     private TestManIndexService testManIndexService;
+    private ExcelShowService excelShowService;
 
     @Autowired
     private AccessTokenService accessTokenService;
@@ -231,8 +233,7 @@ public class testManIndexController {
     @PostMapping("/testManIndex/getjumpFilepath")
     @ResponseBody
     public String getjumpFilepath(@RequestBody Map<String, Object> data){
-        String sample_idStr = (String) data.get("sample_id");
-        int sample_id = Integer.parseInt(sample_idStr);
+        String sample_id = (String) data.get("sample_id");
         logger.info("获取的getjumpFilepath的sample_id为:"+sample_id);
 
 
@@ -319,7 +320,7 @@ public class testManIndexController {
     @PostMapping("/testManIndex/updateSamples")
     @ResponseBody
     public Map<String, Object> updateSamples(
-            @RequestParam("edit_sample_id") int sample_id,
+            @RequestParam("edit_sample_id") String sample_id,
             @RequestParam("edit_model") String editModel,
             @RequestParam("edit_coding") String editCoding,
             @RequestParam("edit_category") String editCategory,
@@ -483,8 +484,7 @@ public class testManIndexController {
 
         String schedule = request.get("schedule");
         String userInput = request.get("restDays");
-        String sample_idStr = request.get("sample_id");
-        int sample_id = Integer.parseInt(sample_idStr);
+        String sample_id = request.get("sample_id");
 
         String tuiOrJp = request.get("tuiOrJp");
 
@@ -726,7 +726,7 @@ public class testManIndexController {
             LocalDateTime parsedDateTime = LocalDateTime.parse(created_at, formatter);
             System.out.println("Parsed LocalDateTime: " + parsedDateTime);
             //要先获取samples的id主键，然后搜索历史版本id，没有的话就是0，有就加1
-            int sample_id = testManIndexService.querySampleId(filepath);
+            String sample_id = testManIndexService.querySampleId(filepath);
             System.out.println("sample_id:"+sample_id);
             int history_id = testManIndexService.queryHistoryid(sample_id);
             System.out.println("history_id:"+history_id);
@@ -1478,24 +1478,136 @@ public class testManIndexController {
         }
     }
 
-    @GetMapping("/api/getScheduleSampleId")
+    @GetMapping("/api/getScheduleSampleIdByName")
     @ResponseBody
-    public ResponseEntity<List<String>> getScheduleSampleId() {
-        List<String> sampleids = testManIndexService.getScheduleSampleId();
-        System.out.println("sampleids:"+sampleids);
-        return ResponseEntity.ok(sampleids);
+    public ResponseEntity<List<String>> getScheduleSampleIdByName(@RequestParam String username) {
+        List<String> sampleIds = testManIndexService.getScheduleSampleIdByName(username);
+        System.out.println("username: " + username);
+        System.out.println("sampleIds: " + sampleIds);
+        return ResponseEntity.ok(sampleIds);
     }
+
 
     @GetMapping("/api/project-details/{projectId}")
     public ResponseEntity<PassbackData> getElectricInfo(@PathVariable String projectId) {
         List<PassbackData> electricInfoList = testManIndexService.getElectricInfo(projectId);
 
+        // 获取物料编码并拼接成字符串
+        List<String> materialItems = testManIndexService.getMaterialCodes(projectId);
+        String materialItemsStr = String.join("，", materialItems); // 可用逗号分隔也行
+
+        System.out.println("materialItems: " + materialItemsStr);
+
         if (electricInfoList != null && !electricInfoList.isEmpty()) {
-            return ResponseEntity.ok(electricInfoList.get(0)); // 返回第一个对象
+            PassbackData data = electricInfoList.get(0);
+            data.setMaterialCode(materialItemsStr); // 设置物料编码
+            return ResponseEntity.ok(data);
         } else {
             return ResponseEntity.notFound().build(); // 返回404
         }
     }
+
+
+    @PostMapping("/api/start-test")
+    public ResponseEntity<?> startTest(@RequestBody Map<String, Object> params) {
+        String questStats = (String) params.get("questStats");
+        String isHighFrequency = (String) params.get("isHighFrequency");
+
+        Map<String, Object> projectData = (Map<String, Object>) params.get("projectData");
+        if (projectData == null) {
+            return ResponseEntity.badRequest().body("缺少项目信息");
+        }
+
+        System.out.println("materialCode:"+projectData.get("materialCode"));
+        // 获取 materialCode 字段值
+        Object materialCodeObj = projectData.get("materialCode");
+        if (materialCodeObj != null) {
+            String materialCodeStr = materialCodeObj.toString().trim();
+
+            Object model = projectData.get("sample_model");
+            Object category = projectData.get("sample_category");
+            Object version = projectData.get("version");
+
+            System.out.println("model:"+model);
+            System.out.println("category:"+category);
+            System.out.println("version:"+version);
+
+
+
+
+            // 判断是否包含多个，用逗号分隔
+            String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
+
+            for (String codeEntry : codeEntries) {
+                String trimmed = codeEntry.trim(); // 去空格
+                if (!trimmed.isEmpty()) {
+                    // 分割成 STTestCode 和 sample_frequency
+                    String[] parts = trimmed.split("-");
+                    if (parts.length == 2) {
+                        String materialCode = parts[0].trim();
+                        int sampleFrequency = Integer.parseInt(parts[1].trim());
+                        System.out.println("materialCode:"+materialCode);
+                        System.out.println("sampleFrequency:"+sampleFrequency);
+
+//                        excelShowService.sampleCount();
+                        Samples sample = new Samples();
+                        // 创建空 Excel 文件
+                        String fileName = projectData.get("sample_id") + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
+                        String fileDir = savepath;
+                        String filePath = fileDir + "/" + fileName;
+                        System.out.println("filePath:"+filePath);
+
+                        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+                            workbook.createSheet("Sheet1");
+                            try (FileOutputStream out = new FileOutputStream(filePath)) {
+                                workbook.write(out);
+                            }
+                        } catch (IOException e) {
+                            return ResponseEntity.status(500).body("XLSX 文件创建失败：" + e.getMessage());
+                        }
+
+                    }
+                }
+            }
+        }
+
+
+
+
+        // 构造 ElectricInfo 实体
+//        Samples sample = new Samples();
+//        sample.setSampleId((String) projectData.get("sample_id"));
+//        sample.setSampleCategory((String) projectData.get("sample_category"));
+//        sample.setSampleModel((String) projectData.get("sample_model"));
+//        sample.setMaterialCode((String) projectData.get("materialCode"));
+//        sample.setSampleFrequency((String) projectData.get("sample_frequency"));
+//        sample.setSampleName((String) projectData.get("sample_name"));
+//        sample.setVersion((String) projectData.get("version"));
+//        sample.setPriority((String) projectData.get("priority"));
+//        sample.setSampleLeader((String) projectData.get("sample_leader"));
+//        sample.setSupplier((String) projectData.get("supplier"));
+//        sample.setTestProjectCategory(questStats); // 用用户选择覆盖原值
+//        sample.setTestProjects((String) projectData.get("testProjects"));
+//        sample.setSchedule((String) projectData.get("schedule"));
+//        sample.setCreateTime((String) projectData.get("create_time"));
+//        sample.setScheduleDays((String) projectData.get("scheduleDays"));
+//        sample.setScheduleStartDate((String) projectData.get("schedule_start_date"));
+//        sample.setScheduleEndDate((String) projectData.get("schedule_end_date"));
+//        project.setIsCancel((Integer) projectData.get("isCancel"));
+//        project.setCancelReason((String) projectData.get("cancel_reason"));
+//        project.setCancelBy((String) projectData.get("cancel_by"));
+//        project.setCancelDate((String) projectData.get("cancel_date"));
+//        project.setActualStartTime((String) projectData.get("actual_start_time"));
+//        project.setActualFinishTime((String) projectData.get("actual_finish_time"));
+//        project.setTester((String) projectData.get("tester"));
+//        project.setSampleRecognizeResult(isHighFrequency);
+//        project.setFilepath(filePath);
+//
+//        electricInfoService.save(project); // 保存到数据库
+
+        return ResponseEntity.ok("测试任务提交成功");
+    }
+
 
 
 }

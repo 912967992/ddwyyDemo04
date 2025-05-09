@@ -30,36 +30,36 @@ public interface TestManDao {
 
     public void updateSampleTeamWork(Samples sample);
 
-    public void finishTest(@Param("sample_schedule")String sample_schedule,@Param("sample_id")int sample_id);
+    public void finishTest(@Param("sample_schedule")String sample_schedule,@Param("sample_id")String sample_id);
 
     public void finishTestWithoutTime(@Param("sample_schedule")String sample_schedule,@Param("finish_time")String finish_time,
-                                      @Param("sample_id")int sample_id);
+                                      @Param("sample_id")String sample_id);
 
 
-    public LocalDateTime  queryCreateTime(@Param("sample_id")int sample_id);
-    public String querySample_name(int sample_id);
+    public LocalDateTime  queryCreateTime(@Param("sample_id")String sample_id);
+    public String querySample_name(String sample_id);
 
-    public String queryFilepath(@Param("sample_id")int sample_id);
+    public String queryFilepath(@Param("sample_id")String sample_id);
 
-    public String queryTester_teamwork(int sample_id);
+    public String queryTester_teamwork(String sample_id);
 
-    public String queryTester(int sample_id);
+    public String queryTester(String sample_id);
 
     public int deleteFromTestIssues(int sample_id);//根据文件删除sample数据库的数据
     public int deleteFromSamples(int sample_id);//根据文件删除sample数据库的数据
 
     //提取问题点相关
-    public int querySampleId(String filepath);//根据文件删除sample数据库的数据
+    public String querySampleId(String filepath);//根据文件删除sample数据库的数据
 
     public int insertTestIssues(TestIssues testIssues);
 
 
-    public int queryHistoryid(@Param("sample_id") int sample_id);
+    public int queryHistoryid(@Param("sample_id") String sample_id);
     public int setDuration(@Param("planTestDuration") double planTestDuration,@Param("testDuration") double testDuration,
-                           @Param("sample_id") int sample_id);
+                           @Param("sample_id") String sample_id);
 
 
-    public BigDecimal queryPlanFinishTime(@Param("sample_id")int sample_id);
+    public BigDecimal queryPlanFinishTime(@Param("sample_id")String sample_id);
 
 
     public List<Samples> searchSampleTestMan(@Param("keyword") String keyword,
@@ -158,7 +158,8 @@ public interface TestManDao {
 
     String queryJobnumberFromUser(@Param("username")String username);
 
-    List<String> getScheduleSampleId();
+    List<String> getScheduleSampleIdByName(@Param("tester")String testers);
     List<PassbackData> getElectricInfo(@Param("sample_id")String sample_id);
 
+    List<MaterialItem> getDistinctMaterialCodes(@Param("sample_id")String sample_id);
 }

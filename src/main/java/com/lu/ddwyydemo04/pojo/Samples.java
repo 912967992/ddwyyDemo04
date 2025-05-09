@@ -3,7 +3,7 @@ package com.lu.ddwyydemo04.pojo;
 import java.time.LocalDateTime;
 
 public class Samples {
-    private Integer sample_id;
+    private String sample_id;
     private String sample_model;
     private String sample_coding;
 
@@ -58,11 +58,11 @@ public class Samples {
 
     private String scheduleTestCycle;
 
-    public Integer getSample_id() {
+    public String getSample_id() {
         return sample_id;
     }
 
-    public void setSample_id(Integer sample_id) {
+    public void setSample_id(String sample_id) {
         this.sample_id = sample_id;
     }
 

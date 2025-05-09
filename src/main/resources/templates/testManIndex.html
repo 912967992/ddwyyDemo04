@@ -39,13 +39,47 @@
     </div>
 
     <!-- 项目详情模态框 -->
+    <!-- 项目详情模态框 -->
     <div id="project-detail-modal" class="modal">
         <div class="modal-content">
             <span class="close" id="close-project-modal">&times;</span>
             <h2 id="project-detail-title">项目详情</h2>
-            <p id="project-detail-info">项目的基础信息</p>
+            <div id="project-detail-info">加载中...</div>
+
+            <!-- 新增：开始测试区域 -->
+            <div id="task-attributes" style="margin-top: 20px; display: none;">
+                <h3>填写以下内容</h3>
+                <label>
+                    任务属性：
+                    <select id="questStats-detail">
+                        <option value="">请选择</option>
+                        <option value="无">无</option>
+                        <option value="新品">新品</option>
+                        <option value="新设备">新设备</option>
+                        <option value="新软件版本">新软件版本</option>
+                        <option value="售后问题分析">售后问题分析</option>
+                        <option value="量产升级">量产升级</option>
+                        <option value="竞品">竞品</option>
+                    </select>
+                </label>
+                <br/><br/>
+                <label>
+                    是否高频：
+                    <select id="is-high-frequency">
+                        <option value="">请选择</option>
+                        <option value="是">是</option>
+                        <option value="否">否</option>
+                    </select>
+                </label>
+                <br/><br/>
+                <button id="confirm-task-btn">确认开始测试</button>
+            </div>
+
+            <!-- 开始测试按钮 -->
+            <button id="start-test-btn" style="margin-top: 20px;">开始测试</button>
         </div>
     </div>
+
 
 
     <!-- 更新日志面板 -->
@@ -346,6 +380,9 @@
     //         h.src = e;
     //     })(window, document, "https://g.alicdn.com/woodpeckerx/jssdk??wpkReporter.js", "__wpk");
     // }
+
+    //排期项目的属性
+    let currentProjectData = null;
 
     document.getElementById("choiceModal").addEventListener("click", function() {
         document.getElementById("choiceModal").style.display = "none";
@@ -652,6 +689,7 @@
             });
         }
 
+        //这是创建报告填写之后提交按钮触发的方法
         $('#fileInfoForm').submit(function(event) {
             event.preventDefault();
             var model = $('#model').val();
@@ -670,7 +708,6 @@
             // sample_name = sample_name.replace(/[\/\\]/g, "_");
             // 扩展正则表达式以替换所有非法字符
             sample_name = sample_name.replace(/[\/\\:*?"<>|\t]/g, "_");
-
 
             // var planfinish_time = $('#planfinish_time').val();
             var scheduleStartTime = $('#scheduleStartTime').val();
@@ -698,7 +735,7 @@
                     username: username,
                     scheduleStartTime: scheduleStartTime,
                     scheduleEndTime: scheduleEndTime,
-                    scheduleTestCycle: scheduleTestCycle,
+                    scheduleTestCycle: scheduleTestCycle
 
                 }),
                 success: function (filepaths) {
@@ -707,7 +744,7 @@
                         high_sign = "高频_";
                     }
 
-                    const newFileName = savepath.replace(/\//g, "\\") + "\\"  +model + " " + coding + "_" + category + "_" + version + "_第" +sample_frequency +"次送样_" + high_sign + questStats + "_" +sample_name + ".xlsx";
+                    const newFileName = savepath.replace(/\//g, "\\") + "\\" + model + " " + coding + "_" + category + "_" + version + "_第" +sample_frequency +"次送样_" + high_sign + questStats + "_" +sample_name + ".xlsx";
 
                     if (filepaths.length > 0){
                         if(filepaths.length === 1 ){
@@ -3538,7 +3575,7 @@
 
     // 打开排期项目面板
     schedulePanelBtn.addEventListener("click", () => {
-        fetchProjects();
+        fetchProjects(username);
         schedulePanelModal.style.display = "block";
     });
 
@@ -3563,9 +3600,8 @@
     });
 
     // 调用接口获取项目数据
-    function fetchProjects() {
-        // 示例接口调用，实际替换为你数据库接口
-        fetch("/api/getScheduleSampleId")
+    function fetchProjects(username) {
+        fetch(`/api/getScheduleSampleIdByName?username=${encodeURIComponent(username)}`)
             .then((response) => response.json())
             .then((data) => {
                 displayProjects(data);
@@ -3574,6 +3610,7 @@
                 console.error("Error fetching projects:", error);
             });
     }
+
 
     // 显示项目列表
     function displayProjects(projects) {
@@ -3593,14 +3630,81 @@
         fetch(`/api/project-details/${projectId}`)
             .then((response) => response.json())
             .then((data) => {
-                document.getElementById("project-detail-title").textContent = data.sample_name;
-                document.getElementById("project-detail-info").textContent = data.sample_category;
-                projectDetailModal.style.display = "block";
+                currentProjectData = data;
+                let html = `
+                <p><strong>样品编号：</strong> ${data.sample_id || ''}</p>
+                <p><strong>产品类别：</strong> ${data.sample_category || ''}</p>
+                <p><strong>大编码：</strong> ${data.sample_model || ''}</p>
+                <p><strong>物料编码-送样次数：</strong> ${data.materialCode || ''}</p>
+                <p><strong>产品名称：</strong> ${data.sample_name || ''}</p>
+                <p><strong>版本号：</strong> ${data.version || ''}</p>
+                <p><strong>优先级：</strong> ${data.priority || ''}</p>
+                <p><strong>项目负责人：</strong> ${data.sample_leader || ''}</p>
+                <p><strong>供应商：</strong> ${data.supplier || ''}</p>
+                <p><strong>试验项目类别：</strong> ${data.testProjectCategory || ''}</p>
+                <p><strong>测试子项目：</strong> ${data.testProjects || ''}</p>
+                <p><strong>当前进度：</strong> ${data.schedule || ''}</p>
+                <p><strong>创建时间：</strong> ${data.create_time || ''}</p>
+                <p><strong>排期天数：</strong> ${data.scheduleDays || ''}</p>
+                <p><strong>排期开始时间：</strong> ${data.schedule_start_date || ''}</p>
+                <p><strong>排期结束时间：</strong> ${data.schedule_end_date || ''}</p>
+                <p><strong>是否作废：</strong> ${data.isCancel === 1 ? '已作废' : '正常'}</p>
+                <p><strong>作废原因：</strong> ${data.cancel_reason || ''}</p>
+                <p><strong>作废人：</strong> ${data.cancel_by || ''}</p>
+                <p><strong>作废时间：</strong> ${data.cancel_date || ''}</p>
+                <p><strong>实际开始测试时间：</strong> ${data.actual_start_time || ''}</p>
+                <p><strong>实际测试完成时间：</strong> ${data.actual_finish_time || ''}</p>
+                <p><strong>测试负责人：</strong> ${data.tester || ''}</p>
+                <p><strong>实际测试时长：</strong> ${data.testDuration || ''}</p>
+                <p><strong>样品承认结果：</strong> ${data.sampleRecognizeResult || ''}</p>
+            `;
+                document.getElementById("project-detail-info").innerHTML = html;
+                document.getElementById("project-detail-modal").style.display = "block";
             })
             .catch((error) => {
                 console.error("Error fetching project details:", error);
             });
     }
+
+
+    document.getElementById("start-test-btn").addEventListener("click", () => {
+        // 展示任务属性表单
+        document.getElementById("task-attributes").style.display = "block";
+    });
+
+    document.getElementById("confirm-task-btn").addEventListener("click", () => {
+        const questStats = document.getElementById("questStats-detail").value;
+        const isHighFrequency = document.getElementById("is-high-frequency").value;
+
+        if (!questStats || !isHighFrequency) {
+            alert("请全部勾选值才允许进入下一步！");
+            return;
+        }
+
+        const payload = {
+            questStats: questStats,
+            isHighFrequency: isHighFrequency,
+            projectData: currentProjectData
+        };
+
+        fetch('/api/start-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert("任务已提交，开始测试！");
+                document.getElementById("project-detail-modal").style.display = "none";
+            })
+            .catch(err => {
+                console.error("提交失败", err);
+                alert("提交失败！");
+            });
+    });
+
 
 
 </script>

@@ -99,11 +99,11 @@ public interface DQEDao {
     int updateSys(SystemInfo systemInfo);
 
 
-    List<Map<String, Object>> countDefectLevelsBySampleId(@Param("sampleId") int sampleId);
+    List<Map<String, Object>> countDefectLevelsBySampleId(@Param("sampleId") String sampleId);
 
-    int updatepProblemCounts(@Param("sample_id") int sample_id,@Param("problemCounts") String problemCounts);
+    int updatepProblemCounts(@Param("sample_id") String sample_id,@Param("problemCounts") String problemCounts);
 
-    int deleteTaskNodeBefore(@Param("sample_id") int sample_id);
+    int deleteTaskNodeBefore(@Param("sample_id") String sample_id);
 
 
     List<SystemInfo> performSysInfo(@Param("id")String id,

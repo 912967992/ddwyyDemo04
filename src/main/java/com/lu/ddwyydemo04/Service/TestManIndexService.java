@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service("TestManIndexService")
@@ -79,33 +80,33 @@ public class TestManIndexService {
         testManDao.updateSampleTeamWork(sample);
     }
 
-    public void finishTest(String schedule,int sample_id){
+    public void finishTest(String schedule,String sample_id){
         testManDao.finishTest(schedule,sample_id);
     }
-    public void finishTestWithoutTime(String schedule,String finish_time,int sample_id){
+    public void finishTestWithoutTime(String schedule,String finish_time,String sample_id){
 
         testManDao.finishTestWithoutTime(schedule,finish_time,sample_id);
     }
 
 
 
-    public LocalDateTime  queryCreateTime(int sample_id){
+    public LocalDateTime  queryCreateTime(String sample_id){
         return testManDao.queryCreateTime(sample_id);
     }
 
-    public String queryTester_teamwork(int sample_id){
+    public String queryTester_teamwork(String sample_id){
         return testManDao.queryTester_teamwork(sample_id);
     }
 
-    public String querySample_name(int sample_id){
+    public String querySample_name(String sample_id){
         return testManDao.querySample_name(sample_id);
     }
 
-    public String queryFilepath(int sample_id){
+    public String queryFilepath(String sample_id){
         return testManDao.queryFilepath(sample_id);
     }
 
-    public String queryTester(int sample_id){
+    public String queryTester(String sample_id){
         return testManDao.queryTester(sample_id);
     }
 
@@ -119,7 +120,7 @@ public class TestManIndexService {
 
     //提取问题点的相关服务层
     //通过大小编码，版本，送样次数，是否高频，来返回sample_id
-    public int querySampleId(String filepath){
+    public String querySampleId(String filepath){
         return testManDao.querySampleId(filepath);
     }
 
@@ -127,14 +128,14 @@ public class TestManIndexService {
         return testManDao.insertTestIssues(testIssues);
     }
 
-    public int queryHistoryid(int sample_id){
+    public int queryHistoryid(String sample_id){
         return testManDao.queryHistoryid(sample_id);
     }
-    public int setDuration(double planWorkDays,double workDays,int sample_id){
+    public int setDuration(double planWorkDays,double workDays,String sample_id){
         return testManDao.setDuration(planWorkDays,workDays,sample_id);
     }
 
-    public BigDecimal queryPlanFinishTime(int sample_id){
+    public BigDecimal queryPlanFinishTime(String sample_id){
         return testManDao.queryPlanFinishTime(sample_id);
     }
 
@@ -320,11 +321,9 @@ public class TestManIndexService {
                 testManDao.updateChangeRecord(sampleId, newLog);
             }
 
-
             if ("delete".equals(change)) {
                 // 删除 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 0
-
                 testManDao.deleteElectric_schedule_info(sample_id);
 
                 System.out.println("count>0的delete的:"+latestChange);
@@ -461,12 +460,26 @@ public class TestManIndexService {
         return testManDao.queryJobnumberFromUser(username);
     }
 
-    public List<String> getScheduleSampleId(){
-        return testManDao.getScheduleSampleId();
+    public List<String> getScheduleSampleIdByName(String tester){
+        return testManDao.getScheduleSampleIdByName(tester);
     }
 
     public List<PassbackData> getElectricInfo(String sample_id){
         return testManDao.getElectricInfo(sample_id);
     }
+
+    public List<String> getMaterialCodes(String sampleId) {
+        List<MaterialItem> items = getDistinctMaterialCodes(sampleId);
+
+        // 将 STTestCode 和 sample_frequency 拼接为 STTestCode-sample_frequency
+        return items.stream()
+                .map(item -> item.getMaterialCode() + "-" + item.getSample_frequency())
+                .collect(Collectors.toList());
+    }
+
+    public List<MaterialItem> getDistinctMaterialCodes(String sample_id){
+        return testManDao.getDistinctMaterialCodes(sample_id);
+    }
+
 
 }

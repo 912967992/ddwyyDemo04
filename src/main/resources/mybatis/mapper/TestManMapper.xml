@@ -504,7 +504,8 @@
                 es.update_time = NOW(),
                 es.schedule_start_date = NULL,
                 es.schedule_end_date = NULL,
-                es.tester = NULL
+                es.tester = NULL,
+                ei.tester = NULL
 
         WHERE
             ei.sample_id = #{sample_id}
@@ -565,7 +566,7 @@
 <!--        </foreach>-->
 <!--    </insert>-->
     <insert id="insertElectricalTestItem">
-        INSERT INTO electrical_test_items (
+        INSERT IGNORE INTO electrical_test_items (
         sample_id, ETTestCode, testProjectCategory, testProjects
         ) VALUES
         <foreach collection="list" item="item" separator=",">
@@ -582,18 +583,19 @@
 
     <!-- 插入 material_items -->
     <insert id="insertMaterialItem">
-        INSERT INTO material_items (
+        INSERT IGNORE INTO material_items (
         sample_id, STTestCode, materialCode, sample_frequency
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),
+            #{sample_id},
             #{item.STTestCode},
             #{item.materialCode},
             #{item.sample_frequency}
             )
         </foreach>
     </insert>
+
 
     <select id="getAllReceivedData" resultType="PassbackData">
         SELECT
@@ -798,12 +800,18 @@
         WHERE username = #{username}
     </select>
 
-    <select id="getScheduleSampleId" resultType="String">
-        SELECT sample_id FROM electric_info
+    <select id="getScheduleSampleIdByName" resultType="String">
+        SELECT sample_id FROM electric_info WHERE tester = #{tester}
+        AND isUsed = "1"
     </select>
     
     <select id="getElectricInfo" resultType="PassbackData">
         SELECT * FROM electric_info WHERE sample_id = #{sample_id}
     </select>
 
+    <select id="getDistinctMaterialCodes" resultType="MaterialItem">
+        SELECT DISTINCT materialCode, sample_frequency
+        FROM material_items
+        WHERE sample_id = #{sample_id}
+    </select>
 </mapper>

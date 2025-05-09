@@ -190,7 +190,7 @@ public class DQEproblemMoudleController {
     //问题点模块保存问题点修改的方法
     @PostMapping("/problemMoudle/saveChanges")
     @ResponseBody
-    public ResponseEntity<String> saveChanges(@RequestBody List<Map<String, Object>> allData,@RequestParam("sampleId") int sampleId,
+    public ResponseEntity<String> saveChanges(@RequestBody List<Map<String, Object>> allData,@RequestParam("sampleId") String sampleId,
                                               @RequestParam("username") String username,@RequestParam("job") String job) {
         try {
             System.out.println("接收到的数据量: " + allData.size()); // 打印接收到的数据量

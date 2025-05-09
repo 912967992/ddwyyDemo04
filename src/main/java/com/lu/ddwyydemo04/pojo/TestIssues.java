@@ -88,7 +88,7 @@ public class TestIssues {
     private int history_id;
 
     // 关联的样品ID
-    private int sample_id;
+    private String sample_id;
 
     private String created_by;
 
@@ -332,11 +332,11 @@ public class TestIssues {
         this.history_id = history_id;
     }
 
-    public int getSample_id() {
+    public String getSample_id() {
         return sample_id;
     }
 
-    public void setSample_id(int sample_id) {
+    public void setSample_id(String sample_id) {
         this.sample_id = sample_id;
     }
 

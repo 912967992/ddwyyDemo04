@@ -177,8 +177,6 @@ public class TestEnvironmentController {
             merged.put("tester", schedule.getTester());
             merged.put("schedule_start_date", schedule.getSchedule_start_date());
             merged.put("schedule_end_date", schedule.getSchedule_end_date());
-            merged.put("row_index", schedule.getRow_index());
-            merged.put("column_index", schedule.getColumn_index());
             merged.put("create_time", schedule.getCreate_time());
             merged.put("update_time", schedule.getUpdate_time());
             merged.put("sizecoding", schedule.getSizecoding());

@@ -99,7 +99,7 @@ public class DQEproblemMoudleService {
         return dqeDao.queryWarnDays(setting_role);
     }
 
-    public List<Map<String, Object>> countDefectLevelsBySampleId( int sampleId){
+    public List<Map<String, Object>> countDefectLevelsBySampleId( String sampleId){
         return dqeDao.countDefectLevelsBySampleId(sampleId);
     }
 
@@ -129,7 +129,7 @@ public class DQEproblemMoudleService {
                 levelCounts.get("待确定"));
     }
 
-    public int updatepProblemCounts(int sampleId,String problemCounts){
+    public int updatepProblemCounts(String sampleId,String problemCounts){
         return dqeDao.updatepProblemCounts(sampleId,problemCounts);
     }
 
