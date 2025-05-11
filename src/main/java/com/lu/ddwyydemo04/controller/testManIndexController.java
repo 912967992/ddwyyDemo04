@@ -1517,6 +1517,11 @@ public class testManIndexController {
         if (projectData == null) {
             return ResponseEntity.badRequest().body("缺少项目信息");
         }
+        String sample_actual_id = (String) projectData.get("sample_actual_id");
+        System.out.println("sample_actual_id:"+sample_actual_id);
+        if (sample_actual_id != null ) {
+            return ResponseEntity.badRequest().body("任务已经开始进行测试了");
+        }
 
         System.out.println("materialCode:"+projectData.get("materialCode"));
         // 获取 materialCode 字段值
@@ -1524,9 +1529,9 @@ public class testManIndexController {
         if (materialCodeObj != null) {
             String materialCodeStr = materialCodeObj.toString().trim();
 
-            Object model = projectData.get("sample_model");
-            Object category = projectData.get("sample_category");
-            Object version = projectData.get("version");
+            String model = (String) projectData.get("sample_model");
+            String category = (String) projectData.get("sample_category");
+            String version = (String) projectData.get("version");
 
             System.out.println("model:"+model);
             System.out.println("category:"+category);
@@ -1561,6 +1566,11 @@ public class testManIndexController {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
                                 workbook.write(out);
+                                sample.setFilepath(filePath);
+                                sample.setSample_model(model);
+                                sample.setSample_coding(materialCode);
+                                sample.setSample_category(category);
+                                sample.setVersion(version);
                             }
                         } catch (IOException e) {
                             return ResponseEntity.status(500).body("XLSX 文件创建失败：" + e.getMessage());

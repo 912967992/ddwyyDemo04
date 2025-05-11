@@ -3694,15 +3694,23 @@
             },
             body: JSON.stringify(payload)
         })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                const contentType = res.headers.get('Content-Type');
+                const isJson = contentType && contentType.includes('application/json');
+                const data = isJson ? await res.json() : { message: await res.text() };
+
+                if (!res.ok) {
+                    throw new Error(data.message || "提交失败！");
+                }
+
                 alert("任务已提交，开始测试！");
                 document.getElementById("project-detail-modal").style.display = "none";
             })
             .catch(err => {
                 console.error("提交失败", err);
-                alert("提交失败！");
+                alert(err.message);
             });
+
     });
 
 

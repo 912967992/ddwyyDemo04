@@ -11,6 +11,7 @@ public class PassbackData {
 
     private int id;
     private String sample_id;
+    private String sample_actual_id;
     private String sample_category;
     private String sample_model;
 //    private String sample_coding;
@@ -64,6 +65,14 @@ public class PassbackData {
 
     public void setSample_id(String sample_id) {
         this.sample_id = sample_id;
+    }
+
+    public String getSample_actual_id() {
+        return sample_actual_id;
+    }
+
+    public void setSample_actual_id(String sample_actual_id) {
+        this.sample_actual_id = sample_actual_id;
     }
 
     public String getSample_category() {
@@ -312,6 +321,7 @@ public class PassbackData {
         return "PassbackData{" +
                 "id=" + id +
                 ", sample_id='" + sample_id + '\'' +
+                ", sample_actual_id='" + sample_actual_id + '\'' +
                 ", sample_category='" + sample_category + '\'' +
                 ", sample_model='" + sample_model + '\'' +
                 ", materialCode='" + materialCode + '\'' +
