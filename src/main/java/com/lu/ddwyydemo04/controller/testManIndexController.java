@@ -54,6 +54,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class testManIndexController {
     @Autowired
     private TestManIndexService testManIndexService;
+    @Autowired
     private ExcelShowService excelShowService;
 
     @Autowired
@@ -351,6 +352,8 @@ public class testManIndexController {
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
+            System.out.println("big_species: " + (big_species != null ? big_species : "null"));
+
 
             // 调用服务类的方法来更新样品信息
             Samples sample = new Samples();
@@ -415,6 +418,7 @@ public class testManIndexController {
             String oldFilePath = testManIndexService.queryFilepath(sample_id);
             String oldtester = testManIndexService.queryTester(sample_id); //已经添加questStats,20240709
 
+            System.out.println("asdddddd");
 
             if(!Objects.equals(oldtester, tester)){
                 response.put("message", "更换当前测试人");
@@ -1509,36 +1513,41 @@ public class testManIndexController {
 
 
     @PostMapping("/api/start-test")
+    @ResponseBody
     public ResponseEntity<?> startTest(@RequestBody Map<String, Object> params) {
         String questStats = (String) params.get("questStats");
         String isHighFrequency = (String) params.get("isHighFrequency");
+        String category = (String) params.get("category");
+        int quantity = Integer.parseInt(String.valueOf(params.get("quantity")));
+        System.out.println("quantity:"+quantity);
 
         Map<String, Object> projectData = (Map<String, Object>) params.get("projectData");
+        System.out.println("projectData:"+projectData);
         if (projectData == null) {
             return ResponseEntity.badRequest().body("缺少项目信息");
         }
         String sample_actual_id = (String) projectData.get("sample_actual_id");
         System.out.println("sample_actual_id:"+sample_actual_id);
         if (sample_actual_id != null ) {
-            return ResponseEntity.badRequest().body("任务已经开始进行测试了");
+            return ResponseEntity.badRequest().body("已经有这个版本信息的任务开始测试了，请检查是否写误");
         }
 
-        System.out.println("materialCode:"+projectData.get("materialCode"));
         // 获取 materialCode 字段值
-        Object materialCodeObj = projectData.get("materialCode");
+        String materialCodeObj = (String) projectData.get("materialCode");
         if (materialCodeObj != null) {
             String materialCodeStr = materialCodeObj.toString().trim();
 
             String model = (String) projectData.get("sample_model");
-            String category = (String) projectData.get("sample_category");
+            //  it传过来的sample_category暂定是小类
+            String small_species = (String) projectData.get("sample_category");
             String version = (String) projectData.get("version");
 
-            System.out.println("model:"+model);
-            System.out.println("category:"+category);
-            System.out.println("version:"+version);
+            String tester = (String) projectData.get("tester");
+            String sample_name = (String) projectData.get("sample_name");
 
-
-
+            String scheduleStartTune = (String) projectData.get("schedule_start_date");
+            String scheduleEndTune = (String) projectData.get("schedule_end_date");
+            String scheduleTestCycle = String.valueOf(projectData.get("scheduleDays"));
 
             // 判断是否包含多个，用逗号分隔
             String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
@@ -1551,8 +1560,6 @@ public class testManIndexController {
                     if (parts.length == 2) {
                         String materialCode = parts[0].trim();
                         int sampleFrequency = Integer.parseInt(parts[1].trim());
-                        System.out.println("materialCode:"+materialCode);
-                        System.out.println("sampleFrequency:"+sampleFrequency);
 
 //                        excelShowService.sampleCount();
                         Samples sample = new Samples();
@@ -1565,12 +1572,34 @@ public class testManIndexController {
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
-                                workbook.write(out);
-                                sample.setFilepath(filePath);
-                                sample.setSample_model(model);
-                                sample.setSample_coding(materialCode);
-                                sample.setSample_category(category);
-                                sample.setVersion(version);
+                                int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
+                                System.out.println("count:"+count);
+                                if(count == 0){
+                                    workbook.write(out);
+                                    sample.setFilepath(filePath);
+
+                                    sample.setSample_model(model);
+                                    sample.setSample_coding(materialCode);
+                                    sample.setSample_category(category);
+                                    sample.setQuestStats(questStats);
+//                                sample.setBig_species();
+                                    sample.setSmall_species(small_species);
+                                    sample.setVersion(version);
+                                    sample.setTester(tester);
+                                    sample.setSample_name(sample_name);
+                                    sample.setScheduleStartTime(scheduleStartTune);
+                                    sample.setScheduleEndTime(scheduleEndTune);
+                                    sample.setScheduleTestCycle(scheduleTestCycle);
+                                    sample.setFull_model(model+" "+materialCode);
+                                    sample.setHigh_frequency(isHighFrequency);
+                                    sample.setSample_quantity(quantity);
+                                    sample.setSample_frequency(sampleFrequency);
+
+                                    int insert = testManIndexService.insertSampleFromElectric(sample);
+                                    System.out.println("insert:"+insert);
+                                }else{
+                                    return ResponseEntity.badRequest().body("已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
+                                }
                             }
                         } catch (IOException e) {
                             return ResponseEntity.status(500).body("XLSX 文件创建失败：" + e.getMessage());

@@ -505,7 +505,9 @@
                 es.schedule_start_date = NULL,
                 es.schedule_end_date = NULL,
                 es.tester = NULL,
-                ei.tester = NULL
+                ei.tester = NULL,
+                ei.schedule_start_date = NULL,
+                ei.schedule_end_date = NULL
 
         WHERE
             ei.sample_id = #{sample_id}
@@ -540,7 +542,9 @@
                 es.schedule_color = #{schedule_color},
                 ei.isUsed = 1,
                 ei.scheduleDays = #{scheduleDays},
-                ei.tester = #{tester}
+                ei.tester = #{tester},
+                ei.schedule_start_date = #{schedule_start_date},
+                ei.schedule_end_date = #{schedule_end_date}
         WHERE
             es.sample_id = #{sample_id}
     </update>
@@ -814,4 +818,8 @@
         FROM material_items
         WHERE sample_id = #{sample_id}
     </select>
+
+    <insert id="insertSampleFromElectric" parameterType="Samples">
+        INSERT INTO samples ( tester, tester_teamwork, filepath, sample_model, sample_coding, full_model, sample_category, version, sample_name, create_time, sample_schedule, sample_frequency, sample_quantity, big_species, small_species, high_frequency, questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle ) VALUES ( #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model}, #{sample_category}, #{version}, #{sample_name}, NOW(), "0", #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency}, #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle} )
+    </insert>
 </mapper>

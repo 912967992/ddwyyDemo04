@@ -50,6 +50,18 @@
             <div id="task-attributes" style="margin-top: 20px; display: none;">
                 <h3>填写以下内容</h3>
                 <label>
+                    产品类别：
+                    <select id="sample-category">
+                        <option value="">请选择</option>
+                        <option value="大货样">大货样</option>
+                        <option value="功能样">功能样</option>
+                        <option value="竞品">竞品</option>
+                        <option value="预研">预研</option>
+                        <option value="选品">选品</option>
+                    </select>
+                </label>
+                <br/><br/>
+                <label>
                     任务属性：
                     <select id="questStats-detail">
                         <option value="">请选择</option>
@@ -61,6 +73,11 @@
                         <option value="量产升级">量产升级</option>
                         <option value="竞品">竞品</option>
                     </select>
+                </label>
+                <br/><br/>
+                <label>
+                    样品数量：
+                    <input type="number" id="sample-quantity" min="1" placeholder="请输入样品数量" style="width: 200px;" />
                 </label>
                 <br/><br/>
                 <label>
@@ -1451,7 +1468,7 @@
                 table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';
                 table += '<th colspan="2" title="供应商' + product.supplier + ', 供应商' + product.supplier + '">' + '供应商：' + '' + product.supplier +  '</th>';
                 table += '<th colspan="1" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
-                table += '<th colspan="1" title="预计时长：' + product.planTestDuration + "实测时长"+ product.testDuration+'">' + "预计时长：" + product.planTestDuration +"天" +" " + "实测时长：" + product.testDuration +"天" + '</th>';
+                table += '<th colspan="1" title="预计时长：' + product.scheduleTestCycle + "实测时长"+ product.testDuration+'">' + "预计时长：" + product.scheduleTestCycle +"天" +" " + "实测时长：" + product.testDuration +"天" + '</th>';
                 table += '</tr>';
                 table += '</thead>';
                 table += '</table>';
@@ -3675,8 +3692,10 @@
     document.getElementById("confirm-task-btn").addEventListener("click", () => {
         const questStats = document.getElementById("questStats-detail").value;
         const isHighFrequency = document.getElementById("is-high-frequency").value;
+        const category = document.getElementById("sample-category").value;
+        const quantity = document.getElementById("sample-quantity").value;
 
-        if (!questStats || !isHighFrequency) {
+        if (!questStats || !isHighFrequency || !category || !quantity) {
             alert("请全部勾选值才允许进入下一步！");
             return;
         }
@@ -3684,6 +3703,8 @@
         const payload = {
             questStats: questStats,
             isHighFrequency: isHighFrequency,
+            category: category,
+            quantity: quantity,
             projectData: currentProjectData
         };
 
@@ -3703,7 +3724,7 @@
                     throw new Error(data.message || "提交失败！");
                 }
 
-                alert("任务已提交，开始测试！");
+                alert("任务创建成功，开始测试！");
                 document.getElementById("project-detail-modal").style.display = "none";
             })
             .catch(err => {

@@ -1,5 +1,6 @@
 package com.lu.ddwyydemo04.pojo;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Samples {

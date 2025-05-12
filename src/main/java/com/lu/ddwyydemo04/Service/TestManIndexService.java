@@ -341,7 +341,7 @@ public class TestManIndexService {
                 // 新增 electric_schedule_info 数据
                 // 更新 electric_info 里的 sample_id 的 isUsed = 1
                 testManDao.insertElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,schedule_color);
-                testManDao.changeIsUsedAsOne(sample_id,scheduleDays);
+                testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays,schedule_color);
                 System.out.println("count<0的add的:" + latestChange);
             }
         }
@@ -481,5 +481,8 @@ public class TestManIndexService {
         return testManDao.getDistinctMaterialCodes(sample_id);
     }
 
+    public int insertSampleFromElectric(Samples sample){
+        return testManDao.insertSampleFromElectric(sample);
+    }
 
 }

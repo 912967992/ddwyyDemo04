@@ -29,6 +29,12 @@ public class PassbackData {
 
     private int isUsed;
 
+    private String changeRecord; // 变更记录
+
+    private LocalDateTime schedule_start_date; // 排期开始时间
+    private LocalDateTime schedule_end_date;   // 排期结束时间
+
+
     private BigDecimal scheduleDays;
 
     private int isCancel;
@@ -316,6 +322,31 @@ public class PassbackData {
         this.filepath = filepath;
     }
 
+
+    public String getChangeRecord() {
+        return changeRecord;
+    }
+
+    public void setChangeRecord(String changeRecord) {
+        this.changeRecord = changeRecord;
+    }
+
+    public LocalDateTime getSchedule_start_date() {
+        return schedule_start_date;
+    }
+
+    public void setSchedule_start_date(LocalDateTime schedule_start_date) {
+        this.schedule_start_date = schedule_start_date;
+    }
+
+    public LocalDateTime getSchedule_end_date() {
+        return schedule_end_date;
+    }
+
+    public void setSchedule_end_date(LocalDateTime schedule_end_date) {
+        this.schedule_end_date = schedule_end_date;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -336,6 +367,9 @@ public class PassbackData {
                 ", schedule='" + schedule + '\'' +
                 ", create_time=" + create_time +
                 ", isUsed=" + isUsed +
+                ", changeRecord='" + changeRecord + '\'' +
+                ", schedule_start_date=" + schedule_start_date +
+                ", schedule_end_date=" + schedule_end_date +
                 ", scheduleDays=" + scheduleDays +
                 ", isCancel=" + isCancel +
                 ", cancel_reason='" + cancel_reason + '\'' +
