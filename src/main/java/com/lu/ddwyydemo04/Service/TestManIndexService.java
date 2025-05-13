@@ -120,7 +120,7 @@ public class TestManIndexService {
 
     //提取问题点的相关服务层
     //通过大小编码，版本，送样次数，是否高频，来返回sample_id
-    public String querySampleId(String filepath){
+    public int querySampleId(String filepath){
         return testManDao.querySampleId(filepath);
     }
 
@@ -128,7 +128,7 @@ public class TestManIndexService {
         return testManDao.insertTestIssues(testIssues);
     }
 
-    public int queryHistoryid(String sample_id){
+    public int queryHistoryid(int sample_id){
         return testManDao.queryHistoryid(sample_id);
     }
     public int setDuration(double planWorkDays,double workDays,String sample_id){
@@ -485,4 +485,11 @@ public class TestManIndexService {
         return testManDao.insertSampleFromElectric(sample);
     }
 
+    public int updateActualSampleId(String sample_id,String sample_actual_id){
+        return testManDao.updateActualSampleId(sample_id,sample_actual_id);
+    }
+
+    public int removeTargetIdFromAllSampleActualIds(int targetId){
+        return testManDao.removeTargetIdFromAllSampleActualIds(targetId);
+    }
 }

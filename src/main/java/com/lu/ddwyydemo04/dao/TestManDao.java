@@ -49,12 +49,12 @@ public interface TestManDao {
     public int deleteFromSamples(int sample_id);//根据文件删除sample数据库的数据
 
     //提取问题点相关
-    public String querySampleId(String filepath);//根据文件删除sample数据库的数据
+    public int querySampleId(String filepath);//根据文件删除sample数据库的数据
 
     public int insertTestIssues(TestIssues testIssues);
 
 
-    public int queryHistoryid(@Param("sample_id") String sample_id);
+    public int queryHistoryid(@Param("sample_id") int sample_id);
     public int setDuration(@Param("planTestDuration") double planTestDuration,@Param("testDuration") double testDuration,
                            @Param("sample_id") String sample_id);
 
@@ -164,4 +164,14 @@ public interface TestManDao {
     List<MaterialItem> getDistinctMaterialCodes(@Param("sample_id")String sample_id);
 
     int insertSampleFromElectric(Samples sample);
+    int updateActualSampleId(@Param("sample_id")String sample_id,@Param("sample_actual_id")String sample_actual_id);
+
+    int removeTargetIdFromAllSampleActualIds(@Param("targetId")int targetId);
+
+
+
+
+
+
+
 }

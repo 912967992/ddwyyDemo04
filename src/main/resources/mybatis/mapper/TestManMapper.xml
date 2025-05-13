@@ -805,9 +805,12 @@
     </select>
 
     <select id="getScheduleSampleIdByName" resultType="String">
-        SELECT sample_id FROM electric_info WHERE tester = #{tester}
-        AND isUsed = "1"
+        SELECT sample_id FROM electric_info
+        WHERE tester = #{tester}
+          AND isUsed = '1'
+          AND (sample_actual_id IS NULL OR sample_actual_id = '')
     </select>
+
     
     <select id="getElectricInfo" resultType="PassbackData">
         SELECT * FROM electric_info WHERE sample_id = #{sample_id}
@@ -819,7 +822,43 @@
         WHERE sample_id = #{sample_id}
     </select>
 
-    <insert id="insertSampleFromElectric" parameterType="Samples">
-        INSERT INTO samples ( tester, tester_teamwork, filepath, sample_model, sample_coding, full_model, sample_category, version, sample_name, create_time, sample_schedule, sample_frequency, sample_quantity, big_species, small_species, high_frequency, questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle ) VALUES ( #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model}, #{sample_category}, #{version}, #{sample_name}, NOW(), "0", #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency}, #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle} )
+    <insert id="insertSampleFromElectric" parameterType="Samples"
+            useGeneratedKeys="true" keyProperty="sample_id">
+        INSERT INTO samples (
+            tester, tester_teamwork, filepath, sample_model, sample_coding, full_model,
+            sample_category, version, sample_name, create_time, sample_schedule,
+            sample_frequency, sample_quantity, big_species, small_species, high_frequency,
+            questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle
+        ) VALUES (
+                     #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model},
+                     #{sample_category}, #{version}, #{sample_name}, NOW(), "0",
+                     #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency},
+                     #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}
+                 )
     </insert>
+
+    <update id="updateActualSampleId">
+        UPDATE electric_info
+        SET
+            sample_actual_id = CASE
+                                   WHEN sample_actual_id IS NULL OR sample_actual_id = ''
+                                       THEN #{sample_actual_id}
+                                   ELSE CONCAT(sample_actual_id, ',', #{sample_actual_id})
+                END,
+            actual_start_time = NOW()
+        WHERE sample_id = #{sample_id}
+    </update>
+
+    <update id="removeTargetIdFromAllSampleActualIds">
+        UPDATE electric_info
+        SET sample_actual_id = TRIM(BOTH ',' FROM REPLACE(
+                CONCAT(',', sample_actual_id, ','),
+                CONCAT(',', #{targetId}, ','),
+                ','
+                                                  ))
+        WHERE FIND_IN_SET(#{targetId}, sample_actual_id)
+    </update>
+
+
+
 </mapper>

@@ -14,7 +14,6 @@ import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.*;
 
 import com.taobao.api.ApiException;
-import com.taobao.api.FileItem;
 import com.taobao.api.internal.util.WebUtils;
 
 import org.apache.poi.ss.usermodel.*;
@@ -22,9 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.*;
@@ -35,11 +32,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -48,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -418,7 +412,9 @@ public class testManIndexController {
             String oldFilePath = testManIndexService.queryFilepath(sample_id);
             String oldtester = testManIndexService.queryTester(sample_id); //已经添加questStats,20240709
 
-            System.out.println("asdddddd");
+            System.out.println("old_name："+old_name);
+            System.out.println("oldtester："+oldtester);
+            System.out.println("oldFilePath："+oldFilePath);
 
             if(!Objects.equals(oldtester, tester)){
                 response.put("message", "更换当前测试人");
@@ -730,7 +726,7 @@ public class testManIndexController {
             LocalDateTime parsedDateTime = LocalDateTime.parse(created_at, formatter);
             System.out.println("Parsed LocalDateTime: " + parsedDateTime);
             //要先获取samples的id主键，然后搜索历史版本id，没有的话就是0，有就加1
-            String sample_id = testManIndexService.querySampleId(filepath);
+            int sample_id = testManIndexService.querySampleId(filepath);
             System.out.println("sample_id:"+sample_id);
             int history_id = testManIndexService.queryHistoryid(sample_id);
             System.out.println("history_id:"+history_id);
@@ -808,9 +804,9 @@ public class testManIndexController {
                 testIssues.setSupplier(supplier);
                 testIssues.setReview_conclusion(review_conclusion);
 
-
+                String sampleidStr = String.valueOf(sample_id);
                 testIssues.setCreated_at(parsedDateTime);
-                testIssues.setSample_id(sample_id);
+                testIssues.setSample_id(sampleidStr);
                 testIssues.setHistory_id(history_id);
 
 //                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
@@ -900,6 +896,8 @@ public class testManIndexController {
             // backupFile(fileToDeletePath);
             int deleteJudge = testManIndexService.deleteFromTestIssues(sampleId);
             int deleteJudge2 = testManIndexService.deleteFromSamples(sampleId);
+            int removeTargetId = testManIndexService.removeTargetIdFromAllSampleActualIds(sampleId);
+            System.out.println("removeTargetIdL:"+removeTargetId);
             if(deleteJudge2==1){
                 // 返回成功响应
                 response.put("oldFilePath",filepath);
@@ -1527,7 +1525,8 @@ public class testManIndexController {
             return ResponseEntity.badRequest().body("缺少项目信息");
         }
         String sample_actual_id = (String) projectData.get("sample_actual_id");
-        System.out.println("sample_actual_id:"+sample_actual_id);
+        String electric_sample_id = (String) projectData.get("sample_id");
+        System.out.println("electric_sample_id:"+electric_sample_id);
         if (sample_actual_id != null ) {
             return ResponseEntity.badRequest().body("已经有这个版本信息的任务开始测试了，请检查是否写误");
         }
@@ -1564,7 +1563,7 @@ public class testManIndexController {
 //                        excelShowService.sampleCount();
                         Samples sample = new Samples();
                         // 创建空 Excel 文件
-                        String fileName = projectData.get("sample_id") + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
+                        String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
                         System.out.println("filePath:"+filePath);
@@ -1594,9 +1593,23 @@ public class testManIndexController {
                                     sample.setHigh_frequency(isHighFrequency);
                                     sample.setSample_quantity(quantity);
                                     sample.setSample_frequency(sampleFrequency);
+                                    sample.setTester_teamwork(tester);
 
                                     int insert = testManIndexService.insertSampleFromElectric(sample);
-                                    System.out.println("insert:"+insert);
+                                    if(insert==0){
+                                        logger.info(fileName+"插入失败，请重新试一下或者联系管理员卢健！");
+                                        return ResponseEntity.badRequest().body("插入失败，请重新试一下或者联系管理员卢健！");
+                                    }else{
+                                        String sampleId = sample.getSample_id(); // ✅ 这里能拿到自动生成的 samples表的sample_id
+                                        System.out.println("sampleId:"+sampleId);
+                                        int insertActual = testManIndexService.updateActualSampleId(electric_sample_id,sampleId);
+                                        if(insertActual>0){
+                                            logger.info("排期面板的id插入真实id成功："+sampleId+"成功插入到对应的electric_info表的"+electric_sample_id);
+
+                                            //发送实际开始测试时间给IT
+                                            postStartTestTime(electric_sample_id);
+                                        }
+                                    }
                                 }else{
                                     return ResponseEntity.badRequest().body("已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
                                 }
@@ -1610,43 +1623,60 @@ public class testManIndexController {
             }
         }
 
-
-
-
-        // 构造 ElectricInfo 实体
-//        Samples sample = new Samples();
-//        sample.setSampleId((String) projectData.get("sample_id"));
-//        sample.setSampleCategory((String) projectData.get("sample_category"));
-//        sample.setSampleModel((String) projectData.get("sample_model"));
-//        sample.setMaterialCode((String) projectData.get("materialCode"));
-//        sample.setSampleFrequency((String) projectData.get("sample_frequency"));
-//        sample.setSampleName((String) projectData.get("sample_name"));
-//        sample.setVersion((String) projectData.get("version"));
-//        sample.setPriority((String) projectData.get("priority"));
-//        sample.setSampleLeader((String) projectData.get("sample_leader"));
-//        sample.setSupplier((String) projectData.get("supplier"));
-//        sample.setTestProjectCategory(questStats); // 用用户选择覆盖原值
-//        sample.setTestProjects((String) projectData.get("testProjects"));
-//        sample.setSchedule((String) projectData.get("schedule"));
-//        sample.setCreateTime((String) projectData.get("create_time"));
-//        sample.setScheduleDays((String) projectData.get("scheduleDays"));
-//        sample.setScheduleStartDate((String) projectData.get("schedule_start_date"));
-//        sample.setScheduleEndDate((String) projectData.get("schedule_end_date"));
-//        project.setIsCancel((Integer) projectData.get("isCancel"));
-//        project.setCancelReason((String) projectData.get("cancel_reason"));
-//        project.setCancelBy((String) projectData.get("cancel_by"));
-//        project.setCancelDate((String) projectData.get("cancel_date"));
-//        project.setActualStartTime((String) projectData.get("actual_start_time"));
-//        project.setActualFinishTime((String) projectData.get("actual_finish_time"));
-//        project.setTester((String) projectData.get("tester"));
-//        project.setSampleRecognizeResult(isHighFrequency);
-//        project.setFilepath(filePath);
-//
-//        electricInfoService.save(project); // 保存到数据库
-
         return ResponseEntity.ok("测试任务提交成功");
     }
 
 
+    ResponseEntity<Map<String, Object>> postStartTestTime(String testNumber){
+        String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        if (testNumber == null || testNumber.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("staus", 400);
+            response.put("msg", "测试编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        boolean updateStartTime = testManIndexService.StartTestElectricalTest(testNumber, actual_time);
+
+        if (!updateStartTime) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("staus", 400);
+            response.put("msg", "没有找到该测试编号，请输入正确的测试编号");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 构造请求数据
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("ETTestCode", testNumber);
+        requestPayload.put("ActualTestStartDate", actual_time);
+        System.out.println("requestPayload:" + requestPayload);
+
+        // 添加认证头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
+
+        // 发送 POST 请求到目标接口
+        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/StartTestElectricalTest";
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
+            logger.info("远程接口响应体: {}", apiResponse.getBody());
+
+            return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("staus", 500);
+            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
+            logger.info("远程接口调用失败:"+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 
 }

@@ -171,7 +171,7 @@ public class AccessTokenService {
         String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
 //        String baseUrl = "http://38knkf.natappfree.cc/problemMoudle?dd_orientation=landscape";
         String redirectUrl = String.format(
-                "%s&sample_id=%d&username=%s&job=%s",
+                "%s&sample_id=%s&username=%s&job=%s",
                 baseUrl,
                 sampleId,
                 URLEncoder.encode(receiver, "UTF-8"), // 编码 username 参数
