@@ -236,7 +236,7 @@ public class AccessTokenService {
         OapiMessageCorpconversationAsyncsendV2Request.Msg msg = new OapiMessageCorpconversationAsyncsendV2Request.Msg();
 
         // 区分发给卢绮敏的信息,卢健的userId是：2329612068682307，卢绮敏的是：210139201721546755
-        if(userId.equals("210139201721546755")){
+        if(userId.equals("210139201721546755") || userId.equals("16016618681230627")){
             msg.setMsgtype("text");
 
             // 创建 Text 类型的消息内容
@@ -609,10 +609,10 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 17 3 * * ?") // 每天北京时间的 10:12
+    @Scheduled(cron = "0 55 3 * * ?") // 每天北京时间的 10:12
     public void refreshUserIds() throws ApiException {
         List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L); // 示例大部门 ID
-//        List<Long> targetDeptIds = Arrays.asList( 523528658L); // 示例大部门 ID
+//        List<Long> targetDeptIds = Arrays.asList( 63652303L); // 示例大部门 ID
         List<User> allUsers = new ArrayList<>(); // 用于存放所有用户的列表
 
         for (Long targetDeptId : targetDeptIds) {
@@ -675,6 +675,7 @@ public class AccessTokenService {
         huangJiaCan.setDeptId(63652303L);
         huangJiaCan.setMajorDeptId(63652303L);
         huangJiaCan.setDepartmentName("品质工程部");
+        huangJiaCan.setJob_number("2352");
         huangJiaCan.setPosition("manager");
 
         User rongChengYu = new User();
@@ -682,6 +683,7 @@ public class AccessTokenService {
         rongChengYu.setUsername("荣成彧");
         rongChengYu.setDeptId(90070106L);
         rongChengYu.setMajorDeptId(90070106L);
+        rongChengYu.setJob_number("2756");
         rongChengYu.setDepartmentName("产品研发中心");
         rongChengYu.setPosition("manager");
 

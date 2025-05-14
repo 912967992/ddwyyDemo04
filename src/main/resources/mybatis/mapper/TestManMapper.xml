@@ -851,14 +851,34 @@
 
     <update id="removeTargetIdFromAllSampleActualIds">
         UPDATE electric_info
-        SET sample_actual_id = TRIM(BOTH ',' FROM REPLACE(
-                CONCAT(',', sample_actual_id, ','),
-                CONCAT(',', #{targetId}, ','),
-                ','
-                                                  ))
+        SET
+            sample_actual_id = TRIM(BOTH ',' FROM REPLACE(
+                    CONCAT(',', sample_actual_id, ','),
+                    CONCAT(',', #{targetId}, ','),
+                    ','
+                                                  )),
+            actual_start_time = CASE
+                                    WHEN TRIM(BOTH ',' FROM REPLACE(
+                                            CONCAT(',', sample_actual_id, ','),
+                                            CONCAT(',', #{targetId}, ','),
+                                            ','
+                                                            )) = '' THEN NULL
+                                    ELSE actual_start_time
+                END
         WHERE FIND_IN_SET(#{targetId}, sample_actual_id)
     </update>
 
+    <select id="queryElectricIdByActualId" resultType="String">
+        SELECT sample_id
+        FROM electric_info
+        WHERE FIND_IN_SET(#{sample_actual_id}, sample_actual_id);
 
+    </select>
+
+    <update id="updateElectricActualEndTime">
+        UPDATE electric_info
+        SET actual_finish_time = NOW()
+        WHERE sample_id = #{sample_id}
+    </update>
 
 </mapper>

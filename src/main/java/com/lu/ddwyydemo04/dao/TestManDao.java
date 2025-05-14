@@ -168,8 +168,9 @@ public interface TestManDao {
 
     int removeTargetIdFromAllSampleActualIds(@Param("targetId")int targetId);
 
+    String queryElectricIdByActualId(@Param("sample_actual_id")String sample_actual_id);
 
-
+    int updateElectricActualEndTime(@Param("sample_id")String sample_id);
 
 
 

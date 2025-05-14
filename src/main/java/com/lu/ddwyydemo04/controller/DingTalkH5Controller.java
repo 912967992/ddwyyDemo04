@@ -86,6 +86,7 @@ public class DingTalkH5Controller {
             //提取部门id,"523459714"是电子测试组的编号
             String departmentId = extractDepartmentIds(infoRsp.getBody());
             System.out.println("departmentIds:"+departmentId);
+            System.out.println("infoRsp.getBody():"+infoRsp.getBody());
 
 
 

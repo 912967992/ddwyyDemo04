@@ -525,11 +525,16 @@ public class DQEproblemMoudleController {
     public int updateResult(@RequestBody Map<String, String> request)  {
         String sampleId = request.get("sample_id");
         String selectedOption = request.get("selectedOption");
+        String selectedOptionStr = accessTokenService.returnResult(selectedOption);
         String job = request.get("job");
+        String filepath = testManIndexService.queryFilepath(sampleId);
         //20250303 在DQE和研发给出承认结果的时候，把各自的节点信息修改为已完成，这样子就不会警报各自的节点了
         int updateNodeAsFinish = 0;
         if(job.equals("DQE")){
             updateNodeAsFinish = dqeproblemMoudleService.updateNodeAsFinishWithDQE(sampleId);
+            String testNumber = testManIndexService.queryElectricIdByActualId(sampleId);;
+            Map<String, Object> processTestElectricalTest = testManIndexService.processTestElectricalTest(testNumber,selectedOptionStr,filepath);
+            logger.info("推送DQE审核结果远程成功: {}", processTestElectricalTest.get("remoteBody"));
         }else if(job.equals("rd")){
             updateNodeAsFinish = dqeproblemMoudleService.updateNodeAsFinishWithRD(sampleId);
         }

@@ -8,6 +8,7 @@ import com.dingtalk.api.request.OapiFileUploadTransactionRequest;
 import com.dingtalk.api.response.OapiCspaceAddToSingleChatResponse;
 import com.dingtalk.api.response.OapiFileUploadChunkResponse;
 import com.dingtalk.api.response.OapiFileUploadTransactionResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
@@ -18,14 +19,23 @@ import com.taobao.api.internal.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -492,4 +502,120 @@ public class TestManIndexService {
     public int removeTargetIdFromAllSampleActualIds(int targetId){
         return testManDao.removeTargetIdFromAllSampleActualIds(targetId);
     }
+
+    public Map<String, Object> pushToRemoteElectricalFinish(String testNumber, String actualWorkTime) {
+        Map<String, Object> result = new HashMap<>();
+
+        String actualTestEndDate = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("ETTestCode", testNumber);
+        requestPayload.put("ActualTestEndDate", actualTestEndDate);
+        requestPayload.put("ActualTestWorkHour", actualWorkTime);
+        requestPayload.put("ActualTestWrokHour", actualWorkTime); // 注意拼写是否正确
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
+
+        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/FinishTestElectricalTest";
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+            result.put("remoteStatus", apiResponse.getStatusCodeValue());
+            result.put("remoteBody", apiResponse.getBody());
+        } catch (Exception e) {
+            result.put("remoteStatus", 500);
+            result.put("remoteError", "调用远程接口失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    public String queryElectricIdByActualId(String sample_actual_id){
+        return testManDao.queryElectricIdByActualId(sample_actual_id);
+    }
+
+    public int updateElectricActualEndTime(String sample_id){
+        return testManDao.updateElectricActualEndTime(sample_id);
+    }
+
+    public Map<String, Object> processTestElectricalTest(String testNumber, String sampleRecognizeResult,String filePath) {
+        String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);  // 输出 2025-04-14T16:34:23
+
+        Map<String, Object> result = new HashMap<>();
+
+        if (testNumber == null || testNumber.isEmpty()) {
+            result.put("staus", 400);
+            result.put("msg", "测试编号不能为空");
+        }
+
+        // 本地保存数据库状态
+        updateElectricInfoReview(testNumber, reportReviewTime, sampleRecognizeResult);
+
+//        System.out.println("testNumber:"+testNumber);
+        try {
+            // 拼接文件路径
+//            String filePath = queryElectricInfoFilepath(testNumber);
+            File file = new File(filePath);
+
+            // 日志输出文件信息
+            System.out.println("准备上传文件路径：" + filePath);
+            System.out.println("文件是否存在：" + file.exists());
+            System.out.println("文件大小：" + file.length());
+
+            if (!file.exists()) {
+                result.put("staus", 404);
+                result.put("msg", "未找到对应的文件: " + filePath);
+            }
+
+            // request JSON 字符串
+            Map<String, String> jsonMap = new HashMap<>();
+            jsonMap.put("ETTestCode", testNumber);
+            jsonMap.put("ReportReviewTime", reportReviewTime);
+            jsonMap.put("SampleRecognizeResult", sampleRecognizeResult);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(jsonMap);
+
+            System.out.println("发送 JSON 参数：" + jsonString);
+
+            // 构造 multipart/form-data 请求体
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("request", jsonString); // 不再用 HttpEntity 包裹
+            body.add("fileList", new FileSystemResource(file));
+
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Authorization", "Basic MzUxMDpMaXVkaW5nMjAyMg==");
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // 发送请求
+            String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/ReportReviewElectricalTest";
+            RestTemplate restTemplate = new RestTemplate();
+
+            ResponseEntity<Map> response = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+
+            System.out.println("远程接口响应状态码：" + response.getStatusCode());
+            System.out.println("远程接口响应体：" + response.getBody());
+
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 打印异常堆栈
+            result.put("staus", 500);
+            result.put("msg",e.getMessage());
+
+        }
+        return result;
+    }
+
 }

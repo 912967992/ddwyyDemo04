@@ -579,6 +579,24 @@ public class testManIndexController {
             int updateProblemCounts = dqEproblemMoudleService.updatepProblemCounts(sample_id,problemCounts);
             if(updateProblemCounts>0){
                 logger.info("updateProblemCounts更新成功:"+problemCounts);
+                String testNumber = testManIndexService.queryElectricIdByActualId(sample_id);
+
+                String workDaysStr = String.valueOf(workDays);
+
+                Map<String, Object> remoteResult = testManIndexService.pushToRemoteElectricalFinish(testNumber, workDaysStr);
+                int updateActualEndTime = testManIndexService.updateElectricActualEndTime(testNumber);
+                logger.info("推送远程成功: {}", remoteResult.get("remoteBody"));
+                if(tuiOrJp!=null){
+                    if(tuiOrJp.equals("tui")){
+                        Map<String, Object> processTestElectricalTest = testManIndexService.processTestElectricalTest(testNumber,"退样",filepath);
+                        logger.info("推送退样远程成功: {}", processTestElectricalTest.get("remoteBody"));
+                    }else if(tuiOrJp.equals("jp")){
+                        Map<String, Object> processTestElectricalTest = testManIndexService.processTestElectricalTest(testNumber,"竞品完成",filepath);
+                        logger.info("推送竞品完成远程成功: {}", processTestElectricalTest.get("remoteBody"));
+                    }
+                }
+
+
             }
 
         }else if(schedule.equals("1")){
@@ -1527,9 +1545,10 @@ public class testManIndexController {
         String sample_actual_id = (String) projectData.get("sample_actual_id");
         String electric_sample_id = (String) projectData.get("sample_id");
         System.out.println("electric_sample_id:"+electric_sample_id);
-        if (sample_actual_id != null ) {
+        if (sample_actual_id != null && !sample_actual_id.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("已经有这个版本信息的任务开始测试了，请检查是否写误");
         }
+
 
         // 获取 materialCode 字段值
         String materialCodeObj = (String) projectData.get("materialCode");
@@ -1661,13 +1680,14 @@ public class testManIndexController {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "https://test.ugreensmart.com:7443/backend/ugreenqc/Api/ElectricalTest/StartTestElectricalTest";
+        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/StartTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
 
         try {
             ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
             logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
             logger.info("远程接口响应体: {}", apiResponse.getBody());
+
 
             return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
         } catch (Exception e) {
@@ -1678,5 +1698,9 @@ public class testManIndexController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
+
+
+
 
 }
