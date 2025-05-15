@@ -1,53 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <title>RSA 加密演示</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据看板模块</title>
-    <!-- 引入字体图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- 引入外部CSS文件 -->
-    <link rel="stylesheet" href="/css/dataBoard.css">
-
-    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
-
-
+    <style>
+        .rsa-container {
+            margin: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            max-width: 800px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        textarea, input {
+            margin: 5px 0;
+        }
+        button {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
-
-
-<div class="header-container">
-    <div class="title">数据看板</div>
-    <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
-</div>
-
-
-<div class="sidebar">
-    <ul class="nav-list">
-        <li><a href="/dataBoard" class="nav-link active">数据看板</a></li>
-<!--        <li><a href="/weeklyNewspaper" class="nav-link">电子DQE周报</a></li>-->
-<!--        <li><a href="/scheduleBoard" class="nav-link">扫码分箱</a></li>-->
-    </ul>
-</div>
-
 <div class="rsa-container">
-    <h2>RSA 加密演示</h2>
+    <h2>1. 使用后端内置公钥加密，此页面后端公钥是：MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGnpTPc+9ZEbxzVIT5BUWncojl
+        J1bxURRl+Jgj1aNwFE+p6yLfp3WZCuGd+zpGfryqRKeEkUOVo0IEUXU4h3BIM6rAL81RtVOHNG9dLq8ZJt18Fker
+        80l719X+kfmy+YLZCtdhzcWbDe7qKFgleT8yUJBuwkOS6airbDCrcmPpCwIDAQAB</h2>
     <input type="text" id="inputText" placeholder="请输入内容" style="width:300px;" />
     <button onclick="encrypt()">加密</button>
     <p>加密结果：</p>
-    <textarea id="result" rows="5" cols="50"></textarea>
+    <textarea id="result" rows="5" cols="70" readonly></textarea>
 </div>
 
-<div class="rsa-container" style="margin-top: 50px;">
-    <h2>RSA 解密演示</h2>
-    <textarea id="encryptedText" rows="5" cols="50" placeholder="请输入加密文本"></textarea><br>
+<div class="rsa-container">
+    <h2>2. 使用后端私钥解密</h2>
+    <textarea id="encryptedText" rows="5" cols="70" placeholder="请输入加密文本"></textarea><br>
     <button onclick="decrypt()">解密</button>
     <p>解密结果：</p>
     <input type="text" id="decryptedResult" style="width:300px;" readonly />
 </div>
 
+<div class="rsa-container">
+    <h2>3. 使用用户输入的公钥加密</h2>
+    <textarea id="userPublicKey" rows="5" cols="70" placeholder="请输入公钥（Base64格式）"></textarea><br>
+    <input type="text" id="userInputText" placeholder="请输入要加密的内容" style="width:300px;" />
+    <button onclick="encryptWithUserKey()">加密</button>
+    <p>加密结果：</p>
+    <textarea id="userEncryptedResult" rows="5" cols="70" readonly></textarea>
+</div>
 
 <script>
     function encrypt() {
@@ -76,8 +79,21 @@
             });
     }
 
-</script>
+    function encryptWithUserKey() {
+        const publicKey = document.getElementById('userPublicKey').value;
+        const text = document.getElementById('userInputText').value;
 
+        fetch('/encryptWithKey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ publicKey: publicKey.trim(), text: text })
+        })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('userEncryptedResult').value = data;
+            });
+    }
+</script>
 
 </body>
 </html>
