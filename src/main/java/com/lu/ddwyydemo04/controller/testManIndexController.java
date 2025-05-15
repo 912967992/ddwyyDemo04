@@ -1680,7 +1680,7 @@ public class testManIndexController {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/StartTestElectricalTest";
+        String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/StartTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
 
         try {

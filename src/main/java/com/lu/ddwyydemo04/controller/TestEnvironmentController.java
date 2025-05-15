@@ -339,7 +339,7 @@ public class TestEnvironmentController {
 
         // 遍历排期变更数据并发送 HTTP 请求
         RestTemplate restTemplate = new RestTemplate();
-        String updateScheduleUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/UpdateScheduleElectricalTest";
+        String updateScheduleUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/UpdateScheduleElectricalTest";
 
         for (Map<String, String> schedule : scheduleChanges) {
             Map<String, Object> requestBody = new HashMap<>();
@@ -447,7 +447,7 @@ public class TestEnvironmentController {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/StartTestElectricalTest";
+        String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/StartTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -524,7 +524,7 @@ public class TestEnvironmentController {
 
 
         // 发送 POST 请求到目标接口
-        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/FinishTestElectricalTest";
+        String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/FinishTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -623,7 +623,7 @@ public class TestEnvironmentController {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             // 发送请求
-            String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/ReportReviewElectricalTest";
+            String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/ReportReviewElectricalTest";
             RestTemplate restTemplate = new RestTemplate();
 
             ResponseEntity<Map> response = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);

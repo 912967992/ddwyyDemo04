@@ -521,7 +521,7 @@ public class TestManIndexService {
 
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
-        String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/FinishTestElectricalTest";
+        String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/FinishTestElectricalTest";
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -598,7 +598,7 @@ public class TestManIndexService {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             // 发送请求
-            String targetUrl = "https://www.ugreensmart.com:7443/backend/ugreen-qc/Api//ElectricalTest/ReportReviewElectricalTest";
+            String targetUrl = "https://www.ugreensmart.com/backend/ugreen-qc/Api/ElectricalTest/ReportReviewElectricalTest";
             RestTemplate restTemplate = new RestTemplate();
 
             ResponseEntity<Map> response = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
