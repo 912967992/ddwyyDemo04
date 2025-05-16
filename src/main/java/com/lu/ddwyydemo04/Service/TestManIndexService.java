@@ -258,9 +258,9 @@ public class TestManIndexService {
 
     }
 
-    public List<ElectricScheduleInfo> getAllSchedules(){
-        return testManDao.getAllSchedules();
-    }
+//    public List<ElectricScheduleInfo> getAllSchedules(){
+//        return testManDao.getAllSchedules();
+//    }
 
     public int saveScheduleDays(String sample_id,String scheduleDays){
         return testManDao.saveScheduleDays(sample_id, scheduleDays);
@@ -298,7 +298,6 @@ public class TestManIndexService {
         // 这里写你的数据库操作逻辑
         String change = latestChange.get("change");
         String sample_id = latestChange.get("sample_id");
-        String sizecoding = latestChange.get("sizecoding");
         String tester = latestChange.get("tester");
         String start_date = latestChange.get("start_date");
         String end_date = latestChange.get("end_date");
@@ -308,57 +307,37 @@ public class TestManIndexService {
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
 
-        int count = testManDao.getCountSchedules(sampleId);
-
-        if(count>0){
             // 查询旧数据
-            Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
-            if (oldSchedule != null) {
-                String changeLog = oldSchedule.get("tester") + "#" +
-                        oldSchedule.get("schedule_start_date") + "#" +
-                        oldSchedule.get("schedule_end_date") + "#" +
-                        oldSchedule.get("update_time") + "#" +
-                        oldSchedule.get("schedule_color") + "#" +
-                        oldSchedule.get("isUsed");
+        Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
+        if (oldSchedule != null) {
+            String changeLog = oldSchedule.get("tester") + "#" +
+                    oldSchedule.get("schedule_start_date") + "#" +
+                    oldSchedule.get("schedule_end_date") + "#" +
+                    oldSchedule.get("update_time") + "#" +
+                    oldSchedule.get("schedule_color") + "#" +
+                    oldSchedule.get("isUsed");
 
                 // 获取 electric_info 表原有的 changeRecord 内容
-                String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
-                String newLog = (existingLog == null || existingLog.isEmpty())
-                        ? changeLog
-                        : existingLog + " | " + changeLog;
+            String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
+            String newLog = (existingLog == null || existingLog.isEmpty())
+                    ? changeLog
+                    : existingLog + " | " + changeLog;
 
-                // 更新 electric_info.changeRecord 字段
-                testManDao.updateChangeRecord(sampleId, newLog);
-            }
-
-            if ("delete".equals(change)) {
-                // 删除 electric_schedule_info 数据
-                // 更新 electric_info 里的 sample_id 的 isUsed = 0
-                testManDao.deleteElectric_schedule_info(sample_id);
-
-                System.out.println("count>0的delete的:"+latestChange);
-            } else if ("add".equals(change)) {
-                // 新增 electric_schedule_info 数据
-                // 更新 electric_info 里的 sample_id 的 isUsed = 1
-                testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays,schedule_color);
-                System.out.println("count>0的add的:"+latestChange);
-            }
-        }else{
-            if ("delete".equals(change)) {
-                // 数据库本来就无此条数据，故无需操作
-                System.out.println("count<0的delete的:"+latestChange);
-            } else if ("add".equals(change)) {
-                // 新增 electric_schedule_info 数据
-                // 更新 electric_info 里的 sample_id 的 isUsed = 1
-                testManDao.insertElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,schedule_color);
-                testManDao.updateElectric_schedule_info(sample_id,tester,start_date,end_date,sizecoding,scheduleDays,schedule_color);
-                System.out.println("count<0的add的:" + latestChange);
-            }
+            // 更新 electric_info.changeRecord 字段
+            testManDao.updateChangeRecord(sampleId, newLog);
         }
-        // 示例：更新数据库
 
+        if ("delete".equals(change)) {
+            // 更新 electric_info 里的 sample_id 的 isUsed = 0
+            testManDao.deleteElectric_info(sample_id);
 
-        // 记录变更日志（可以存入数据库或者日志表）
+            System.out.println("count>0的delete的:"+latestChange);
+        } else if ("add".equals(change)) {
+            // 更新 electric_info 里的 sample_id 的 isUsed = 1
+            testManDao.updateElectric_info(sample_id,tester,start_date,end_date,scheduleDays,schedule_color);
+            System.out.println("count>0的add的:"+latestChange);
+        }
+
     }
 
     public List<Map<String, Object>> getAllTesters(){

@@ -78,7 +78,7 @@ public interface TestManDao {
     public int insertElectricInfo(PassbackData passbackData);
     public int updateElectricInfo(PassbackData passbackData);
 
-    public List<ElectricScheduleInfo> getAllSchedules();
+//    public List<ElectricScheduleInfo> getAllSchedules();
 
     public int saveScheduleDays(@Param("sample_id")String sample_id, @Param("scheduleDays")String scheduleDays);
 
@@ -97,25 +97,23 @@ public interface TestManDao {
     public boolean StartTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_start_time")String actual_start_time);
     public boolean FinishTestElectricalTest(@Param("sample_id")String sample_id,@Param("actual_finish_time")String actual_finish_time);
     public String queryActualWorkTime(@Param("sample_id")String sample_id);
-    public int getCountSchedules(@Param("sample_id")String sample_id);
+//    public int getCountSchedules(@Param("sample_id")String sample_id);
 
-    public void deleteElectric_schedule_info(@Param("sample_id")String sample_id);
+    public void deleteElectric_info(@Param("sample_id")String sample_id);
 
     public boolean changeIsUsedAsZero(@Param("sample_id")String sample_id);
     public void changeIsUsedAsOne(@Param("sample_id")String sample_id, @Param("scheduleDays") String scheduleDays);
-    public void insertElectric_schedule_info(@Param("sample_id")String sample_id,
+    public void insertElectric_info(@Param("sample_id")String sample_id,
                                                 @Param("tester")String tester,
                                                 @Param("schedule_start_date")String schedule_start_date,
                                                 @Param("schedule_end_date")String schedule_end_date,
-                                                @Param("sizecoding")String sizecoding,
                                                 @Param("schedule_color")String schedule_color
                                              );
 
-    public void updateElectric_schedule_info(@Param("sample_id")String sample_id,
+    public void updateElectric_info(@Param("sample_id")String sample_id,
                                                 @Param("tester")String tester,
                                                 @Param("schedule_start_date")String schedule_start_date,
                                                 @Param("schedule_end_date")String schedule_end_date,
-                                                @Param("sizecoding")String sizecoding,
                                                 @Param("scheduleDays")String scheduleDays,
                                                 @Param("schedule_color")String schedule_color
                                              );
@@ -133,7 +131,6 @@ public interface TestManDao {
     public List<PassbackData> getAllReceivedData(@Param("sample_id") String sample_id);
 
 
-    // 查询 electric_schedule_info 表中记录
     Map<String, Object> getScheduleInfoBySampleId(@Param("sample_id") String sample_id);
 
     // 查询 changeRecord 原内容

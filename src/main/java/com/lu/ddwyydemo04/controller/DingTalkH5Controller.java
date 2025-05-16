@@ -274,11 +274,10 @@ public class DingTalkH5Controller {
         if ("官旺华".equals(username) || "赵梓宇".equals(username) || "刘鹏飞".equals(username)) {
             return "tester";
         } else {
-            if ("卢绮敏".equals(username)) {
-                return "DQE";
-            } else if ("蓝明城".equals(username)) {
+            if ("卢绮敏".equals(username) || "蓝明城".equals(username) || "陈鑫".equals(username)) {
                 return "DQE";
             }
+
         }
 
 

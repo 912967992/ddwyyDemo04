@@ -254,7 +254,7 @@
             <p><strong>供应商：</strong>${item.supplier}</p>
             <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
             <p><strong>测试子项目：</strong>${item.testProjects}</p>
-            <p><strong>状态：</strong>${item.schedule}</p>
+            <p><strong>状态：</strong>${getScheduleText(item.schedule)}</p>
             <p><strong>创建时间：</strong>${item.create_time}</p>
         `;
 
@@ -1245,7 +1245,7 @@
             <p><strong>供应商：</strong>${taskData.supplier}</p>
             <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
             <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
-            <p><strong>状态：</strong>${taskData.schedule}</p>
+            <p><strong>状态：</strong>${getScheduleText(taskData.schedule)}</p>
             <p><strong>创建时间：</strong>${taskData.create_time}</p>
         `;
 
@@ -1318,6 +1318,26 @@
     }
 
 
+    function getScheduleText(code) {
+        switch (code) {
+            case "15":
+                return "待排期";
+            case "16":
+                return "已排期待测试";
+            case "0":
+                return "测试中";
+            case "1":
+                return "待审核";
+            case "2":
+                return "审核完成";
+            case "9":
+                return "样品退样";
+            case "10":
+                return "竞品完成";
+            default:
+                return code || "";
+        }
+    }
 
 
 

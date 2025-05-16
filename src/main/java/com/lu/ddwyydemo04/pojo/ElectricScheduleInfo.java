@@ -13,8 +13,6 @@ public class ElectricScheduleInfo {
     private LocalDate schedule_start_date;
     private LocalDate schedule_end_date;
 
-    private Integer row_index;
-    private Integer column_index;
     private LocalDateTime create_time;
     private LocalDateTime update_time;
 
@@ -55,21 +53,6 @@ public class ElectricScheduleInfo {
         this.schedule_end_date = schedule_end_date;
     }
 
-    public Integer getRow_index() {
-        return row_index;
-    }
-
-    public void setRow_index(Integer row_index) {
-        this.row_index = row_index;
-    }
-
-    public Integer getColumn_index() {
-        return column_index;
-    }
-
-    public void setColumn_index(Integer column_index) {
-        this.column_index = column_index;
-    }
 
     public LocalDateTime getCreate_time() {
         return create_time;
@@ -111,8 +94,6 @@ public class ElectricScheduleInfo {
                 ", tester='" + tester + '\'' +
                 ", schedule_start_date=" + schedule_start_date +
                 ", schedule_end_date=" + schedule_end_date +
-                ", row_index=" + row_index +
-                ", column_index=" + column_index +
                 ", create_time=" + create_time +
                 ", update_time=" + update_time +
                 ", sizecoding='" + sizecoding + '\'' +

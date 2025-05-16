@@ -148,65 +148,6 @@ public class TestEnvironmentController {
     }
 
 
-    @GetMapping("/getScheduleBoard")
-    @ResponseBody
-    public List<Map<String, Object>> getScheduleBoard() {
-        List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
-    //    System.out.println("testManIndexService.getAllSchedules(): " + scheduleList);
-
-        List<String> electricInfoIds = scheduleList.stream()
-                .map(ElectricScheduleInfo::getSample_id)
-                .distinct()
-                .collect(Collectors.toList());
-
-        List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
-
-        // 将 PassbackData 映射成 Map<Integer, PassbackData>
-        Map<Integer, PassbackData> passbackMap = passbackList.stream()
-                .filter(p -> p.getSample_id() != null)
-                .collect(Collectors.toMap(p -> Integer.parseInt(p.getSample_id()), p -> p));
-
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (ElectricScheduleInfo schedule : scheduleList) {
-            Map<String, Object> merged = new LinkedHashMap<>(); // 保证字段顺序一致
-
-            // 将 ElectricScheduleInfo 的属性写入 map
-            merged.put("id", schedule.getId());
-            merged.put("sample_id", schedule.getSample_id());
-            merged.put("tester", schedule.getTester());
-            merged.put("schedule_start_date", schedule.getSchedule_start_date());
-            merged.put("schedule_end_date", schedule.getSchedule_end_date());
-            merged.put("create_time", schedule.getCreate_time());
-            merged.put("update_time", schedule.getUpdate_time());
-            merged.put("sizecoding", schedule.getSizecoding());
-
-            // 合并对应的 PassbackData 字段
-            PassbackData passback = passbackMap.get(schedule.getSample_id());
-            if (passback != null) {
-                merged.put("sample_id", passback.getSample_id());
-                merged.put("sample_category", passback.getSample_category());
-                merged.put("sample_model", passback.getSample_model());
-                merged.put("materialCode", passback.getMaterialCode());
-                merged.put("sample_frequency", passback.getSample_frequency());
-                merged.put("sample_name", passback.getSample_name());
-                merged.put("version", passback.getVersion());
-                merged.put("priority", passback.getPriority());
-                merged.put("sample_leader", passback.getSample_leader());
-                merged.put("supplier", passback.getSupplier());
-                merged.put("testProjectCategory", passback.getTestProjectCategory());
-                merged.put("testProjects", passback.getTestProjects());
-                merged.put("schedule", passback.getSchedule());
-                merged.put("create_time", passback.getCreate_time()); // 避免与 schedule 的 create_time 重名
-                merged.put("scheduleDays", passback.getScheduleDays());
-                merged.put("isUsed", passback.getIsUsed());
-            }
-
-            result.add(merged);
-        }
-    //    System.out.println("result:"+result);
-        return result;
-    }
 
     @GetMapping("/getSchedulesByStartDate")
     @ResponseBody
@@ -368,7 +309,6 @@ public class TestEnvironmentController {
 
             try {
                 ResponseEntity<String> responseEntity = restTemplate.exchange(updateScheduleUrl, HttpMethod.POST, requestEntity, String.class);
-                HttpStatus statusCode = responseEntity.getStatusCode();
                 String body = responseEntity.getBody();
 
                 // 解析 JSON 返回体

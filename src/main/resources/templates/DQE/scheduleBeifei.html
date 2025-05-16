@@ -282,10 +282,10 @@
 
   function saveScheduleAndColor(card,item) {
     const days = document.getElementById('scheduleDays').value;
-    if (!days || isNaN(days) || days < 0) {
-      alert("请输入有效的排期天数！");
-      return;
-    }
+    // if (!days || isNaN(days) || days < 0) {
+    //     alert("请输入有效的排期天数！");
+    //     return;
+    // }
 
     const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
     if (!selectedColor) {
@@ -772,18 +772,17 @@
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
         const roundedDays = Math.ceil(parseFloat(schedule_days));
+        console.log("startIndex,",startIndex);
 
         // 检查排期是否超出可排范围
         if (startIndex + roundedDays > rowCells.length) {
-          alert("排期超出可排范围！");
+          alert("排期超出可排范围！请设置更广泛的日期");
           return;
         }
 
         // 检查排期区域是否已被占用
         for (let i = startIndex; i < startIndex + roundedDays; i++) {
           if (rowCells[i].innerText.trim() !== '') {
-            // alert('排期区域已占用，无法安排！');
-            // return;
 
             const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
             if (!confirmInsert) {
@@ -792,6 +791,75 @@
           }
         }
 
+        // 新增对后续项目没位置的判断
+        let conflictCells = [];
+        for (let i = startIndex; i < startIndex + roundedDays; i++) {
+          if (rowCells[i].innerText.trim() !== '') {
+            conflictCells.push(rowCells[i]);
+            // console.log(rowCells[i].innerHTML.trim(),i);
+          }
+        }
+        console.log("conflictCells.length,",conflictCells.length)
+        const projectsToMove = [];
+        let diff;
+        if (conflictCells.length > 0) {
+          // 找到所有需要往后挪的项目
+          let currentIndex = startIndex;
+          while (currentIndex < rowCells.length) {
+            const currentCell = rowCells[currentIndex];
+            if (currentCell.innerText.trim() !== '') {
+              const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
+              const projectData = {};
+              const attributes = [
+                'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
+                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+              ];
+              attributes.forEach(attr => {
+                projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+              });
+              projectsToMove.push({
+                startIndex: currentIndex,
+                span: projectSpan,
+                data: projectData
+              });
+              currentIndex += projectSpan;
+            } else {
+              currentIndex++;
+            }
+          }
+          console.log("projectsToMove:",projectsToMove)
+
+          let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
+          let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
+          let maxSpan = Infinity;  // 初始化最小的 startIndex 值
+          let maxSample_id = '';
+          // 找到最小的 startIndex
+          minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
+          maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
+          maxSpan = Math.max(...projectsToMove.map(project => project.span));
+          maxSample_id = projectsToMove[0].data.sample_id;
+          console.log("maxSpan",maxSpan)
+          console.log("maxStartIndex:", maxStartIndex);
+          console.log("maxSample_id:", maxSample_id);
+
+          // 计算拖拽项目与最小startIndex的差值
+          diff = roundedDays - minStartIndex + startIndex;
+          console.log("拖拽项目与最小startIndex的差值:", diff);
+
+          console.log("sample_id",sample_id)
+          if(maxSample_id === sample_id){
+            alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来")
+            return;
+          }
+
+          if (maxStartIndex + diff + maxSpan > rowCells.length ) {
+            alert("后续项目移动后超出可排范围！");
+            return;
+          }
+
+        }
 
         // 确认可以放置项目后，再清空原排期
         const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
@@ -819,7 +887,7 @@
           }
         }
 
-        handleDrop(cell, cellList, taskData);
+        handleDrop(cell, cellList, taskData,  conflictCells ,projectsToMove ,diff );
       });
 
       cell.addEventListener('contextmenu', e => {
@@ -881,71 +949,23 @@
   }
 
 
-  // 处理拖拽放下事件
-  // ... existing code ...
 
   // 处理拖拽放下事件
-  function handleDrop(cell, cellList, taskData) {
+  function handleDrop(cell, cellList, taskData, conflictCells ,projectsToMove ,diff ) {
     const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
     const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
     const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
     const startIndex = rowCells.indexOf(cell);
 
-    if (startIndex + roundedDays > rowCells.length) {
-      alert("排期超出可排范围！");
-      return;
-    }
-
-    // 检查排期区域是否已被占用
-    let conflictCells = [];
-    for (let i = startIndex; i < startIndex + roundedDays; i++) {
-      if (rowCells[i].innerText.trim() !== '') {
-        conflictCells.push(rowCells[i]);
-      }
-    }
-
     if (conflictCells.length > 0) {
-      // const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
-      // if (!confirmInsert) {
-      //     return;
-      // }
-
-      // 找到所有需要往后挪的项目
-      const projectsToMove = [];
-      let currentIndex = startIndex;
-      while (currentIndex < rowCells.length) {
-        const currentCell = rowCells[currentIndex];
-        if (currentCell.innerText.trim() !== '') {
-          const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
-          const projectData = {};
-          const attributes = [
-            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
-            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
-          ];
-          attributes.forEach(attr => {
-            projectData[attr] = currentCell.getAttribute(`data-${attr}`);
-          });
-          projectsToMove.push({
-            startIndex: currentIndex,
-            span: projectSpan,
-            data: projectData
-          });
-          currentIndex += projectSpan;
-        } else {
-          currentIndex++;
-        }
-      }
-
       // 从后往前移动项目
       for (let i = projectsToMove.length - 1; i >= 0; i--) {
         const { startIndex: projectStartIndex, span, data } = projectsToMove[i];
-        const newStartIndex = projectStartIndex + roundedDays;
-        if (newStartIndex + span > rowCells.length) {
-          alert("后续项目移动后超出可排范围！");
-          return;
-        }
+        const newStartIndex = projectStartIndex + diff;
+        console.log("项目起始位置: ", projectStartIndex);
+        console.log("挪动的天数: ", diff);
+        console.log("新的起始位置: ", newStartIndex);
+
         // 清除原项目
         const originalStartCell = rowCells[projectStartIndex];
         originalStartCell.innerText = '';
@@ -974,6 +994,7 @@
           }
         });
         for (let j = newStartIndex + 1; j < newStartIndex + span; j++) {
+          console.log("j",j);
           rowCells[j].style.display = 'none';
         }
         // 更新 localScheduleChanges
@@ -997,8 +1018,27 @@
         } else {
           localScheduleChanges.push(newChange);
         }
+
+        // 添加允许拖拽的方法
+        newStartCell.setAttribute('draggable', 'true');
+        newStartCell.addEventListener('dragstart', function (e) {
+          const taskData = {};
+          const attributes = [
+            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+          ];
+          attributes.forEach(attr => {
+            taskData[attr] = this.getAttribute(`data-${attr}`);
+          });
+          Object.entries(taskData).forEach(([key, value]) => {
+            e.dataTransfer.setData(`project-${key}`, value);
+          });
+        });
       }
     }
+    console.log("startCell的startIndex",startIndex)
 
     // 放置新插入的项目
     const startCell = rowCells[startIndex];
