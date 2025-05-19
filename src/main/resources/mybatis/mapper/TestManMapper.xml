@@ -528,7 +528,8 @@
             scheduleDays = #{scheduleDays},
             tester = #{tester},
             schedule_start_date = #{schedule_start_date},
-            schedule_end_date = #{schedule_end_date}
+            schedule_end_date = #{schedule_end_date},
+            update_time = NOW()
         WHERE
             sample_id = #{sample_id}
     </update>

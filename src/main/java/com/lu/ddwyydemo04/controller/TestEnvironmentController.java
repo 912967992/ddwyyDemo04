@@ -249,11 +249,13 @@ public class TestEnvironmentController {
         String scheduleDays = (String) params.get("scheduleDays");
 
         System.out.println("sample_id: " + sampleId + ", scheduleDays: " + scheduleDays);
-        int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
-
         Map<String, Object> result = new HashMap<>();
-        result.put("status", "ok");
-        result.put("message", "排期天数保存成功！");
+        if(!Objects.equals(scheduleDays, "")){
+            int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
+            result.put("status", "ok");
+            result.put("message", "排期天数保存成功！");
+        }
+
         return result;
     }
 
@@ -274,7 +276,7 @@ public class TestEnvironmentController {
             // 遍历每条排期变更数据（每个 sample_id 只存在一条记录）
         for (Map<String, String> change : scheduleChanges) {
             String sampleId = change.get("sample_id");
-            testManIndexService.processScheduleUpdate(sampleId, change, null); // 旧参数 changes 传 null 或者干脆改方法签名
+            testManIndexService.processScheduleUpdate(sampleId, change); // 旧参数 changes 传 null 或者干脆改方法签名
         }
 
 

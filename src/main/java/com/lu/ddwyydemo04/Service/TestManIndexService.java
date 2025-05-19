@@ -294,7 +294,7 @@ public class TestManIndexService {
         return testManDao.queryActualWorkTime(sample_id);
     }
 
-    public void processScheduleUpdate(String sampleId, Map<String, String> latestChange, List<Map<String, String>> allChanges) {
+    public void processScheduleUpdate(String sampleId, Map<String, String> latestChange) {
         // 这里写你的数据库操作逻辑
         String change = latestChange.get("change");
         String sample_id = latestChange.get("sample_id");
@@ -306,27 +306,6 @@ public class TestManIndexService {
 
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
-
-            // 查询旧数据
-        Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
-        if (oldSchedule != null) {
-            String changeLog = oldSchedule.get("tester") + "#" +
-                    oldSchedule.get("schedule_start_date") + "#" +
-                    oldSchedule.get("schedule_end_date") + "#" +
-                    oldSchedule.get("update_time") + "#" +
-                    oldSchedule.get("schedule_color") + "#" +
-                    oldSchedule.get("isUsed");
-
-                // 获取 electric_info 表原有的 changeRecord 内容
-            String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
-            String newLog = (existingLog == null || existingLog.isEmpty())
-                    ? changeLog
-                    : existingLog + " | " + changeLog;
-
-            // 更新 electric_info.changeRecord 字段
-            testManDao.updateChangeRecord(sampleId, newLog);
-        }
-
         if ("delete".equals(change)) {
             // 更新 electric_info 里的 sample_id 的 isUsed = 0
             testManDao.deleteElectric_info(sample_id);
@@ -337,6 +316,27 @@ public class TestManIndexService {
             testManDao.updateElectric_info(sample_id,tester,start_date,end_date,scheduleDays,schedule_color);
             System.out.println("count>0的add的:"+latestChange);
         }
+        // 查询旧数据
+        Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
+        if (oldSchedule != null) {
+            String changeLog = oldSchedule.get("tester") + "#" +
+                    oldSchedule.get("schedule_start_date") + "#" +
+                    oldSchedule.get("schedule_end_date") + "#" +
+                    oldSchedule.get("update_time") + "#" +
+                    oldSchedule.get("schedule_color") + "#" +
+                    oldSchedule.get("isUsed");
+
+            // 获取 electric_info 表原有的 changeRecord 内容
+            String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
+            String newLog = (existingLog == null || existingLog.isEmpty())
+                    ? changeLog
+                    : existingLog + " | " + changeLog;
+
+            // 更新 electric_info.changeRecord 字段
+            testManDao.updateChangeRecord(sampleId, newLog);
+        }
+
+
 
     }
 
