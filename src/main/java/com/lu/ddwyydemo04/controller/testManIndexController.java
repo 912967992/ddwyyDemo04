@@ -1700,6 +1700,52 @@ public class testManIndexController {
     }
 
 
+    @GetMapping("/api/getChangeLog")
+    @ResponseBody
+    public List<Map<String, String>> getChangeLog(@RequestParam String sample_id) {
+        String rawLog = testManIndexService.getChangeRecordBySampleId(sample_id);
+        List<Map<String, String>> result = new ArrayList<>();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        if (rawLog != null && !rawLog.trim().isEmpty()) {
+            String[] records = rawLog.split("\\|");
+            for (String record : records) {
+                String[] parts = record.trim().split("#");
+                if (parts.length >= 6) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("tester", parts[0]);
+                    map.put("startDate", parts[1]);
+                    map.put("endDate", parts[2]);
+                    map.put("updateTime", parts[3] == null || parts[3].equals("null") ? "" : parts[3]);
+                    map.put("color", parts[4]);
+                    map.put("used", parts[5]);
+                    result.add(map);
+                }
+            }
+
+            // 排序：根据 updateTime 倒序
+            result.sort((m1, m2) -> {
+                String t1 = m1.get("updateTime");
+                String t2 = m2.get("updateTime");
+                if (t1.isEmpty() && t2.isEmpty()) return 0;
+                if (t1.isEmpty()) return 1;
+                if (t2.isEmpty()) return -1;
+
+                try {
+                    LocalDateTime time1 = LocalDateTime.parse(t1, formatter);
+                    LocalDateTime time2 = LocalDateTime.parse(t2, formatter);
+                    return time2.compareTo(time1); // 倒序
+                } catch (Exception e) {
+                    return 0; // 出现格式问题时，不参与排序
+                }
+            });
+        }
+
+        return result;
+    }
+
+
 
 
 

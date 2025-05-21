@@ -29,10 +29,23 @@
     <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
 </div>
 
+<!-- 新增变更记录模态框 -->
+<div id="changeLogModal">
+    <div id="changeLogModalContent">
+        <h3>变更记录</h3>
+        <div id="changeLogBody"></div>
+        <button id="closeChangeLogBtn">关闭</button>
+    </div>
+</div>
+
 <!-- 模态框 -->
 <div id="modal">
     <div id="modalContent">
-        <h3>项目详情</h3>
+               <!-- 新增变更记录按钮 -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>项目详情</h3>
+                <button id="changeLogBtn">变更记录</button>
+            </div>
         <div id="modalBody"></div>
 
         <div style="margin-top: 10px;">
@@ -70,6 +83,19 @@
         <button id="closeBtn">关闭</button>
     </div>
 </div>
+
+<template id="changeLogTemplate">
+    <p class="change-log-item">
+        <strong>测试者：</strong> {{tester}}<br>
+        <strong>排期开始：</strong> {{startDate}}<br>
+        <strong>排期结束：</strong> {{endDate}}<br>
+        <strong>更新时间：</strong> {{updateTime}}<br>
+        <strong>颜色：</strong> <span style="color: {{color}};">{{color}}</span><br>
+        <strong>是否使用：</strong> {{used}}<br>
+    <hr>
+    </p>
+</template>
+
 
 <div id="contextMenu" class="context-menu">
     <!-- <div onclick="handleContextMenuClick()">撤回排期</div> -->
@@ -236,6 +262,17 @@
                 document.getElementById('modal').style.display = 'none';
             }
         };
+
+        // 关闭变更记录模态框
+        document.getElementById('closeChangeLogBtn').onclick = function () {
+            document.getElementById('changeLogModal').style.display = 'none';
+        };
+        document.getElementById('changeLogModal').onclick = function (e) {
+            if (e.target.id === 'changeLogModal') {
+                document.getElementById('changeLogModal').style.display = 'none';
+            }
+        };
+
     };
 
     // 项目卡片右键触发的绑定事件
@@ -1341,6 +1378,45 @@
     }
 
 
+
+    // 绑定变更记录按钮点击事件
+    document.addEventListener('DOMContentLoaded', function () {
+        const changeLogBtn = document.getElementById('changeLogBtn');
+        changeLogBtn.addEventListener('click', function () {
+            const sample_id = document.getElementById('modalBody').querySelector('p:nth-child(1)').textContent.split('：')[1].trim();
+            fetch(`/api/getChangeLog?sample_id=${sample_id}`)
+                .then(response => response.json())
+                .then(data => {
+                    const changeLogBody = document.getElementById('changeLogBody');
+                    changeLogBody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        changeLogBody.innerHTML = '暂无变更记录。';
+                    } else {
+                        const template = document.getElementById('changeLogTemplate').innerHTML;
+
+                        data.forEach(change => {
+                            let itemHTML = template
+                                .replace('{{tester}}', change.tester)
+                                .replace('{{startDate}}', change.startDate)
+                                .replace('{{endDate}}', change.endDate)
+                                .replace('{{updateTime}}', change.updateTime || '无')
+                                .replaceAll('{{color}}', change.color)
+                                .replace('{{used}}', change.used);
+
+                            changeLogBody.insertAdjacentHTML('beforeend', itemHTML);
+                        });
+                    }
+
+                    document.getElementById('changeLogModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('获取变更记录失败:', error);
+                    document.getElementById('changeLogBody').innerHTML = '获取变更记录失败，请稍后重试。';
+                });
+        });
+
+    });
 
 
 

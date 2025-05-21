@@ -329,8 +329,12 @@
     </update>
 
     <select id="getReceivedData" resultType="PassbackData">
-        SELECT * FROM electric_info WHERE isUsed = 0 OR isUsed IS NULL and isCancel = 0
+        SELECT *
+        FROM electric_info
+        WHERE (isUsed = 0 OR isUsed IS NULL)
+          AND isCancel = 0
     </select>
+
 
     <select id="queryElectricalCode" resultType="Integer">
         SELECT COUNT(*) FROM electric_info WHERE sample_id = #{sample_id}
@@ -470,7 +474,7 @@
         UPDATE electric_info
         SET
             actual_start_time = #{actual_start_time},
-            schedule = "0"
+            schedule = '0'
 
         WHERE
             sample_id = #{sample_id}
@@ -480,7 +484,7 @@
         UPDATE electric_info
         SET
             actual_finish_time = #{actual_finish_time},
-            schedule = "1",
+            schedule = '1',
             testDuration = TIMESTAMPDIFF(SECOND, actual_start_time, #{actual_finish_time}) / 3600.0
         WHERE
             sample_id = #{sample_id}
@@ -673,7 +677,7 @@
         SET
             reportReviewTime = #{reportReviewTime},
             sampleRecognizeResult = #{sampleRecognizeResult},
-            schedule = "2"
+            schedule = '2'
         WHERE
             sample_id = #{sample_id}
     </update>
@@ -815,7 +819,7 @@
             questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle
         ) VALUES (
                      #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model},
-                     #{sample_category}, #{version}, #{sample_name}, NOW(), "0",
+                     #{sample_category}, #{version}, #{sample_name}, NOW(), '0',
                      #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency},
                      #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}
                  )

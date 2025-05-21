@@ -327,7 +327,7 @@ public class TestManIndexService {
                     oldSchedule.get("isUsed");
 
             // 获取 electric_info 表原有的 changeRecord 内容
-            String existingLog = testManDao.getChangeRecordBySampleId(sampleId);
+            String existingLog = getChangeRecordBySampleId(sampleId);
             String newLog = (existingLog == null || existingLog.isEmpty())
                     ? changeLog
                     : existingLog + " | " + changeLog;
@@ -595,6 +595,10 @@ public class TestManIndexService {
 
         }
         return result;
+    }
+
+    public String getChangeRecordBySampleId(String sample_id){
+        return testManDao.getChangeRecordBySampleId(sample_id);
     }
 
 }

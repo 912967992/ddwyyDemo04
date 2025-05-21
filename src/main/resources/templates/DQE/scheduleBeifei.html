@@ -96,14 +96,15 @@
     const beijingOffset = 8 * 60 * 60 * 1000;
     const beijingTime = new Date(now.getTime() + beijingOffset);
 
-    // 格式化开始日期（今天）
-    const startYear = beijingTime.getUTCFullYear();
-    const startMonth = String(beijingTime.getUTCMonth() + 1).padStart(2, '0');
-    const startDay = String(beijingTime.getUTCDate()).padStart(2, '0');
+    // 开始日期：7天前
+    const startTime = new Date(beijingTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startYear = startTime.getUTCFullYear();
+    const startMonth = String(startTime.getUTCMonth() + 1).padStart(2, '0');
+    const startDay = String(startTime.getUTCDate()).padStart(2, '0');
     const startDate = `${startYear}-${startMonth}-${startDay}`;
 
-    // 计算结束日期（+14天）
-    const endTime = new Date(beijingTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+    // 结束日期：7天后
+    const endTime = new Date(beijingTime.getTime() + 7 * 24 * 60 * 60 * 1000);
     const endYear = endTime.getUTCFullYear();
     const endMonth = String(endTime.getUTCMonth() + 1).padStart(2, '0');
     const endDay = String(endTime.getUTCDate()).padStart(2, '0');
@@ -115,12 +116,13 @@
   });
 
 
+
   // 设置拖拽，拖拽进去的时候，如果排期天数没有设置，则不允许拖拽
   function setDraggable(projectEl, isProject) {
     projectEl.addEventListener('dragstart', e => {
       const sampleModel = projectEl.getAttribute('data-sample_model');
       const materialCode = projectEl.getAttribute('data-materialCode');
-      e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode}`);
+      e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode} `+projectEl.getAttribute('data-sample_leader').charAt(0));
       e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
       e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
       e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
@@ -187,15 +189,16 @@
     }
 
     data.forEach(item => {
+      console.log(item);
       const card = document.createElement('div');
 
       card.className = 'project-card';
 
       const scheduleColor = item.schedule_color || 'null';
       card.classList.add(scheduleColor);
-      card.textContent = item.sample_model + " " + item.materialCode + "(" + item.scheduleDays + "天)";
+      card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
 
-      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode);
+      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
       card.setAttribute('data-sample_id', item.sample_id || '');
       card.setAttribute('data-sample_name', item.sample_name || '');
       card.setAttribute('data-sample_model', item.sample_model || '');
@@ -254,7 +257,7 @@
             <p><strong>供应商：</strong>${item.supplier}</p>
             <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
             <p><strong>测试子项目：</strong>${item.testProjects}</p>
-            <p><strong>状态：</strong>${item.schedule}</p>
+            <p><strong>状态：</strong>${getScheduleText(item.schedule)}</p>
             <p><strong>创建时间：</strong>${item.create_time}</p>
         `;
 
@@ -347,7 +350,6 @@
         const newChange = {
           change: "add",
           sample_id: item.sample_id,
-          sizecoding: `${item.sample_model} ${item.materialCode}`,
           tester: tester,
           start_date: startDate,
           end_date: newEndDate,
@@ -382,7 +384,7 @@
             .then(resp => {
               // 更新卡片显示和属性
               if (card) {
-                card.textContent = `${item.sample_model}${item.materialCode}(${days}天)`;
+                card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} (${days}天)`;
                 card.setAttribute('data-schedule_days', days);
                 item.scheduleDays = days;
               }
@@ -532,7 +534,7 @@
                   startDate: item.schedule_start_date,
                   endDate: item.schedule_end_date,
                   sample_id: item.sample_id,
-                  sizecoding: item.sample_model + " " + item.materialCode,
+                  sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0),
                   sample_category: item.sample_category,
                   sample_model: item.sample_model,
                   sample_name: item.sample_name,
@@ -1002,7 +1004,6 @@
         const newChange = {
           change: "add",
           sample_id: data.sample_id,
-          sizecoding: data.sizecoding,
           tester: data.tester,
           start_date: rowCells[newStartIndex].getAttribute('data-date'),
           end_date: newEndDate,
@@ -1061,7 +1062,6 @@
     const newChange = {
       change: "add",
       sample_id: sample_id,
-      sizecoding: sizecoding,
       tester,
       start_date: startDate,
       end_date: endDate,
@@ -1132,7 +1132,9 @@
     restoredProject.setAttribute('draggable', 'true');
     restoredProject.setAttribute('data-sample_id', sample_id);
     restoredProject.setAttribute('data-schedule_days', schedule_days);
+    //   这里
     restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
+
 
     //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
     Object.keys(taskData).forEach(key => {
@@ -1174,7 +1176,6 @@
     const newChange = {
       change: "delete",
       sample_id: sample_id,
-      sizecoding: taskData.sizecoding,
       tester: taskData.tester,
       start_date: taskData.schedule_start_date,
       end_date: taskData.schedule_end_date,
@@ -1245,7 +1246,7 @@
             <p><strong>供应商：</strong>${taskData.supplier}</p>
             <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
             <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
-            <p><strong>状态：</strong>${taskData.schedule}</p>
+            <p><strong>状态：</strong>${getScheduleText(taskData.schedule)}</p>
             <p><strong>创建时间：</strong>${taskData.create_time}</p>
         `;
 
@@ -1318,6 +1319,26 @@
   }
 
 
+  function getScheduleText(code) {
+    switch (code) {
+      case "15":
+        return "待排期";
+      case "16":
+        return "已排期待测试";
+      case "0":
+        return "测试中";
+      case "1":
+        return "待审核";
+      case "2":
+        return "审核完成";
+      case "9":
+        return "样品退样";
+      case "10":
+        return "竞品完成";
+      default:
+        return code || "";
+    }
+  }
 
 
 

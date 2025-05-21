@@ -203,3 +203,91 @@
     display: none;
     z-index: 999;
 }
+
+/* 变更记录模态框整体样式 */
+#changeLogModal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+
+/* 关闭按钮样式 */
+#closeChangeLogBtn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#closeChangeLogBtn:hover,
+#closeChangeLogBtn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 变更记录按钮样式 */
+#changeLogBtn {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#changeLogBtn:hover {
+    background-color: #45a049;
+}
+
+
+/* 遮罩层 */
+#changeLogModal {
+    display: none;
+    position: fixed;
+    z-index: 1000; /* 遮罩层层级 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+/* 弹窗内容层 */
+#changeLogModalContent {
+    position: fixed;  /* 固定定位，脱离文档流 */
+    z-index: 1001;    /* 确保比遮罩层高 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px 30px;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* 关闭按钮简单样式 */
+#closeChangeLogBtn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: #007BFF;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+}
+#closeChangeLogBtn:hover {
+    background-color: #0056b3;
+}
