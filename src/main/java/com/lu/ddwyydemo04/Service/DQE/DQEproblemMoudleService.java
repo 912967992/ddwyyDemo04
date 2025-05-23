@@ -3,12 +3,10 @@ package com.lu.ddwyydemo04.Service.DQE;
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TestIssues;
-import org.apache.ibatis.annotations.Param;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -56,24 +54,23 @@ public class DQEproblemMoudleService {
     }
 
 
-    @Transactional
+
     public void updateTestIssues(TestIssues testIssues){
         dqeDao.updateTestIssues(testIssues);
     }
 
-    @Transactional
+
     public void insertTestIssues(TestIssues testIssues){
         dqeDao.insertTestIssues(testIssues);
     }
 
-    @Transactional
+
     public boolean deleteProblemById(Long id) {
         int rowsAffected = dqeDao.deleteProblemById(id);
         return rowsAffected > 0; // 如果删除成功，返回 true
     }
 
 
-    @Transactional
     public int uploadImage(Long id,String problem_image ){
         return dqeDao.uploadImage(id,problem_image);
     }

@@ -101,14 +101,6 @@ public interface TestManDao {
 
     public void deleteElectric_info(@Param("sample_id")String sample_id);
 
-    public boolean changeIsUsedAsZero(@Param("sample_id")String sample_id);
-    public void changeIsUsedAsOne(@Param("sample_id")String sample_id, @Param("scheduleDays") String scheduleDays);
-    public void insertElectric_info(@Param("sample_id")String sample_id,
-                                                @Param("tester")String tester,
-                                                @Param("schedule_start_date")String schedule_start_date,
-                                                @Param("schedule_end_date")String schedule_end_date,
-                                                @Param("schedule_color")String schedule_color
-                                             );
 
     public void updateElectric_info(@Param("sample_id")String sample_id,
                                                 @Param("tester")String tester,
@@ -129,6 +121,7 @@ public interface TestManDao {
                                    @Param("list") List<MaterialItem> list);
 
     public List<PassbackData> getAllReceivedData(@Param("sample_id") String sample_id);
+    public List<PassbackData> getPendingSampleData(@Param("waitSample_classify") String waitSample_classify);
 
 
     Map<String, Object> getScheduleInfoBySampleId(@Param("sample_id") String sample_id);
@@ -137,7 +130,7 @@ public interface TestManDao {
     String getChangeRecordBySampleId(@Param("sample_id") String sample_id);
 
     // 更新 electric_info 表中 changeRecord 字段
-    boolean updateChangeRecord(@Param("sample_id") String sample_id, @Param("changeRecord") String changeRecord);
+    void updateChangeRecord(@Param("sample_id") String sample_id, @Param("changeRecord") String changeRecord);
 
     void updateElectricInfoColor(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
     void updateScheduleInfoColorIfExists(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);

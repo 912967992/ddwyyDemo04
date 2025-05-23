@@ -329,11 +329,63 @@
     </update>
 
     <select id="getReceivedData" resultType="PassbackData">
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_actual_id,
+            ei.sample_category,
+            ei.sample_model,
+            (
+                SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+            ) AS materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+            ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.isUsed,
+            ei.changeRecord,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_date,
+            ei.cancel_code,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.schedule_color,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.tester,
+            ei.testDuration,
+            ei.filepath,
+            ei.update_time,
+            ei.remark,
+            ei.waitSample_classify
+        FROM electric_info ei
+        WHERE (ei.isUsed = 0 OR ei.isUsed IS NULL)
+          AND ei.isCancel = 0
+          AND (ei.waitSample_classify IS NULL OR ei.waitSample_classify = '')
+    </select>
+
+
+
+    <select id="getPendingSampleData" resultType="PassbackData">
         SELECT *
         FROM electric_info
-        WHERE (isUsed = 0 OR isUsed IS NULL)
+        WHERE waitSample_classify = #{waitSample_classify}
           AND isCancel = 0
     </select>
+
 
 
     <select id="queryElectricalCode" resultType="Integer">
@@ -355,8 +407,7 @@
             testProjectCategory,
             testProjects,
             schedule,
-            create_time,
-            isUsed
+            create_time
         )
         VALUES (
                    #{sample_id},
@@ -372,8 +423,7 @@
                    #{testProjectCategory},
                    #{testProjects},
                    #{schedule},
-                   NOW(),
-                    #{isUsed}
+                   NOW()
                )
     </insert>
 
@@ -391,40 +441,118 @@
             supplier = #{supplier},
             testProjectCategory = #{testProjectCategory},
             testProjects = #{testProjects},
-            schedule = #{schedule},
-            isUsed = #{isUsed}
+            schedule = #{schedule}
         WHERE sample_id = #{sample_id}
     </update>
 
-<!--    <select id="getAllSchedules" resultType="ElectricScheduleInfo">-->
-<!--        SELECT * FROM electric_schedule_info-->
-<!--    </select>-->
-
-<!--    <select id="getCountSchedules" resultType="int">-->
-<!--        SELECT count(*) FROM electric_schedule_info WHERE sample_id = #{sample_id}-->
-<!--    </select>-->
 
     <!-- 根据开始日期查询排期信息 -->
     <select id="getSchedulesByStartDate" resultType="ElectricScheduleInfo">
-        SELECT *
-        FROM electric_info
-        WHERE (schedule_start_date >= #{schedule_start_date}
-            OR (schedule_end_date >= #{schedule_start_date} AND schedule_end_date IS NOT NULL))
-          AND isUsed = 1
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_actual_id,
+            ei.sample_category,
+            ei.sample_model,
+            (
+                SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+            ) AS materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+            ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.isUsed,
+            ei.changeRecord,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_date,
+            ei.cancel_code,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.schedule_color,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.tester,
+            ei.testDuration,
+            ei.filepath,
+            ei.update_time,
+            ei.remark,
+            ei.waitSample_classify
+        FROM electric_info ei
+        WHERE (
+                    ei.schedule_start_date >= #{schedule_start_date}
+                OR (ei.schedule_end_date >= #{schedule_start_date} AND ei.schedule_end_date IS NOT NULL)
+            )
+          AND ei.isUsed = 1
     </select>
+
 
 
     <select id="getSchedulesByStartAndEndDate" resultType="ElectricScheduleInfo">
-        SELECT *
-        FROM electric_info
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_actual_id,
+            ei.sample_category,
+            ei.sample_model,
+            (
+                SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+            ) AS materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+            ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.isUsed,
+            ei.changeRecord,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_date,
+            ei.cancel_code,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.schedule_color,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.tester,
+            ei.testDuration,
+            ei.filepath,
+            ei.update_time,
+            ei.remark,
+            ei.waitSample_classify
+        FROM electric_info ei
         WHERE (
-        (schedule_start_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
-        OR (schedule_end_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
-        OR (schedule_start_date &lt;= #{schedule_start_date}
-        AND (schedule_end_date >= #{schedule_end_date} OR schedule_end_date IS NULL))
-        )
-        AND isUsed = 1
+                (ei.schedule_start_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
+                OR (ei.schedule_end_date BETWEEN #{schedule_start_date} AND #{schedule_end_date})
+                OR (ei.schedule_start_date &lt;= #{schedule_start_date}
+                AND (ei.schedule_end_date &gt;= #{schedule_end_date} OR ei.schedule_end_date IS NULL))
+            )
+          AND ei.isUsed = 1
     </select>
+
 
 
 
@@ -438,13 +566,55 @@
     </update>
 
     <select id="getPassbackByElectricInfoIds" resultType="PassbackData">
-        SELECT *
-        FROM electric_info
-        WHERE sample_id IN
+        SELECT
+        ei.id,
+        ei.sample_id,
+        ei.sample_actual_id,
+        ei.sample_category,
+        ei.sample_model,
+        (
+        SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+        FROM material_items mi
+        WHERE mi.sample_id = ei.sample_id
+        ) AS materialCode,
+        ei.sample_frequency,
+        ei.sample_name,
+        ei.version,
+        ei.priority,
+        ei.sample_leader,
+        ei.supplier,
+        ei.testProjectCategory,
+        ei.testProjects,
+        ei.schedule,
+        ei.create_time,
+        ei.scheduleDays,
+        ei.isUsed,
+        ei.changeRecord,
+        ei.schedule_start_date,
+        ei.schedule_end_date,
+        ei.isCancel,
+        ei.cancel_reason,
+        ei.cancel_by,
+        ei.cancel_date,
+        ei.cancel_code,
+        ei.actual_start_time,
+        ei.actual_finish_time,
+        ei.schedule_color,
+        ei.reportReviewTime,
+        ei.sampleRecognizeResult,
+        ei.tester,
+        ei.testDuration,
+        ei.filepath,
+        ei.update_time,
+        ei.remark,
+        ei.waitSample_classify
+        FROM electric_info ei
+        WHERE ei.sample_id IN
         <foreach collection="electricInfoIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </select>
+
 
 
     <update id="cancelElectricalCode">
@@ -544,20 +714,6 @@
     </select>
 
 
-    <!-- 正确绑定方法名 insertElectricalTestItem -->
-<!--    <insert id="insertElectricalTestItem">-->
-<!--        INSERT INTO electrical_test_items (-->
-<!--        sample_id, ETTestCode, testProjectCategory, testProjects-->
-<!--        ) VALUES-->
-<!--        <foreach collection="list" item="item" separator=",">-->
-<!--            (-->
-<!--            (SELECT sample_id FROM electric_info WHERE sample_id = #{sample_id}),-->
-<!--            #{item.ETTestCode},-->
-<!--            #{item.testProjectCategory},-->
-<!--            #{item.testProjects}-->
-<!--            )-->
-<!--        </foreach>-->
-<!--    </insert>-->
     <insert id="insertElectricalTestItem">
         INSERT IGNORE INTO electrical_test_items (
         sample_id, ETTestCode, testProjectCategory, testProjects
@@ -795,7 +951,7 @@
     <select id="getScheduleSampleIdByName" resultType="String">
         SELECT sample_id FROM electric_info
         WHERE tester = #{tester}
-          AND isUsed = '1'
+          AND isUsed = 1
           AND (sample_actual_id IS NULL OR sample_actual_id = '')
     </select>
 

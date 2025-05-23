@@ -8,7 +8,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 
 import java.io.*;
@@ -22,7 +21,7 @@ public class ExcelDataService {
     private JdbcTemplate jdbcTemplate;
 
     //    以下是用来上传任务文件按钮逻辑
-    @Transactional
+
     public void importDataFromExcel(String filePath) {
         try {
             FileInputStream file = new FileInputStream(new File(filePath));

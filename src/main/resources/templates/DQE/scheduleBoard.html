@@ -9,9 +9,34 @@
 </head>
 <body>
 
-<div id="projectList" class="project-container">
-    <h2>项目池子</h2>
-    <div id="projectPool">加载中...</div>
+<div class="pool-container">
+    <div id="projectList" class="project-container">
+        <h2>项目池子</h2>
+        <div id="projectPool">加载中...</div>
+    </div>
+    <div class="pending-sample-container">
+        <h2>待送样池子</h2>
+        <div class="pending-sample-category">
+            <h3>视频类</h3>
+            <div id="videoSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+            <h3>线材类</h3>
+            <div id="wireSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+            <h3>数据类</h3>
+            <div id="dataSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+            <h3>蓝牙类</h3>
+            <div id="bluetoothSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+            <h3>高频类</h3>
+            <div id="highFrequencySamplePool">加载中...</div>
+        </div>
+    </div>
 </div>
 
 <!-- 排期面板区域 -->
@@ -215,7 +240,7 @@
         }
 
         data.forEach(item => {
-            console.log(item);
+            // console.log(item);
             const card = document.createElement('div');
 
             card.className = 'project-card';
@@ -252,6 +277,8 @@
     window.onload = function () {
         // 加载项目池子数据
         loadProjectPoolData(); // ✅ 页面初始化调用加载函数
+        // 加载待送样池子数据
+        loadPendingSamplePoolData();
 
         // 模态框关闭
         document.getElementById('closeBtn').onclick = function () {
@@ -286,7 +313,7 @@
             document.getElementById('modalBody').innerHTML = `
             <p><strong>电气编号：</strong>${item.sample_id}</p>
             <p><strong>项目名称：</strong>${item.sample_name}</p>
-            <p><strong>大小编码：</strong>${item.sample_model + item.materialCode}</p>
+            <p><strong>大小编码：</strong>${item.sample_model + ' ' + item.materialCode}</p>
             <p><strong>产品类别：</strong>${item.sample_category}</p>
             <p><strong>版本：</strong>${item.version}</p>
             <p><strong>优先级：</strong>${item.priority}</p>
@@ -332,6 +359,8 @@
             alert("请选择一个颜色！");
             return;
         }
+        console.log("days",days)
+        console.log("selectedColor",selectedColor)
 
         // 计算新的排期结束日期
         const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
@@ -755,7 +784,23 @@
         cells.forEach((cell, cellIndex, cellList) => {
             cell.addEventListener('dragover', e => {
                 e.preventDefault();
+
                 cell.classList.add('over');
+
+                // 自动滚动逻辑
+                const scrollSpeed = 10; // 滚动速度
+                const triggerDistance = 50; // 触发滚动的距离
+                const viewportHeight = window.innerHeight;
+                const { clientY } = e;
+
+                // 靠近顶部，向上滚动
+                if (clientY < triggerDistance) {
+                    window.scrollBy(0, -scrollSpeed);
+                }
+                // 靠近底部，向下滚动
+                else if (clientY > viewportHeight - triggerDistance) {
+                    window.scrollBy(0, scrollSpeed);
+                }
             });
 
             cell.addEventListener('dragleave', () => cell.classList.remove('over'));
@@ -1275,7 +1320,7 @@
         document.getElementById('modalBody').innerHTML = `
             <p><strong>电气编号：</strong>${taskData.sample_id}</p>
             <p><strong>项目名称：</strong>${taskData.sample_name}</p>
-            <p><strong>大小编码：</strong>${taskData.sample_model + taskData.materialCode}</p>
+            <p><strong>大小编码：</strong>${taskData.sample_model + ' ' + taskData.materialCode}</p>
             <p><strong>产品类别：</strong>${taskData.sample_category}</p>
             <p><strong>版本：</strong>${taskData.version}</p>
             <p><strong>优先级：</strong>${taskData.priority}</p>
@@ -1300,52 +1345,7 @@
         };
 
         document.getElementById('confirmColorBtn').onclick = function () {
-            const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
-            if (!selectedColor) {
-                alert("请选择一个颜色！");
-                return;
-            }
-
-            // 保存颜色
-            fetch('/schedule/saveScheduleColor', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    color: selectedColor,
-                    sample_id: taskData.sample_id
-                })
-            })
-                .then(response => response.text())
-                .then(result => {
-                    // 判断是否为 null、空字符串或 undefined
-                    if (!result || result === 'null') {
-                        result = '无色';
-                    }
-
-                    alert("颜色设置成功：" + result);
-                    document.getElementById('modal').style.display = 'none';
-
-                    // 更新排期面板中对应单元格的颜色
-                    const cells = document.querySelectorAll(`td[data-sample_id="${taskData.sample_id}"]`);
-                    cells.forEach(cell => {
-                        cell.style.backgroundColor = selectedColor;
-                        cell.dataset.schedule_color = selectedColor;
-                    });
-
-                    // 更新项目池中的卡片颜色
-                    const projectCard = document.querySelector(`.project-card[data-sample_id="${taskData.sample_id}"]`);
-                    if (projectCard) {
-                        projectCard.classList.remove('gray', 'green', 'yellow', 'red');
-                        projectCard.classList.add(selectedColor);
-                        projectCard.dataset.schedule_color = selectedColor;
-                    }
-                })
-                .catch(error => {
-                    console.error("保存颜色失败：", error);
-                    alert("设置颜色失败，请重试");
-                });
+            saveScheduleAndColor(null, taskData);
         };
 
         document.getElementById('modal').style.display = 'block';
@@ -1420,6 +1420,69 @@
 
 
 
+    // 加载待送样池子数据
+    function loadPendingSamplePoolData() {
+        const categories = [
+            { id: 'videoSamplePool', name: '视频类' },
+            { id: 'wireSamplePool', name: '线材类' },
+            { id: 'dataSamplePool', name: '数据类' },
+            { id: 'bluetoothSamplePool', name: '蓝牙类' },
+            { id: 'highFrequencySamplePool', name: '高频类' }
+        ];
+
+        categories.forEach(category => {
+            fetch(`/passback/getPendingSampleData?category=${category.name}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderPendingSamplePool(data, category.id);
+                })
+                .catch(error => {
+                    document.getElementById(category.id).innerHTML = '加载失败，请稍后重试。';
+                    console.error('Error fetching pending sample data:', error);
+                });
+        });
+    }
+
+    // 渲染待送样池子
+    function renderPendingSamplePool(data, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        if (data.length === 0) {
+            container.innerHTML = '暂无该类别待送样数据。';
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'pending-sample-card';
+
+            const scheduleColor = item.schedule_color || 'null';
+            card.classList.add(scheduleColor);
+            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
+
+            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
+            card.setAttribute('data-sample_id', item.sample_id || '');
+            card.setAttribute('data-sample_name', item.sample_name || '');
+            card.setAttribute('data-sample_model', item.sample_model || '');
+            card.setAttribute('data-materialCode', item.materialCode || '');
+            card.setAttribute('data-sample_category', item.sample_category || '');
+            card.setAttribute('data-version', item.version || '');
+            card.setAttribute('data-priority', item.priority || '');
+            card.setAttribute('data-sample_leader', item.sample_leader || '');
+            card.setAttribute('data-supplier', item.supplier || '');
+            card.setAttribute('data-test_project_category', item.testProjectCategory || '');
+            card.setAttribute('data-test_projects', item.testProjects || '');
+            card.setAttribute('data-schedule', item.schedule || '');
+            card.setAttribute('data-create_time', item.create_time || '');
+            card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+            card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+            card.setAttribute('draggable', 'true');
+
+            setDraggable(card, false);
+            bindCardContextMenu(card, item);
+            container.appendChild(card);
+        });
+    }
 
 
 

@@ -29,7 +29,7 @@
     overflow-y: auto;
 }
 
-.project-card {
+.project-card, .pending-sample-card {
     width: 150px;
     height: 30px;
     background-color: #ffffff;
@@ -52,23 +52,23 @@
     padding-left: 8px; /* 可选：让文字不要贴边 */
 }
 
-.project-card:hover {
+.project-card:hover,  .pending-sample-card:hover {
     transform: scale(1.05);
 }
 
-.project-card.gray {
+.project-card.gray, .pending-sample-card.gray {
     background-color: gray;
 }
 
-.project-card.green {
+.project-card.green, .pending-sample-card.green {
     background-color: green;
 }
 
-.project-card.yellow {
+.project-card.yellow, .pending-sample-card.yellow {
     background-color: yellow;
 }
 
-.project-card.red {
+.project-card.red, .pending-sample-card.red {
     background-color: red;
 }
 
@@ -290,4 +290,39 @@
 }
 #closeChangeLogBtn:hover {
     background-color: #0056b3;
+}
+
+
+.pool-container {
+    display: flex;
+    width: 100%;
+}
+.project-container, .pending-sample-container {
+    width: 50%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+#projectPool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    justify-content: flex-start;
+    overflow-y: auto;
+    height: 480px; /* 设置固定高度为 300px */
+}
+.pending-sample-category {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+}
+#videoSamplePool, #wireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    justify-content: flex-start;
+    overflow-y: auto;
 }

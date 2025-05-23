@@ -70,6 +70,7 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getReceivedData() {
         List<PassbackData> receivedData =  testManIndexService.getReceivedData();
+//        System.out.println("receivedData:"+receivedData);
         return ResponseEntity.ok(receivedData);
     }
 
@@ -80,6 +81,14 @@ public class TestEnvironmentController {
         List<PassbackData> receivedData = testManIndexService.getAllReceivedData(sample_id);
         logger.info("/passback/getAllReceivedData 查询参数 sample_id = " + sample_id);
         return ResponseEntity.ok(receivedData);
+    }
+
+    @GetMapping("/passback/getPendingSampleData")
+    @ResponseBody
+    public ResponseEntity<List<PassbackData>> getPendingSampleData(@RequestParam(required = false) String category) {
+        List<PassbackData> pendingSampleData = testManIndexService.getPendingSampleData(category);
+        logger.info("/passback/getPendingSampleData 查询参数 category = " + category);
+        return ResponseEntity.ok(pendingSampleData);
     }
 
 
@@ -161,6 +170,7 @@ public class TestEnvironmentController {
         } else {
             scheduleList = testManIndexService.getSchedulesByStartAndEndDate(startDate, endDate);
         }
+//        System.out.println("scheduleList:"+scheduleList);
 
 
 //        List<ElectricScheduleInfo> scheduleList = testManIndexService.getAllSchedules();
@@ -175,7 +185,6 @@ public class TestEnvironmentController {
         if (electricInfoIds.isEmpty()) {
             return new ArrayList<>();
         }
-
 
         List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
 

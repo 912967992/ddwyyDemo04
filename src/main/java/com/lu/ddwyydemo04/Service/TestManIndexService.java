@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -358,7 +357,11 @@ public class TestManIndexService {
         return testManDao.getAllReceivedData(sample_id);
     }
 
-    @Transactional
+
+    public List<PassbackData> getPendingSampleData(String waitSample_classify){
+        return testManDao.getPendingSampleData(waitSample_classify);
+    }
+
     public void saveAll(List<PassbackData> requestData) {
         for (PassbackData data : requestData) {
             String sampleId = data.getSample_id();
@@ -375,7 +378,6 @@ public class TestManIndexService {
                     throw new RuntimeException("更新 electric_info 失败: " + sampleId);
                 }
             }
-            System.out.println("data.getElectricalTestItems():"+data.getElectricalTestItems());
 
             if (data.getElectricalTestItems() != null && !data.getElectricalTestItems().isEmpty()) {
                 insertElectricalTestItem(sampleId, data.getElectricalTestItems());
@@ -435,7 +437,6 @@ public class TestManIndexService {
         testManDao.insertSystemInfoByXlsx(systemInfo);
     }
 
-    @Transactional
     public void deleteSystemInfoById(List<Integer> ids) {
         if (ids != null && !ids.isEmpty()) {
             for (Integer id : ids) {
@@ -581,6 +582,9 @@ public class TestManIndexService {
             RestTemplate restTemplate = new RestTemplate();
 
             ResponseEntity<Map> response = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
+
+            result.put("remoteStatus", response.getStatusCodeValue());
+            result.put("remoteBody", response.getBody());
 
             System.out.println("远程接口响应状态码：" + response.getStatusCode());
             System.out.println("远程接口响应体：" + response.getBody());
