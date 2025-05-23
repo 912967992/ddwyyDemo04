@@ -240,7 +240,6 @@
     }
 
     data.forEach(item => {
-      // console.log(item);
       const card = document.createElement('div');
 
       card.className = 'project-card';
@@ -359,8 +358,6 @@
       alert("请选择一个颜色！");
       return;
     }
-    console.log("days",days)
-    console.log("selectedColor",selectedColor)
 
     // 计算新的排期结束日期
     const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
@@ -458,7 +455,7 @@
               // 更新排期面板中对应单元格的 colspan
               const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
               cells.forEach(cell => {
-                cell.setAttribute('colspan', days);
+                cell.setAttribute('colspan', Math.ceil(days));
                 // 设置 data-schedule_days 属性的值与 colspan 一致
                 cell.setAttribute('data-schedule_days', days);
                 cell.innerText = `${item.sample_model} ${item.materialCode} (${days}天)`;
@@ -613,7 +610,7 @@
                   testProjects: item.testProjects,
                   schedule: item.schedule,
                   create_time: item.create_time,
-                  schudule_days: item.scheduleDays,
+                  schedule_days: item.scheduleDays,
                   schedule_start_date: item.schedule_start_date,
                   schedule_end_date: item.schedule_end_date,
                   schedule_color: item.schedule_color,
@@ -706,8 +703,8 @@
           const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
 
           if (task) {
-            const rangeDates = getDateRange(task.startDate, task.endDate);
-            const colspan = rangeDates.length;
+            // const rangeDates = getDateRange(task.startDate, task.endDate);
+            const colspan = Math.ceil(task.schedule_days);
 
             html += createTaskCell(task, testerName, currentDate, colspan);
 
@@ -856,7 +853,6 @@
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
         const roundedDays = Math.ceil(parseFloat(schedule_days));
-        console.log("startIndex,",startIndex);
 
         // 检查排期是否超出可排范围
         if (startIndex + roundedDays > rowCells.length) {
@@ -880,10 +876,9 @@
         for (let i = startIndex; i < startIndex + roundedDays; i++) {
           if (rowCells[i].innerText.trim() !== '') {
             conflictCells.push(rowCells[i]);
-            // console.log(rowCells[i].innerHTML.trim(),i);
+
           }
         }
-        console.log("conflictCells.length,",conflictCells.length)
         const projectsToMove = [];
         let diff;
         if (conflictCells.length > 0) {
@@ -913,7 +908,7 @@
               currentIndex++;
             }
           }
-          console.log("projectsToMove:",projectsToMove)
+
 
           let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
           let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
@@ -924,15 +919,12 @@
           maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
           maxSpan = Math.max(...projectsToMove.map(project => project.span));
           maxSample_id = projectsToMove[0].data.sample_id;
-          console.log("maxSpan",maxSpan)
-          console.log("maxStartIndex:", maxStartIndex);
-          console.log("maxSample_id:", maxSample_id);
+
 
           // 计算拖拽项目与最小startIndex的差值
           diff = roundedDays - minStartIndex + startIndex;
-          console.log("拖拽项目与最小startIndex的差值:", diff);
 
-          console.log("sample_id",sample_id)
+
           if(maxSample_id === sample_id){
             alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来")
             return;
@@ -950,7 +942,7 @@
         if (originalCell) {
           const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
           const originalStartIndex = originalRowCells.indexOf(originalCell);
-          const originalScheduleDays = parseInt(originalCell.getAttribute('data-schedule_days')) || 1;
+          const originalScheduleDays = Math.ceil((originalCell.getAttribute('data-schedule_days')) || 1);
 
           // 清除原单元格内容和属性
           originalCell.innerText = '';
@@ -967,7 +959,10 @@
 
           // 恢复被隐藏的格子
           for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
-            if (originalRowCells[i]) originalRowCells[i].style.display = '';
+            if (originalRowCells[i]){
+              originalRowCells[i].style.display = '';
+            }
+
           }
         }
 
@@ -1017,12 +1012,12 @@
           data-test_projects="${task.test_projects || ''}"
           data-schedule="${task.schedule || ''}"
           data-create_time="${task.create_time || ''}"
-          data-schedule_days="${task.schudule_days || ''}"
+          data-schedule_days="${task.schedule_days || ''}"
           data-sizecoding="${task.sizecoding || ''}"
           data-schedule_start_date="${task.schedule_start_date || ''}"
           data-schedule_end_date="${task.schedule_end_date || ''}"
           data-schedule_color="${task.schedule_color || ''}"
-        >${task.sizecoding} (${task.schudule_days}天)</td>
+        >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
   }
 
@@ -1078,7 +1073,6 @@
           }
         });
         for (let j = newStartIndex + 1; j < newStartIndex + span; j++) {
-          console.log("j",j);
           rowCells[j].style.display = 'none';
         }
         // 更新 localScheduleChanges
@@ -1121,7 +1115,7 @@
         });
       }
     }
-    console.log("startCell的startIndex",startIndex)
+
 
     // 放置新插入的项目
     const startCell = rowCells[startIndex];
@@ -1200,7 +1194,9 @@
 
     // 恢复被隐藏的格子
     for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
-      if (rowCells[i]) rowCells[i].style.display = '';
+      if (rowCells[i]){
+        rowCells[i].style.display = '';
+      }
     }
 
     // 重新生成拖拽项目卡片

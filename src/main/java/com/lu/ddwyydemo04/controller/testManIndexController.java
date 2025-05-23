@@ -1569,6 +1569,9 @@ public class testManIndexController {
 
             // 判断是否包含多个，用逗号分隔
             String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
+            System.out.println("scheduleStartTune:"+scheduleStartTune);
+            System.out.println("scheduleEndTune:"+scheduleEndTune);
+            System.out.println("scheduleTestCycle:"+scheduleTestCycle);
 
             for (String codeEntry : codeEntries) {
                 String trimmed = codeEntry.trim(); // 去空格
