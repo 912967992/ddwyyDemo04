@@ -1572,12 +1572,13 @@ public class testManIndexController {
             System.out.println("scheduleStartTune:"+scheduleStartTune);
             System.out.println("scheduleEndTune:"+scheduleEndTune);
             System.out.println("scheduleTestCycle:"+scheduleTestCycle);
+            System.out.println(String.format("codeEntries: %s", codeEntries));
 
             for (String codeEntry : codeEntries) {
                 String trimmed = codeEntry.trim(); // 去空格
                 if (!trimmed.isEmpty()) {
                     // 分割成 STTestCode 和 sample_frequency
-                    String[] parts = trimmed.split("-");
+                    String[] parts = trimmed.split("=");
                     if (parts.length == 2) {
                         String materialCode = parts[0].trim();
                         int sampleFrequency = Integer.parseInt(parts[1].trim());

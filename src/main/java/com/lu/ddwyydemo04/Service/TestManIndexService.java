@@ -461,11 +461,12 @@ public class TestManIndexService {
     public List<String> getMaterialCodes(String sampleId) {
         List<MaterialItem> items = getDistinctMaterialCodes(sampleId);
 
-        // 将 STTestCode 和 sample_frequency 拼接为 STTestCode-sample_frequency
+        // 将 materialCode 中的 "=" 替换为 "-"，再拼接为 materialCode=sample_frequency
         return items.stream()
-                .map(item -> item.getMaterialCode() + "-" + item.getSample_frequency())
+                .map(item -> item.getMaterialCode().replace("=", "-") + "=" + item.getSample_frequency())
                 .collect(Collectors.toList());
     }
+
 
     public List<MaterialItem> getDistinctMaterialCodes(String sample_id){
         return testManDao.getDistinctMaterialCodes(sample_id);
