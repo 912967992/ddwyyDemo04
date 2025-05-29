@@ -1028,4 +1028,11 @@
         WHERE sample_id = #{sample_id}
     </update>
 
+    <select id="queryElectric_sample_id" resultType ="String">
+        select electric_sample_id FROM samples
+        WHERE
+            sample_id = #{sample_id}
+
+    </select>
+
 </mapper>

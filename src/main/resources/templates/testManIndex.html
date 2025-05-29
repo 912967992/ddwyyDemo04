@@ -1490,10 +1490,8 @@
                     buttonLabel = '提交';
                 } else if (product.sample_schedule ===  "1" ) {//一旦DQE审核了则不允许撤回
                     buttonLabel = '撤回';
-                } else if(product.sample_schedule ===  "2" || product.sample_schedule ===  "3" ){
-                    buttonLabel = '审核中';
-                }else if ( product.sample_schedule === "4") {
-                    buttonLabel = '完结';
+                } else if(product.sample_schedule ===  "2" ){
+                    buttonLabel = '审核完结';
                 }else if ( product.sample_schedule === "9") {
                     buttonLabel = '退样了';
                 }else if ( product.sample_schedule === "10") {
@@ -1592,12 +1590,9 @@
                                     );
                                 }
                             });
-                    } else if (schedule === 2 || schedule === 3) {
-                        alert(`${filepath}已经开始进行DQE和研发的审核，不允许撤回上传的问题点了，如需修改问题点请转至“查看问题点”处修改！`);
-                    } else if (schedule === 4) {
-                        alert(`${filepath}本项目已完结，走完DQE和研发的审核流程了！研发判定结果：${rd_result_judge}, DQE判定结果：${result_judge}`);
+                    } else if (schedule === 2 ) {
+                        alert(`${filepath}本项目已审核！研发判定结果：${rd_result_judge}, DQE判定结果：${result_judge}`);
                     }
-
 
                 });
 
@@ -1886,12 +1881,12 @@
                     }, 2000); // 2000 毫秒 = 2 秒
 
                     // 等待 2 秒后发送给绮敏
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "陈鑫", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
+                    // setTimeout(() => {
+                    //     updateSchedule("1", sample_id, "卢绮敏", statusBarBgColor, username, "notice");
+                    // }, 2000); // 2000 毫秒 = 2 秒
+                    // setTimeout(() => {
+                    //     updateSchedule("1", sample_id, "陈鑫", statusBarBgColor, username, "notice");
+                    // }, 2000); // 2000 毫秒 = 2 秒
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏

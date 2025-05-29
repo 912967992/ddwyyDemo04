@@ -164,6 +164,7 @@ public interface TestManDao {
 
     int insertElectric_sample_id(@Param("electric_sample_id")String electric_sample_id,@Param("sample_id")String sample_id);
 
+    String queryElectric_sample_id(@Param("sample_id")String sample_id);
 
 
 }

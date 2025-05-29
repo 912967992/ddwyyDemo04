@@ -610,4 +610,7 @@ public class TestManIndexService {
         return testManDao.insertElectric_sample_id(electric_sample_id,sample_id);
     }
 
+    public String queryElectric_sample_id(String sample_id){
+        return testManDao.queryElectric_sample_id(sample_id);
+    }
 }

@@ -347,6 +347,9 @@ public class testManIndexController {
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
+            //查询数据库里的electric_sample_id值
+            String originElectric_sample_id = testManIndexService.queryElectric_sample_id(sample_id);
+
             Samples sample = new Samples();
 
             System.out.println("edit_electric_id:"+edit_electric_id);
@@ -361,7 +364,7 @@ public class testManIndexController {
                 if(testNumber!=null){
                     //不为空，则
                     if(!testNumber.equals(edit_electric_id)){
-                        System.out.println("进来了");
+
                         //先删除旧的，再插入到新的
                         int delete = testManIndexService.removeTargetIdFromAllSampleActualIds(Integer.parseInt(sample_id));
                         if(delete>0){
@@ -388,12 +391,35 @@ public class testManIndexController {
                     }
                 }
             }else{
-                if (edit_electric_id != null && !edit_electric_id.trim().isEmpty()) {
-                    logger.info("用户输入的电气编号不存在！"+edit_electric_id);
+                if(testNumber!= null && !testNumber.trim().isEmpty()){
+                    if (Objects.equals(edit_electric_id, "")) {
+                        int delete = testManIndexService.removeTargetIdFromAllSampleActualIds(Integer.parseInt(sample_id));
 
-                    response.put("warning", "电气编号不存在，请仔细核对!");
+                        logger.info("用户输入的电气编号为空！");
+
+                        response.put("warning", "电气编号已经清空");
+                        sample.setElectric_sample_id(null);
+                    }else if(Objects.equals(edit_electric_id,originElectric_sample_id)){
+                        sample.setElectric_sample_id(originElectric_sample_id);
+                    }else{
+
+                        logger.info("用户输入的电气编号不存在！"+edit_electric_id);
+
+                        response.put("warning", "电气编号不存在，请仔细核对!");
+                        sample.setElectric_sample_id(originElectric_sample_id);
+                    }
+
+
+                }else{
+                    if (edit_electric_id != null && !edit_electric_id.trim().isEmpty()) {
+                        logger.info("用户输入的电气编号不存在！"+edit_electric_id);
+
+                        response.put("warning", "电气编号不存在，请仔细核对!");
+
+                        sample.setElectric_sample_id(testNumber);
+                    }
                 }
-                sample.setElectric_sample_id(testNumber);
+
 
             }
 
