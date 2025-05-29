@@ -15,20 +15,6 @@
         insert into total(testing,pending,completed,total,overdue,danger,name) values(#{testing},#{pending},#{completed},#{total},#{overdue},#{danger},#{name})
     </insert>
 
-<!--    <update id="updateTotal" parameterType="String">-->
-<!--        UPDATE total t-->
-<!--        SET-->
-<!--        t.testing = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}),-->
-<!--        t.pending = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}),-->
-<!--        t.completed = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '2' AND s.tester = #{name}),-->
-<!--        t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}-->
-<!--        AND s.create_time >= '2024-09-23 00:00:00'  &lt;!&ndash; 从2024-09-23 00:00:00开始筛选 &ndash;&gt;-->
-<!--        AND (-->
-<!--        (s.finish_time IS NULL AND NOW() > s.planfinish_time) OR-->
-<!--        (s.finish_time IS NOT NULL AND s.planfinish_time &lt; s.finish_time))),-->
-<!--        t.danger = (SELECT COUNT(*) FROM samples s WHERE s.danger IS NOT NULL AND s.danger != '' AND s.tester = #{name})-->
-<!--        WHERE t.name = #{name}-->
-<!--    </update>-->
 
     <update id="updateTotal" parameterType="String">
         UPDATE total t
@@ -36,16 +22,23 @@
         t.testing = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}),
         t.pending = (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}),
         t.completed = (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '2' OR s.sample_schedule = '9' OR s.sample_schedule = '10') AND s.tester = #{name}),
+        t.total =
+        (
+        (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '0' AND s.tester = #{name}) +
+        (SELECT COUNT(*) FROM samples s WHERE s.sample_schedule = '1' AND s.tester = #{name}) +
+        (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '2' OR s.sample_schedule = '9' OR s.sample_schedule = '10') AND s.tester = #{name})
+        ),
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
         AND s.create_time >= '2024-11-18 00:00:00'
         AND (
         (s.finish_time IS NULL AND NOW() > s.scheduleEndTime) OR
         (s.finish_time IS NOT NULL AND s.scheduleEndTime &lt; s.finish_time) OR
         (s.sample_schedule = '0' AND NOW() > s.scheduleEndTime)
-            )),
+        )),
         t.danger = (SELECT COUNT(*) FROM samples s WHERE s.danger IS NOT NULL AND s.danger != '' AND s.tester = #{name})
         WHERE t.name = #{name}
     </update>
+
 
 
 
@@ -109,7 +102,8 @@
             sample_leader = #{sample_leader},
             priority = #{priority},
             sample_remark = #{sample_remark},
-            planTestDuration = #{planTestDuration}
+            planTestDuration = #{planTestDuration},
+            electric_sample_id = #{electric_sample_id}
         WHERE
             sample_id =#{sample_id}
     </update>
@@ -131,7 +125,8 @@
             sample_leader = #{sample_leader},
             priority = #{priority},
             sample_remark = #{sample_remark},
-            planTestDuration = #{planTestDuration}
+            planTestDuration = #{planTestDuration},
+            electric_sample_id = #{electric_sample_id}
         WHERE
             sample_id =#{sample_id}
     </update>
@@ -991,6 +986,14 @@
                 END,
             actual_start_time = NOW()
         WHERE sample_id = #{sample_id}
+    </update>
+
+    <update id="insertElectric_sample_id">
+        UPDATE samples
+        SET
+            electric_sample_id = #{electric_sample_id}
+        WHERE
+            sample_id = #{sample_id}
     </update>
 
     <update id="removeTargetIdFromAllSampleActualIds">

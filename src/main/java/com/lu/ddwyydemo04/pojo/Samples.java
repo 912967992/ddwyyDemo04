@@ -59,6 +59,8 @@ public class Samples {
 
     private String scheduleTestCycle;
 
+    private String electric_sample_id;
+
     public String getSample_id() {
         return sample_id;
     }
@@ -392,6 +394,14 @@ public class Samples {
         this.scheduleTestCycle = scheduleTestCycle;
     }
 
+    public String getElectric_sample_id() {
+        return electric_sample_id;
+    }
+
+    public void setElectric_sample_id(String electric_sample_id) {
+        this.electric_sample_id = electric_sample_id;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -435,6 +445,7 @@ public class Samples {
                 ", scheduleStartTime='" + scheduleStartTime + '\'' +
                 ", scheduleEndTime='" + scheduleEndTime + '\'' +
                 ", scheduleTestCycle='" + scheduleTestCycle + '\'' +
+                ", electric_sample_id='" + electric_sample_id + '\'' +
                 '}';
     }
 }

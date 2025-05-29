@@ -1031,6 +1031,11 @@
                                 <option value="廖建伟">廖建伟</option>
                                 <option value="蔡义会">蔡义会</option>
                             </select>
+                            <label for="edit_electric_id">IT提单系统测试编号:</label>
+                            <input type="text" id="edit_electric_id" name="edit_electric_id"
+                                   placeholder="如有，请在IT系统寻找到对应电气编号，例如ET2505260009">
+                            <span style="color: #999; margin-left: 2px;">(非必填)</span><br>
+
                             <button type="submit">保存信息</button>
                         </form>
                     </div>
@@ -1066,6 +1071,7 @@
         document.getElementById('edit_sample_Developer').value = product.sample_Developer;
         document.getElementById('edit_sample_leader').value = product.sample_leader;
         document.getElementById('tester').value = product.tester;
+        document.getElementById('edit_electric_id').value = product.electric_sample_id;
 
         document.getElementById('edit_sample_name').addEventListener('input', function(e) {
             // this.value = this.value.replace(/[\\\/]/g, '_');
@@ -1352,7 +1358,12 @@
                         document.getElementById('edit_sample_Developer').value = $('#edit_sample_Developer').val();
                         document.getElementById('edit_supplier').value = $('#edit_supplier').val();
                         document.getElementById('edit_sample_name').value = $('#edit_sample_name').val();
-                        alert("文件信息保存成功!");
+                        // 优先显示 warning，如果没有才显示 message
+                        if (response.warning && response.warning.trim() !== "") {
+                            alert(response.warning);
+                        } else {
+                            alert(response.message);
+                        }
                     } else {
                         alert("文件保存失败: " + response.message);
                     }
@@ -1468,7 +1479,7 @@
                 table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';
                 table += '<th colspan="2" title="供应商' + product.supplier + ', 供应商' + product.supplier + '">' + '供应商：' + '' + product.supplier +  '</th>';
                 table += '<th colspan="1" title="产品名称：' + product.sample_name + '">' + product.sample_name + '</th>';
-                table += '<th colspan="1" title="预计时长：' + product.scheduleTestCycle + "实测时长"+ product.testDuration+'">' + "预计时长：" + product.scheduleTestCycle +"天" +" " + "实测时长：" + product.testDuration +"天" + '</th>';
+                table += '<th colspan="1" title="预计时长：' + product.scheduleTestCycle + "天，实测时长"+ product.testDuration+'小时">' + "预计时长：" + product.scheduleTestCycle +"天" +" " + "实测时长：" + product.testDuration +"小时" + '</th>';
                 table += '</tr>';
                 table += '</thead>';
                 table += '</table>';

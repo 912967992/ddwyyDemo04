@@ -606,4 +606,8 @@ public class TestManIndexService {
         return testManDao.getChangeRecordBySampleId(sample_id);
     }
 
+    public int insertElectric_sample_id(String electric_sample_id,String sample_id){
+        return testManDao.insertElectric_sample_id(electric_sample_id,sample_id);
+    }
+
 }

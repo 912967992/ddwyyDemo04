@@ -342,15 +342,64 @@ public class testManIndexController {
             @RequestParam("edit_sample_DQE") String editSampleDQE,
             @RequestParam("edit_sample_Developer") String editSampleDeveloper,
             @RequestParam("edit_sample_leader") String editSampleleader,
-            @RequestParam("tester") String tester
+            @RequestParam("tester") String tester,
+            @RequestParam("edit_electric_id") String edit_electric_id
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
-            System.out.println("big_species: " + (big_species != null ? big_species : "null"));
+            Samples sample = new Samples();
+
+            System.out.println("edit_electric_id:"+edit_electric_id);
+            //先查询这个sample_id是否有electric_info表的真实id
+            String testNumber = testManIndexService.queryElectricIdByActualId(sample_id);
+            int isExist = testManIndexService.queryElectricalCode(edit_electric_id);
+
+            System.out.println("testNumber:"+testNumber);
+            System.out.println("isExist:"+isExist);
+            if(isExist>0){
+                sample.setElectric_sample_id(edit_electric_id);
+                if(testNumber!=null){
+                    //不为空，则
+                    if(!testNumber.equals(edit_electric_id)){
+                        System.out.println("进来了");
+                        //先删除旧的，再插入到新的
+                        int delete = testManIndexService.removeTargetIdFromAllSampleActualIds(Integer.parseInt(sample_id));
+                        if(delete>0){
+                            logger.info("删除成功:"+sample_id);
+                            int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id);
+                            if(insert >0){
+
+                                logger.info("先删后插入成功："+ edit_electric_id);
+                            }else{
+                                logger.info("先删插入失败"+edit_electric_id);
+                            }
+                        }
+                    }
+                }else{
+                    //为空则直接插入
+                    if (edit_electric_id != null && !edit_electric_id.trim().isEmpty()) {
+                        int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id);
+                        if(insert >0){
+                            sample.setElectric_sample_id(edit_electric_id);
+                            logger.info("修改信息这里的插入电气测试编号成功："+ edit_electric_id);
+                        }else{
+                            logger.info("插入失败"+edit_electric_id);
+                        }
+                    }
+                }
+            }else{
+                if (edit_electric_id != null && !edit_electric_id.trim().isEmpty()) {
+                    logger.info("用户输入的电气编号不存在！"+edit_electric_id);
+
+                    response.put("warning", "电气编号不存在，请仔细核对!");
+                }
+                sample.setElectric_sample_id(testNumber);
+
+            }
 
 
             // 调用服务类的方法来更新样品信息
-            Samples sample = new Samples();
+
             sample.setSample_id(sample_id);
             sample.setSample_model(editModel);
             sample.setSample_coding(editCoding);
@@ -370,6 +419,7 @@ public class testManIndexController {
             sample.setSample_leader(editSampleleader);
             sample.setTester(tester);
 
+
 //            sample.setScheduleStartTime(edit_scheduleStartTime);
 //            sample.setScheduleEndTime(edit_scheduleEndTime);
 //            sample.setScheduleTestCycle(edit_scheduleTestCycle);
@@ -383,7 +433,7 @@ public class testManIndexController {
 
             sample.setQuestStats(questStats);
 
-            LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
+//            LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
 
             // 使用ISO_LOCAL_DATE_TIME来解析带T的格式
 //            LocalDateTime planfinishTime = LocalDateTime.parse(editPlanfinishTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -462,6 +512,7 @@ public class testManIndexController {
             }
             response.put("oldFilePath", oldFilePath);
             response.put("status", "success");
+            response.put("message", "样品信息修改成功");
             logger.info("updateSamples样品信息更新成功:"+tester);
         } catch (Exception e) {
             response.put("status", "error");
@@ -495,7 +546,7 @@ public class testManIndexController {
             // 存在输入值，尝试解析
             restDays = parseRestDays(userInput);
         } else {
-            System.out.println("未提供 restDays 参数，使用默认值 0.0");
+            logger.info("未提供 restDays 参数，使用默认值 0.0");
         }
 
         if (schedule.equals("0")){
@@ -551,7 +602,10 @@ public class testManIndexController {
             BigDecimal planTestDuration = testManIndexService.queryPlanFinishTime(sample_id);
             double adjustedWorkDays = (planTestDuration != null) ? planTestDuration.doubleValue() : 0.0;
 
-            double workDays = calculateWorkDays(createTime,now,restDays);
+//            double workDays = calculateWorkDays(createTime,now,restDays);
+            double workDays =  calculateWorkHours(createTime, now, restDays);
+            System.out.println("workDays:"+workDays);
+
             int setDuration = testManIndexService.setDuration(adjustedWorkDays,workDays,sample_id);
             if(setDuration==1){
                 logger.info("提交文件："+filepath + ",测试时长："+workDays + ",预计完成时长："+adjustedWorkDays);
@@ -1168,6 +1222,45 @@ public class testManIndexController {
         return Math.max(Math.round(workDays * 10) / 10.0, 0); // 确保返回值不小于0
     }
 
+
+    //改成小时计算的上班工作制计算工时
+    public static double calculateWorkHours(LocalDateTime createTime, LocalDateTime finishTime, double restDays) {
+        double totalWorkHours = 0;
+        LocalDateTime currentDateTime = createTime;
+
+        while (currentDateTime.toLocalDate().isBefore(finishTime.toLocalDate()) || !currentDateTime.isAfter(finishTime)) {
+            // 设置当天的上班时间段
+            LocalDateTime startMorning = currentDateTime.toLocalDate().atTime(9, 0);
+            LocalDateTime endMorning = currentDateTime.toLocalDate().atTime(12, 0);
+            LocalDateTime startAfternoon = currentDateTime.toLocalDate().atTime(13, 30);
+            LocalDateTime endAfternoon = currentDateTime.toLocalDate().atTime(18, 30);
+
+            // 上午时间段计算
+            if (currentDateTime.isBefore(endMorning) && finishTime.isAfter(startMorning)) {
+                LocalDateTime start = currentDateTime.isAfter(startMorning) ? currentDateTime : startMorning;
+                LocalDateTime end = finishTime.isBefore(endMorning) ? finishTime : endMorning;
+                totalWorkHours += calculateTimeInPeriod(start, end);
+            }
+
+            // 下午时间段计算
+            if (currentDateTime.isBefore(endAfternoon) && finishTime.isAfter(startAfternoon)) {
+                LocalDateTime start = currentDateTime.isAfter(startAfternoon) ? currentDateTime : startAfternoon;
+                LocalDateTime end = finishTime.isBefore(endAfternoon) ? finishTime : endAfternoon;
+                totalWorkHours += calculateTimeInPeriod(start, end);
+            }
+
+            // 下一天的开始时间
+            currentDateTime = currentDateTime.toLocalDate().plusDays(1).atTime(9, 0);
+        }
+
+        // 从小时数中减去休息天对应的小时数
+        totalWorkHours -= restDays * 8;
+
+        // 保留一位小数
+        return Math.max(Math.round(totalWorkHours * 10) / 10.0, 0);
+    }
+
+
     private static double calculateTimeInPeriod(LocalDateTime startTime, LocalDateTime endTime) {
         // 计算两个时间点之间的小时数
         long minutes = ChronoUnit.MINUTES.between(startTime, endTime);
@@ -1629,6 +1722,10 @@ public class testManIndexController {
                                         if(insertActual>0){
                                             logger.info("排期面板的id插入真实id成功："+sampleId+"成功插入到对应的electric_info表的"+electric_sample_id);
 
+                                            int insertElectric_sample_id = testManIndexService.insertElectric_sample_id(electric_sample_id,sampleId);
+                                            if(insertElectric_sample_id>0){
+                                                logger.info("electric_sample_id插入成功："+sampleId);
+                                            }
                                             //发送实际开始测试时间给IT
                                             postStartTestTime(electric_sample_id);
                                         }
