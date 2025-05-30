@@ -617,6 +617,8 @@ public class testManIndexController {
             testManIndexService.finishTestWithoutTime(schedule,formattedDateTime,sample_id);
 
             LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
+            String actual_time = String.valueOf(createTime);
+            System.out.println("createTime:"+actual_time);
 //            LocalDateTime planFinishTime =  testManIndexService.queryPlanFinishTime(sample_id);
 
 //            double planWorkDays = calculateWorkDays(createTime,planFinishTime,restDays);
@@ -639,15 +641,15 @@ public class testManIndexController {
 
             if (tuiOrJp != null && !tuiOrJp.trim().isEmpty()) {
                 if (tuiOrJp.equals("tui")) {
-                    response.put("message", "文件退样成功！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                    response.put("message", "文件退样成功！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "小时。");
                 } else if (tuiOrJp.equals("jp")) {
-                    response.put("message", "竞品文件完成，已通知发送对应角色！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                    response.put("message", "竞品文件完成，已通知发送对应角色！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "小时。");
                 } else {
-                    response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                    response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "小时。");
                 }
             } else {
                 // 如果 tuiOrJp 为空或 null
-                response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "天。");
+                response.put("message", "文件提交成功，接下来请审核！您的报告预计测试时长为：" + adjustedWorkDays + " 天。实际测试时长为：" + workDays + "小时。");
             }
 
 
@@ -662,6 +664,9 @@ public class testManIndexController {
                 String testNumber = testManIndexService.queryElectricIdByActualId(sample_id);
 
                 String workDaysStr = String.valueOf(workDays);
+
+                // 提交之前先发送一次开始测试时间接口给IT，这里是为了让IT那边接口状态先改成测试中！
+                postStartTestTime(testNumber,actual_time);
 
                 Map<String, Object> remoteResult = testManIndexService.pushToRemoteElectricalFinish(testNumber, workDaysStr);
                 int updateActualEndTime = testManIndexService.updateElectricActualEndTime(testNumber);
@@ -1752,8 +1757,10 @@ public class testManIndexController {
                                             if(insertElectric_sample_id>0){
                                                 logger.info("electric_sample_id插入成功："+sampleId);
                                             }
+                                            String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                                             //发送实际开始测试时间给IT
-                                            postStartTestTime(electric_sample_id);
+                                            postStartTestTime(electric_sample_id,actual_time);
                                         }
                                     }
                                 }else{
@@ -1773,9 +1780,7 @@ public class testManIndexController {
     }
 
 
-    ResponseEntity<Map<String, Object>> postStartTestTime(String testNumber){
-        String actual_time = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    ResponseEntity<Map<String, Object>> postStartTestTime(String testNumber,String actual_time){
 
         if (testNumber == null || testNumber.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
@@ -1789,7 +1794,7 @@ public class testManIndexController {
         if (!updateStartTime) {
             Map<String, Object> response = new HashMap<>();
             response.put("staus", 400);
-            response.put("msg", "没有找到该测试编号，请输入正确的测试编号");
+            response.put("msg", "发送测试开始时间没有找到该测试编号，请输入正确的测试编号");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -1797,7 +1802,7 @@ public class testManIndexController {
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("ETTestCode", testNumber);
         requestPayload.put("ActualTestStartDate", actual_time);
-        System.out.println("requestPayload:" + requestPayload);
+//        System.out.println("requestPayload:" + requestPayload);
 
         // 添加认证头
         HttpHeaders headers = new HttpHeaders();
@@ -1812,16 +1817,16 @@ public class testManIndexController {
 
         try {
             ResponseEntity<Map> apiResponse = restTemplate.exchange(targetUrl, HttpMethod.POST, requestEntity, Map.class);
-            logger.info("远程接口响应状态码: {}", apiResponse.getStatusCode());
-            logger.info("远程接口响应体: {}", apiResponse.getBody());
+            logger.info("发送测试开始时间远程接口响应状态码: {}", apiResponse.getStatusCode());
+            logger.info("发送测试开始时间远程接口响应体: {}", apiResponse.getBody());
 
 
             return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse.getBody());
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("staus", 500);
-            errorResponse.put("msg", "调用远程接口失败: " + e.getMessage());
-            logger.info("远程接口调用失败:"+e.getMessage());
+            errorResponse.put("msg", testNumber+" 的发送测试开始时间调用远程接口失败: " + e.getMessage());
+            logger.info("发送测试开始时间远程接口调用失败:"+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

@@ -81,6 +81,7 @@ public interface TestManDao {
 //    public List<ElectricScheduleInfo> getAllSchedules();
 
     public int saveScheduleDays(@Param("sample_id")String sample_id, @Param("scheduleDays")String scheduleDays);
+    public int saveRemark(@Param("sample_id")String sample_id, @Param("remark")String remark);
 
     public List<PassbackData> getPassbackByElectricInfoIds(@Param("electricInfoIds")List<String> electricInfoIds);
 

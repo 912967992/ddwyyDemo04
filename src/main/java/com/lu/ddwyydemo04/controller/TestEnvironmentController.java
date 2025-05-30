@@ -268,6 +268,24 @@ public class TestEnvironmentController {
         return result;
     }
 
+    @PostMapping("/passback/saveRemark")
+    @ResponseBody
+    public Map<String, Object> saveRemark(@RequestBody Map<String, Object> params) {
+        String sampleId = (String) params.get("sample_id");
+        String remark = (String) params.get("remark");
+
+        System.out.println("sample_id: " + sampleId + ", scheduleDays: " + remark);
+        Map<String, Object> result = new HashMap<>();
+        if(!Objects.equals(remark, "")){
+            int saveScheduleDays = testManIndexService.saveRemark(sampleId, remark);
+            result.put("status", "ok");
+            result.put("message", "送样备注修改成功！");
+        }
+
+        return result;
+    }
+
+
 
     @PostMapping("/scheduleBoard/saveSchedule")
     @ResponseBody

@@ -265,6 +265,11 @@ public class TestManIndexService {
         return testManDao.saveScheduleDays(sample_id, scheduleDays);
     }
 
+
+    public int saveRemark(String sample_id,String remark){
+        return testManDao.saveRemark(sample_id, remark);
+    }
+
     public List<PassbackData> getPassbackByElectricInfoIds(List<String> electricInfoIds){
         return testManDao.getPassbackByElectricInfoIds(electricInfoIds);
     }

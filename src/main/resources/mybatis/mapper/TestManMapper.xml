@@ -560,6 +560,15 @@
 
     </update>
 
+    <update id="saveRemark" >
+        UPDATE electric_info
+        SET
+            remark = #{remark}
+        WHERE
+            sample_id = #{sample_id}
+
+    </update>
+
     <select id="getPassbackByElectricInfoIds" resultType="PassbackData">
         SELECT
         ei.id,
