@@ -104,6 +104,12 @@
       <button id="confirmColorBtn" style="margin-top: 5px;">确认修改颜色</button>
     </div>
 
+    <!-- ✅ 修改为同一行显示送样备注、输入框和按钮 -->
+    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+      <label for="sampleRemark"><strong>送样备注：</strong></label>
+      <input type="text" id="sampleRemark" placeholder="请输入送样备注" style="flex: 1; padding: 4px;">
+      <button id="saveRemarkBtn">保存备注</button>
+    </div>
 
     <button id="closeBtn">关闭</button>
   </div>
@@ -380,7 +386,7 @@
       const allCells = document.querySelectorAll('.drop-cell');
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(startDateObj);
-      endDateObj.setDate(endDateObj.getDate() + parseInt(days) - 1);
+      endDateObj.setDate(endDateObj.getDate() + Math.ceil(days) - 1);
       const newEndDate = endDateObj.toISOString().split('T')[0];
 
       // 生成新排期范围内的所有日期
@@ -422,17 +428,10 @@
         };
         localScheduleChanges.push(newChange);
       }
-      console.log(localScheduleChanges)
+      console.log("标记5",localScheduleChanges)
 
     }
-    // if (!startDate) {
-    //     // 如果没有找到开始日期，从项目卡片中获取相关信息（可根据实际情况调整）
-    //     const projectCard = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
-    //     if (projectCard) {
-    //         // 这里假设项目卡片中有排期开始日期信息，若没有需要调整逻辑
-    //         startDate = projectCard.getAttribute('data-schedule_start_date');
-    //     }
-    // }
+
 
 
 
@@ -467,13 +466,14 @@
                 // 只显示原合并范围内的单元格
                 for (let i = startIndex; i < startIndex + originalDays; i++) {
                   if (rowCells[i]) {
-
+                    console.log("标记3");
                     rowCells[i].style.display = '';
                   }
                 }
 
-                for (let i = startIndex + 1; i < startIndex + parseInt(days); i++) {
+                for (let i = startIndex + 1; i < startIndex + Math.ceil(days); i++) {
                   if (rowCells[i]){
+                    console.log("标记4")
                     rowCells[i].style.display = 'none';
                   }
                 }
@@ -1095,6 +1095,7 @@
         } else {
           localScheduleChanges.push(newChange);
         }
+        console.log("标记6",localScheduleChanges)
 
         // 添加允许拖拽的方法
         newStartCell.setAttribute('draggable', 'true');
@@ -1129,6 +1130,7 @@
       }
     });
     for (let i = startIndex + 1; i < startIndex + roundedDays; i++) {
+      console.log("标记1");
       rowCells[i].style.display = 'none';
     }
     const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
@@ -1154,7 +1156,7 @@
     } else {
       localScheduleChanges.push(newChange);
     }
-    console.log("add的",localScheduleChanges);
+    console.log("标记7",localScheduleChanges);
     // 重新为新生成的排期单元格添加拖拽功能
     startCell.setAttribute('draggable', 'true');
     startCell.addEventListener('dragstart', function (e) {
@@ -1195,6 +1197,7 @@
     // 恢复被隐藏的格子
     for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
       if (rowCells[i]){
+        console.log("标记2");
         rowCells[i].style.display = '';
       }
     }

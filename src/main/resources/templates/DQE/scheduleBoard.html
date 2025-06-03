@@ -346,6 +346,10 @@
                 saveScheduleAndColor(card,item);
             };
 
+            document.getElementById('saveRemarkBtn').onclick = function () {
+                saveScheduleAndColor(card,item);
+            };
+
 
             document.getElementById('modal').style.display = 'block';
 
@@ -432,10 +436,6 @@
 
         }
 
-
-
-
-
         // 1️⃣ 保存天数
         fetch('/passback/saveScheduleDays', {
             method: 'POST',
@@ -503,7 +503,7 @@
                     result = '无色';
                 }
 
-                alert("排期天数和颜色设置成功：" + result);
+                alert("排期天数和颜色设置成功：" );
                 document.getElementById('modal').style.display = 'none';
 
                 // 更新卡片颜色样式
