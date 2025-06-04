@@ -323,12 +323,28 @@ public class TestManIndexService {
         // 查询旧数据
         Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
         if (oldSchedule != null) {
-            String changeLog = oldSchedule.get("tester") + "#" +
-                    oldSchedule.get("schedule_start_date") + "#" +
-                    oldSchedule.get("schedule_end_date") + "#" +
-                    oldSchedule.get("update_time") + "#" +
-                    oldSchedule.get("schedule_color") + "#" +
-                    oldSchedule.get("isUsed");
+//            String changeLog = oldSchedule.get("tester") + "#" +
+//                    oldSchedule.get("schedule_start_date") + "#" +
+//                    oldSchedule.get("schedule_end_date") + "#" +
+//                    oldSchedule.get("update_time") + "#" +
+//                    oldSchedule.get("schedule_color") + "#" +
+//                    oldSchedule.get("isUsed");
+            // 获取当前北京时间（东八区）
+            String updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            // 根据 change 类型决定 isUsed 值
+            String isUsed = "0";
+            if ("add".equalsIgnoreCase(change)) {
+                isUsed = "1";
+            } else if ("delete".equalsIgnoreCase(change)) {
+                isUsed = "0";
+            }
+            String changeLog = tester+ "#" +
+                    start_date + "#" +
+                    end_date + "#" +
+                    updateTime + "#" +
+                    schedule_color + "#" +
+                    isUsed;
 
             // 获取 electric_info 表原有的 changeRecord 内容
             String existingLog = getChangeRecordBySampleId(sampleId);
@@ -404,9 +420,6 @@ public class TestManIndexService {
 
     public void updateElectricInfoColor(String sample_id,String schedule_color){
         testManDao.updateElectricInfoColor(sample_id,schedule_color);
-    }
-    public void updateScheduleInfoColorIfExists(String sample_id,String schedule_color){
-        testManDao.updateScheduleInfoColorIfExists(sample_id,schedule_color);
     }
 
     public void updateElectricInfoReview(String sample_id,String reportReviewTime,String sampleRecognizeResult){
@@ -618,4 +631,15 @@ public class TestManIndexService {
     public String queryElectric_sample_id(String sample_id){
         return testManDao.queryElectric_sample_id(sample_id);
     }
+
+    public int updateRemark(String sample_id,String remark){
+        return testManDao.updateRemark(sample_id,remark);
+    }
+
+
+
+
+
+
+
 }

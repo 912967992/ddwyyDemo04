@@ -134,7 +134,7 @@ public interface TestManDao {
     void updateChangeRecord(@Param("sample_id") String sample_id, @Param("changeRecord") String changeRecord);
 
     void updateElectricInfoColor(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
-    void updateScheduleInfoColorIfExists(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
+
     void updateElectricInfoReview(@Param("sample_id")String sample_id,@Param("reportReviewTime") String reportReviewTime,@Param("sampleRecognizeResult") String sampleRecognizeResult);
 
     void saveElectricInfoFilePath(@Param("sample_id") String sample_id,@Param("filepath")String filepath);
@@ -166,6 +166,8 @@ public interface TestManDao {
     int insertElectric_sample_id(@Param("electric_sample_id")String electric_sample_id,@Param("sample_id")String sample_id);
 
     String queryElectric_sample_id(@Param("sample_id")String sample_id);
+
+    int updateRemark(@Param("sample_id") String sample_id,@Param("remark")String remark);
 
 
 }

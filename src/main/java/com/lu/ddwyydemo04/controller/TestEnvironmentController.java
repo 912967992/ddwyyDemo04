@@ -87,7 +87,7 @@ public class TestEnvironmentController {
     @ResponseBody
     public ResponseEntity<List<PassbackData>> getPendingSampleData(@RequestParam(required = false) String category) {
         List<PassbackData> pendingSampleData = testManIndexService.getPendingSampleData(category);
-        logger.info("/passback/getPendingSampleData 查询参数 category = " + category);
+//        logger.info("/passback/getPendingSampleData 查询参数 category = " + category);
         return ResponseEntity.ok(pendingSampleData);
     }
 
@@ -202,7 +202,7 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
-//        System.out.println("result:"+result);
+        System.out.println("result:"+result);
 
         return result;
     }
@@ -245,43 +245,85 @@ public class TestEnvironmentController {
             merged.put("scheduleDays", passback.getScheduleDays());
             merged.put("isUsed", passback.getIsUsed());
             merged.put("schedule_color", passback.getSchedule_color());
+            merged.put("remark", passback.getRemark());
         }
 
         return merged;
     }
 
 
-    @PostMapping("/passback/saveScheduleDays")
+//    @PostMapping("/passback/saveScheduleDays")
+//    @ResponseBody
+//    public Map<String, Object> saveScheduleDays(@RequestBody Map<String, Object> params) {
+//        String sampleId = (String) params.get("sample_id");
+//        String scheduleDays = (String) params.get("scheduleDays");
+//
+//        System.out.println("sample_id: " + sampleId + ", scheduleDays: " + scheduleDays);
+//        Map<String, Object> result = new HashMap<>();
+//        if(!Objects.equals(scheduleDays, "")){
+//            int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
+//            result.put("status", "ok");
+//            result.put("message", "排期天数保存成功！");
+//        }
+//
+//        return result;
+//    }
+
+
+
+
+    @PostMapping("/schedule/saveScheduleInfo")
     @ResponseBody
-    public Map<String, Object> saveScheduleDays(@RequestBody Map<String, Object> params) {
+    public Map<String, Object> saveScheduleInfo(@RequestBody Map<String, Object> params) {
         String sampleId = (String) params.get("sample_id");
         String scheduleDays = (String) params.get("scheduleDays");
-
-        System.out.println("sample_id: " + sampleId + ", scheduleDays: " + scheduleDays);
-        Map<String, Object> result = new HashMap<>();
-        if(!Objects.equals(scheduleDays, "")){
-            int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
-            result.put("status", "ok");
-            result.put("message", "排期天数保存成功！");
-        }
-
-        return result;
-    }
-
-    @PostMapping("/passback/saveRemark")
-    @ResponseBody
-    public Map<String, Object> saveRemark(@RequestBody Map<String, Object> params) {
-        String sampleId = (String) params.get("sample_id");
+        String scheduleColor = (String) params.get("schedule_color");
         String remark = (String) params.get("remark");
 
-        System.out.println("sample_id: " + sampleId + ", scheduleDays: " + remark);
         Map<String, Object> result = new HashMap<>();
-        if(!Objects.equals(remark, "")){
-            int saveScheduleDays = testManIndexService.saveRemark(sampleId, remark);
-            result.put("status", "ok");
-            result.put("message", "送样备注修改成功！");
+
+        if (sampleId == null || sampleId.trim().isEmpty()) {
+            result.put("status", "error");
+            result.put("message", "缺少 sample_id 参数！");
+            return result;
         }
 
+        // 1️⃣ 保存排期天数
+        if (scheduleDays != null && !scheduleDays.trim().isEmpty()) {
+            try {
+                int saveScheduleDays = testManIndexService.saveScheduleDays(sampleId, scheduleDays);
+
+                result.put("scheduleDays", "ok");
+            } catch (Exception e) {
+                result.put("scheduleDaysStatus", "error");
+                result.put("scheduleDaysError", "保存排期天数失败：" + e.getMessage());
+            }
+        }
+
+        // 2️⃣ 保存排期颜色
+        if (scheduleColor != null && !scheduleColor.trim().isEmpty()) {
+            try {
+                testManIndexService.updateElectricInfoColor(sampleId, scheduleColor);
+
+                result.put("scheduleColor", scheduleColor.equals("null") ? "无色" : scheduleColor);
+            } catch (Exception e) {
+                result.put("scheduleColorStatus", "error");
+                result.put("scheduleColorError", "保存颜色失败：" + e.getMessage());
+            }
+        }
+
+        if (remark != null && !remark.trim().isEmpty()) {
+            try{
+                int updateRemark = testManIndexService.updateRemark(sampleId,remark);
+
+                result.put("remark",remark);
+            }catch (Exception e){
+                result.put("remarkError","保存备注失败:"+e.getMessage());
+            }
+        }
+
+        result.put("status", "ok");
+        result.put("message", "排期信息保存成功！");
         return result;
     }
 
@@ -640,22 +682,21 @@ public class TestEnvironmentController {
         return ResponseEntity.ok(testers);
     }
 
-    @PostMapping("/schedule/saveScheduleColor")
-    public ResponseEntity<String> saveScheduleColor(@RequestParam("color") String color,@RequestParam("sample_id") String sample_id) {
-        // 打印接收到的颜色
-//        logger.info("接收到的颜色值为: " + color);
-//        logger.info("接收到的sample_id值为: " + sample_id);
-
-        testManIndexService.updateElectricInfoColor(sample_id, color);
-        testManIndexService.updateScheduleInfoColorIfExists(sample_id, color);
-
-        // 这里可以根据实际需求执行逻辑，比如保存颜色到某个排期记录
-        if(color.equals("null")){
-            color = "无色";
-        }
-
-        return ResponseEntity.ok(color);
-    }
+//    @PostMapping("/schedule/saveScheduleColor")
+//    public ResponseEntity<String> saveScheduleColor(@RequestParam("color") String color,@RequestParam("sample_id") String sample_id) {
+//        // 打印接收到的颜色
+////        logger.info("接收到的颜色值为: " + color);
+////        logger.info("接收到的sample_id值为: " + sample_id);
+//
+//        testManIndexService.updateElectricInfoColor(sample_id, color);
+//
+//        // 这里可以根据实际需求执行逻辑，比如保存颜色到某个排期记录
+//        if(color.equals("null")){
+//            color = "无色";
+//        }
+//
+//        return ResponseEntity.ok(color);
+//    }
 
     @PostMapping("/passback/uploadXlsx")
     @ResponseBody

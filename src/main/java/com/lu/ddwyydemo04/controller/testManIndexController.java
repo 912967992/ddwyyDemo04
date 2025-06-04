@@ -1831,7 +1831,6 @@ public class testManIndexController {
         }
     }
 
-
     @GetMapping("/api/getChangeLog")
     @ResponseBody
     public List<Map<String, String>> getChangeLog(@RequestParam String sample_id) {
@@ -1842,8 +1841,11 @@ public class testManIndexController {
 
         if (rawLog != null && !rawLog.trim().isEmpty()) {
             String[] records = rawLog.split("\\|");
-            for (String record : records) {
-                String[] parts = record.trim().split("#");
+
+            // 倒序遍历记录
+            for (int i = records.length - 1; i >= 0; i--) {
+                String record = records[i].trim();
+                String[] parts = record.split("#");
                 if (parts.length >= 6) {
                     Map<String, String> map = new HashMap<>();
                     map.put("tester", parts[0]);
@@ -1876,7 +1878,6 @@ public class testManIndexController {
 
         return result;
     }
-
 
 
 

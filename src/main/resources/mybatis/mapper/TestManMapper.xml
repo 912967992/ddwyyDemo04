@@ -825,11 +825,7 @@
         WHERE sample_id = #{sample_id}
     </update>
 
-    <update id="updateScheduleInfoColorIfExists" parameterType="map">
-        UPDATE electric_info
-        SET schedule_color = #{schedule_color}
-        WHERE sample_id = #{sample_id}
-    </update>
+
 
 
     <update id="updateElectricInfoReview">
@@ -1043,5 +1039,13 @@
             sample_id = #{sample_id}
 
     </select>
+
+    <update id="updateRemark">
+        UPDATE electric_info
+        SET remark = #{remark}
+        WHERE sample_id = #{sample_id}
+    </update>
+
+
 
 </mapper>

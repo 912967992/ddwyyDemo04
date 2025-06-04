@@ -57,6 +57,8 @@ public class PassbackData {
 
     private String filepath;
 
+    private String remark;
+
     public int getId() {
         return id;
     }
@@ -347,6 +349,14 @@ public class PassbackData {
         this.schedule_end_date = schedule_end_date;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -386,6 +396,7 @@ public class PassbackData {
                 ", tester='" + tester + '\'' +
                 ", testDuration='" + testDuration + '\'' +
                 ", filepath='" + filepath + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

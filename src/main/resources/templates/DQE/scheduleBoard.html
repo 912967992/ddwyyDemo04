@@ -79,8 +79,7 @@
             <button id="saveScheduleBtn">确定排期</button>
         </div>
 
-        <!-- 添加颜色选择功能 -->
-        <!-- 添加颜色选择功能 -->
+
         <!-- 添加颜色选择功能 -->
         <div style="margin-top: 10px;">
             <label><strong>设置颜色：</strong></label>
@@ -179,7 +178,7 @@
         projectEl.addEventListener('dragstart', e => {
             const sampleModel = projectEl.getAttribute('data-sample_model');
             const materialCode = projectEl.getAttribute('data-materialCode');
-            e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode} `+projectEl.getAttribute('data-sample_leader').charAt(0));
+            e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode} `+projectEl.getAttribute('data-sample_leader').charAt(0) + " "+projectEl.getAttribute('data-remark'));
             e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
             e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
             e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
@@ -194,12 +193,12 @@
             e.dataTransfer.setData('project-test_projects', projectEl.getAttribute('data-test_projects'));
             e.dataTransfer.setData('project-schedule', projectEl.getAttribute('data-schedule'));
             e.dataTransfer.setData('project-create_time', projectEl.getAttribute('data-create_time'));
-            // e.dataTransfer.setData('project-schedule_days', projectEl.getAttribute('data-schedule_days'));
             e.dataTransfer.setData(
                 'project-schedule_days',
                 projectEl.getAttribute('data-schedule_days') ?? '1'
             );
             e.dataTransfer.setData('project-schedule_color', projectEl.getAttribute('data-schedule_color'));
+            e.dataTransfer.setData('project-remark', projectEl.getAttribute('data-remark'));
 
         });
         if(isProject){
@@ -252,9 +251,9 @@
 
             const scheduleColor = item.schedule_color || 'null';
             card.classList.add(scheduleColor);
-            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
+            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " + item.remark + " " +"(" + item.scheduleDays + "天)" ;
 
-            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
+            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " "+item.remark );
             card.setAttribute('data-sample_id', item.sample_id || '');
             card.setAttribute('data-sample_name', item.sample_name || '');
             card.setAttribute('data-sample_model', item.sample_model || '');
@@ -270,6 +269,7 @@
             card.setAttribute('data-create_time', item.create_time || '');
             card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
             card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+            card.setAttribute('data-remark', item.remark != null ? item.remark : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, true);
@@ -338,6 +338,8 @@
                 colorRadio.checked = true;
             }
 
+            document.getElementById('sampleRemark').value = item.remark;
+
             document.getElementById('saveScheduleBtn').onclick = function () {
                 saveScheduleAndColor(card,item);
             };
@@ -356,12 +358,8 @@
         };
     }
 
-    function saveScheduleAndColor(card,item) {
+    function saveScheduleAndColor(card, item) {
         const days = document.getElementById('scheduleDays').value;
-        // if (!days || isNaN(days) || days < 0) {
-        //     alert("请输入有效的排期天数！");
-        //     return;
-        // }
 
         const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
         if (!selectedColor) {
@@ -369,12 +367,15 @@
             return;
         }
 
-        // 计算新的排期结束日期
+        const remark = document.getElementById('sampleRemark').value;
+        console.log("remark777",remark);
+
         const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
         let startDate = null;
         let tester = null;
         let job_number = null;
         let originalDays = null;
+
         if (startDateCell) {
             startDate = startDateCell.getAttribute('data-date');
             tester = startDateCell.getAttribute('data-tester');
@@ -386,17 +387,13 @@
                 return;
             }
 
-            // 获取排期面板的所有单元格
             const allCells = document.querySelectorAll('.drop-cell');
             const startDateObj = new Date(startDate);
             const endDateObj = new Date(startDateObj);
             endDateObj.setDate(endDateObj.getDate() + Math.ceil(days) - 1);
             const newEndDate = endDateObj.toISOString().split('T')[0];
 
-            // 生成新排期范围内的所有日期
             const newDateRange = getDateRange(startDate, newEndDate);
-
-            // 检查新排期是否会占用其他项目
             for (const date of newDateRange) {
                 const cellsOnDate = Array.from(allCells).filter(cell =>
                     cell.getAttribute('data-date') === date &&
@@ -410,7 +407,6 @@
                 }
             }
 
-            // 更新 localScheduleChanges
             const existingIndex = localScheduleChanges.findIndex(change => change.sample_id === item.sample_id);
             if (existingIndex !== -1) {
                 localScheduleChanges[existingIndex].start_date = startDate;
@@ -432,99 +428,72 @@
                 };
                 localScheduleChanges.push(newChange);
             }
-            console.log("标记5",localScheduleChanges)
 
+            console.log("标记5", localScheduleChanges);
         }
 
-        // 1️⃣ 保存天数
-        fetch('/passback/saveScheduleDays', {
+        // 合并后的接口请求
+        fetch('/schedule/saveScheduleInfo', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sample_id: item.sample_id,
+                scheduleDays: days,
+                schedule_color: selectedColor,
+                remark: remark
+            })
         })
             .then(resp => resp.json())
-            .then(resp => {
-                // 更新卡片显示和属性
+            .then(result => {
+                alert("排期天数和颜色设置成功！");
+                document.getElementById('modal').style.display = 'none';
+
+                // 更新卡片
                 if (card) {
-                    card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} (${days}天)`;
-                    card.setAttribute('data-schedule_days', days);
+                    console.log("days",days)
+                    card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    card.setAttribute('data-schedule_days', days || '1');
+
+
+                    card.classList.remove('gray', 'green', 'yellow', 'red');
+                    card.setAttribute('data-remark',remark);
+                    card.classList.add(selectedColor);
+                    card.dataset.schedule_color = selectedColor;
+
+                    //这里是让卡片重现赋值新修改的值
                     item.scheduleDays = days;
+                    item.schedule_color = selectedColor;
+                    item.remark = remark;
                 }
 
-                // 更新排期面板中对应单元格的 colspan
+                // 更新排期面板
                 const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
                 cells.forEach(cell => {
                     cell.setAttribute('colspan', Math.ceil(days));
-                    // 设置 data-schedule_days 属性的值与 colspan 一致
                     cell.setAttribute('data-schedule_days', days);
-                    cell.innerText = `${item.sample_model} ${item.materialCode} (${days}天)`;
+                    cell.setAttribute('data-remark', remark);
+                    console.log("remark111",remark)
+                    console.log("remarkitem",item.remark)
+                    cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    cell.style.backgroundColor = selectedColor;
+                    cell.dataset.schedule_color = selectedColor;
 
-                    // 恢复被隐藏的格子
                     const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
                     const startIndex = rowCells.indexOf(cell);
-
-                    // 只显示原合并范围内的单元格
                     for (let i = startIndex; i < startIndex + originalDays; i++) {
-                        if (rowCells[i]) {
-                            console.log("标记3");
-                            rowCells[i].style.display = '';
-                        }
+                        if (rowCells[i]) rowCells[i].style.display = '';
                     }
-
                     for (let i = startIndex + 1; i < startIndex + Math.ceil(days); i++) {
-                        if (rowCells[i]){
-                            console.log("标记4")
-                            rowCells[i].style.display = 'none';
-                        }
+                        if (rowCells[i]) rowCells[i].style.display = 'none';
                     }
                 });
 
             })
             .catch(err => {
-                console.error("保存天数失败：", err);
-                alert("保存天数失败！");
-            });
-
-        // 2️⃣ 保存颜色
-        fetch('/schedule/saveScheduleColor', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                color: selectedColor,
-                sample_id: item.sample_id
-            })
-        })
-            .then(response => response.text())
-            .then(result => {
-                // 判断是否为 null、空字符串或 undefined
-                if (!result || result === 'null') {
-                    result = '无色';
-                }
-
-                alert("排期天数和颜色设置成功：" );
-                document.getElementById('modal').style.display = 'none';
-
-                // 更新卡片颜色样式
-                const card = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
-                if (card) {
-                    card.classList.remove('gray', 'green', 'yellow', 'red');
-                    card.classList.add(selectedColor);
-                    card.dataset.schedule_color = selectedColor;
-                    item.schedule_color = selectedColor;
-                }
-
-                // 更新排期面板中对应单元格的颜色
-                const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
-                cells.forEach(cell => {
-                    cell.style.backgroundColor = selectedColor;
-                    cell.dataset.schedule_color = selectedColor;
-                });
-            })
-            .catch(error => {
-                console.error("保存颜色失败：", error);
-                alert("设置颜色失败，请重试");
+                console.error("保存失败：", err);
+                alert("保存失败，请重试！");
             });
 
         saveSchedule(true);
@@ -597,7 +566,7 @@
                         startDate: item.schedule_start_date,
                         endDate: item.schedule_end_date,
                         sample_id: item.sample_id,
-                        sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0),
+                        sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " "+item.remark,
                         sample_category: item.sample_category,
                         sample_model: item.sample_model,
                         sample_name: item.sample_name,
@@ -614,7 +583,8 @@
                         schedule_start_date: item.schedule_start_date,
                         schedule_end_date: item.schedule_end_date,
                         schedule_color: item.schedule_color,
-                        job_number: item.job_number
+                        job_number: item.job_number,
+                        remark: item.remark
                     };
 
                     const tester = item.tester || '未知测试人员';
@@ -740,7 +710,7 @@
                     'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                     'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                     'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
                 ];
                 attributes.forEach(attr => {
                     taskData[attr] = cell.getAttribute(`data-${attr}`);
@@ -765,7 +735,7 @@
                 'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
             ];
             attributes.forEach(attr => {
                 taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
@@ -847,7 +817,8 @@
                     schedule_days: e.dataTransfer.getData('project-schedule_days'),
                     schedule_start_date: startDate,
                     schedule_end_date: schedule_end_date,
-                    schedule_color: e.dataTransfer.getData('project-schedule_color')
+                    schedule_color: e.dataTransfer.getData('project-schedule_color'),
+                    remark: e.dataTransfer.getData('project-remark')
                 };
 
                 const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
@@ -893,7 +864,7 @@
                                 'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
                                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
                             ];
                             attributes.forEach(attr => {
                                 projectData[attr] = currentCell.getAttribute(`data-${attr}`);
@@ -1017,6 +988,7 @@
           data-schedule_start_date="${task.schedule_start_date || ''}"
           data-schedule_end_date="${task.schedule_end_date || ''}"
           data-schedule_color="${task.schedule_color || ''}"
+          data-remark="${task.remark || ''}",
         >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
     }
@@ -1105,7 +1077,7 @@
                         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
                     ];
                     attributes.forEach(attr => {
                         taskData[attr] = this.getAttribute(`data-${attr}`);
@@ -1135,6 +1107,7 @@
         }
         const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
         if (projectEl) projectEl.remove();
+        console.log("roundedDays,",roundedDays)
         const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
         // 构造新的变更对象
         const newChange = {
@@ -1165,7 +1138,7 @@
                 'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color' , 'remark'
             ];
             attributes.forEach(attr => {
                 taskData[attr] = this.getAttribute(`data-${attr}`);
@@ -1242,7 +1215,8 @@
             schedule: taskData.schedule,
             create_time: taskData.create_time,
             scheduleDays: schedule_days,
-            schedule_color: taskData.schedule_color
+            schedule_color: taskData.schedule_color,
+            remark: taskData.remark
         };
 
         restoredProject.oncontextmenu = (event) => {
@@ -1312,7 +1286,8 @@
             schedule: currentRightClickCell.getAttribute('data-schedule'),
             create_time: currentRightClickCell.getAttribute('data-create_time'),
             scheduleDays: currentRightClickCell.getAttribute('data-schedule_days'),
-            schedule_color: currentRightClickCell.getAttribute('data-schedule_color')
+            schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
+            remark: currentRightClickCell.getAttribute('data-remark')
         };
 
         // 设置模态框内容
@@ -1339,11 +1314,19 @@
             colorRadio.checked = true;
         }
 
+        console.log("taskData.remark,",taskData.remark)
+        console.log("taskData,",taskData)
+        document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
+
         document.getElementById('saveScheduleBtn').onclick = function () {
             saveScheduleAndColor(null, taskData);
         };
 
         document.getElementById('confirmColorBtn').onclick = function () {
+            saveScheduleAndColor(null, taskData);
+        };
+
+        document.getElementById('saveRemarkBtn').onclick = function () {
             saveScheduleAndColor(null, taskData);
         };
 
@@ -1457,9 +1440,9 @@
 
             const scheduleColor = item.schedule_color || 'null';
             card.classList.add(scheduleColor);
-            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
+            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0)  + " " + item.remark+ " " +"(" + item.scheduleDays + "天)";
 
-            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
+            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " " + item.remark );
             card.setAttribute('data-sample_id', item.sample_id || '');
             card.setAttribute('data-sample_name', item.sample_name || '');
             card.setAttribute('data-sample_model', item.sample_model || '');
@@ -1475,6 +1458,7 @@
             card.setAttribute('data-create_time', item.create_time || '');
             card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
             card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+            card.setAttribute('data-remark', item.remark != null ? item.remark : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, false);
