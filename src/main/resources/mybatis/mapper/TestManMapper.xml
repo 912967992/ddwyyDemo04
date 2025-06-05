@@ -678,7 +678,8 @@
             isUsed = 0,
             tester = NULL,
             schedule_start_date = NULL,
-            schedule_end_date = NULL
+            schedule_end_date = NULL,
+            waitSample_classify = #{waitSample_classify}
         WHERE
             sample_id = #{sample_id}
     </update>
@@ -707,7 +708,8 @@
             tester = #{tester},
             schedule_start_date = #{schedule_start_date},
             schedule_end_date = #{schedule_end_date},
-            update_time = NOW()
+            update_time = NOW(),
+            waitSample_classify = NULL
         WHERE
             sample_id = #{sample_id}
     </update>

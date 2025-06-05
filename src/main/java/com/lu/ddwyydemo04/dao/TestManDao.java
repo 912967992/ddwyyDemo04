@@ -100,7 +100,7 @@ public interface TestManDao {
     public String queryActualWorkTime(@Param("sample_id")String sample_id);
 //    public int getCountSchedules(@Param("sample_id")String sample_id);
 
-    public void deleteElectric_info(@Param("sample_id")String sample_id);
+    public void deleteElectric_info(@Param("sample_id")String sample_id,@Param("waitSample_classify")String waitSample_classify);
 
 
     public void updateElectric_info(@Param("sample_id")String sample_id,

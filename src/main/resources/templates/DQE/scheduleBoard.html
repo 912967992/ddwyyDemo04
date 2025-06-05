@@ -173,7 +173,7 @@
 
 
 
-    // 设置拖拽，拖拽进去的时候，如果排期天数没有设置，则不允许拖拽
+    // 设置拖拽
     function setDraggable(projectEl, isProject) {
         projectEl.addEventListener('dragstart', e => {
             const sampleModel = projectEl.getAttribute('data-sample_model');
@@ -722,31 +722,44 @@
         });
 
         const cells = document.querySelectorAll('.drop-cell');
-        const projectPool = document.getElementById('projectPool');
+        // const projectPool = document.getElementById('projectPool');
+        //
+        // // 为项目池子添加拖拽事件
+        // projectPool.addEventListener('dragover', e => {
+        //     e.preventDefault();
+        // });
+        // projectPool.addEventListener('drop', e => {
+        //     e.preventDefault();
+        //     const taskData = {};
+        //     const attributes = [
+        //         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+        //         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+        //         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+        //         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+        //     ];
+        //     attributes.forEach(attr => {
+        //         taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
+        //     });
+        //     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+        //     if (originalCell) {
+        //         const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+        //         const originalStartIndex = originalRowCells.indexOf(originalCell);
+        //         handleUndo(originalRowCells, originalStartIndex, taskData);
+        //     }
+        // });
 
-        // 为项目池子添加拖拽事件
-        projectPool.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-        projectPool.addEventListener('drop', e => {
-            e.preventDefault();
-            const taskData = {};
-            const attributes = [
-                'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
-                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
-            ];
-            attributes.forEach(attr => {
-                taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
-            });
-            const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
-            if (originalCell) {
-                const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
-                const originalStartIndex = originalRowCells.indexOf(originalCell);
-                handleUndo(originalRowCells, originalStartIndex, taskData);
-            }
-        });
+        // 定义待送样池子的容器 ID 数组
+        const pendingSampleContainerIds = [
+            'projectPool',
+            'videoSamplePool',
+            'wireSamplePool',
+            'dataSamplePool',
+            'bluetoothSamplePool',
+            'highFrequencySamplePool'
+        ];
+
+        // 调用通用函数为待送样池子的容器添加拖拽事件
+        addDragEventsToContainers(pendingSampleContainerIds);
 
         cells.forEach((cell, cellIndex, cellList) => {
             cell.addEventListener('dragover', e => {
@@ -1151,7 +1164,7 @@
 
 
     // 处理撤回排期事件，撤回排期按钮触发这个方法
-    function handleUndo(rowCells, startIndex, taskData) {
+    function handleUndo(rowCells, startIndex, taskData, container) {
         const { schedule_days, sample_id } = taskData;
         const currentRightClickCell = rowCells[startIndex];
 
@@ -1224,8 +1237,12 @@
             bindCardContextMenu(restoredProject, restoredItem);
         };
 
-        const projectPool = document.getElementById('projectPool');
-        projectPool.appendChild(restoredProject);
+        // const projectPool = document.getElementById('projectPool');
+        // 这里是排期面板拖拽项目到池子的容器存放区域，我接下来要判定放在哪个池子，0605
+        container.appendChild(restoredProject);
+        // videoSamplePool.appendChild(restoredProject);
+
+        console.log(container.id)
 
         // 记录删除操作到 localScheduleChanges，避免重复添加
         const newChange = {
@@ -1236,7 +1253,8 @@
             end_date: taskData.schedule_end_date,
             scheduleDays: schedule_days,
             schedule_color: taskData.schedule_color,
-            job_number: taskData.job_number
+            job_number: taskData.job_number,
+            container: container.id
         };
 
         const existingIndex = localScheduleChanges.findIndex(item =>
@@ -1436,7 +1454,7 @@
 
         data.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'pending-sample-card';
+            card.className = 'project-card';
 
             const scheduleColor = item.schedule_color || 'null';
             card.classList.add(scheduleColor);
@@ -1467,6 +1485,39 @@
         });
     }
 
+    // 通用函数，为指定容器添加拖拽相关事件
+    function addDragEventsToContainers(containerIds) {
+        containerIds.forEach(containerId => {
+            const container = document.getElementById(containerId);
+            if (container) {
+                // 为容器添加 dragover 事件监听器，阻止默认行为以允许放置
+                container.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+
+                // 为容器添加 drop 事件监听器，处理拖拽放下的逻辑
+                container.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const taskData = {};
+                    const attributes = [
+                        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                    ];
+                    attributes.forEach(attr => {
+                        taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
+                    });
+                    const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+                    if (originalCell) {
+                        const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                        const originalStartIndex = originalRowCells.indexOf(originalCell);
+                        handleUndo(originalRowCells, originalStartIndex, taskData,container );
+                    }
+                });
+            }
+        });
+    }
 
 
 

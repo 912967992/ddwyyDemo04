@@ -311,14 +311,15 @@ public class TestManIndexService {
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
         if ("delete".equals(change)) {
+            String container = getContainerName(latestChange.get("container"));
             // 更新 electric_info 里的 sample_id 的 isUsed = 0
-            testManDao.deleteElectric_info(sample_id);
+            testManDao.deleteElectric_info(sample_id,container);
 
             System.out.println("count>0的delete的:"+latestChange);
         } else if ("add".equals(change)) {
             // 更新 electric_info 里的 sample_id 的 isUsed = 1
             testManDao.updateElectric_info(sample_id,tester,start_date,end_date,scheduleDays,schedule_color);
-            System.out.println("count>0的add的:"+latestChange);
+//            System.out.println("count>0的add的:"+latestChange);
         }
         // 查询旧数据
         Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
@@ -358,6 +359,25 @@ public class TestManIndexService {
 
 
 
+    }
+
+    public String getContainerName(String containerId) {
+        switch (containerId) {
+            case "projectPool":
+                return "项目池子";
+            case "videoSamplePool":
+                return "视频类";
+            case "wireSamplePool":
+                return "线材类";
+            case "dataSamplePool":
+                return "数据类";
+            case "bluetoothSamplePool":
+                return "蓝牙类";
+            case "highFrequencySamplePool":
+                return "高频类";
+            default:
+                return "未知池子";
+        }
     }
 
     public List<Map<String, Object>> getAllTesters(){
