@@ -11,7 +11,10 @@
 
 <div class="pool-container">
     <div id="projectList" class="project-container">
-        <h2>项目池子</h2>
+        <h2>项目池子
+            <!-- 新增项目按钮 -->
+            <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
+        </h2>
         <div id="projectPool">加载中...</div>
     </div>
     <div class="pending-sample-container">
@@ -126,6 +129,50 @@
     <hr>
     </p>
 </template>
+
+<!-- 新增项目模态框 -->
+<div id="addProjectModal" style="display: none;">
+    <div id="addProjectModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>新增项目</h3>
+            <button id="closeAddProjectModalBtn">关闭</button>
+        </div>
+        <div id="addProjectModalBody">
+            <p><strong>电气编号：</strong><input type="text" id="addSampleId"></p>
+            <p><strong>项目名称：</strong><input type="text" id="addSampleName"></p>
+            <p><strong>大小编码：</strong><input type="text" id="addSampleModel"> <input type="text" id="addMaterialCode"></p>
+<!--            <p><strong>产品类别：</strong><input type="text" id="addSampleCategory"></p>-->
+<!--            <p><strong>版本：</strong><input type="text" id="addVersion"></p>-->
+<!--            <p><strong>优先级：</strong><input type="text" id="addPriority"></p>-->
+            <p><strong>项目负责人：</strong><input type="text" id="addSampleLeader"></p>
+<!--            <p><strong>供应商：</strong><input type="text" id="addSupplier"></p>-->
+<!--            <p><strong>试验项目类别：</strong><input type="text" id="addTestProjectCategory"></p>-->
+<!--            <p><strong>测试子项目：</strong><input type="text" id="addTestProjects"></p>-->
+<!--            <p><strong>状态：</strong><input type="text" id="addSchedule"></p>-->
+<!--            <p><strong>创建时间：</strong><input type="text" id="addCreateTime"></p>-->
+            <p><strong>排期天数：</strong><input type="number" id="addScheduleDays"></p>
+            <p><strong>设置颜色：</strong>
+                <label>
+                    <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
+                </label>
+                <label>
+                    <input type="radio" id="addColorGray" name="addScheduleColor" value="gray"> 灰色
+                </label>
+                <label>
+                    <input type="radio" id="addColorGreen" name="addScheduleColor" value="green"> 绿色
+                </label>
+                <label>
+                    <input type="radio" id="addColorYellow" name="addScheduleColor" value="yellow"> 黄色
+                </label>
+                <label>
+                    <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
+                </label>
+            </p>
+            <p><strong>送样备注：</strong><input type="text" id="addSampleRemark"></p>
+        </div>
+        <button id="saveNewProjectBtn">保存项目</button>
+    </div>
+</div>
 
 
 <div id="contextMenu" class="context-menu">
@@ -1582,6 +1629,58 @@
         });
     }
 
+    // 在 DOM 加载完成后绑定按钮点击事件
+    document.addEventListener('DOMContentLoaded', function () {
+        const addProjectBtn = document.getElementById('addProjectBtn');
+        const addProjectModal = document.getElementById('addProjectModal');
+        const closeAddProjectModalBtn = document.getElementById('closeAddProjectModalBtn');
+        const saveNewProjectBtn = document.getElementById('saveNewProjectBtn');
+
+        // 点击新增项目按钮显示模态框
+        addProjectBtn.addEventListener('click', function () {
+            addProjectModal.style.display = 'block';
+        });
+
+        // 点击关闭按钮隐藏模态框
+        closeAddProjectModalBtn.addEventListener('click', function () {
+            addProjectModal.style.display = 'none';
+        });
+
+        // 点击模态框外部隐藏模态框
+        addProjectModal.addEventListener('click', function (e) {
+            if (e.target === addProjectModal) {
+                addProjectModal.style.display = 'none';
+            }
+        });
+
+        // 保存新增项目
+        saveNewProjectBtn.addEventListener('click', function () {
+            const newTaskData = {
+                sample_id: document.getElementById('addSampleId').value,
+                sample_name: document.getElementById('addSampleName').value,
+                sample_model: document.getElementById('addSampleModel').value,
+                materialCode: document.getElementById('addMaterialCode').value,
+                // sample_category: document.getElementById('addSampleCategory').value,
+                // version: document.getElementById('addVersion').value,
+                // priority: document.getElementById('addPriority').value,
+                sample_leader: document.getElementById('addSampleLeader').value,
+                // supplier: document.getElementById('addSupplier').value,
+                // test_project_category: document.getElementById('addTestProjectCategory').value,
+                // test_projects: document.getElementById('addTestProjects').value,
+                // schedule: document.getElementById('addSchedule').value,
+                // create_time: document.getElementById('addCreateTime').value,
+                scheduleDays: document.getElementById('addScheduleDays').value,
+                schedule_color: document.querySelector('input[name="addScheduleColor"]:checked').value,
+                remark: document.getElementById('addSampleRemark').value
+            };
+
+            // 这里可以添加发送请求保存新数据的逻辑
+            console.log('新增项目数据:', newTaskData);
+
+            // 保存后隐藏模态框
+            addProjectModal.style.display = 'none';
+        });
+    });
 
 
 </script>
