@@ -122,6 +122,7 @@
         <strong>更新时间：</strong> {{updateTime}}<br>
         <strong>颜色：</strong> <span style="color: {{color}};">{{color}}</span><br>
         <strong>是否使用：</strong> {{used}}<br>
+        <strong>备注：</strong> {{remark}}<br>
     <hr>
     </p>
 </template>
@@ -361,7 +362,7 @@
     function saveScheduleAndColor(card, item) {
         const days = document.getElementById('scheduleDays').value;
 
-        const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
+        let selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
         if (!selectedColor) {
             alert("请选择一个颜色！");
             return;
@@ -456,7 +457,6 @@
                     card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
                     card.setAttribute('data-schedule_days', days || '1');
 
-
                     card.classList.remove('gray', 'green', 'yellow', 'red');
                     card.setAttribute('data-remark',remark);
                     card.classList.add(selectedColor);
@@ -474,9 +474,13 @@
                     cell.setAttribute('colspan', Math.ceil(days));
                     cell.setAttribute('data-schedule_days', days);
                     cell.setAttribute('data-remark', remark);
-                    console.log("remark111",remark)
-                    console.log("remarkitem",item.remark)
+
                     cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    console.log("selectedColor111:"+selectedColor)
+                    if (selectedColor === null || selectedColor === "null") {
+                        selectedColor = "white"
+                    }
+
                     cell.style.backgroundColor = selectedColor;
                     cell.dataset.schedule_color = selectedColor;
 
@@ -496,7 +500,10 @@
                 alert("保存失败，请重试！");
             });
 
-        saveSchedule(true);
+        setTimeout(() => {
+            saveSchedule(true);
+        }, 2000); // 2000 毫秒 = 2 秒
+
     }
 
     async function saveSchedule(isRefrenshBtn) {
@@ -646,7 +653,7 @@
         const groupedTesters = groupTestersByCategory(testers);
 
         // ⭐⭐ 新增：组别顺序数组
-        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组", "高频组"]; // 按你的需求改顺序
+        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组","PC", "高频组"]; // 按你的需求改顺序
 
         // ⭐⭐ 新增：先按照 groupOrder 遍历
         groupOrder.forEach(groupName => {
@@ -722,31 +729,6 @@
         });
 
         const cells = document.querySelectorAll('.drop-cell');
-        // const projectPool = document.getElementById('projectPool');
-        //
-        // // 为项目池子添加拖拽事件
-        // projectPool.addEventListener('dragover', e => {
-        //     e.preventDefault();
-        // });
-        // projectPool.addEventListener('drop', e => {
-        //     e.preventDefault();
-        //     const taskData = {};
-        //     const attributes = [
-        //         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
-        //         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-        //         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-        //         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
-        //     ];
-        //     attributes.forEach(attr => {
-        //         taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
-        //     });
-        //     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
-        //     if (originalCell) {
-        //         const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
-        //         const originalStartIndex = originalRowCells.indexOf(originalCell);
-        //         handleUndo(originalRowCells, originalStartIndex, taskData);
-        //     }
-        // });
 
         // 定义待送样池子的容器 ID 数组
         const pendingSampleContainerIds = [
@@ -1102,6 +1084,26 @@
             }
         }
 
+        // 如果是已有项目拖动进来，先清除原位置
+        const oldIndex = rowCells.findIndex(c => c.getAttribute('data-sample_id') === sample_id);
+        if (oldIndex !== -1) {
+            const span = parseInt(rowCells[oldIndex].getAttribute('colspan') || 1, 10);
+
+            rowCells[oldIndex].innerText = '';
+            rowCells[oldIndex].removeAttribute('colspan');
+            rowCells[oldIndex].classList.remove('assigned');
+            rowCells[oldIndex].style.backgroundColor = '';
+            const allowedAttributes = ['class', 'data-tester', 'data-date'];
+            [...rowCells[oldIndex].attributes].forEach(attr => {
+                if (!allowedAttributes.includes(attr.name)) {
+                    rowCells[oldIndex].removeAttribute(attr.name);
+                }
+            });
+            for (let i = oldIndex; i < oldIndex + span; i++) {
+                if (rowCells[i]) rowCells[i].style.display = '';
+            }
+        }
+
 
         // 放置新插入的项目
         const startCell = rowCells[startIndex];
@@ -1120,7 +1122,6 @@
         }
         const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
         if (projectEl) projectEl.remove();
-        console.log("roundedDays,",roundedDays)
         const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
         // 构造新的变更对象
         const newChange = {
@@ -1242,7 +1243,6 @@
         container.appendChild(restoredProject);
         // videoSamplePool.appendChild(restoredProject);
 
-        console.log(container.id)
 
         // 记录删除操作到 localScheduleChanges，避免重复添加
         const newChange = {
@@ -1332,8 +1332,6 @@
             colorRadio.checked = true;
         }
 
-        console.log("taskData.remark,",taskData.remark)
-        console.log("taskData,",taskData)
         document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
 
         document.getElementById('saveScheduleBtn').onclick = function () {
@@ -1402,7 +1400,8 @@
                                 .replace('{{endDate}}', change.endDate)
                                 .replace('{{updateTime}}', change.updateTime || '无')
                                 .replaceAll('{{color}}', change.color)
-                                .replace('{{used}}', change.used);
+                                .replace('{{used}}', change.used)
+                                .replace('{{remark}}', change.remark)
 
                             changeLogBody.insertAdjacentHTML('beforeend', itemHTML);
                         });
@@ -1486,6 +1485,7 @@
     }
 
     // 通用函数，为指定容器添加拖拽相关事件
+    // ... existing code ...
     function addDragEventsToContainers(containerIds) {
         containerIds.forEach(containerId => {
             const container = document.getElementById(containerId);
@@ -1498,6 +1498,7 @@
                 // 为容器添加 drop 事件监听器，处理拖拽放下的逻辑
                 container.addEventListener('drop', e => {
                     e.preventDefault();
+                    console.log("拖");
                     const taskData = {};
                     const attributes = [
                         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
@@ -1508,11 +1509,73 @@
                     attributes.forEach(attr => {
                         taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
                     });
+
+                    // 从原容器移除卡片
+                    const fromContainerId = e.dataTransfer.getData('project-from_container');
+                    if (fromContainerId) {
+                        const fromContainer = document.getElementById(fromContainerId);
+                        if (fromContainer) {
+                            const existingCard = fromContainer.querySelector(`[data-sample_id="${taskData.sample_id}"]`);
+                            if (existingCard) {
+                                existingCard.remove();
+                            }
+                        }
+                    }
+
+                    // 从排期面板移除
                     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
                     if (originalCell) {
                         const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
                         const originalStartIndex = originalRowCells.indexOf(originalCell);
-                        handleUndo(originalRowCells, originalStartIndex, taskData,container );
+                        handleUndo(originalRowCells, originalStartIndex, taskData, container);
+                    } else {
+                        // 直接从其他池子拖拽过来，创建新卡片
+                        const newCard = document.createElement('div');
+                        newCard.className = 'project-card';
+                        const scheduleColor = taskData.schedule_color || 'null';
+                        newCard.classList.add(scheduleColor);
+                        newCard.textContent = `${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+
+                        Object.keys(taskData).forEach(key => {
+                            if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number' && key!== 'tester') {
+                                newCard.setAttribute(`data-${key}`, taskData[key]);
+                            }
+                        });
+
+                        newCard.setAttribute('draggable', 'true');
+                        setDraggable(newCard, false);
+                        bindCardContextMenu(newCard, taskData);
+                        container.appendChild(newCard);
+
+                        // 记录变更
+                        const newChange = {
+                            change: "delete",
+                            sample_id: taskData.sample_id,
+                            tester: taskData.tester,
+                            start_date: taskData.schedule_start_date,
+                            end_date: taskData.schedule_end_date,
+                            scheduleDays: taskData.schedule_days,
+                            schedule_color: taskData.schedule_color,
+                            job_number: taskData.job_number,
+                            container: container.id
+                        };
+                        const existingIndex = localScheduleChanges.findIndex(item =>
+                            item.sample_id === taskData.sample_id
+                        );
+                        if (existingIndex !== -1) {
+                            localScheduleChanges[existingIndex] = newChange;
+                        } else {
+                            localScheduleChanges.push(newChange);
+                        }
+                        console.log(localScheduleChanges)
+                    }
+                });
+
+                // 为容器中的卡片添加 dragstart 事件，记录来源容器
+                container.addEventListener('dragstart', e => {
+                    const target = e.target.closest('.project-card');
+                    if (target) {
+                        e.dataTransfer.setData('project-from_container', container.id);
                     }
                 });
             }

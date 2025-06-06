@@ -785,10 +785,11 @@ public class AccessTokenService {
         groupMap.put("龙运", "线材组");
         groupMap.put("张国鹏", "线材组");
         groupMap.put("唐日顺", "新人");
-        groupMap.put("殷嘉俊", "新人");
-        groupMap.put("赵梓宇", "新人");
+        groupMap.put("殷嘉俊", "视频组");
+        groupMap.put("赵梓宇", "蓝牙组");
         groupMap.put("游宏", "新人");
-        groupMap.put("郭喆", "新人");
+        groupMap.put("郭喆", "PC");
+        groupMap.put("冯兴旺", "PC");
         groupMap.put("戴杏华", "视频组");
         groupMap.put("李智龙", "视频组");
         groupMap.put("魏民", "视频组");

@@ -308,6 +308,7 @@ public class TestManIndexService {
         String scheduleDays = latestChange.get("scheduleDays");
         String schedule_color = latestChange.get("schedule_color");
 
+
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
         if ("delete".equals(change)) {
@@ -320,32 +321,31 @@ public class TestManIndexService {
             // 更新 electric_info 里的 sample_id 的 isUsed = 1
             testManDao.updateElectric_info(sample_id,tester,start_date,end_date,scheduleDays,schedule_color);
 //            System.out.println("count>0的add的:"+latestChange);
+        }else if("move".equals(change)){
+
         }
         // 查询旧数据
         Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
         if (oldSchedule != null) {
-//            String changeLog = oldSchedule.get("tester") + "#" +
-//                    oldSchedule.get("schedule_start_date") + "#" +
-//                    oldSchedule.get("schedule_end_date") + "#" +
-//                    oldSchedule.get("update_time") + "#" +
-//                    oldSchedule.get("schedule_color") + "#" +
-//                    oldSchedule.get("isUsed");
             // 获取当前北京时间（东八区）
             String updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String remark = queryRemark(sample_id);
+
             // 根据 change 类型决定 isUsed 值
             String isUsed = "0";
             if ("add".equalsIgnoreCase(change)) {
-                isUsed = "1";
+                isUsed = "使用";
             } else if ("delete".equalsIgnoreCase(change)) {
-                isUsed = "0";
+                isUsed = "未使用";
             }
             String changeLog = tester+ "#" +
                     start_date + "#" +
                     end_date + "#" +
                     updateTime + "#" +
                     schedule_color + "#" +
-                    isUsed;
+                    isUsed + "#" +
+                    remark;
 
             // 获取 electric_info 表原有的 changeRecord 内容
             String existingLog = getChangeRecordBySampleId(sampleId);
@@ -364,7 +364,7 @@ public class TestManIndexService {
     public String getContainerName(String containerId) {
         switch (containerId) {
             case "projectPool":
-                return "项目池子";
+                return "";
             case "videoSamplePool":
                 return "视频类";
             case "wireSamplePool":
@@ -656,8 +656,9 @@ public class TestManIndexService {
         return testManDao.updateRemark(sample_id,remark);
     }
 
-
-
+    public String queryRemark(String sample_id){
+        return testManDao.queryRemark(sample_id);
+    }
 
 
 

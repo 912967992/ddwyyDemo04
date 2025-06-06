@@ -1854,8 +1854,14 @@ public class testManIndexController {
                     map.put("updateTime", parts[3] == null || parts[3].equals("null") ? "" : parts[3]);
                     map.put("color", parts[4]);
                     map.put("used", parts[5]);
+
+                    // 安全处理 remark
+                    String remark = (parts.length >= 7 && parts[6] != null && !parts[6].equals("null")) ? parts[6] : "";
+                    map.put("remark", remark);
+
                     result.add(map);
                 }
+
             }
 
             // 排序：根据 updateTime 倒序

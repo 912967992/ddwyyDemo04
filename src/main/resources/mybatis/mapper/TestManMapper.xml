@@ -1048,6 +1048,11 @@
         WHERE sample_id = #{sample_id}
     </update>
 
+    <select id="queryRemark" resultType="String">
+        select remark
+        FROM electric_info
+        WHERE sample_id = #{sample_id}
+    </select>
 
 
 </mapper>

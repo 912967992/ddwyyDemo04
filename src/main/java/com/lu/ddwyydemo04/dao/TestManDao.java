@@ -168,6 +168,7 @@ public interface TestManDao {
     String queryElectric_sample_id(@Param("sample_id")String sample_id);
 
     int updateRemark(@Param("sample_id") String sample_id,@Param("remark")String remark);
+    String queryRemark(@Param("sample_id") String sample_id);
 
 
 }

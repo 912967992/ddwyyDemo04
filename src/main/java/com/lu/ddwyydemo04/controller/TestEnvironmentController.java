@@ -279,6 +279,8 @@ public class TestEnvironmentController {
         String scheduleDays = (String) params.get("scheduleDays");
         String scheduleColor = (String) params.get("schedule_color");
         String remark = (String) params.get("remark");
+        System.out.println("remark:"+remark);
+
 
         Map<String, Object> result = new HashMap<>();
 
@@ -312,15 +314,17 @@ public class TestEnvironmentController {
             }
         }
 
-        if (remark != null && !remark.trim().isEmpty()) {
-            try{
-                int updateRemark = testManIndexService.updateRemark(sampleId,remark);
+        int updateRemark = testManIndexService.updateRemark(sampleId,remark);
 
-                result.put("remark",remark);
-            }catch (Exception e){
-                result.put("remarkError","保存备注失败:"+e.getMessage());
-            }
-        }
+        result.put("remark",remark);
+
+//        if (remark != null && !remark.trim().isEmpty()) {
+//            try{
+//
+//            }catch (Exception e){
+//                result.put("remarkError","保存备注失败:"+e.getMessage());
+//            }
+//        }
 
         result.put("status", "ok");
         result.put("message", "排期信息保存成功！");
