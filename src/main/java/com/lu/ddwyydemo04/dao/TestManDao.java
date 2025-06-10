@@ -170,5 +170,7 @@ public interface TestManDao {
     int updateRemark(@Param("sample_id") String sample_id,@Param("remark")String remark);
     String queryRemark(@Param("sample_id") String sample_id);
 
+    List<TrashProject> getTrashedProjects();
+
 
 }

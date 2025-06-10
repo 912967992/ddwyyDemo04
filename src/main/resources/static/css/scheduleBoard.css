@@ -100,7 +100,7 @@
     margin-top: 0;
 }
 
-#closeBtn {
+#closeBtn, #closeAddProjectModalBtn {
     margin-top: 10px;
     padding: 5px 10px;
     background-color: #007bff;
@@ -336,4 +336,39 @@
     width: 100vw;
     height: 100vh;
     background-color: rgba(0,0,0,0.5);
+}
+
+#addProjectBtn {
+    padding: 6px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+
+#trashStation {
+    display: inline-block;
+    margin-left: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-width: 150px;
+    min-height: 50px;
+    background-color: red; /* 设置垃圾站背景为红色 */
+}
+
+#trashStation h3 {
+    margin-top: 0; /* 去除 h3 顶部默认外边距 */
+}
+
+#trashListModal h3{
+    font-size: 24px;
+    color: red;
+}
+
+#addProjectModalContent h3{
+    font-size: 24px;
+    color: red;
 }

@@ -6,6 +6,8 @@ import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 
+import com.lu.ddwyydemo04.pojo.TrashProject;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -202,7 +205,7 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
-        System.out.println("result:"+result);
+//        System.out.println("result:"+result);
 
         return result;
     }
@@ -752,6 +755,106 @@ public class TestEnvironmentController {
         return input.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
     }
 
+    @PostMapping("/scheduleBoard/addProjectCard")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addNewProject(@RequestBody Map<String, String> requestData) {
+        String sampleName = requestData.get("sample_name");
+        String sampleModel = requestData.get("sample_model");
+        String materialCode = requestData.get("materialCode");
+        String sampleLeader = requestData.get("sample_leader");
+        String scheduleDaysStr = requestData.get("scheduleDays");
+        String scheduleColor = requestData.get("schedule_color");
+        String waitSample_classify = requestData.get("waitSample_classify");
+        String remark = requestData.get("remark");
+
+        BigDecimal scheduleDays = null;
+        if (scheduleDaysStr != null && !scheduleDaysStr.trim().isEmpty()) {
+            try {
+                scheduleDays = new BigDecimal(scheduleDaysStr.trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("无效的排期天数格式: " + scheduleDaysStr);
+            }
+        }
+
+        System.out.println("sampleName: " + sampleName);
+        System.out.println("sampleModel: " + sampleModel);
+        System.out.println("materialCode: " + materialCode);
+        System.out.println("sampleLeader: " + sampleLeader);
+        System.out.println("scheduleDays: " + scheduleDays);
+        System.out.println("scheduleColor: " + scheduleColor);
+        System.out.println("remark: " + remark);
+
+        // 电气编号用XZ+时间来命名：  XZ202506101500
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        String timestamp = LocalDateTime.now(ZoneId.of("Asia/Shanghai")).format(formatter);
+        String sample_id = "XZ" + timestamp;
+
+        PassbackData data = new PassbackData();
+        data.setSample_id(sample_id);
+        data.setSample_name(sampleName);
+        data.setSample_model(sampleModel);
+        data.setMaterialCode(materialCode);
+        data.setSample_leader(sampleLeader);
+        data.setScheduleDays(scheduleDays);
+        data.setSchedule_color(scheduleColor);
+        data.setWaitSample_classify(waitSample_classify);
+        data.setRemark(remark);
+        int addProjectCard = testManIndexService.insertElectricInfo(data);
+
+        // 返回结果
+        Map<String, Object> response = new HashMap<>();
+        if(addProjectCard>0){
+            response.put("success", true);
+            response.put("message", "项目添加成功");
+        }else{
+            response.put("fail", true);
+            response.put("message", "项目新增失败!");
+        }
+
+        return ResponseEntity.ok(response);
+    }
 
 
+    @PostMapping("/scheduleBoard/deleteProject")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteProject(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String sampleId = (String) request.get("sample_id");
+            String cancel_reason = (String) request.get("cancel_reason");
+            String username = (String) request.get("username");
+            System.out.println("cancelReason:"+cancel_reason);
+
+            // 作废人：
+            String job_number = testManIndexService.queryJobnumberFromUser(username);
+            System.out.println("job_number:"+job_number);
+
+            LocalDateTime cancelDate = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
+
+            boolean updateCancel = testManIndexService.cancelElectricalCode(sampleId,cancel_reason,username,
+                    job_number,cancelDate);
+            if (updateCancel) {
+                response.put("success", true);
+                response.put("message", "项目删除成功");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("success", false);
+                response.put("message", "未找到该项目");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "删除项目时出错");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/scheduleBoard/getTrashList")
+    @ResponseBody
+    public List<TrashProject> getTrashedProjects() {
+        List<TrashProject> trashProjects = testManIndexService.getTrashedProjects();
+        System.out.println("trashProjects:"+trashProjects);
+        return trashProjects;
+    }
 }

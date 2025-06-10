@@ -59,6 +59,8 @@ public class PassbackData {
 
     private String remark;
 
+    private String waitSample_classify;
+
     public int getId() {
         return id;
     }
@@ -357,6 +359,14 @@ public class PassbackData {
         this.remark = remark;
     }
 
+    public String getWaitSample_classify() {
+        return waitSample_classify;
+    }
+
+    public void setWaitSample_classify(String waitSample_classify) {
+        this.waitSample_classify = waitSample_classify;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -397,6 +407,7 @@ public class PassbackData {
                 ", testDuration='" + testDuration + '\'' +
                 ", filepath='" + filepath + '\'' +
                 ", remark='" + remark + '\'' +
+                ", waitSample_classify='" + waitSample_classify + '\'' +
                 '}';
     }
 }

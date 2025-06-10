@@ -287,6 +287,7 @@ public class TestManIndexService {
                 cancel_code,cancel_date);
     }
 
+
     public boolean StartTestElectricalTest(String sample_id,String actual_start_time){
         return testManDao.StartTestElectricalTest(sample_id,actual_start_time);
     }
@@ -660,7 +661,9 @@ public class TestManIndexService {
         return testManDao.queryRemark(sample_id);
     }
 
-
+    public List<TrashProject> getTrashedProjects(){
+        return testManDao.getTrashedProjects();
+    }
 
 
 }

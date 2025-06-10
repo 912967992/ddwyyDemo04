@@ -14,6 +14,11 @@
         <h2>项目池子
             <!-- 新增项目按钮 -->
             <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
+            <!-- 新增垃圾站区域 -->
+            <div id="trashStation">
+                <h3>垃圾站</h3>
+                <div id="trashContent"></div>
+            </div>
         </h2>
         <div id="projectPool">加载中...</div>
     </div>
@@ -138,19 +143,10 @@
             <button id="closeAddProjectModalBtn">关闭</button>
         </div>
         <div id="addProjectModalBody">
-            <p><strong>电气编号：</strong><input type="text" id="addSampleId"></p>
-            <p><strong>项目名称：</strong><input type="text" id="addSampleName"></p>
-            <p><strong>大小编码：</strong><input type="text" id="addSampleModel"> <input type="text" id="addMaterialCode"></p>
-<!--            <p><strong>产品类别：</strong><input type="text" id="addSampleCategory"></p>-->
-<!--            <p><strong>版本：</strong><input type="text" id="addVersion"></p>-->
-<!--            <p><strong>优先级：</strong><input type="text" id="addPriority"></p>-->
-            <p><strong>项目负责人：</strong><input type="text" id="addSampleLeader"></p>
-<!--            <p><strong>供应商：</strong><input type="text" id="addSupplier"></p>-->
-<!--            <p><strong>试验项目类别：</strong><input type="text" id="addTestProjectCategory"></p>-->
-<!--            <p><strong>测试子项目：</strong><input type="text" id="addTestProjects"></p>-->
-<!--            <p><strong>状态：</strong><input type="text" id="addSchedule"></p>-->
-<!--            <p><strong>创建时间：</strong><input type="text" id="addCreateTime"></p>-->
-            <p><strong>排期天数：</strong><input type="number" id="addScheduleDays"></p>
+            <p><strong>项目名称：</strong><input type="text" id="addSampleName" required></p>
+            <p><strong>大小编码：</strong><input type="text" id="addSampleModel" required> <input type="text" id="addMaterialCode" required></p>
+            <p><strong>项目负责人：</strong><input type="text" id="addSampleLeader" required></p>
+            <p><strong>排期天数：</strong><input type="number" id="addScheduleDays" required></p>
             <p><strong>设置颜色：</strong>
                 <label>
                     <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
@@ -168,7 +164,8 @@
                     <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
                 </label>
             </p>
-            <p><strong>送样备注：</strong><input type="text" id="addSampleRemark"></p>
+            <p><strong>放池子分类（非必填）：</strong><input type="text" id="addWaitSampleClassify"></p>
+            <p><strong>送样备注（非必填）：</strong><input type="text" id="addSampleRemark"></p>
         </div>
         <button id="saveNewProjectBtn">保存项目</button>
     </div>
@@ -185,7 +182,37 @@
     <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
 </div>
 
+<!-- 作废项目列表模态框 -->
+<div id="trashListModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1000;">
+    <h3>作废项目列表</h3>
+    <ul id="trashProjectList" style="list-style:none; padding:0;"></ul>
+    <button onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
+</div>
+
+<!-- 详情内容模态框 -->
+<div id="projectDetailModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1001;">
+    <h3>项目详细信息</h3>
+    <p><strong>电气编号：</strong><span id="detail_sample_id"></span></p>
+    <p><strong>项目名称：</strong><span id="detail_sample_name"></span></p>
+    <p><strong>大小编码：</strong><span id="detail_sizecoding"></span></p>
+    <p><strong>项目负责人：</strong><span id="detail_sample_leader"></span></p>
+    <p><strong>排期天数：</strong><span id="detail_scheduleDays"></span></p>
+    <p><strong>颜色：</strong><span id="detail_schedule_color"></span></p>
+    <p><strong>放池子分类：</strong><span id="detail_waitSample_classify"></span></p>
+    <p><strong>送样备注：</strong><span id="detail_remark"></span></p>
+    <p><strong>作废人：</strong><span id="detail_cancel_by"></span></p>
+    <p><strong>作废工号：</strong><span id="detail_job_number"></span></p>
+    <p><strong>作废时间：</strong><span id="detail_cancel_date"></span></p>
+    <p><strong>作废理由：</strong><span id="detail_cancel_reason"></span></p>
+    <button onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+</div>
+
+
+
 <script>
+    // const username = sessionStorage.getItem('username');
+    const username = "卢健";
+
     let localScheduleChanges = [];
     const contextMenu = document.getElementById('contextMenu');
     let currentRightClickCell = null;
@@ -1656,7 +1683,7 @@
         // 保存新增项目
         saveNewProjectBtn.addEventListener('click', function () {
             const newTaskData = {
-                sample_id: document.getElementById('addSampleId').value,
+                // sample_id: document.getElementById('addSampleId').value,
                 sample_name: document.getElementById('addSampleName').value,
                 sample_model: document.getElementById('addSampleModel').value,
                 materialCode: document.getElementById('addMaterialCode').value,
@@ -1671,17 +1698,184 @@
                 // create_time: document.getElementById('addCreateTime').value,
                 scheduleDays: document.getElementById('addScheduleDays').value,
                 schedule_color: document.querySelector('input[name="addScheduleColor"]:checked').value,
+                waitSample_classify: document.getElementById('addWaitSampleClassify').value,
                 remark: document.getElementById('addSampleRemark').value
             };
 
             // 这里可以添加发送请求保存新数据的逻辑
             console.log('新增项目数据:', newTaskData);
 
-            // 保存后隐藏模态框
-            addProjectModal.style.display = 'none';
+            // 发送 POST 请求到后端
+            fetch('/scheduleBoard/addProjectCard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newTaskData)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    console.log('后端返回:', result);
+                    if (result.success) {
+                        alert(result.message); // 项目添加成功
+                        addProjectModal.style.display = 'none';
+                        // 加载项目池子数据
+                        loadProjectPoolData(); // ✅ 页面初始化调用加载函数
+                        // 加载待送样池子数据
+                        loadPendingSamplePoolData();
+
+                    } else {
+                        alert(result.message || '新增项目失败！'); // 项目新增失败
+                    }
+                })
+                .catch(error => {
+                    console.error('新增项目失败:', error);
+                    alert('新增项目失败！');
+                });
+
+
         });
     });
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const trashStation = document.getElementById('trashStation');
+
+        // 阻止 dragover 默认行为，允许放置
+        trashStation.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+
+        // 处理 drop 事件
+        trashStation.addEventListener('drop', function (e) {
+            e.preventDefault();
+            const sampleId = e.dataTransfer.getData('project-sample_id');
+            if (sampleId) {
+                // 调用删除接口
+                deleteProject(sampleId);
+
+                // 从原容器移除卡片
+                const fromContainerId = e.dataTransfer.getData('project-from_container');
+                if (fromContainerId) {
+                    const fromContainer = document.getElementById(fromContainerId);
+                    if (fromContainer) {
+                        const existingCard = fromContainer.querySelector(`[data-sample_id="${sampleId}"]`);
+                        if (existingCard) {
+                            existingCard.remove();
+                        }
+                    }
+                }
+
+                // 从排期面板移除
+                const originalCell = document.querySelector(`td[data-sample_id="${sampleId}"]`);
+                if (originalCell) {
+                    const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                    const originalStartIndex = originalRowCells.indexOf(originalCell);
+                    const taskData = {};
+                    const attributes = [
+                        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                    ];
+                    attributes.forEach(attr => {
+                        taskData[attr] = originalCell.getAttribute(`data-${attr}`);
+                    });
+                    handleUndo(originalRowCells, originalStartIndex, taskData, document.getElementById('projectPool'));
+                }
+            }
+        });
+
+
+        // 添加右键事件监听
+        trashStation.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+
+            fetch('/scheduleBoard/getTrashList')
+                .then(response => response.json())
+                .then(trashedProjects => {
+                    const listModal = document.getElementById('trashListModal');
+                    const listContainer = document.getElementById('trashProjectList');
+                    listContainer.innerHTML = '';
+
+                    trashedProjects.forEach(project => {
+                        const li = document.createElement('li');
+                        li.textContent = project.sample_name;
+                        li.style.cursor = 'pointer';
+                        li.style.margin = '5px 0';
+                        li.addEventListener('click', () => showProjectDetail(project));
+                        listContainer.appendChild(li);
+                    });
+
+                    listModal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error("获取作废项目失败：", error);
+                    alert("加载作废项目失败");
+                });
+        });
+    });
+
+
+    // 定义删除项目的函数
+    // 定义删除项目的函数，带确认框和可选的删除理由
+    function deleteProject(sampleId) {
+        if (!confirm("确定要删除该项目吗？")) {
+            return;
+        }
+
+        const reason = prompt("请输入删除理由（可选）：");
+
+        fetch('/scheduleBoard/deleteProject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sample_id: sampleId,
+                cancel_reason: reason ? reason.trim() : "", // 如果没有填写则传空字符串
+                username: username
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    alert('项目删除成功');
+                    loadProjectPoolData();
+                    loadPendingSamplePoolData();
+                    refreshSchedule();
+                } else {
+                    alert(result.message || '项目删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('删除项目时出错:', error);
+                alert('删除项目时出错，请稍后重试');
+            });
+    }
+
+    function showProjectDetail(project) {
+        // 填充详情内容
+        document.getElementById('detail_sample_id').textContent = project.sample_id;
+        document.getElementById('detail_sample_name').textContent = project.sample_name;
+        document.getElementById('detail_sizecoding').textContent = project.sample_model + " " + project.materialCode;
+        document.getElementById('detail_sample_leader').textContent = project.sample_leader;
+        document.getElementById('detail_scheduleDays').textContent = project.scheduleDays;
+        document.getElementById('detail_schedule_color').textContent = project.schedule_color;
+        document.getElementById('detail_waitSample_classify').textContent = project.waitSample_classify;
+        document.getElementById('detail_remark').textContent = project.remark;
+        document.getElementById('detail_cancel_by').textContent = project.cancel_by;
+        document.getElementById('detail_job_number').textContent = project.cancel_code;
+        document.getElementById('detail_cancel_date').textContent = project.cancel_date;
+        document.getElementById('detail_cancel_reason').textContent = project.cancel_reason;
+
+        // 显示详情弹窗
+        document.getElementById('projectDetailModal').style.display = 'block';
+    }
 
 </script>
 

@@ -402,7 +402,11 @@
             testProjectCategory,
             testProjects,
             schedule,
-            create_time
+            create_time,
+            scheduleDays,
+            schedule_color,
+            remark,
+            waitSample_classify
         )
         VALUES (
                    #{sample_id},
@@ -418,7 +422,11 @@
                    #{testProjectCategory},
                    #{testProjects},
                    #{schedule},
-                   NOW()
+                   NOW(),
+                   #{scheduleDays},
+                   #{schedule_color},
+                   #{remark},
+                    #{waitSample_classify}
                )
     </insert>
 
@@ -643,6 +651,8 @@
                 END
         WHERE sample_id = #{sample_id}
     </update>
+
+
 
     <update id="StartTestElectricalTest">
         UPDATE electric_info
@@ -1052,6 +1062,33 @@
         select remark
         FROM electric_info
         WHERE sample_id = #{sample_id}
+    </select>
+
+    <select id="getTrashedProjects" resultType="TrashProject">
+        SELECT
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_model,
+            IFNULL(
+                    (
+                        SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                        FROM material_items mi
+                        WHERE mi.sample_id = ei.sample_id
+                    ),
+                    ei.materialCode
+            ) AS materialCode,
+            ei.sample_leader,
+            ei.scheduleDays,
+            ei.schedule_color,
+            ei.waitSample_classify,
+            ei.remark,
+            ei.cancel_by,
+            ei.cancel_code,
+            ei.cancel_date,
+            ei.cancel_reason
+        FROM electric_info ei
+        WHERE ei.isCancel = 1
+        ORDER BY ei.cancel_date DESC
     </select>
 
 
