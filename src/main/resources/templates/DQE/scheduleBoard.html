@@ -184,14 +184,21 @@
 
 <!-- 作废项目列表模态框 -->
 <div id="trashListModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1000;">
-    <h3>作废项目列表</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>作废项目列表</h3>
+        <button id="trashListCloseBtn" onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
+    </div>
     <ul id="trashProjectList" style="list-style:none; padding:0;"></ul>
-    <button id="trashListCloseBtn" onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
 </div>
+
 
 <!-- 详情内容模态框 -->
 <div id="projectDetailModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1001;">
-    <h3>项目详细信息</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>项目详细信息</h3>
+        <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+    </div>
+
     <p><strong>电气编号：</strong><span id="detail_sample_id"></span></p>
     <p><strong>项目名称：</strong><span id="detail_sample_name"></span></p>
     <p><strong>大小编码：</strong><span id="detail_sizecoding"></span></p>
@@ -204,15 +211,16 @@
     <p><strong>作废工号：</strong><span id="detail_job_number"></span></p>
     <p><strong>作废时间：</strong><span id="detail_cancel_date"></span></p>
     <p><strong>作废理由：</strong><span id="detail_cancel_reason"></span></p>
-    <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+
     <button id="recoverBtn" onclick="recoverProject()">恢复</button>
 </div>
 
 
 
+
 <script>
-    // const username = sessionStorage.getItem('username');
-    const username = "卢健";
+    const username = sessionStorage.getItem('username');
+    // const username = "卢健";
 
     let localScheduleChanges = [];
     const contextMenu = document.getElementById('contextMenu');
