@@ -330,10 +330,13 @@
             ei.sample_actual_id,
             ei.sample_category,
             ei.sample_model,
-            (
-                SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
-                FROM material_items mi
-                WHERE mi.sample_id = ei.sample_id
+            IFNULL(
+                    (
+                        SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                        FROM material_items mi
+                        WHERE mi.sample_id = ei.sample_id
+                    ),
+                    ei.materialCode
             ) AS materialCode,
             ei.sample_frequency,
             ei.sample_name,
@@ -632,7 +635,11 @@
     <update id="cancelElectricalCode">
         UPDATE electric_info
         SET
+            isUsed = 0,
             isCancel = 1,
+            tester = NULL,
+            schedule_start_date = NULL,
+            schedule_end_date = NULL,
             cancel_reason = CASE
                                 WHEN cancel_reason IS NULL OR cancel_reason = '' THEN #{cancel_reason}
                                 ELSE CONCAT(cancel_reason, ' | ', #{cancel_reason})
@@ -1090,6 +1097,13 @@
         WHERE ei.isCancel = 1
         ORDER BY ei.cancel_date DESC
     </select>
+
+    <update id="recoverProjectById">
+        UPDATE electric_info
+        SET isCancel = 0
+        WHERE
+            sample_id = #{sample_id}
+    </update>
 
 
 </mapper>

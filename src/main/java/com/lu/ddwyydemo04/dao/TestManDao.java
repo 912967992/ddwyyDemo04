@@ -171,6 +171,7 @@ public interface TestManDao {
     String queryRemark(@Param("sample_id") String sample_id);
 
     List<TrashProject> getTrashedProjects();
+    boolean recoverProjectById(@Param("sample_id")String sample_id);
 
 
 }

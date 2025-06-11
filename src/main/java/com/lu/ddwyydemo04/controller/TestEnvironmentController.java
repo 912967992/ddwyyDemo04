@@ -857,4 +857,24 @@ public class TestEnvironmentController {
         System.out.println("trashProjects:"+trashProjects);
         return trashProjects;
     }
+
+    @PostMapping("/scheduleBoard/recoverProject")
+    @ResponseBody
+    public Map<String, Object> recoverProject(@RequestBody Map<String, Object> params) {
+        String sampleId = (String) params.get("sample_id");
+
+        // 调用服务层进行恢复操作
+        boolean success = testManIndexService.recoverProjectById(sampleId);
+
+        Map<String, Object> result = new HashMap<>();
+        if (success) {
+            result.put("message", "项目已成功恢复");
+        } else {
+            result.put("message", "恢复失败，请检查项目ID是否正确");
+        }
+        return result;
+    }
+
+
+
 }

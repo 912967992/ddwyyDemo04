@@ -16,7 +16,7 @@
             <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
             <!-- 新增垃圾站区域 -->
             <div id="trashStation">
-                <h3>垃圾站</h3>
+                <h3>垃圾站(右键可查看作废项目)</h3>
                 <div id="trashContent"></div>
             </div>
         </h2>
@@ -143,11 +143,11 @@
             <button id="closeAddProjectModalBtn">关闭</button>
         </div>
         <div id="addProjectModalBody">
-            <p><strong>项目名称：</strong><input type="text" id="addSampleName" required></p>
-            <p><strong>大小编码：</strong><input type="text" id="addSampleModel" required> <input type="text" id="addMaterialCode" required></p>
-            <p><strong>项目负责人：</strong><input type="text" id="addSampleLeader" required></p>
-            <p><strong>排期天数：</strong><input type="number" id="addScheduleDays" required></p>
-            <p><strong>设置颜色：</strong>
+            <p><strong>项目名称(<span class="required">*</span>)：</strong><input type="text" id="addSampleName" required></p>
+            <p><strong>大小编码(<span class="required">*</span>)：</strong><input type="text" id="addSampleModel" required> <input type="text" id="addMaterialCode" required></p>
+            <p><strong>项目负责人(<span class="required">*</span>)：</strong><input type="text" id="addSampleLeader" required></p>
+            <p><strong>排期天数(<span class="required">*</span>)：</strong><input type="number" id="addScheduleDays" required></p>
+            <p><strong>设置颜色(<span class="required">*</span>)：</strong></p>
                 <label>
                     <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
                 </label>
@@ -164,8 +164,8 @@
                     <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
                 </label>
             </p>
-            <p><strong>放池子分类（非必填）：</strong><input type="text" id="addWaitSampleClassify"></p>
-            <p><strong>送样备注（非必填）：</strong><input type="text" id="addSampleRemark"></p>
+            <p><strong>放池子分类（选填）：</strong><input type="text" id="addWaitSampleClassify"></p>
+            <p><strong>送样备注（选填）：</strong><input type="text" id="addSampleRemark"></p>
         </div>
         <button id="saveNewProjectBtn">保存项目</button>
     </div>
@@ -186,7 +186,7 @@
 <div id="trashListModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1000;">
     <h3>作废项目列表</h3>
     <ul id="trashProjectList" style="list-style:none; padding:0;"></ul>
-    <button onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
+    <button id="trashListCloseBtn" onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
 </div>
 
 <!-- 详情内容模态框 -->
@@ -204,7 +204,8 @@
     <p><strong>作废工号：</strong><span id="detail_job_number"></span></p>
     <p><strong>作废时间：</strong><span id="detail_cancel_date"></span></p>
     <p><strong>作废理由：</strong><span id="detail_cancel_reason"></span></p>
-    <button onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+    <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+    <button id="recoverBtn" onclick="recoverProject()">恢复</button>
 </div>
 
 
@@ -1682,28 +1683,29 @@
 
         // 保存新增项目
         saveNewProjectBtn.addEventListener('click', function () {
+            const sample_name = document.getElementById('addSampleName').value.trim();
+            const sample_model = document.getElementById('addSampleModel').value.trim();
+            const materialCode = document.getElementById('addMaterialCode').value.trim();
+            const sample_leader = document.getElementById('addSampleLeader').value.trim();
+            const scheduleDays = document.getElementById('addScheduleDays').value.trim();
+
+            // ✅ 校验前五项是否填写
+            if (!sample_name || !sample_model || !materialCode || !sample_leader || !scheduleDays) {
+                alert('请填写完整项目信息（前五项为必填）');
+                return;
+            }
+
+
             const newTaskData = {
-                // sample_id: document.getElementById('addSampleId').value,
-                sample_name: document.getElementById('addSampleName').value,
-                sample_model: document.getElementById('addSampleModel').value,
-                materialCode: document.getElementById('addMaterialCode').value,
-                // sample_category: document.getElementById('addSampleCategory').value,
-                // version: document.getElementById('addVersion').value,
-                // priority: document.getElementById('addPriority').value,
-                sample_leader: document.getElementById('addSampleLeader').value,
-                // supplier: document.getElementById('addSupplier').value,
-                // test_project_category: document.getElementById('addTestProjectCategory').value,
-                // test_projects: document.getElementById('addTestProjects').value,
-                // schedule: document.getElementById('addSchedule').value,
-                // create_time: document.getElementById('addCreateTime').value,
-                scheduleDays: document.getElementById('addScheduleDays').value,
+                sample_name,
+                sample_model,
+                materialCode,
+                sample_leader,
+                scheduleDays,
                 schedule_color: document.querySelector('input[name="addScheduleColor"]:checked').value,
                 waitSample_classify: document.getElementById('addWaitSampleClassify').value,
                 remark: document.getElementById('addSampleRemark').value
             };
-
-            // 这里可以添加发送请求保存新数据的逻辑
-            console.log('新增项目数据:', newTaskData);
 
             // 发送 POST 请求到后端
             fetch('/scheduleBoard/addProjectCard', {
@@ -1737,6 +1739,31 @@
         });
     });
 
+    function loadTrashListAndShowModal() {
+        fetch('/scheduleBoard/getTrashList')
+            .then(response => response.json())
+            .then(trashedProjects => {
+                const listModal = document.getElementById('trashListModal');
+                const listContainer = document.getElementById('trashProjectList');
+                listContainer.innerHTML = '';
+
+                trashedProjects.forEach(project => {
+                    const li = document.createElement('li');
+                    li.textContent = project.sample_name;
+                    li.style.cursor = 'pointer';
+                    li.style.margin = '5px 0';
+                    li.addEventListener('click', () => showProjectDetail(project));
+                    listContainer.appendChild(li);
+                });
+
+                listModal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error("获取作废项目失败：", error);
+                alert("加载作废项目失败");
+            });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const trashStation = document.getElementById('trashStation');
 
@@ -1750,6 +1777,9 @@
             e.preventDefault();
             const sampleId = e.dataTransfer.getData('project-sample_id');
             if (sampleId) {
+                if (!confirm("确定要删除该项目吗？")) {
+                    return;
+                }
                 // 调用删除接口
                 deleteProject(sampleId);
 
@@ -1790,28 +1820,7 @@
         trashStation.addEventListener('contextmenu', function (e) {
             e.preventDefault();
 
-            fetch('/scheduleBoard/getTrashList')
-                .then(response => response.json())
-                .then(trashedProjects => {
-                    const listModal = document.getElementById('trashListModal');
-                    const listContainer = document.getElementById('trashProjectList');
-                    listContainer.innerHTML = '';
-
-                    trashedProjects.forEach(project => {
-                        const li = document.createElement('li');
-                        li.textContent = project.sample_name;
-                        li.style.cursor = 'pointer';
-                        li.style.margin = '5px 0';
-                        li.addEventListener('click', () => showProjectDetail(project));
-                        listContainer.appendChild(li);
-                    });
-
-                    listModal.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error("获取作废项目失败：", error);
-                    alert("加载作废项目失败");
-                });
+            loadTrashListAndShowModal();
         });
     });
 
@@ -1819,9 +1828,6 @@
     // 定义删除项目的函数
     // 定义删除项目的函数，带确认框和可选的删除理由
     function deleteProject(sampleId) {
-        if (!confirm("确定要删除该项目吗？")) {
-            return;
-        }
 
         const reason = prompt("请输入删除理由（可选）：");
 
@@ -1875,6 +1881,31 @@
 
         // 显示详情弹窗
         document.getElementById('projectDetailModal').style.display = 'block';
+    }
+
+    function recoverProject() {
+        const sampleId = document.getElementById('detail_sample_id').textContent;
+
+        fetch('/scheduleBoard/recoverProject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sample_id: sampleId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || '恢复成功');
+                document.getElementById('projectDetailModal').style.display = 'none';
+                loadProjectPoolData();
+                loadPendingSamplePoolData();
+
+                loadTrashListAndShowModal();
+            })
+            .catch(error => {
+                console.error('恢复失败:', error);
+                alert('恢复失败');
+            });
     }
 
 </script>

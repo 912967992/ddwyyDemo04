@@ -665,5 +665,9 @@ public class TestManIndexService {
         return testManDao.getTrashedProjects();
     }
 
+    public boolean recoverProjectById(String sample_id){
+        return testManDao.recoverProjectById(sample_id);
+    }
+
 
 }
