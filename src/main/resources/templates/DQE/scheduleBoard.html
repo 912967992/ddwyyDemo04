@@ -16,7 +16,7 @@
             <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
             <!-- 新增垃圾站区域 -->
             <div id="trashStation">
-                <h3>垃圾站(右键可查看作废项目)</h3>
+                <h3>回收站(右键可查看作废项目)</h3>
                 <div id="trashContent"></div>
             </div>
         </h2>
@@ -77,8 +77,12 @@
         <!-- 新增变更记录按钮 -->
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3>项目详情</h3>
-            <button id="changeLogBtn">变更记录</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="changeLogBtn">变更记录</button>
+                <button id="infoCloseBtn">关闭</button>
+            </div>
         </div>
+
         <div id="modalBody"></div>
 
         <div style="margin-top: 10px;">
@@ -118,7 +122,6 @@
             <button id="saveRemarkBtn">保存备注</button>
         </div>
 
-        <button id="closeBtn">关闭</button>
     </div>
 </div>
 
@@ -370,7 +373,7 @@
         loadPendingSamplePoolData();
 
         // 模态框关闭
-        document.getElementById('closeBtn').onclick = function () {
+        document.getElementById('infoCloseBtn').onclick = function () {
             document.getElementById('modal').style.display = 'none';
         };
         document.getElementById('modal').onclick = function (e) {
@@ -440,7 +443,66 @@
             document.getElementById('modal').style.display = 'block';
 
         };
+
+        // 添加点击事件监听
+        card.addEventListener('click', () => {
+            checkSimilarCodes(card);
+        });
+
+
     }
+
+
+    // 让卡片闪烁的方法
+    function blinkCards(cards) {
+        const blinkInterval = 500; // 闪烁间隔（毫秒）
+        const blinkCount = 3; // 闪烁次数
+        let count = 0;
+        const intervalId = setInterval(() => {
+            cards.forEach(card => {
+                card.style.opacity = card.style.opacity === '0.5' ? '1' : '0.5';
+            });
+            count++;
+            if (count >= blinkCount * 2) {
+                clearInterval(intervalId);
+                cards.forEach(card => {
+                    card.style.opacity = '1';
+                });
+            }
+        }, blinkInterval);
+    }
+
+    // 检查大编码是否相似的方法
+    function checkSimilarCodes(clickedCard) {
+        const clickedLargeCode = clickedCard.getAttribute('data-sample_model');
+        const allProjectCards = document.querySelectorAll('.project-card');
+        const allScheduleCells = document.querySelectorAll('#scheduleBoardTable td[data-sample_model]');
+        const similarElements = [];
+
+        // 检查项目卡片
+        allProjectCards.forEach(card => {
+            if (card !== clickedCard) {
+                const currentLargeCode = card.getAttribute('data-sample_model');
+                if (currentLargeCode === clickedLargeCode) {
+                    similarElements.push(card);
+                }
+            }
+        });
+
+        // 检查排期面板单元格
+        allScheduleCells.forEach(cell => {
+            const currentLargeCode = cell.getAttribute('data-sample_model');
+            if (currentLargeCode === clickedLargeCode) {
+                similarElements.push(cell);
+            }
+        });
+
+        if (similarElements.length > 0) {
+            similarElements.push(clickedCard);
+            blinkCards(similarElements);
+        }
+    }
+
 
     function saveScheduleAndColor(card, item) {
         const days = document.getElementById('scheduleDays').value;
@@ -1612,6 +1674,11 @@
                         const originalStartIndex = originalRowCells.indexOf(originalCell);
                         handleUndo(originalRowCells, originalStartIndex, taskData, container);
                     } else {
+                        // 新增：检查目标容器是否已经存在该卡片
+                        const existingCardInTarget = container.querySelector(`[data-sample_id="${taskData.sample_id}"]`);
+                        if (existingCardInTarget) {
+                            existingCardInTarget.remove();
+                        }
                         // 直接从其他池子拖拽过来，创建新卡片
                         const newCard = document.createElement('div');
                         newCard.className = 'project-card';
@@ -1655,12 +1722,37 @@
                 });
 
                 // 为容器中的卡片添加 dragstart 事件，记录来源容器
+                // container.addEventListener('dragstart', e => {
+                //     const target = e.target.closest('.project-card');
+                //     if (target) {
+                //         e.dataTransfer.setData('project-from_container', container.id);
+                //     }
+                // });
+
+                // 添加判断，禁止用户拖着文字
                 container.addEventListener('dragstart', e => {
-                    const target = e.target.closest('.project-card');
-                    if (target) {
-                        e.dataTransfer.setData('project-from_container', container.id);
+                    let target = e.target;
+
+                    // 如果是文本节点，则获取其父元素
+                    if (target.nodeType === Node.TEXT_NODE) {
+                        target = target.parentElement;
                     }
+
+                    // 只允许拖拽 project-card 元素，其他不允许
+                    const card = target.closest('.project-card');
+
+                    // 如果拖拽目标不是 .project-card，则不允许
+                    if (!card || window.getSelection().toString().trim()) {
+                        e.preventDefault(); // 阻止拖拽
+                        console.log('只允许拖拽单个卡片，不能拖拽多项或文字！');
+                        return;
+                    }
+
+                    e.dataTransfer.setData('project-from_container', container.id);
                 });
+
+
+
             }
         });
     }
@@ -1830,6 +1922,8 @@
 
             loadTrashListAndShowModal();
         });
+
+
     });
 
 
@@ -1858,10 +1952,7 @@
             })
             .then(result => {
                 if (result.success) {
-                    alert('项目删除成功');
-                    loadProjectPoolData();
-                    loadPendingSamplePoolData();
-                    refreshSchedule();
+                    alert(result.message);
                 } else {
                     alert(result.message || '项目删除失败');
                 }
@@ -1905,6 +1996,20 @@
             .then(data => {
                 alert(data.message || '恢复成功');
                 document.getElementById('projectDetailModal').style.display = 'none';
+                // 确保加载数据前清除可能的重复数据
+                const projectPool = document.getElementById('projectPool');
+                projectPool.innerHTML = ''; // 新增：清空项目池子内容
+                const pendingSampleContainers = [
+                    'videoSamplePool',
+                    'wireSamplePool',
+                    'dataSamplePool',
+                    'bluetoothSamplePool',
+                    'highFrequencySamplePool'
+                ];
+                pendingSampleContainers.forEach(id => {
+                    const container = document.getElementById(id);
+                    container.innerHTML = ''; // 新增：清空待送样池子内容
+                });
                 loadProjectPoolData();
                 loadPendingSamplePoolData();
 

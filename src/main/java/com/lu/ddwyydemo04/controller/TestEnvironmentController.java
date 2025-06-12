@@ -854,7 +854,6 @@ public class TestEnvironmentController {
     @ResponseBody
     public List<TrashProject> getTrashedProjects() {
         List<TrashProject> trashProjects = testManIndexService.getTrashedProjects();
-        System.out.println("trashProjects:"+trashProjects);
         return trashProjects;
     }
 
