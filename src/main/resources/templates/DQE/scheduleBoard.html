@@ -403,7 +403,12 @@
 
             // 设置模态框内容
             document.getElementById('modalBody').innerHTML = `
-            <p><strong>电气编号：</strong>${item.sample_id}</p>
+            <!--            <p><strong>电气编号：</strong>${item.sample_id}</p>-->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <p><strong>电气编号：</strong></p>
+                <input type="text" id="editSampleId" value="${item.sample_id}">
+                <button id="editSampleIdBtn">修改</button>
+            </div>
             <p><strong>项目名称：</strong>${item.sample_name}</p>
             <p><strong>大小编码：</strong>${item.sample_model + ' ' + item.materialCode}</p>
             <p><strong>产品类别：</strong>${item.sample_category}</p>
@@ -441,6 +446,38 @@
 
 
             document.getElementById('modal').style.display = 'block';
+
+            // 绑定修改电气编号按钮点击事件
+            document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+                const newSampleId = document.getElementById('editSampleId').value;
+                const oldSampleId = item.sample_id;
+
+                // 发送请求到控制层
+                fetch('/scheduleBoard/updateElectricSampleId', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        oldSampleId: oldSampleId,
+                        newSampleId: newSampleId
+                    })
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert(result.message);
+                            item.sample_id = newSampleId; // 更新本地数据
+                            // 可以在这里更新页面上相关显示
+                        } else {
+                            alert('result.message');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('修改电气编号时出错:', error);
+                        alert('修改电气编号时出错，请稍后重试');
+                    });
+            });
 
         };
 
@@ -1750,8 +1787,6 @@
 
                     e.dataTransfer.setData('project-from_container', container.id);
                 });
-
-
 
             }
         });

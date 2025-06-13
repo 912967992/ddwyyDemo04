@@ -12,10 +12,11 @@
     </select>
 
 
-    <insert id="insertSample">
-        insert into samples(tester ,tester_teamwork,filepath,sample_model,sample_coding,full_model,sample_category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,planTestDuration,scheduleStartTime,scheduleEndTime,scheduleTestCycle)
-        values(#{tester}, #{tester} , #{filepath},#{model}, #{coding}, #{full_model} , #{category} , #{version} ,#{sample_name} ,#{create_time},#{sample_schedule},#{sample_frequency},#{sample_quantity}, #{big_species}, #{small_species} ,#{high_frequency} ,#{questStats} ,
-               #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle})
+    <insert id="insertSample" parameterType="Samples"
+            useGeneratedKeys="true" keyProperty="sample_id">
+        insert into samples(tester ,tester_teamwork,filepath,sample_model,sample_coding,full_model,sample_category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,planTestDuration,scheduleStartTime,scheduleEndTime,scheduleTestCycle,electric_sample_id)
+        values(#{tester}, #{tester} , #{filepath},#{sample_model}, #{sample_coding}, #{full_model} , #{sample_category} , #{version} ,#{sample_name} ,#{create_time},#{sample_schedule},#{sample_frequency},#{sample_quantity}, #{big_species}, #{small_species} ,#{high_frequency} ,#{questStats} ,
+               #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle} ,#{electric_sample_id})
     </insert>
 
     <select id = "querySample" resultType="String">

@@ -803,7 +803,7 @@ public class AccessTokenService {
         groupMap.put("刘鹏飞", "蓝牙组");
         groupMap.put("段平", "蓝牙组");
         groupMap.put("罗清虎", "蓝牙组");
-        groupMap.put("阮晓晴", "耳机组");
+        groupMap.put("阮晓晴", "蓝牙组");
         groupMap.put("官旺华", "耳机组");
         groupMap.put("廖建伟", "高频组");
         groupMap.put("蔡义会", "高频组");

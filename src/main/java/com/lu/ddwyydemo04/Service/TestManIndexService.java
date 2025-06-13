@@ -668,6 +668,11 @@ public class TestManIndexService {
     public boolean recoverProjectById(String sample_id){
         return testManDao.recoverProjectById(sample_id);
     }
+    public boolean updateElectricSampleId(String oldSample_id,String newSample_id){
+        return testManDao.updateElectricSampleId(oldSample_id,newSample_id);
+    }
 
-
+    public boolean updateSamplesElectircid(String oldSample_id,String newSample_id){
+        return testManDao.updateSamplesElectircid(oldSample_id,newSample_id);
+    }
 }

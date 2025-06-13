@@ -357,8 +357,8 @@ public class testManIndexController {
             String testNumber = testManIndexService.queryElectricIdByActualId(sample_id);
             int isExist = testManIndexService.queryElectricalCode(edit_electric_id);
 
-            System.out.println("testNumber:"+testNumber);
-            System.out.println("isExist:"+isExist);
+//            System.out.println("testNumber:"+testNumber);
+//            System.out.println("isExist:"+isExist);
             if(isExist>0){
                 sample.setElectric_sample_id(edit_electric_id);
                 if(testNumber!=null){
@@ -1693,10 +1693,10 @@ public class testManIndexController {
 
             // 判断是否包含多个，用逗号分隔
             String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
-            System.out.println("scheduleStartTune:"+scheduleStartTune);
-            System.out.println("scheduleEndTune:"+scheduleEndTune);
-            System.out.println("scheduleTestCycle:"+scheduleTestCycle);
-            System.out.println(String.format("codeEntries: %s", codeEntries));
+//            System.out.println("scheduleStartTune:"+scheduleStartTune);
+//            System.out.println("scheduleEndTune:"+scheduleEndTune);
+//            System.out.println("scheduleTestCycle:"+scheduleTestCycle);
+//            System.out.println(String.format("codeEntries: %s", codeEntries));
 
             for (String codeEntry : codeEntries) {
                 String trimmed = codeEntry.trim(); // 去空格
@@ -1713,7 +1713,7 @@ public class testManIndexController {
                         String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
-                        System.out.println("filePath:"+filePath);
+//                        System.out.println("filePath:"+filePath);
 
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");

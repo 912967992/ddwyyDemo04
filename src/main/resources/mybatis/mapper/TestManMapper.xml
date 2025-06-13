@@ -991,12 +991,12 @@
             tester, tester_teamwork, filepath, sample_model, sample_coding, full_model,
             sample_category, version, sample_name, create_time, sample_schedule,
             sample_frequency, sample_quantity, big_species, small_species, high_frequency,
-            questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle
+            questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle,electric_sample_id
         ) VALUES (
                      #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model},
                      #{sample_category}, #{version}, #{sample_name}, NOW(), '0',
                      #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency},
-                     #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}
+                     #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}, #{electric_sample_id}
                  )
     </insert>
 
@@ -1105,5 +1105,16 @@
             sample_id = #{sample_id}
     </update>
 
+    <update id="updateElectricSampleId">
+        UPDATE electric_info
+        SET sample_id = #{newSample_id}
+        WHERE sample_id = #{oldSample_id}
+    </update>
+
+    <update id="updateSamplesElectircid">
+        UPDATE samples
+        SET electric_sample_id = #{newElectric_sample_id}
+        WHERE electric_sample_id = #{oldElectric_sample_id}
+    </update>
 
 </mapper>

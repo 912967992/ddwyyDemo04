@@ -874,6 +874,30 @@ public class TestEnvironmentController {
         return result;
     }
 
+    @PostMapping("/scheduleBoard/updateElectricSampleId")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateElectricSampleId(@RequestBody Map<String, String> request) {
+        String oldSampleId = request.get("oldSampleId");
+        String newSampleId = request.get("newSampleId");
+
+        // 1. 先判断原来的电气编号是否含有XZ， 是的话则继续判断是否存在新的电气编号，然后把新的数据迁移过去给原来的，之后删了新的原来的数据。
+
+        Map<String, Object> response = new HashMap<>();
+        boolean updateElectricSampleId = testManIndexService.updateElectricSampleId(oldSampleId,newSampleId);
+        boolean updateSamplesElectircid = testManIndexService.updateSamplesElectircid(oldSampleId,newSampleId);
+
+        if (updateElectricSampleId && updateSamplesElectircid) {
+            response.put("success", true);
+            response.put("message", "电气编号修改成功");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("success", false);
+            response.put("message", "未找到对应的样本记录");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+
 
 
 }

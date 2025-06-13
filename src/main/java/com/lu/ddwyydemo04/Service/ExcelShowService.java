@@ -11,6 +11,7 @@ import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.SamplesDao;
 import com.lu.ddwyydemo04.exceptions.ExcelOperationException;
 import com.lu.ddwyydemo04.pojo.MergedCellInfo;
+import com.lu.ddwyydemo04.pojo.Samples;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Shape;
@@ -58,6 +59,9 @@ public class ExcelShowService {
 
     @Value("${file.storage.jsonpath}")
     private String jsonpath;
+
+    @Autowired
+    private TestManIndexService testManIndexService;
 
     private Path getImageLocationC(){
         return Paths.get(imagepath.replace("/","\\"));
@@ -294,7 +298,7 @@ public class ExcelShowService {
             int numberOfSheets = workbook.getNumberOfSheets();
             for (int i = 0; i < numberOfSheets; i++) {
                 String sheetName = workbook.getSheetName(i); // 获取工作表名字
-                System.out.println("解析了工作表名字:" + sheetName);
+//                System.out.println("解析了工作表名字:" + sheetName);
                 List<List<Object>> sheetData = getSheetData(sheetName, workbook, filepath); // 将 workbook 传入
                 allSheetData.add(sheetData);
             }
@@ -1260,7 +1264,7 @@ public class ExcelShowService {
 
     public int insertSample(String tester, String filepath, String model, String coding, String category, String version, String sample_name,String create_time,String sample_schedule,int sample_frequency,int sample_quantity,
                             String big_species,String small_species,String high_frequency,String questStats,
-                            String scheduleStartTime,String scheduleEndTime,String scheduleTestCycle) {
+                            String scheduleStartTime,String scheduleEndTime,String scheduleTestCycle, String electric_sample_id) {
         String full_model = model + " " + coding;
 
         // 定义日期时间格式
@@ -1295,8 +1299,41 @@ public class ExcelShowService {
 
         System.out.println("adjustedWorkDays:" + adjustedWorkDays);
 
-        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,adjustedWorkDays,
-                formattedScheduleStartTime,formattedScheduleEndTime,scheduleTestCycle);
+        Samples sample = new Samples();
+        LocalDateTime now = LocalDateTime.now();
+        sample.setCreate_time(now);
+        sample.setFilepath(filepath);
+        sample.setSample_model(model);
+        sample.setFull_model(full_model);
+        sample.setSample_coding(coding);
+        sample.setSample_category(category);
+        sample.setVersion(version);
+        sample.setSample_name(sample_name);
+        sample.setSample_frequency(sample_frequency);
+        sample.setSample_quantity(sample_quantity);
+        sample.setQuestStats(questStats);
+        sample.setScheduleStartTime(scheduleStartTime);
+        sample.setScheduleEndTime(scheduleEndTime);
+        sample.setScheduleTestCycle(scheduleTestCycle);
+        sample.setElectric_sample_id(electric_sample_id);
+        sample.setBig_species(big_species);
+        sample.setSmall_species(small_species);
+        sample.setHigh_frequency(high_frequency);
+        sample.setSample_schedule(sample_schedule);
+        sample.setTester(tester);
+
+
+        int insertSample = samplesDao.insertSample(sample);
+
+        System.out.println("sample.getSample_id():"+sample.getSample_id());
+        if(insertSample>0){
+            int updateActualSampleId = testManIndexService.updateActualSampleId(electric_sample_id, sample.getSample_id());
+            System.out.println("updateActualSampleId:"+updateActualSampleId);
+        }
+
+//        return samplesDao.insertSample(tester,filepath,model,coding,full_model,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,adjustedWorkDays,
+//                formattedScheduleStartTime,formattedScheduleEndTime,scheduleTestCycle,electric_sample_id);
+        return insertSample;
     }
 
     public List<String> querySample(String model,String coding,String high_frequency){

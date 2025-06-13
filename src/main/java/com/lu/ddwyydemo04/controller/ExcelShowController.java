@@ -2,7 +2,9 @@ package com.lu.ddwyydemo04.controller;
 
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 
+import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
+import com.lu.ddwyydemo04.pojo.Samples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,11 @@ public class ExcelShowController {
     @Autowired
     private ExcelShowService excelShowService;
 
+
+    @Autowired
+    private TestManIndexService testManIndexService;
+
+
     @Value("${file.storage.templatespath}")
     private String templatesPath;
 
@@ -58,6 +65,7 @@ public class ExcelShowController {
     @ResponseBody
     public List<String> queryExist(@RequestBody Map<String, String> payload){
         String username = payload.get("username");
+
         if (username == null){
             throw new SessionTimeoutException("会话已超时，请重新登录");
         }
@@ -83,6 +91,9 @@ public class ExcelShowController {
         String scheduleEndTime = payload.get("scheduleEndTime");
         String scheduleTestCycle = payload.get("scheduleTestCycle");
 
+        String electric_sample_id = payload.get("electric_sample_id");
+//        System.out.println("electric_sample_id:"+electric_sample_id);
+
         int sample_frequency =  Integer.parseInt(sample_frequencyStr.trim()); // 使用trim()去除可能的前后空格
         int sample_quantity =  Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
 
@@ -90,8 +101,18 @@ public class ExcelShowController {
         String small_species = payload.get("small_species");
         String high_frequency = payload.get("high_frequency");
 
+        // 如果 electric_sample_id 不是 null 且不是空字符串，才进行 isExist 判断
+        if (electric_sample_id != null && !electric_sample_id.trim().isEmpty()) {
+            int isExist = testManIndexService.queryElectricalCode(electric_sample_id);
+            if (isExist == 0) {
+                List<String> errorList = new ArrayList<>();
+                errorList.add("找不到这个电气编号，请确认输入是否正确！");
+                return errorList;
+            }
+        }
 
         String sample_schedule = "0";
+
         List<String> filepaths = new ArrayList<>();
         //判断samples数据库是否已存在该型号类别版本的文件
         int countSample = excelShowService.sampleCount(model,coding,category,version,sample_frequency,big_species,small_species,high_frequency,questStats);
@@ -100,15 +121,19 @@ public class ExcelShowController {
             filepaths.add("已经存在这个型号版本类别的测试报告了，不能再创建！");
         }else{
             int otherCountSample = excelShowService.sampleOtherCount(model,coding,high_frequency);
+
             if (otherCountSample>0){
                 filepaths = excelShowService.querySample(model,coding,high_frequency);
             }else{
                 String newFilepath = copyFile(filepath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
+
                 excelShowService.insertSample(username ,newFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,
-                        big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
+                        big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,electric_sample_id);
+
                 filepaths.add(newFilepath);
             }
         }
+
 
         return filepaths;
     }
@@ -151,7 +176,9 @@ public class ExcelShowController {
                                       @RequestParam String category, @RequestParam String version, @RequestParam String sample_name,
                                       @RequestParam String username,@RequestParam String sample_frequencyStr,@RequestParam String sample_quantityStr,
                                       @RequestParam String big_species, @RequestParam String small_species,@RequestParam String high_frequency,@RequestParam String questStats,
-                                      @RequestParam String scheduleStartTime,@RequestParam String scheduleEndTime,@RequestParam String scheduleTestCycle){
+                                      @RequestParam String scheduleStartTime,@RequestParam String scheduleEndTime,@RequestParam String scheduleTestCycle,
+                                      @RequestParam String electric_sample_id){
+        System.out.println("electric_sample_id:"+electric_sample_id);
         if (username == null){
             throw new SessionTimeoutException("会话已超时，请重新登录");
         }
@@ -169,7 +196,7 @@ public class ExcelShowController {
 
         String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
         excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,
-                scheduleStartTime,scheduleEndTime,scheduleTestCycle);
+                scheduleStartTime,scheduleEndTime,scheduleTestCycle,electric_sample_id);
         return  new ModelAndView("redirect:/excelShow")
                 .addObject("filePath", copyFilepath);
     }

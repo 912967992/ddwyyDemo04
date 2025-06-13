@@ -201,7 +201,7 @@
     <!-- 模态框结构 -->
     <div id="testIssuesModal" class="problemModal">
         <div class="problemModal-content">
-            <span class="close">&times;</span>
+            <span class="close-problem">&times;</span>
             <div id="testIssuesContent"></div>
         </div>
     </div>
@@ -287,6 +287,10 @@
                 <option value="是">是</option>
                 <option value="否">否</option>
             </select>
+
+            <!--   20250612新增电气编号为必填项-->
+            <label for="electric_sample_id">电气编号:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="text" id="electric_sample_id" name="electric_sample_id"  placeholder="请去IT提单新系统查找对应的电气编号，例如ET2505150001">
 
             <button type="submit">提交</button>
 
@@ -720,6 +724,8 @@
             var small_species = $('#small_species').val();
             var high_frequency = $('#high_frequency').val();
             var questStats = $('#questStats').val();
+            var electric_sample_id = $('#electric_sample_id').val();
+
 
             // 清理sample_name，替换特殊字符
             // sample_name = sample_name.replace(/[\/\\]/g, "_");
@@ -752,10 +758,17 @@
                     username: username,
                     scheduleStartTime: scheduleStartTime,
                     scheduleEndTime: scheduleEndTime,
-                    scheduleTestCycle: scheduleTestCycle
+                    scheduleTestCycle: scheduleTestCycle,
+                    electric_sample_id: electric_sample_id
 
                 }),
                 success: function (filepaths) {
+                    // 判断是否有错误提示
+                    if (filepaths.length === 1 && filepaths[0].includes("找不到这个电气编号")) {
+                        alert(filepaths[0]); // 或使用你自己的弹窗组件显示错误
+                        return; // 停止后续逻辑
+                    }
+
                     let high_sign = "";
                     if(high_frequency === "是"){
                         high_sign = "高频_";
@@ -787,10 +800,12 @@
                                 window.location.href = redirectUrl;
                             }else{
                                 // addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
-                                addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
+                                addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,
+                                    electric_sample_id);
                             }
                         }else{
-                            addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle);
+                            addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,
+                                electric_sample_id);
                         }
                     }
 
@@ -805,7 +820,8 @@
     });
 
 
-    function addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequencyStr,sample_quantityStr,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle){
+    function addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequencyStr,sample_quantityStr,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,
+                           electric_sample_id){
         var existModalContent = document.querySelector('.existModal-content');
         existModalContent.innerHTML = '<span class="close">&times;</span><h2>已存在其他版本的文件</h2>';
         var existModal = document.getElementById("existModal");
@@ -843,7 +859,8 @@
                 + '&questStats=' + encodeURIComponent(questStats)
                 + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
                 + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle);
+                + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
+                + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
 
             if (redirectUrl.indexOf('?') !== -1) {
                 redirectUrl += '&dd_orientation=landscape';
@@ -888,7 +905,8 @@
                     + '&questStats=' + encodeURIComponent(questStats)
                     + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
                     + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                    + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle);
+                    + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
+                    + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
 
 // Check if the URL already contains a query string (i.e., '?')
                 if (redirectUrl.indexOf('?') !== -1) {
@@ -1004,6 +1022,9 @@
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
                                 <option value="卢健">卢健</option>
+                                <option value="陈培根">陈培根</option>
+                                <option value="冯兴旺">冯兴旺</option>
+                                <option value="郭喆">郭喆</option>
                                 <option value="游宏">游宏</option>
                                 <option value="殷嘉俊">殷嘉俊</option>
                                 <option value="唐日顺">唐日顺</option>
@@ -1030,6 +1051,7 @@
 <!--                                <option value="蓝明城">蓝明城</option>-->
                                 <option value="廖建伟">廖建伟</option>
                                 <option value="蔡义会">蔡义会</option>
+
                             </select>
                             <label for="edit_electric_id">IT提单系统测试编号:</label>
                             <input type="text" id="edit_electric_id" name="edit_electric_id"
@@ -2706,8 +2728,10 @@
                     document.removeEventListener('keydown', handleEscapeKey);
                 };
 
-                const span = document.getElementsByClassName('close')[0];
-                span.onclick = closeModal;
+                const span = document.getElementsByClassName('close-problem')[0];
+                if (span) {
+                    span.onclick = closeModal;
+                }
 
                 // 重置编辑状态
                 isEditing = false; // 在请求完成后重置状态

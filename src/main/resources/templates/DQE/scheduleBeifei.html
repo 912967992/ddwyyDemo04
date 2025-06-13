@@ -11,7 +11,15 @@
 
 <div class="pool-container">
   <div id="projectList" class="project-container">
-    <h2>项目池子</h2>
+    <h2>项目池子
+      <!-- 新增项目按钮 -->
+      <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
+      <!-- 新增垃圾站区域 -->
+      <div id="trashStation">
+        <h3>回收站(右键可查看作废项目)</h3>
+        <div id="trashContent"></div>
+      </div>
+    </h2>
     <div id="projectPool">加载中...</div>
   </div>
   <div class="pending-sample-container">
@@ -69,8 +77,12 @@
     <!-- 新增变更记录按钮 -->
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3>项目详情</h3>
-      <button id="changeLogBtn">变更记录</button>
+      <div style="display: flex; gap: 10px;">
+        <button id="changeLogBtn">变更记录</button>
+        <button id="infoCloseBtn">关闭</button>
+      </div>
     </div>
+
     <div id="modalBody"></div>
 
     <div style="margin-top: 10px;">
@@ -79,8 +91,7 @@
       <button id="saveScheduleBtn">确定排期</button>
     </div>
 
-    <!-- 添加颜色选择功能 -->
-    <!-- 添加颜色选择功能 -->
+
     <!-- 添加颜色选择功能 -->
     <div style="margin-top: 10px;">
       <label><strong>设置颜色：</strong></label>
@@ -111,7 +122,6 @@
       <button id="saveRemarkBtn">保存备注</button>
     </div>
 
-    <button id="closeBtn">关闭</button>
   </div>
 </div>
 
@@ -123,9 +133,46 @@
     <strong>更新时间：</strong> {{updateTime}}<br>
     <strong>颜色：</strong> <span style="color: {{color}};">{{color}}</span><br>
     <strong>是否使用：</strong> {{used}}<br>
+    <strong>备注：</strong> {{remark}}<br>
   <hr>
   </p>
 </template>
+
+<!-- 新增项目模态框 -->
+<div id="addProjectModal" style="display: none;">
+  <div id="addProjectModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>新增项目</h3>
+      <button id="closeAddProjectModalBtn">关闭</button>
+    </div>
+    <div id="addProjectModalBody">
+      <p><strong>项目名称(<span class="required">*</span>)：</strong><input type="text" id="addSampleName" required></p>
+      <p><strong>大小编码(<span class="required">*</span>)：</strong><input type="text" id="addSampleModel" required> <input type="text" id="addMaterialCode" required></p>
+      <p><strong>项目负责人(<span class="required">*</span>)：</strong><input type="text" id="addSampleLeader" required></p>
+      <p><strong>排期天数(<span class="required">*</span>)：</strong><input type="number" id="addScheduleDays" required></p>
+      <p><strong>设置颜色(<span class="required">*</span>)：</strong></p>
+      <label>
+        <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
+      </label>
+      <label>
+        <input type="radio" id="addColorGray" name="addScheduleColor" value="gray"> 灰色
+      </label>
+      <label>
+        <input type="radio" id="addColorGreen" name="addScheduleColor" value="green"> 绿色
+      </label>
+      <label>
+        <input type="radio" id="addColorYellow" name="addScheduleColor" value="yellow"> 黄色
+      </label>
+      <label>
+        <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
+      </label>
+      </p>
+      <p><strong>放池子分类（选填）：</strong><input type="text" id="addWaitSampleClassify"></p>
+      <p><strong>送样备注（选填）：</strong><input type="text" id="addSampleRemark"></p>
+    </div>
+    <button id="saveNewProjectBtn">保存项目</button>
+  </div>
+</div>
 
 
 <div id="contextMenu" class="context-menu">
@@ -138,7 +185,46 @@
   <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
 </div>
 
+<!-- 作废项目列表模态框 -->
+<div id="trashListModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1000;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>作废项目列表</h3>
+    <button id="trashListCloseBtn" onclick="document.getElementById('trashListModal').style.display='none'">关闭</button>
+  </div>
+  <ul id="trashProjectList" style="list-style:none; padding:0;"></ul>
+</div>
+
+
+<!-- 详情内容模态框 -->
+<div id="projectDetailModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1001;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>项目详细信息</h3>
+    <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+  </div>
+
+  <p><strong>电气编号：</strong><span id="detail_sample_id"></span></p>
+  <p><strong>项目名称：</strong><span id="detail_sample_name"></span></p>
+  <p><strong>大小编码：</strong><span id="detail_sizecoding"></span></p>
+  <p><strong>项目负责人：</strong><span id="detail_sample_leader"></span></p>
+  <p><strong>排期天数：</strong><span id="detail_scheduleDays"></span></p>
+  <p><strong>颜色：</strong><span id="detail_schedule_color"></span></p>
+  <p><strong>放池子分类：</strong><span id="detail_waitSample_classify"></span></p>
+  <p><strong>送样备注：</strong><span id="detail_remark"></span></p>
+  <p><strong>作废人：</strong><span id="detail_cancel_by"></span></p>
+  <p><strong>作废工号：</strong><span id="detail_job_number"></span></p>
+  <p><strong>作废时间：</strong><span id="detail_cancel_date"></span></p>
+  <p><strong>作废理由：</strong><span id="detail_cancel_reason"></span></p>
+
+  <button id="recoverBtn" onclick="recoverProject()">恢复</button>
+</div>
+
+
+
+
 <script>
+  const username = sessionStorage.getItem('username');
+  // const username = "卢健";
+
   let localScheduleChanges = [];
   const contextMenu = document.getElementById('contextMenu');
   let currentRightClickCell = null;
@@ -174,12 +260,12 @@
 
 
 
-  // 设置拖拽，拖拽进去的时候，如果排期天数没有设置，则不允许拖拽
+  // 设置拖拽
   function setDraggable(projectEl, isProject) {
     projectEl.addEventListener('dragstart', e => {
       const sampleModel = projectEl.getAttribute('data-sample_model');
       const materialCode = projectEl.getAttribute('data-materialCode');
-      e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode} `+projectEl.getAttribute('data-sample_leader').charAt(0));
+      e.dataTransfer.setData('project-sizecoding', `${sampleModel} ${materialCode} `+projectEl.getAttribute('data-sample_leader').charAt(0) + " "+projectEl.getAttribute('data-remark'));
       e.dataTransfer.setData('project-days', projectEl.getAttribute('data-schedule_days'));
       e.dataTransfer.setData('project-sample_id', projectEl.getAttribute('data-sample_id'));
       e.dataTransfer.setData('project-sample_name', projectEl.getAttribute('data-sample_name'));
@@ -194,12 +280,12 @@
       e.dataTransfer.setData('project-test_projects', projectEl.getAttribute('data-test_projects'));
       e.dataTransfer.setData('project-schedule', projectEl.getAttribute('data-schedule'));
       e.dataTransfer.setData('project-create_time', projectEl.getAttribute('data-create_time'));
-      // e.dataTransfer.setData('project-schedule_days', projectEl.getAttribute('data-schedule_days'));
       e.dataTransfer.setData(
               'project-schedule_days',
               projectEl.getAttribute('data-schedule_days') ?? '1'
       );
       e.dataTransfer.setData('project-schedule_color', projectEl.getAttribute('data-schedule_color'));
+      e.dataTransfer.setData('project-remark', projectEl.getAttribute('data-remark'));
 
     });
     if(isProject){
@@ -252,9 +338,9 @@
 
       const scheduleColor = item.schedule_color || 'null';
       card.classList.add(scheduleColor);
-      card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
+      card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " + item.remark + " " +"(" + item.scheduleDays + "天)" ;
 
-      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
+      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " "+item.remark );
       card.setAttribute('data-sample_id', item.sample_id || '');
       card.setAttribute('data-sample_name', item.sample_name || '');
       card.setAttribute('data-sample_model', item.sample_model || '');
@@ -270,6 +356,7 @@
       card.setAttribute('data-create_time', item.create_time || '');
       card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
       card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+      card.setAttribute('data-remark', item.remark != null ? item.remark : '');
       card.setAttribute('draggable', 'true');
 
       setDraggable(card, true);
@@ -286,7 +373,7 @@
     loadPendingSamplePoolData();
 
     // 模态框关闭
-    document.getElementById('closeBtn').onclick = function () {
+    document.getElementById('infoCloseBtn').onclick = function () {
       document.getElementById('modal').style.display = 'none';
     };
     document.getElementById('modal').onclick = function (e) {
@@ -338,6 +425,8 @@
         colorRadio.checked = true;
       }
 
+      document.getElementById('sampleRemark').value = item.remark;
+
       document.getElementById('saveScheduleBtn').onclick = function () {
         saveScheduleAndColor(card,item);
       };
@@ -346,31 +435,93 @@
         saveScheduleAndColor(card,item);
       };
 
+      document.getElementById('saveRemarkBtn').onclick = function () {
+        saveScheduleAndColor(card,item);
+      };
+
 
       document.getElementById('modal').style.display = 'block';
 
     };
+
+    // 添加点击事件监听
+    card.addEventListener('click', () => {
+      checkSimilarCodes(card);
+    });
+
+
   }
 
-  function saveScheduleAndColor(card,item) {
-    const days = document.getElementById('scheduleDays').value;
-    // if (!days || isNaN(days) || days < 0) {
-    //     alert("请输入有效的排期天数！");
-    //     return;
-    // }
 
-    const selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
+  // 让卡片闪烁的方法
+  function blinkCards(cards) {
+    const blinkInterval = 500; // 闪烁间隔（毫秒）
+    const blinkCount = 3; // 闪烁次数
+    let count = 0;
+    const intervalId = setInterval(() => {
+      cards.forEach(card => {
+        card.style.opacity = card.style.opacity === '0.5' ? '1' : '0.5';
+      });
+      count++;
+      if (count >= blinkCount * 2) {
+        clearInterval(intervalId);
+        cards.forEach(card => {
+          card.style.opacity = '1';
+        });
+      }
+    }, blinkInterval);
+  }
+
+  // 检查大编码是否相似的方法
+  function checkSimilarCodes(clickedCard) {
+    const clickedLargeCode = clickedCard.getAttribute('data-sample_model');
+    const allProjectCards = document.querySelectorAll('.project-card');
+    const allScheduleCells = document.querySelectorAll('#scheduleBoardTable td[data-sample_model]');
+    const similarElements = [];
+
+    // 检查项目卡片
+    allProjectCards.forEach(card => {
+      if (card !== clickedCard) {
+        const currentLargeCode = card.getAttribute('data-sample_model');
+        if (currentLargeCode === clickedLargeCode) {
+          similarElements.push(card);
+        }
+      }
+    });
+
+    // 检查排期面板单元格
+    allScheduleCells.forEach(cell => {
+      const currentLargeCode = cell.getAttribute('data-sample_model');
+      if (currentLargeCode === clickedLargeCode) {
+        similarElements.push(cell);
+      }
+    });
+
+    if (similarElements.length > 0) {
+      similarElements.push(clickedCard);
+      blinkCards(similarElements);
+    }
+  }
+
+
+  function saveScheduleAndColor(card, item) {
+    const days = document.getElementById('scheduleDays').value;
+
+    let selectedColor = document.querySelector('input[name="schedule_color"]:checked')?.value;
     if (!selectedColor) {
       alert("请选择一个颜色！");
       return;
     }
 
-    // 计算新的排期结束日期
+    const remark = document.getElementById('sampleRemark').value;
+    console.log("remark777",remark);
+
     const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
     let startDate = null;
     let tester = null;
     let job_number = null;
     let originalDays = null;
+
     if (startDateCell) {
       startDate = startDateCell.getAttribute('data-date');
       tester = startDateCell.getAttribute('data-tester');
@@ -382,17 +533,13 @@
         return;
       }
 
-      // 获取排期面板的所有单元格
       const allCells = document.querySelectorAll('.drop-cell');
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(startDateObj);
       endDateObj.setDate(endDateObj.getDate() + Math.ceil(days) - 1);
       const newEndDate = endDateObj.toISOString().split('T')[0];
 
-      // 生成新排期范围内的所有日期
       const newDateRange = getDateRange(startDate, newEndDate);
-
-      // 检查新排期是否会占用其他项目
       for (const date of newDateRange) {
         const cellsOnDate = Array.from(allCells).filter(cell =>
                 cell.getAttribute('data-date') === date &&
@@ -406,7 +553,6 @@
         }
       }
 
-      // 更新 localScheduleChanges
       const existingIndex = localScheduleChanges.findIndex(change => change.sample_id === item.sample_id);
       if (existingIndex !== -1) {
         localScheduleChanges[existingIndex].start_date = startDate;
@@ -428,106 +574,81 @@
         };
         localScheduleChanges.push(newChange);
       }
-      console.log("标记5",localScheduleChanges)
 
+      console.log("标记5", localScheduleChanges);
     }
 
-
-
-
-
-    // 1️⃣ 保存天数
-    fetch('/passback/saveScheduleDays', {
+    // 合并后的接口请求
+    fetch('/schedule/saveScheduleInfo', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sample_id: item.sample_id, scheduleDays: days })
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sample_id: item.sample_id,
+        scheduleDays: days,
+        schedule_color: selectedColor,
+        remark: remark
+      })
     })
             .then(resp => resp.json())
-            .then(resp => {
-              // 更新卡片显示和属性
+            .then(result => {
+              alert("排期天数和颜色设置成功！");
+              document.getElementById('modal').style.display = 'none';
+
+              // 更新卡片
               if (card) {
-                card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} (${days}天)`;
-                card.setAttribute('data-schedule_days', days);
+                console.log("days",days)
+                card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                card.setAttribute('data-schedule_days', days || '1');
+
+                card.classList.remove('gray', 'green', 'yellow', 'red');
+                card.setAttribute('data-remark',remark);
+                card.classList.add(selectedColor);
+                card.dataset.schedule_color = selectedColor;
+
+                //这里是让卡片重现赋值新修改的值
                 item.scheduleDays = days;
+                item.schedule_color = selectedColor;
+                item.remark = remark;
               }
 
-              // 更新排期面板中对应单元格的 colspan
+              // 更新排期面板
               const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
               cells.forEach(cell => {
                 cell.setAttribute('colspan', Math.ceil(days));
-                // 设置 data-schedule_days 属性的值与 colspan 一致
                 cell.setAttribute('data-schedule_days', days);
-                cell.innerText = `${item.sample_model} ${item.materialCode} (${days}天)`;
+                cell.setAttribute('data-remark', remark);
 
-                // 恢复被隐藏的格子
-                const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
-                const startIndex = rowCells.indexOf(cell);
-
-                // 只显示原合并范围内的单元格
-                for (let i = startIndex; i < startIndex + originalDays; i++) {
-                  if (rowCells[i]) {
-                    console.log("标记3");
-                    rowCells[i].style.display = '';
-                  }
+                cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                console.log("selectedColor111:"+selectedColor)
+                if (selectedColor === null || selectedColor === "null") {
+                  selectedColor = "white"
                 }
 
+                cell.style.backgroundColor = selectedColor;
+                cell.dataset.schedule_color = selectedColor;
+
+                const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
+                const startIndex = rowCells.indexOf(cell);
+                for (let i = startIndex; i < startIndex + originalDays; i++) {
+                  if (rowCells[i]) rowCells[i].style.display = '';
+                }
                 for (let i = startIndex + 1; i < startIndex + Math.ceil(days); i++) {
-                  if (rowCells[i]){
-                    console.log("标记4")
-                    rowCells[i].style.display = 'none';
-                  }
+                  if (rowCells[i]) rowCells[i].style.display = 'none';
                 }
               });
 
             })
             .catch(err => {
-              console.error("保存天数失败：", err);
-              alert("保存天数失败！");
+              console.error("保存失败：", err);
+              alert("保存失败，请重试！");
             });
 
-    // 2️⃣ 保存颜色
-    fetch('/schedule/saveScheduleColor', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        color: selectedColor,
-        sample_id: item.sample_id
-      })
-    })
-            .then(response => response.text())
-            .then(result => {
-              // 判断是否为 null、空字符串或 undefined
-              if (!result || result === 'null') {
-                result = '无色';
-              }
+    setTimeout(() => {
+      saveSchedule(true);
+    }, 2000); // 2000 毫秒 = 2 秒
 
-              alert("排期天数和颜色设置成功：" + result);
-              document.getElementById('modal').style.display = 'none';
-
-              // 更新卡片颜色样式
-              const card = document.querySelector(`.project-card[data-sample_id="${item.sample_id}"]`);
-              if (card) {
-                card.classList.remove('gray', 'green', 'yellow', 'red');
-                card.classList.add(selectedColor);
-                card.dataset.schedule_color = selectedColor;
-                item.schedule_color = selectedColor;
-              }
-
-              // 更新排期面板中对应单元格的颜色
-              const cells = document.querySelectorAll(`td[data-sample_id="${item.sample_id}"]`);
-              cells.forEach(cell => {
-                cell.style.backgroundColor = selectedColor;
-                cell.dataset.schedule_color = selectedColor;
-              });
-            })
-            .catch(error => {
-              console.error("保存颜色失败：", error);
-              alert("设置颜色失败，请重试");
-            });
-
-    saveSchedule(true);
   }
 
   async function saveSchedule(isRefrenshBtn) {
@@ -597,7 +718,7 @@
                   startDate: item.schedule_start_date,
                   endDate: item.schedule_end_date,
                   sample_id: item.sample_id,
-                  sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0),
+                  sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " "+item.remark,
                   sample_category: item.sample_category,
                   sample_model: item.sample_model,
                   sample_name: item.sample_name,
@@ -614,7 +735,8 @@
                   schedule_start_date: item.schedule_start_date,
                   schedule_end_date: item.schedule_end_date,
                   schedule_color: item.schedule_color,
-                  job_number: item.job_number
+                  job_number: item.job_number,
+                  remark: item.remark
                 };
 
                 const tester = item.tester || '未知测试人员';
@@ -676,7 +798,7 @@
     const groupedTesters = groupTestersByCategory(testers);
 
     // ⭐⭐ 新增：组别顺序数组
-    const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组", "高频组"]; // 按你的需求改顺序
+    const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组","PC", "高频组"]; // 按你的需求改顺序
 
     // ⭐⭐ 新增：先按照 groupOrder 遍历
     groupOrder.forEach(groupName => {
@@ -740,7 +862,7 @@
           'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
           'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
           'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-          'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+          'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
         ];
         attributes.forEach(attr => {
           taskData[attr] = cell.getAttribute(`data-${attr}`);
@@ -752,31 +874,19 @@
     });
 
     const cells = document.querySelectorAll('.drop-cell');
-    const projectPool = document.getElementById('projectPool');
 
-    // 为项目池子添加拖拽事件
-    projectPool.addEventListener('dragover', e => {
-      e.preventDefault();
-    });
-    projectPool.addEventListener('drop', e => {
-      e.preventDefault();
-      const taskData = {};
-      const attributes = [
-        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
-        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
-      ];
-      attributes.forEach(attr => {
-        taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
-      });
-      const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
-      if (originalCell) {
-        const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
-        const originalStartIndex = originalRowCells.indexOf(originalCell);
-        handleUndo(originalRowCells, originalStartIndex, taskData);
-      }
-    });
+    // 定义待送样池子的容器 ID 数组
+    const pendingSampleContainerIds = [
+      'projectPool',
+      'videoSamplePool',
+      'wireSamplePool',
+      'dataSamplePool',
+      'bluetoothSamplePool',
+      'highFrequencySamplePool'
+    ];
+
+    // 调用通用函数为待送样池子的容器添加拖拽事件
+    addDragEventsToContainers(pendingSampleContainerIds);
 
     cells.forEach((cell, cellIndex, cellList) => {
       cell.addEventListener('dragover', e => {
@@ -847,7 +957,8 @@
           schedule_days: e.dataTransfer.getData('project-schedule_days'),
           schedule_start_date: startDate,
           schedule_end_date: schedule_end_date,
-          schedule_color: e.dataTransfer.getData('project-schedule_color')
+          schedule_color: e.dataTransfer.getData('project-schedule_color'),
+          remark: e.dataTransfer.getData('project-remark')
         };
 
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
@@ -893,7 +1004,7 @@
                 'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
               ];
               attributes.forEach(attr => {
                 projectData[attr] = currentCell.getAttribute(`data-${attr}`);
@@ -1017,6 +1128,7 @@
           data-schedule_start_date="${task.schedule_start_date || ''}"
           data-schedule_end_date="${task.schedule_end_date || ''}"
           data-schedule_color="${task.schedule_color || ''}"
+          data-remark="${task.remark || ''}",
         >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
   }
@@ -1105,7 +1217,7 @@
             'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
             'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
             'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
           ];
           attributes.forEach(attr => {
             taskData[attr] = this.getAttribute(`data-${attr}`);
@@ -1114,6 +1226,26 @@
             e.dataTransfer.setData(`project-${key}`, value);
           });
         });
+      }
+    }
+
+    // 如果是已有项目拖动进来，先清除原位置
+    const oldIndex = rowCells.findIndex(c => c.getAttribute('data-sample_id') === sample_id);
+    if (oldIndex !== -1) {
+      const span = parseInt(rowCells[oldIndex].getAttribute('colspan') || 1, 10);
+
+      rowCells[oldIndex].innerText = '';
+      rowCells[oldIndex].removeAttribute('colspan');
+      rowCells[oldIndex].classList.remove('assigned');
+      rowCells[oldIndex].style.backgroundColor = '';
+      const allowedAttributes = ['class', 'data-tester', 'data-date'];
+      [...rowCells[oldIndex].attributes].forEach(attr => {
+        if (!allowedAttributes.includes(attr.name)) {
+          rowCells[oldIndex].removeAttribute(attr.name);
+        }
+      });
+      for (let i = oldIndex; i < oldIndex + span; i++) {
+        if (rowCells[i]) rowCells[i].style.display = '';
       }
     }
 
@@ -1165,7 +1297,7 @@
         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color'
+        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color' , 'remark'
       ];
       attributes.forEach(attr => {
         taskData[attr] = this.getAttribute(`data-${attr}`);
@@ -1178,7 +1310,7 @@
 
 
   // 处理撤回排期事件，撤回排期按钮触发这个方法
-  function handleUndo(rowCells, startIndex, taskData) {
+  function handleUndo(rowCells, startIndex, taskData, container) {
     const { schedule_days, sample_id } = taskData;
     const currentRightClickCell = rowCells[startIndex];
 
@@ -1242,7 +1374,8 @@
       schedule: taskData.schedule,
       create_time: taskData.create_time,
       scheduleDays: schedule_days,
-      schedule_color: taskData.schedule_color
+      schedule_color: taskData.schedule_color,
+      remark: taskData.remark
     };
 
     restoredProject.oncontextmenu = (event) => {
@@ -1250,8 +1383,11 @@
       bindCardContextMenu(restoredProject, restoredItem);
     };
 
-    const projectPool = document.getElementById('projectPool');
-    projectPool.appendChild(restoredProject);
+    // const projectPool = document.getElementById('projectPool');
+    // 这里是排期面板拖拽项目到池子的容器存放区域，我接下来要判定放在哪个池子，0605
+    container.appendChild(restoredProject);
+    // videoSamplePool.appendChild(restoredProject);
+
 
     // 记录删除操作到 localScheduleChanges，避免重复添加
     const newChange = {
@@ -1262,7 +1398,8 @@
       end_date: taskData.schedule_end_date,
       scheduleDays: schedule_days,
       schedule_color: taskData.schedule_color,
-      job_number: taskData.job_number
+      job_number: taskData.job_number,
+      container: container.id
     };
 
     const existingIndex = localScheduleChanges.findIndex(item =>
@@ -1312,7 +1449,8 @@
       schedule: currentRightClickCell.getAttribute('data-schedule'),
       create_time: currentRightClickCell.getAttribute('data-create_time'),
       scheduleDays: currentRightClickCell.getAttribute('data-schedule_days'),
-      schedule_color: currentRightClickCell.getAttribute('data-schedule_color')
+      schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
+      remark: currentRightClickCell.getAttribute('data-remark')
     };
 
     // 设置模态框内容
@@ -1339,11 +1477,17 @@
       colorRadio.checked = true;
     }
 
+    document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
+
     document.getElementById('saveScheduleBtn').onclick = function () {
       saveScheduleAndColor(null, taskData);
     };
 
     document.getElementById('confirmColorBtn').onclick = function () {
+      saveScheduleAndColor(null, taskData);
+    };
+
+    document.getElementById('saveRemarkBtn').onclick = function () {
       saveScheduleAndColor(null, taskData);
     };
 
@@ -1401,7 +1545,8 @@
                             .replace('{{endDate}}', change.endDate)
                             .replace('{{updateTime}}', change.updateTime || '无')
                             .replaceAll('{{color}}', change.color)
-                            .replace('{{used}}', change.used);
+                            .replace('{{used}}', change.used)
+                            .replace('{{remark}}', change.remark)
 
                     changeLogBody.insertAdjacentHTML('beforeend', itemHTML);
                   });
@@ -1453,13 +1598,13 @@
 
     data.forEach(item => {
       const card = document.createElement('div');
-      card.className = 'pending-sample-card';
+      card.className = 'project-card';
 
       const scheduleColor = item.schedule_color || 'null';
       card.classList.add(scheduleColor);
-      card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " +"(" + item.scheduleDays + "天)";
+      card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0)  + " " + item.remark+ " " +"(" + item.scheduleDays + "天)";
 
-      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) );
+      card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " " + item.remark );
       card.setAttribute('data-sample_id', item.sample_id || '');
       card.setAttribute('data-sample_name', item.sample_name || '');
       card.setAttribute('data-sample_model', item.sample_model || '');
@@ -1475,6 +1620,7 @@
       card.setAttribute('data-create_time', item.create_time || '');
       card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
       card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
+      card.setAttribute('data-remark', item.remark != null ? item.remark : '');
       card.setAttribute('draggable', 'true');
 
       setDraggable(card, false);
@@ -1483,8 +1629,397 @@
     });
   }
 
+  // 通用函数，为指定容器添加拖拽相关事件
+  // ... existing code ...
+  function addDragEventsToContainers(containerIds) {
+    containerIds.forEach(containerId => {
+      const container = document.getElementById(containerId);
+      if (container) {
+        // 为容器添加 dragover 事件监听器，阻止默认行为以允许放置
+        container.addEventListener('dragover', e => {
+          e.preventDefault();
+        });
+
+        // 为容器添加 drop 事件监听器，处理拖拽放下的逻辑
+        container.addEventListener('drop', e => {
+          e.preventDefault();
+          console.log("拖");
+          const taskData = {};
+          const attributes = [
+            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+          ];
+          attributes.forEach(attr => {
+            taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
+          });
+
+          // 从原容器移除卡片
+          const fromContainerId = e.dataTransfer.getData('project-from_container');
+          if (fromContainerId) {
+            const fromContainer = document.getElementById(fromContainerId);
+            if (fromContainer) {
+              const existingCard = fromContainer.querySelector(`[data-sample_id="${taskData.sample_id}"]`);
+              if (existingCard) {
+                existingCard.remove();
+              }
+            }
+          }
+
+          // 从排期面板移除
+          const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+          if (originalCell) {
+            const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+            const originalStartIndex = originalRowCells.indexOf(originalCell);
+            handleUndo(originalRowCells, originalStartIndex, taskData, container);
+          } else {
+            // 新增：检查目标容器是否已经存在该卡片
+            const existingCardInTarget = container.querySelector(`[data-sample_id="${taskData.sample_id}"]`);
+            if (existingCardInTarget) {
+              existingCardInTarget.remove();
+            }
+            // 直接从其他池子拖拽过来，创建新卡片
+            const newCard = document.createElement('div');
+            newCard.className = 'project-card';
+            const scheduleColor = taskData.schedule_color || 'null';
+            newCard.classList.add(scheduleColor);
+            newCard.textContent = `${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+
+            Object.keys(taskData).forEach(key => {
+              if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number' && key!== 'tester') {
+                newCard.setAttribute(`data-${key}`, taskData[key]);
+              }
+            });
+
+            newCard.setAttribute('draggable', 'true');
+            setDraggable(newCard, false);
+            bindCardContextMenu(newCard, taskData);
+            container.appendChild(newCard);
+
+            // 记录变更
+            const newChange = {
+              change: "delete",
+              sample_id: taskData.sample_id,
+              tester: taskData.tester,
+              start_date: taskData.schedule_start_date,
+              end_date: taskData.schedule_end_date,
+              scheduleDays: taskData.schedule_days,
+              schedule_color: taskData.schedule_color,
+              job_number: taskData.job_number,
+              container: container.id
+            };
+            const existingIndex = localScheduleChanges.findIndex(item =>
+                    item.sample_id === taskData.sample_id
+            );
+            if (existingIndex !== -1) {
+              localScheduleChanges[existingIndex] = newChange;
+            } else {
+              localScheduleChanges.push(newChange);
+            }
+            console.log(localScheduleChanges)
+          }
+        });
+
+        // 为容器中的卡片添加 dragstart 事件，记录来源容器
+        // container.addEventListener('dragstart', e => {
+        //     const target = e.target.closest('.project-card');
+        //     if (target) {
+        //         e.dataTransfer.setData('project-from_container', container.id);
+        //     }
+        // });
+
+        // 添加判断，禁止用户拖着文字
+        container.addEventListener('dragstart', e => {
+          let target = e.target;
+
+          // 如果是文本节点，则获取其父元素
+          if (target.nodeType === Node.TEXT_NODE) {
+            target = target.parentElement;
+          }
+
+          // 只允许拖拽 project-card 元素，其他不允许
+          const card = target.closest('.project-card');
+
+          // 如果拖拽目标不是 .project-card，则不允许
+          if (!card || window.getSelection().toString().trim()) {
+            e.preventDefault(); // 阻止拖拽
+            console.log('只允许拖拽单个卡片，不能拖拽多项或文字！');
+            return;
+          }
+
+          e.dataTransfer.setData('project-from_container', container.id);
+        });
 
 
+
+      }
+    });
+  }
+
+  // 在 DOM 加载完成后绑定按钮点击事件
+  document.addEventListener('DOMContentLoaded', function () {
+    const addProjectBtn = document.getElementById('addProjectBtn');
+    const addProjectModal = document.getElementById('addProjectModal');
+    const closeAddProjectModalBtn = document.getElementById('closeAddProjectModalBtn');
+    const saveNewProjectBtn = document.getElementById('saveNewProjectBtn');
+
+    // 点击新增项目按钮显示模态框
+    addProjectBtn.addEventListener('click', function () {
+      addProjectModal.style.display = 'block';
+    });
+
+    // 点击关闭按钮隐藏模态框
+    closeAddProjectModalBtn.addEventListener('click', function () {
+      addProjectModal.style.display = 'none';
+    });
+
+    // 点击模态框外部隐藏模态框
+    addProjectModal.addEventListener('click', function (e) {
+      if (e.target === addProjectModal) {
+        addProjectModal.style.display = 'none';
+      }
+    });
+
+    // 保存新增项目
+    saveNewProjectBtn.addEventListener('click', function () {
+      const sample_name = document.getElementById('addSampleName').value.trim();
+      const sample_model = document.getElementById('addSampleModel').value.trim();
+      const materialCode = document.getElementById('addMaterialCode').value.trim();
+      const sample_leader = document.getElementById('addSampleLeader').value.trim();
+      const scheduleDays = document.getElementById('addScheduleDays').value.trim();
+
+      // ✅ 校验前五项是否填写
+      if (!sample_name || !sample_model || !materialCode || !sample_leader || !scheduleDays) {
+        alert('请填写完整项目信息（前五项为必填）');
+        return;
+      }
+
+
+      const newTaskData = {
+        sample_name,
+        sample_model,
+        materialCode,
+        sample_leader,
+        scheduleDays,
+        schedule_color: document.querySelector('input[name="addScheduleColor"]:checked').value,
+        waitSample_classify: document.getElementById('addWaitSampleClassify').value,
+        remark: document.getElementById('addSampleRemark').value
+      };
+
+      // 发送 POST 请求到后端
+      fetch('/scheduleBoard/addProjectCard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newTaskData)
+      })
+              .then(response => response.json())
+              .then(result => {
+                console.log('后端返回:', result);
+                if (result.success) {
+                  alert(result.message); // 项目添加成功
+                  addProjectModal.style.display = 'none';
+                  // 加载项目池子数据
+                  loadProjectPoolData(); // ✅ 页面初始化调用加载函数
+                  // 加载待送样池子数据
+                  loadPendingSamplePoolData();
+
+                } else {
+                  alert(result.message || '新增项目失败！'); // 项目新增失败
+                }
+              })
+              .catch(error => {
+                console.error('新增项目失败:', error);
+                alert('新增项目失败！');
+              });
+
+
+    });
+  });
+
+  function loadTrashListAndShowModal() {
+    fetch('/scheduleBoard/getTrashList')
+            .then(response => response.json())
+            .then(trashedProjects => {
+              const listModal = document.getElementById('trashListModal');
+              const listContainer = document.getElementById('trashProjectList');
+              listContainer.innerHTML = '';
+
+              trashedProjects.forEach(project => {
+                const li = document.createElement('li');
+                li.textContent = project.sample_name;
+                li.style.cursor = 'pointer';
+                li.style.margin = '5px 0';
+                li.addEventListener('click', () => showProjectDetail(project));
+                listContainer.appendChild(li);
+              });
+
+              listModal.style.display = 'block';
+            })
+            .catch(error => {
+              console.error("获取作废项目失败：", error);
+              alert("加载作废项目失败");
+            });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const trashStation = document.getElementById('trashStation');
+
+    // 阻止 dragover 默认行为，允许放置
+    trashStation.addEventListener('dragover', function (e) {
+      e.preventDefault();
+    });
+
+    // 处理 drop 事件
+    trashStation.addEventListener('drop', function (e) {
+      e.preventDefault();
+      const sampleId = e.dataTransfer.getData('project-sample_id');
+      if (sampleId) {
+        if (!confirm("确定要删除该项目吗？")) {
+          return;
+        }
+        // 调用删除接口
+        deleteProject(sampleId);
+
+        // 从原容器移除卡片
+        const fromContainerId = e.dataTransfer.getData('project-from_container');
+        if (fromContainerId) {
+          const fromContainer = document.getElementById(fromContainerId);
+          if (fromContainer) {
+            const existingCard = fromContainer.querySelector(`[data-sample_id="${sampleId}"]`);
+            if (existingCard) {
+              existingCard.remove();
+            }
+          }
+        }
+
+        // 从排期面板移除
+        const originalCell = document.querySelector(`td[data-sample_id="${sampleId}"]`);
+        if (originalCell) {
+          const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+          const originalStartIndex = originalRowCells.indexOf(originalCell);
+          const taskData = {};
+          const attributes = [
+            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+          ];
+          attributes.forEach(attr => {
+            taskData[attr] = originalCell.getAttribute(`data-${attr}`);
+          });
+          handleUndo(originalRowCells, originalStartIndex, taskData, document.getElementById('projectPool'));
+        }
+      }
+    });
+
+
+    // 添加右键事件监听
+    trashStation.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+
+      loadTrashListAndShowModal();
+    });
+
+
+  });
+
+
+  // 定义删除项目的函数
+  // 定义删除项目的函数，带确认框和可选的删除理由
+  function deleteProject(sampleId) {
+
+    const reason = prompt("请输入删除理由（可选）：");
+
+    fetch('/scheduleBoard/deleteProject', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sample_id: sampleId,
+        cancel_reason: reason ? reason.trim() : "", // 如果没有填写则传空字符串
+        username: username
+      })
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(result => {
+              if (result.success) {
+                alert(result.message);
+              } else {
+                alert(result.message || '项目删除失败');
+              }
+            })
+            .catch(error => {
+              console.error('删除项目时出错:', error);
+              alert('删除项目时出错，请稍后重试');
+            });
+  }
+
+  function showProjectDetail(project) {
+    // 填充详情内容
+    document.getElementById('detail_sample_id').textContent = project.sample_id;
+    document.getElementById('detail_sample_name').textContent = project.sample_name;
+    document.getElementById('detail_sizecoding').textContent = project.sample_model + " " + project.materialCode;
+    document.getElementById('detail_sample_leader').textContent = project.sample_leader;
+    document.getElementById('detail_scheduleDays').textContent = project.scheduleDays;
+    document.getElementById('detail_schedule_color').textContent = project.schedule_color;
+    document.getElementById('detail_waitSample_classify').textContent = project.waitSample_classify;
+    document.getElementById('detail_remark').textContent = project.remark;
+    document.getElementById('detail_cancel_by').textContent = project.cancel_by;
+    document.getElementById('detail_job_number').textContent = project.cancel_code;
+    document.getElementById('detail_cancel_date').textContent = project.cancel_date;
+    document.getElementById('detail_cancel_reason').textContent = project.cancel_reason;
+
+    // 显示详情弹窗
+    document.getElementById('projectDetailModal').style.display = 'block';
+  }
+
+  function recoverProject() {
+    const sampleId = document.getElementById('detail_sample_id').textContent;
+
+    fetch('/scheduleBoard/recoverProject', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sample_id: sampleId })
+    })
+            .then(response => response.json())
+            .then(data => {
+              alert(data.message || '恢复成功');
+              document.getElementById('projectDetailModal').style.display = 'none';
+              // 确保加载数据前清除可能的重复数据
+              const projectPool = document.getElementById('projectPool');
+              projectPool.innerHTML = ''; // 新增：清空项目池子内容
+              const pendingSampleContainers = [
+                'videoSamplePool',
+                'wireSamplePool',
+                'dataSamplePool',
+                'bluetoothSamplePool',
+                'highFrequencySamplePool'
+              ];
+              pendingSampleContainers.forEach(id => {
+                const container = document.getElementById(id);
+                container.innerHTML = ''; // 新增：清空待送样池子内容
+              });
+              loadProjectPoolData();
+              loadPendingSamplePoolData();
+
+              loadTrashListAndShowModal();
+            })
+            .catch(error => {
+              console.error('恢复失败:', error);
+              alert('恢复失败');
+            });
+  }
 
 </script>
 
