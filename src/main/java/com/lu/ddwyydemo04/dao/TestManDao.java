@@ -173,7 +173,9 @@ public interface TestManDao {
     List<TrashProject> getTrashedProjects();
     boolean recoverProjectById(@Param("sample_id")String sample_id);
     boolean updateElectricSampleId(@Param("oldSample_id")String oldSample_id,@Param("newSample_id")String newSample_id);
+    boolean migrateData(@Param("oldSample_id")String oldSample_id,@Param("newSample_id")String newSample_id);
     boolean updateSamplesElectircid(@Param("oldElectric_sample_id")String oldElectric_sample_id,@Param("newElectric_sample_id")String newElectric_sample_id);
+    boolean deleteElectricInfoBySampleId(@Param("sample_id")String sample_id);
 
 
 }

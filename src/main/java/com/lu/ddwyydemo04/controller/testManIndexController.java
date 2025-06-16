@@ -1655,6 +1655,8 @@ public class testManIndexController {
     @PostMapping("/api/start-test")
     @ResponseBody
     public ResponseEntity<?> startTest(@RequestBody Map<String, Object> params) {
+        Map<String, Object> response = new HashMap<>();
+
         String questStats = (String) params.get("questStats");
         String isHighFrequency = (String) params.get("isHighFrequency");
         String category = (String) params.get("category");
@@ -1664,13 +1666,25 @@ public class testManIndexController {
         Map<String, Object> projectData = (Map<String, Object>) params.get("projectData");
         System.out.println("projectData:"+projectData);
         if (projectData == null) {
-            return ResponseEntity.badRequest().body("缺少项目信息");
+            response.put("message", "缺少项目信息");
+            response.put("success", false); // 可选：用于前端区分是否成功
+            return ResponseEntity.ok(response);
         }
         String sample_actual_id = (String) projectData.get("sample_actual_id");
         String electric_sample_id = (String) projectData.get("sample_id");
-        System.out.println("electric_sample_id:"+electric_sample_id);
+
+        // 20250616 判断是否包含 "XZ"
+        if (electric_sample_id != null && !electric_sample_id.isEmpty() && electric_sample_id.contains("XZ")) {
+            response.put("message", "此任务为项目专员自建单号(电气编号非IT提单系统的)，请自行创建任务并查找准确的电气编号（如果IT系统没有说明是未提单，您可以先暂时搁置绑定电气编号这一步）");
+            response.put("success", false); // 可选：用于前端区分是否成功
+            return ResponseEntity.ok(response);
+        }
+
+//        System.out.println("electric_sample_id:"+electric_sample_id);
         if (sample_actual_id != null && !sample_actual_id.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("已经有这个版本信息的任务开始测试了，请检查是否写误");
+            response.put("message", "已经有这个版本信息的任务开始测试了，请检查是否写误");
+            response.put("success", false); // 可选：用于前端区分是否成功
+            return ResponseEntity.ok(response);
         }
 
 
@@ -1713,7 +1727,7 @@ public class testManIndexController {
                         String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
-//                        System.out.println("filePath:"+filePath);
+                        System.out.println("filePath:"+filePath);
 
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");
@@ -1764,11 +1778,15 @@ public class testManIndexController {
                                         }
                                     }
                                 }else{
-                                    return ResponseEntity.badRequest().body("已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
+                                    response.put("message", "已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
+                                    response.put("success", false); // 可选：用于前端区分是否成功
+                                    return ResponseEntity.ok(response);
                                 }
                             }
                         } catch (IOException e) {
-                            return ResponseEntity.status(500).body("XLSX 文件创建失败：" + e.getMessage());
+                            response.put("message", "XLSX 文件创建失败");
+                            response.put("success", false); // 可选：用于前端区分是否成功
+                            return ResponseEntity.ok(response);
                         }
 
                     }
@@ -1776,7 +1794,9 @@ public class testManIndexController {
             }
         }
 
-        return ResponseEntity.ok("测试任务提交成功");
+        response.put("message", "测试任务提交成功");
+        response.put("success", true); // 可选：用于前端区分是否成功
+        return ResponseEntity.ok(response);
     }
 
 

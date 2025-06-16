@@ -672,7 +672,16 @@ public class TestManIndexService {
         return testManDao.updateElectricSampleId(oldSample_id,newSample_id);
     }
 
+
+    public boolean migrateData(String oldSample_id,String newSample_id){
+        return testManDao.migrateData(oldSample_id,newSample_id);
+    }
+
     public boolean updateSamplesElectircid(String oldSample_id,String newSample_id){
         return testManDao.updateSamplesElectircid(oldSample_id,newSample_id);
+    }
+
+    public boolean deleteElectricInfoBySampleId(String sample_id){
+        return testManDao.deleteElectricInfoBySampleId(sample_id);
     }
 }

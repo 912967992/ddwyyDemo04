@@ -879,23 +879,52 @@ public class TestEnvironmentController {
     public ResponseEntity<Map<String, Object>> updateElectricSampleId(@RequestBody Map<String, String> request) {
         String oldSampleId = request.get("oldSampleId");
         String newSampleId = request.get("newSampleId");
-
-        // 1. 先判断原来的电气编号是否含有XZ， 是的话则继续判断是否存在新的电气编号，然后把新的数据迁移过去给原来的，之后删了新的原来的数据。
-
         Map<String, Object> response = new HashMap<>();
-        boolean updateElectricSampleId = testManIndexService.updateElectricSampleId(oldSampleId,newSampleId);
-        boolean updateSamplesElectircid = testManIndexService.updateSamplesElectircid(oldSampleId,newSampleId);
 
-        if (updateElectricSampleId && updateSamplesElectircid) {
+        if ( newSampleId.trim().isEmpty() || newSampleId == null) {
+            response.put("success", false);
+            response.put("message", "参数不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 判断原来的电气编号是否含有“XZ”
+        if (!oldSampleId.contains("XZ")) {
+            response.put("success", false);
+            response.put("message", "原电气编号不包含‘XZ’，无需操作");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 判断新编号是否存在
+        int count = testManIndexService.queryElectricalCode(newSampleId);
+        if (count <= 0) {
+            response.put("success", false);
+            response.put("message", "未找到新的电气编号对应的记录");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 执行数据迁移
+        boolean update = testManIndexService.migrateData(oldSampleId, newSampleId);
+        boolean updateSamplesElectircid = testManIndexService.updateSamplesElectircid(oldSampleId, newSampleId);
+
+        // 删除新编号的数据
+        boolean deleteNew = testManIndexService.deleteElectricInfoBySampleId(newSampleId);
+        boolean rename = testManIndexService.updateElectricSampleId(oldSampleId,newSampleId);
+        System.out.println(update);
+        System.out.println(updateSamplesElectircid);
+        System.out.println(deleteNew);
+        System.out.println(rename);
+
+        if (update && deleteNew && rename) {
             response.put("success", true);
-            response.put("message", "电气编号修改成功");
+            response.put("message", "电气编号修改成功，数据已合并");
             return ResponseEntity.ok(response);
         } else {
             response.put("success", false);
-            response.put("message", "未找到对应的样本记录");
+            response.put("message", "数据迁移或更新失败");
             return ResponseEntity.badRequest().body(response);
         }
     }
+
 
 
 

@@ -467,10 +467,11 @@
                     .then(result => {
                         if (result.success) {
                             alert(result.message);
-                            item.sample_id = newSampleId; // 更新本地数据
-                            // 可以在这里更新页面上相关显示
+                            loadProjectPoolData();
+                            loadPendingSamplePoolData();
+
                         } else {
-                            alert('result.message');
+                            alert(result.message);
                         }
                     })
                     .catch(error => {
@@ -1492,7 +1493,11 @@
 
         // 设置模态框内容
         document.getElementById('modalBody').innerHTML = `
-            <p><strong>电气编号：</strong>${taskData.sample_id}</p>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <p><strong>电气编号：</strong></p>
+                <input type="text" id="editSampleId" value="${taskData.sample_id}">
+                <button id="editSampleIdBtn">修改</button>
+            </div>
             <p><strong>项目名称：</strong>${taskData.sample_name}</p>
             <p><strong>大小编码：</strong>${taskData.sample_model + ' ' + taskData.materialCode}</p>
             <p><strong>产品类别：</strong>${taskData.sample_category}</p>
@@ -1533,6 +1538,40 @@
         // 关闭右键菜单
         const contextMenuForShow = document.getElementById('contextMenu');
         contextMenuForShow.style.display = 'none';
+
+        // 绑定修改电气编号按钮点击事件
+        document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+            const newSampleId = document.getElementById('editSampleId').value;
+            const oldSampleId = taskData.sample_id;
+
+            // 发送请求到控制层
+            fetch('/scheduleBoard/updateElectricSampleId', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    oldSampleId: oldSampleId,
+                    newSampleId: newSampleId
+                })
+            })
+                .then(response => response.json())
+                .then(async result => {
+                    if (result.success) {
+                        alert(result.message);
+                        // 刷新排期面板
+                        await refreshSchedule();
+
+                    } else {
+                        alert(result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('修改电气编号时出错:', error);
+                    alert('修改电气编号时出错，请稍后重试');
+                });
+        });
+
     }
 
 

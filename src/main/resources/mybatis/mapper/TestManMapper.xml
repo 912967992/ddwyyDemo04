@@ -1111,10 +1111,91 @@
         WHERE sample_id = #{oldSample_id}
     </update>
 
+    <update id="migrateData">
+        UPDATE electric_info
+        SET
+            sample_id = #{oldSample_id},
+            sample_actual_id = (
+                SELECT actual_sample_actual_id FROM (
+                                                        SELECT
+                                                            CASE
+                                                                WHEN ei2.sample_actual_id IS NOT NULL AND ei2.sample_actual_id != ''
+                                                                    THEN ei2.sample_actual_id
+                                                                WHEN ei1.sample_actual_id IS NOT NULL AND ei1.sample_actual_id != ''
+                                                                    THEN ei1.sample_actual_id
+                                                                ELSE NULL
+                                                                END AS actual_sample_actual_id
+                                                        FROM electric_info ei1
+                                                                 LEFT JOIN electric_info ei2 ON ei2.sample_id = #{newSample_id}
+                                                        WHERE ei1.sample_id = #{oldSample_id}
+                                                        LIMIT 1
+                                                    ) AS temp
+            ),
+            sample_category = (
+                SELECT sample_category FROM (
+                                                SELECT sample_category FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                            ) AS t1
+            ),
+            sample_model = (
+                SELECT sample_model FROM (
+                                             SELECT sample_model FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                         ) AS t2
+            ),
+            materialCode = (
+                SELECT materialCode FROM (
+                                             SELECT materialCode FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                         ) AS t3
+            ),
+            sample_name = (
+                SELECT sample_name FROM (
+                                            SELECT sample_name FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                        ) AS t4
+            ),
+            version = (
+                SELECT version FROM (
+                                        SELECT version FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                    ) AS t5
+            ),
+            priority = (
+                SELECT priority FROM (
+                                         SELECT priority FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                     ) AS t6
+            ),
+            sample_leader = (
+                SELECT sample_leader FROM (
+                                              SELECT sample_leader FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                          ) AS t7
+            ),
+            supplier = (
+                SELECT supplier FROM (
+                                         SELECT supplier FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                     ) AS t8
+            ),
+            schedule =
+                    schedule = (
+                    SELECT schedule FROM (
+                                             SELECT schedule FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                         ) AS t9
+                ),
+            sample_frequency =
+                    sample_frequency = (
+                    SELECT sample_frequency FROM (
+                                             SELECT sample_frequency FROM electric_info WHERE sample_id = #{newSample_id} LIMIT 1
+                                         ) AS t10
+                )
+        WHERE sample_id = #{oldSample_id}
+    </update>
+
+
     <update id="updateSamplesElectircid">
         UPDATE samples
         SET electric_sample_id = #{newElectric_sample_id}
         WHERE electric_sample_id = #{oldElectric_sample_id}
     </update>
+
+    <delete id="deleteElectricInfoBySampleId">
+        DELETE FROM electric_info WHERE sample_id = #{sample_id}
+    </delete>
+
 
 </mapper>
