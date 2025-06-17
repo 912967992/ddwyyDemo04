@@ -194,6 +194,13 @@
     font-weight: bold;
 }
 
+/* 提高优先级 */
+#scheduleBoardTable td.weekend-border {
+    border: 2px solid blue;
+}
+
+
+
 .context-menu {
     position: absolute;
     background-color: white;
@@ -453,3 +460,6 @@
     font-weight: bold;
 }
 
+.weekend-border {
+    border: 2px solid blue !important;
+}

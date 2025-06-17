@@ -829,14 +829,23 @@
         html += '<th>组别</th>';
         html += '<th style="min-width: 100px;">测试人员</th>';
         allDates.forEach(date => {
-            html += `<th>${date}</th>`;
+            const dateObj = new Date(date);
+            const dayOfWeek = dateObj.getDay();
+            let displayText = date;
+            // 新增逻辑，判断是否为周六或周日并添加对应文字
+            if (dayOfWeek === 6) {
+                displayText = `${date}<br>周六`;
+            } else if (dayOfWeek === 0) {
+                displayText = `${date}<br>周日`;
+            }
+            html += `<th>${displayText}</th>`;
         });
         html += '</tr></thead><tbody>';
 
         const groupedTesters = groupTestersByCategory(testers);
 
         // ⭐⭐ 新增：组别顺序数组
-        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"而机组组","PC", "高频组"]; // 按你的需求改顺序
+        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"耳机组","PC", "高频组"]; // 按你的需求改顺序
 
         // ⭐⭐ 新增：先按照 groupOrder 遍历
         groupOrder.forEach(groupName => {
@@ -862,22 +871,34 @@
                     const currentDate = allDates[colIndex];
                     const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
 
+                    const dateObj = new Date(currentDate);
+                    const dayOfWeek = dateObj.getDay();
+                    // 新增：判断是否为周六或周日，添加 weekend-border 类名
+                    let weekendClass = '';
+                    if (dayOfWeek === 6 || dayOfWeek === 0) {
+                        weekendClass = 'weekend-border';
+                    }
+
                     if (task) {
                         // const rangeDates = getDateRange(task.startDate, task.endDate);
                         const colspan = Math.ceil(task.schedule_days);
 
-                        html += createTaskCell(task, testerName, currentDate, colspan);
+                        html += createTaskCell(task, testerName, currentDate, colspan, weekendClass);
 
                         for (let i = 1; i < colspan; i++) {
-                            html += `<td class="drop-cell" style="display: none;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
+                            let styleAttr = 'style="display: none;"';
+                            if (weekendClass) {
+                                styleAttr += ` class="${weekendClass}"`;
+                            }
+                            html += `<td class="drop-cell" ${styleAttr} data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
                         }
-
                         colIndex += colspan;
                     } else {
                         const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
                         if (!isCovered) {
-                            html += `<td class="drop-cell" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>`;
-                            // html += `<!--<td class="drop-cell" style="min-width: 150px;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}"></td>-->`;
+                            // 修改：添加 weekendClass 类名
+                            let cellHtml = `<td class="drop-cell ${weekendClass}" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}">`;
+                            html += cellHtml + `</td>`;
                         }
                         colIndex += 1;
                     }
@@ -1106,14 +1127,21 @@
                         }
                     });
 
-                    // 恢复被隐藏的格子
+                    // 恢复被隐藏的格子,项目拖拽到别的地方，先触发这里
                     for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
                         if (originalRowCells[i]){
                             originalRowCells[i].style.display = '';
+
+                            // 新增：复原周六和周日的边框样式
+                            const date = originalRowCells[i].getAttribute('data-date');
+                            console.log("date",date)
+                            console.log("i",i)
+                            setWeekendBorder(originalRowCells[i], date);
                         }
 
                     }
                 }
+
 
                 handleDrop(cell, cellList, taskData,  conflictCells ,projectsToMove ,diff );
             });
@@ -1141,7 +1169,11 @@
     }
 
     // 创建排期面板的单元格
-    function createTaskCell(task, tester, currentDate, colspan) {
+    function createTaskCell(task, tester, currentDate, colspan, weekendClass) {
+        let classAttribute = 'drop-cell assigned';
+        if (weekendClass) {
+            classAttribute += ` ${weekendClass}`;
+        }
         return `
         <td class="drop-cell assigned"
           data-tester="${tester}"
@@ -1166,8 +1198,9 @@
           data-schedule_start_date="${task.schedule_start_date || ''}"
           data-schedule_end_date="${task.schedule_end_date || ''}"
           data-schedule_color="${task.schedule_color || ''}"
-          data-remark="${task.remark || ''}",
-        >${task.sizecoding} (${task.schedule_days}天)</td>
+          data-remark="${task.remark || ''}"
+          ${classAttribute}
+          >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
     }
 
@@ -1207,10 +1240,13 @@
                         originalStartCell.removeAttribute(attr.name);
                     }
                 });
+
                 // 恢复被隐藏的格子
                 for (let j = projectStartIndex; j < projectStartIndex + span; j++) {
                     if (rowCells[j]) rowCells[j].style.display = '';
                 }
+
+
                 // 创建新项目
                 const newStartCell = rowCells[newStartIndex];
                 newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
@@ -1284,6 +1320,7 @@
             });
             for (let i = oldIndex; i < oldIndex + span; i++) {
                 if (rowCells[i]) rowCells[i].style.display = '';
+
             }
         }
 
@@ -1300,7 +1337,6 @@
             }
         });
         for (let i = startIndex + 1; i < startIndex + roundedDays; i++) {
-            console.log("标记1");
             rowCells[i].style.display = 'none';
         }
         const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
@@ -2093,6 +2129,20 @@
                 console.error('恢复失败:', error);
                 alert('恢复失败');
             });
+    }
+
+    // 新增函数：设置周六和周日的边框样式
+    function setWeekendBorder(cell, date) {
+        const dateObj = new Date(date);
+        const dayOfWeek = dateObj.getDay();
+        const weekendClass = 'weekend-border'; // 定义周末类名
+
+        if (dayOfWeek === 6 || dayOfWeek === 0) {
+            console.log("dayOfWeek",dayOfWeek)
+            cell.classList.add(weekendClass);
+        } else {
+            cell.classList.remove(weekendClass);
+        }
     }
 
 </script>
