@@ -369,6 +369,15 @@
     font-size: 22px;
 }
 
+#manageHolidaysBtn {
+    padding: 6px 12px;
+    background-color: #af984c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 22px;
+}
 
 #trashStation {
     display: inline-block;
@@ -462,4 +471,19 @@
 
 .weekend-border {
     border: 2px solid blue !important;
+}
+
+.nice-btn {
+    margin-left: 10px;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.nice-btn:hover {
+    background-color: #45a049;
 }

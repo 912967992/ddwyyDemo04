@@ -177,5 +177,10 @@ public interface TestManDao {
     boolean updateSamplesElectircid(@Param("oldElectric_sample_id")String oldElectric_sample_id,@Param("newElectric_sample_id")String newElectric_sample_id);
     boolean deleteElectricInfoBySampleId(@Param("sample_id")String sample_id);
 
+    List<Holiday> getAllHolidays();
+    boolean addHoliday(@Param("holiday_date")String holiday_date,@Param("holiday_name")String holiday_name);
+    int queryHoliday(@Param("holiday_date")String holiday_date);
+    boolean updateHoliday(@Param("holiday_date")String holiday_date,@Param("holiday_name")String holiday_name);
+    boolean deleteHoliday(@Param("id")int id);
 
 }

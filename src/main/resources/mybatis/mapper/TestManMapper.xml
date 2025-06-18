@@ -1197,5 +1197,30 @@
         DELETE FROM electric_info WHERE sample_id = #{sample_id}
     </delete>
 
+    <select id="getAllHolidays" resultType="Holiday">
+        select * from holidays
+        ORDER BY holiday_date DESC
+    </select>
+
+    <insert id="addHoliday">
+        INSERT INTO holidays(holiday_date,holiday_name)
+        VALUES (#{holiday_date},#{holiday_name})
+    </insert>
+    
+    <select id="queryHoliday" resultType="Integer">
+        select count(*) from holidays
+        where holiday_date = #{holiday_date}
+    </select>
+
+    <update id="updateHoliday">
+        UPDATE holidays
+        SET holiday_name = #{holiday_name}
+        WHERE holiday_date = #{holiday_date}
+    </update>
+
+    <delete id="deleteHoliday">
+        DELETE FROM holidays WHERE id = #{id}
+    </delete>
+
 
 </mapper>

@@ -684,4 +684,26 @@ public class TestManIndexService {
     public boolean deleteElectricInfoBySampleId(String sample_id){
         return testManDao.deleteElectricInfoBySampleId(sample_id);
     }
+
+    public List<Holiday> getAllHolidays(){
+        return testManDao.getAllHolidays();
+    }
+
+    public Boolean addHoliday(String holiday_date,String holiday_name){
+        return testManDao.addHoliday(holiday_date,holiday_name);
+
+    }
+    public int queryHoliday(String holiday_date){
+        return testManDao.queryHoliday(holiday_date);
+    }
+
+    public boolean updateHoliday(String holiday_date,String holiday_name){
+        return testManDao.updateHoliday(holiday_date,holiday_name);
+    }
+
+    public boolean deleteHoliday(int id){
+        return testManDao.deleteHoliday(id);
+    }
+
+
 }

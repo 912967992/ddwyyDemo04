@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
+import com.lu.ddwyydemo04.pojo.Holiday;
 import com.lu.ddwyydemo04.pojo.PassbackData;
 
 import com.lu.ddwyydemo04.pojo.TrashProject;
@@ -927,6 +928,79 @@ public class TestEnvironmentController {
 
 
 
+    @GetMapping("/scheduleBoard/getHolidays")
+    @ResponseBody
+    public List<Holiday> getHolidays() {
+        System.out.println("getHolidays:"+testManIndexService.getAllHolidays());
+        return testManIndexService.getAllHolidays();
+    }
+
+    @PostMapping("/scheduleBoard/addHoliday")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addHoliday(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String date = (String) request.get("holiday_date");
+            String name = (String) request.get("holiday_name");
+
+            // 调用服务层方法添加节假日, 添加之前先检查是否存在，存在则进行的是更新
+            int count = testManIndexService.queryHoliday(date);
+            boolean operationResult;
+
+            if(count > 0){
+                operationResult = testManIndexService.updateHoliday(date, name);
+                if (!operationResult) {
+                    response.put("success", false);
+                    response.put("message", "更新节假日失败");
+                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                operationResult = testManIndexService.addHoliday(date, name);
+                if (!operationResult) {
+                    response.put("success", false);
+                    response.put("message", "添加节假日失败");
+                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+
+            response.put("success", true);
+            response.put("message", "操作成功");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "操作失败: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/scheduleBoard/deleteHoliday")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteHoliday(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer id = (Integer) request.get("id");
+            System.out.println("id:"+id);
+            if (id == null) {
+                response.put("success", false);
+                response.put("message", "节假日 ID 不能为空");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
+
+            boolean deleteHoliday = testManIndexService.deleteHoliday(id);
+            if (deleteHoliday) {
+                response.put("success", true);
+                response.put("message", "删除成功");
+            } else {
+                response.put("success", false);
+                response.put("message", "删除失败，可能该节假日不存在");
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "删除过程中出现异常: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 }
