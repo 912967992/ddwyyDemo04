@@ -2306,9 +2306,29 @@
             .then(data => {
                 if (data.success) {
                     alert('添加成功');
+                    // 假设 holidays 是全局变量，用于存储节假日信息
+                    if (!window.holidays) {
+                        window.holidays = [];
+                    }
+                    const existingIndex = holidays.findIndex(holiday => holiday.holiday_date === date);
+                    if (existingIndex !== -1) {
+                        // 日期已存在，进行更新
+                        holidays[existingIndex] = {
+                            holiday_date: date,
+                            holiday_name: name,
+                            ...data
+                        };
+                    } else {
+                        // 日期不存在，添加新的节假日
+                        holidays.push({
+                            holiday_date: date,
+                            holiday_name: name,
+                            ...data
+                        });
+                    }
                     loadHolidays();
                     // 移除清空日期输入框的代码，仅清空名称输入框
-                    document.getElementById('newHolidayName').value = '';
+                    // document.getElementById('newHolidayName').value = '';
                 } else {
                     alert('添加失败: ' + data.message);
                 }
@@ -2318,7 +2338,6 @@
                 alert('添加节假日失败，请稍后重试');
             });
     }
-
     // 删除节假日
     function deleteHoliday(id) {
         if (confirm('确定要删除这个节假日吗？')) {
@@ -2341,6 +2360,8 @@
                 .then(data => {
                     if (data.success) {
                         alert('删除成功');
+                        // 更新全局变量 holidays
+                        holidays = holidays.filter(holiday => holiday.id !== id);
                         // 加载节假日列表，不操作输入框
                         loadHolidays();
                     } else {

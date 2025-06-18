@@ -14,6 +14,8 @@
     <h2>项目池子
       <!-- 新增项目按钮 -->
       <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
+      <!-- 假设管理节假日按钮代码如下，可根据实际情况修改 -->
+      <button id="manageHolidaysBtn" class="nice-btn">管理节假日</button>
       <!-- 新增垃圾站区域 -->
       <div id="trashStation">
         <h3>回收站(右键可查看作废项目)</h3>
@@ -219,6 +221,29 @@
 </div>
 
 
+<!-- 节假日管理模态框 -->
+<!-- 节假日管理模态框背景层 -->
+<div id="holidayModalBackground" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999;">
+  <!-- 节假日管理模态框 -->
+  <div id="holidayModal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>管理节假日</h3>
+      <button id="closeHolidayModalBtn">关闭</button>
+    </div>
+    <div id="holidayList">
+      <!-- 节假日列表将通过 JavaScript 动态生成 -->
+    </div>
+    <div>
+      <label for="newHolidayDate">日期：</label>
+      <input type="date" id="newHolidayDate">
+      <label for="newHolidayName">名称：</label>
+      <input type="text" id="newHolidayName">
+      <button id="addHolidayBtn">添加</button>
+    </div>
+  </div>
+</div>
+
+
 
 
 <script>
@@ -229,6 +254,11 @@
   const contextMenu = document.getElementById('contextMenu');
   let currentRightClickCell = null;
   let currentRightClickProject = null;
+
+  // 定义全局变量 holidays 用于存储节假日数据
+  let holidays = [];
+
+
 
   //默认让endDate+14天，进入页面的时候
   document.addEventListener('DOMContentLoaded', function () {
@@ -828,15 +858,21 @@
     html += '<thead><tr>';
     html += '<th>组别</th>';
     html += '<th style="min-width: 100px;">测试人员</th>';
+    console.log("holidays.",holidays)
     allDates.forEach(date => {
       const dateObj = new Date(date);
       const dayOfWeek = dateObj.getDay();
       let displayText = date;
-      // 新增逻辑，判断是否为周六或周日并添加对应文字
+      // 检查是否为周六或周日
       if (dayOfWeek === 6) {
         displayText = `${date}<br>周六`;
       } else if (dayOfWeek === 0) {
         displayText = `${date}<br>周日`;
+      }
+      // 检查是否为节假日
+      const holiday = holidays.find(h => h.holiday_date === date);
+      if (holiday) {
+        displayText = `${date}<br>${holiday.holiday_name}`;
       }
       html += `<th>${displayText}</th>`;
     });
@@ -875,9 +911,13 @@
           const dayOfWeek = dateObj.getDay();
           // 新增：判断是否为周六或周日，添加 weekend-border 类名
           let weekendClass = '';
-          if (dayOfWeek === 6 || dayOfWeek === 0) {
+          // 检查是否为周末或者节假日
+          const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+          const isHoliday = holidays.some(h => h.holiday_date === currentDate);
+          if (isWeekend || isHoliday) {
             weekendClass = 'weekend-border';
           }
+
 
           if (task) {
             // const rangeDates = getDateRange(task.startDate, task.endDate);
@@ -1341,6 +1381,13 @@
     }
     const projectEl = document.querySelector(`.project-card[data-sample_id="${sample_id}"]`);
     if (projectEl) projectEl.remove();
+
+    const targetCell = rowCells[startIndex + roundedDays - 1];
+    if (!targetCell) {
+      console.warn("无效拖拽内容：请勿选择别的进行拖拽，忽略本次拖拽。");
+      return;
+    }
+
     const endDate = rowCells[startIndex + roundedDays - 1].getAttribute('data-date');
     // 构造新的变更对象
     const newChange = {
@@ -1405,6 +1452,9 @@
       if (rowCells[i]){
         console.log("标记2");
         rowCells[i].style.display = '';
+
+        const date = rowCells[i].getAttribute('data-date');
+        setWeekendBorder(rowCells[i], date);
       }
     }
 
@@ -1755,7 +1805,7 @@
         // 为容器添加 drop 事件监听器，处理拖拽放下的逻辑
         container.addEventListener('drop', e => {
           e.preventDefault();
-          console.log("拖");
+          console.log("拖11");
           const taskData = {};
           const attributes = [
             'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
@@ -1766,6 +1816,13 @@
           attributes.forEach(attr => {
             taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
           });
+
+          // 拦截拖拽空 sample_id 的情况
+          if (!taskData.sample_id || taskData.sample_id.trim() === "") {
+            console.warn("无效拖拽：sample_id 为空，忽略本次拖拽。");
+            return;
+          }
+
 
           // 从原容器移除卡片
           const fromContainerId = e.dataTransfer.getData('project-from_container');
@@ -2036,8 +2093,6 @@
 
   });
 
-
-  // 定义删除项目的函数
   // 定义删除项目的函数，带确认框和可选的删除理由
   function deleteProject(sampleId) {
 
@@ -2137,13 +2192,205 @@
     const dayOfWeek = dateObj.getDay();
     const weekendClass = 'weekend-border'; // 定义周末类名
 
-    if (dayOfWeek === 6 || dayOfWeek === 0) {
-      console.log("dayOfWeek",dayOfWeek)
+    // 检查是否为周末
+    const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+    // 检查是否为节假日
+    const isHoliday = holidays.some(h => h.holiday_date === date);
+
+    if (isWeekend || isHoliday) {
+      console.log(`添加 ${weekendClass} 样式，日期: ${date}，原因: ${isWeekend ? '周末' : '节假日'}`);
       cell.classList.add(weekendClass);
     } else {
       cell.classList.remove(weekendClass);
     }
   }
+
+  // 页面加载完成后绑定事件
+  document.addEventListener('DOMContentLoaded', function () {
+    const manageHolidaysBtn = document.getElementById('manageHolidaysBtn');
+    const holidayModalBackground = document.getElementById('holidayModalBackground');
+    const holidayModal = document.getElementById('holidayModal');
+    const closeHolidayModalBtn = document.getElementById('closeHolidayModalBtn');
+    const addHolidayBtn = document.getElementById('addHolidayBtn');
+
+    // 点击管理节假日按钮显示模态框
+    manageHolidaysBtn.addEventListener('click', function () {
+      loadHolidays();
+      holidayModalBackground.style.display = 'block';
+    });
+
+    // 点击关闭按钮隐藏模态框
+    closeHolidayModalBtn.addEventListener('click', function () {
+      holidayModalBackground.style.display = 'none';
+    });
+
+    // 点击添加按钮添加节假日
+    addHolidayBtn.addEventListener('click', function () {
+      const newHolidayDate = document.getElementById('newHolidayDate').value;
+      const newHolidayName = document.getElementById('newHolidayName').value;
+
+      if (newHolidayDate && newHolidayName) {
+        addHoliday(newHolidayDate, newHolidayName);
+      } else {
+        alert('请填写完整的日期和名称');
+      }
+    });
+
+    // 点击背景层关闭模态框
+    holidayModalBackground.addEventListener('click', function (e) {
+      if (e.target === holidayModalBackground) {
+        holidayModalBackground.style.display = 'none';
+      }
+    });
+  });
+
+  // 加载节假日列表
+  function loadHolidays() {
+    fetch('/scheduleBoard/getHolidays')
+            .then(response => response.json())
+            .then(data => {
+              const holidayList = document.getElementById('holidayList');
+              holidayList.innerHTML = '';
+
+              data.forEach(holiday => {
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+                div.style.marginBottom = '5px';
+
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = holiday.holiday_date;
+                dateSpan.style.marginRight = '10px';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = holiday.holiday_name;
+                nameSpan.style.marginRight = '10px';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.addEventListener('click', function () {
+                  console.log("holiday.id,",holiday.id)
+                  deleteHoliday(holiday.id);
+                });
+
+                div.appendChild(dateSpan);
+                div.appendChild(nameSpan);
+                div.appendChild(deleteBtn);
+                holidayList.appendChild(div);
+              });
+            })
+            .catch(error => {
+              console.error('加载节假日列表失败:', error);
+            });
+  }
+
+
+  // 添加节假日
+  function addHoliday(date, name) {
+    fetch('/scheduleBoard/addHoliday', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        holiday_date: date,
+        holiday_name: name
+      })
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('网络响应失败');
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                alert('添加成功');
+                // 假设 holidays 是全局变量，用于存储节假日信息
+                if (!window.holidays) {
+                  window.holidays = [];
+                }
+                const existingIndex = holidays.findIndex(holiday => holiday.holiday_date === date);
+                if (existingIndex !== -1) {
+                  // 日期已存在，进行更新
+                  holidays[existingIndex] = {
+                    holiday_date: date,
+                    holiday_name: name,
+                    ...data
+                  };
+                } else {
+                  // 日期不存在，添加新的节假日
+                  holidays.push({
+                    holiday_date: date,
+                    holiday_name: name,
+                    ...data
+                  });
+                }
+                loadHolidays();
+                // 移除清空日期输入框的代码，仅清空名称输入框
+                // document.getElementById('newHolidayName').value = '';
+              } else {
+                alert('添加失败: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('添加节假日失败:', error);
+              alert('添加节假日失败，请稍后重试');
+            });
+  }
+  // 删除节假日
+  function deleteHoliday(id) {
+    if (confirm('确定要删除这个节假日吗？')) {
+      fetch('/scheduleBoard/deleteHoliday', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: id
+        })
+      })
+              .then(response => {
+                // 检查响应状态是否正常
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(data => {
+                if (data.success) {
+                  alert('删除成功');
+                  // 更新全局变量 holidays
+                  holidays = holidays.filter(holiday => holiday.id !== id);
+                  // 加载节假日列表，不操作输入框
+                  loadHolidays();
+                } else {
+                  alert('删除失败: ' + data.message);
+                }
+              })
+              .catch(error => {
+                console.error('删除节假日失败:', error);
+                alert('删除节假日失败，请稍后重试');
+              });
+    }
+  }
+
+  // 在页面加载完成时获取节假日数据
+  document.addEventListener('DOMContentLoaded', async function () {
+    try {
+      // 发起请求获取节假日数据
+      const response = await fetch('/scheduleBoard/getHolidays');
+      // 检查响应状态是否正常
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // 将响应数据解析为 JSON 格式并赋值给 holidays 变量
+      holidays = await response.json();
+    } catch (error) {
+      console.error('获取节假日数据失败:', error);
+    }
+  });
+
 
 </script>
 
