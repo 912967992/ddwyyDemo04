@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.DQE.ScheduleBoardDao">
+
+<select id="getTestEngineers" resultType="TestEngineerInfo">
+    SELECT * FROM tb_test_engineer_info
+</select>
+
+
+    <update id="updateTesterInfo">
+        UPDATE tb_test_engineer_info
+        <set>
+            <if test="responsible_category != null and responsible_category != ''">
+                responsible_category = #{responsible_category},
+            </if>
+            <if test="skill_description != null and skill_description != ''">
+                skill_description = #{skill_description},
+            </if>
+            <if test="skill_improvernment != null and skill_improvernment != ''">
+                skill_improvernment = #{skill_improvernment},
+            </if>
+            <if test="current_skill_level != null and current_skill_level != ''">
+                current_skill_level = #{current_skill_level},
+            </if>
+        </set>
+        WHERE test_engineer_name = #{test_engineer_name}
+    </update>
+
+    <select id="queryExistTester" parameterType="TesterInfo" resultType="int">
+        SELECT count(*) FROM tb_test_engineer_info
+        WHERE test_engineer_name = #{test_engineer_name}
+    </select>
+
+    <select id="queryJobnumber" parameterType="TesterInfo" resultType="map">
+        SELECT job_number,hire_date FROM users
+        WHERE username = #{test_engineer_name}
+    </select>
+
+    <insert id="insertTesterInfo" parameterType="TesterInfo">
+        insert into tb_test_engineer_info(engineer_id,test_engineer_name,hire_date,responsible_category,skill_description,skill_improvernment,current_skill_level,created_at,updated_at)
+        values(#{engineer_id},#{test_engineer_name},#{hire_date},#{responsible_category},#{skill_description},#{skill_improvernment},#{current_skill_level},NOW(),NOW())
+    </insert>
+
+    <delete id="deleteTester" parameterType="String">
+        DELETE FROM tb_test_engineer_info
+        WHERE test_engineer_name = #{test_engineer_name}
+    </delete>
+
+    <select id="getGroupData" resultType="Group">
+        select * FROM `groups`
+    </select>
+
+    <!-- GroupMapper.xml 中的 SQL 映射 -->
+    <update id="updateGroup" parameterType="Group">
+        UPDATE `groups`
+        SET is_displayed = #{is_displayed}, display_order = #{display_order}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getAllGroupsOrderByDisplayOrder" resultType="Group">
+        SELECT id, name, is_displayed, display_order
+        FROM `groups`
+        WHERE is_displayed = 1
+        ORDER BY display_order ASC
+    </select>
+
+    <insert id="addGroup" parameterType="Group">
+        INSERT INTO `groups` ( name, is_displayed, display_order)
+        VALUES ( #{name}, #{is_displayed}, #{display_order});
+    </insert>
+
+
+</mapper>

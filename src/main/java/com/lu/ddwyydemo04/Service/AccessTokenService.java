@@ -635,7 +635,7 @@ public class AccessTokenService {
                 } else {
                     user.setPosition("rd");
                 }
-            } else if (user.getUsername().equals("卢健") || user.getUsername().equals("卢绮敏")) {
+            } else if (user.getUsername().equals("卢健") || user.getUsername().equals("卢绮敏") || user.getUsername().equals("李良健")) {
                 user.setPosition("DQE"); // 特殊条件：如果是卢健或者卢绮敏，则职位为 DQE
             } else if (user.getUsername().equals("官旺华") || user.getUsername().equals("赵梓宇") || user.getUsername().equals("刘鹏飞")) {
                 user.setPosition("tester"); // 特殊条件：如果是官旺华，则职位为 tester,因为他被放到了电子DQE租
