@@ -1811,7 +1811,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         const changeLogBtn = document.getElementById('changeLogBtn');
         changeLogBtn.addEventListener('click', function () {
-            const sample_id = document.getElementById('modalBody').querySelector('p:nth-child(1)').textContent.split('：')[1].trim();
+            // const sample_id = document.getElementById('modalBody').querySelector('p:nth-child(1)').textContent.split('：')[1].trim();
+            const sample_id = document.getElementById('editSampleId').value.trim();
+
             fetch(`/api/getChangeLog?sample_id=${sample_id}`)
                 .then(response => response.json())
                 .then(data => {

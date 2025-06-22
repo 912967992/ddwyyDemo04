@@ -1855,6 +1855,8 @@ public class testManIndexController {
     @ResponseBody
     public List<Map<String, String>> getChangeLog(@RequestParam String sample_id) {
         String rawLog = testManIndexService.getChangeRecordBySampleId(sample_id);
+        System.out.println("sample_id:"+sample_id);
+        System.out.println("rawLog:"+rawLog);
         List<Map<String, String>> result = new ArrayList<>();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -1901,7 +1903,7 @@ public class testManIndexController {
                 }
             });
         }
-
+        System.out.println("result:"+result);
         return result;
     }
 

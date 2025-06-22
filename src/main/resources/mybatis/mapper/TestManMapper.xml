@@ -825,7 +825,7 @@
     </select>
 
     <!-- 查询 electric_info 表中的 changeRecord 字段 -->
-    <select id="getChangeRecordBySampleId" resultType="string">
+    <select id="getChangeRecordBySampleId" resultType="String">
         SELECT changeRecord
         FROM electric_info
         WHERE sample_id = #{sample_id}
