@@ -19,11 +19,15 @@
             <!-- 新增管理测试人员按钮 -->
             <button id="manageTesterBtn" class="nice-btn" onclick="showManageTestersModal()">管理测试人员</button>
 
+            <!-- 新增搜索按钮 -->
+            <button id="searchBtn" style="margin-left: 10px;">搜索查询</button>
             <!-- 新增垃圾站区域 -->
             <div id="trashStation">
-                <h3>回收站(右键可查看作废项目)</h3>
+                <h3>回收站(右键看作废列表)</h3>
                 <div id="trashContent"></div>
             </div>
+
+
         </h2>
         <div id="projectPool">加载中...</div>
     </div>
@@ -341,6 +345,32 @@
     </div>
 </div>
 
+<!-- 遮罩层 -->
+<div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 999;"></div>
+<!-- 新增搜索模态框 -->
+<div id="searchModal" style="display: none;">
+    <div id="searchModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>搜索项目</h3>
+            <button id="closeSearchModalBtn" class="modal-button">关闭</button>
+        </div>
+        <!-- 修改 searchModalBody 的样式 -->
+        <div id="searchModalBody" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+            <div>
+                <strong>电气编号：</strong><input type="text" id="searchSampleId">
+            </div>
+            <div>
+                <strong>大编码：</strong><input type="text" id="searchSampleModel">
+            </div>
+            <div>
+                <strong>测试人：</strong><input type="text" id="searchTester">
+            </div>
+            <button id="executeSearchBtn" class="modal-button">搜索</button>
+        </div>
+        <div id="searchResults"></div>
+    </div>
+</div>
+<!-- ... existing code ... -->
 
 
 <script>
@@ -2998,6 +3028,134 @@
             alert("提交数据时出错！");
         }
     });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchBtn = document.getElementById('searchBtn');
+        const searchModal = document.getElementById('searchModal');
+        const closeSearchModalBtn = document.getElementById('closeSearchModalBtn');
+        const executeSearchBtn = document.getElementById('executeSearchBtn');
+
+        const modalContent = document.getElementById('searchModalContent');
+        const overlay = document.getElementById('searchModalOverlay');
+
+        // 打开模态框时显示遮罩和模态框（你自己调用）
+        function openSearchModal() {
+            overlay.style.display = 'block';
+            searchModal.style.display = 'block';
+        }
+
+        // 关闭模态框和遮罩
+        function closeSearchModal() {
+            overlay.style.display = 'none';
+            searchModal.style.display = 'none';
+        }
+
+        // 点击遮罩关闭
+        overlay.addEventListener('click', closeSearchModal);
+
+        // 关闭按钮
+        closeSearchModalBtn.addEventListener('click', closeSearchModal);
+
+
+
+        // 点击搜索按钮显示模态框
+        searchBtn.addEventListener('click', function () {
+            // searchModal.style.display = 'block';
+            openSearchModal();
+        });
+
+        // 点击关闭按钮隐藏模态框
+        closeSearchModalBtn.addEventListener('click', function () {
+            // searchModal.style.display = 'none';
+            closeSearchModal();
+        });
+
+        // 点击模态框外部隐藏模态框
+        searchModal.addEventListener('click', function (e) {
+            if (e.target === searchModal) {
+                searchModal.style.display = 'none';
+            }
+        });
+
+        // 执行搜索
+        executeSearchBtn.addEventListener('click', function () {
+            const sampleId = document.getElementById('searchSampleId').value;
+            const sampleModel = document.getElementById('searchSampleModel').value;
+            const tester = document.getElementById('searchTester').value;
+
+            // 发送搜索请求
+            fetch('/scheduleBoardController/searchProjects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sampleId: sampleId,
+                    sampleModel: sampleModel,
+                    tester: tester
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const resultsContainer = document.getElementById('searchResults');
+                    resultsContainer.innerHTML = '';
+
+                    if (data.length === 0) {
+                        resultsContainer.innerHTML = '暂无搜索结果。';
+                    } else {
+                        let html = '<table border="1">';
+                        html += `
+                        <thead>
+                            <tr>
+                                <th>电气编号</th>
+                                <th>大小编码</th>
+                                <th>预计排期开始时间</th>
+                                <th>预计排期结束时间</th>
+                                <th>排期天数</th>
+                                <th>测试人</th>
+                                <th>实际测试开始时间</th>
+                                <th>实际测试结束时间</th>
+                                <th>实测时长</th>
+                                <th>报告审核时间</th>
+                                <th>样品承认结果</th>
+                                <th>排期颜色</th>
+                                <th>是否作废</th>
+                            </tr>
+                        </thead>
+                        `;
+                        html += '<tbody>';
+                        data.forEach(item => {
+                            const startDate = item.schedule_start_date ? item.schedule_start_date.split('T')[0] : '';
+                            const endDate = item.schedule_end_date ? item.schedule_end_date.split('T')[0] : '';
+
+                            html += `<tr>
+                                <td>${item.sample_id}</td>
+                                <td>${item.sample_model} ${item.materialCode || ''}</td>
+                                <td>${startDate}</td>
+                                <td>${endDate}</td>
+                                <td>${item.scheduleDays}</td>
+                                <td>${item.tester}</td>
+                                <td>${item.actual_start_time}</td>
+                                <td>${item.actual_finish_time}</td>
+                                <td>${item.testDuration}</td>
+                                <td>${item.reportReviewTime}</td>
+                                <td>${item.sampleRecognizeResult}</td>
+                                <td style="background-color: ${item.schedule_color};">${item.schedule_color}</td>
+                                <td>${item.isCancel}</td>
+                            </tr>`;
+                        });
+
+                        html += '</tbody></table>';
+                        resultsContainer.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('搜索失败:', error);
+                    document.getElementById('searchResults').innerHTML = '搜索失败，请稍后重试。';
+                });
+        });
+    });
+
 
 </script>
 

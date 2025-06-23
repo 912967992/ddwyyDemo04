@@ -1,8 +1,6 @@
 package com.lu.ddwyydemo04.dao.DQE;
 
-import com.lu.ddwyydemo04.pojo.Group;
-import com.lu.ddwyydemo04.pojo.TestEngineerInfo;
-import com.lu.ddwyydemo04.pojo.TesterInfo;
+import com.lu.ddwyydemo04.pojo.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -26,4 +24,6 @@ public interface ScheduleBoardDao {
     void addGroup(Group group);
 
     List<Group> getAllGroupsOrderByDisplayOrder();
+
+    List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester);
 }

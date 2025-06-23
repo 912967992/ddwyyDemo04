@@ -69,5 +69,22 @@
         VALUES ( #{name}, #{is_displayed}, #{display_order});
     </insert>
 
-
+    <select id="searchProjects" resultType="PassbackData">
+        SELECT *
+        FROM electric_info
+        <where>
+            <!-- 处理 sample_id 模糊查询，若传入参数不为空则拼接条件 -->
+            <if test="sample_id != null and sample_id != ''">
+                AND sample_id LIKE CONCAT('%', #{sample_id}, '%')
+            </if>
+            <!-- 处理 sample_model 模糊查询，若传入参数不为空则拼接条件 -->
+            <if test="sample_model != null and sample_model != ''">
+                AND sample_model LIKE CONCAT('%', #{sample_model}, '%')
+            </if>
+            <!-- 处理 tester 模糊查询，若传入参数不为空则拼接条件 -->
+            <if test="tester != null and tester != ''">
+                AND tester LIKE CONCAT('%', #{tester}, '%')
+            </if>
+        </where>
+    </select>
 </mapper>

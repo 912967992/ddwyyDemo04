@@ -2,15 +2,15 @@ package com.lu.ddwyydemo04.controller.DQE;
 
 import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 import com.lu.ddwyydemo04.Service.DQE.ScheduleBoardService;
-import com.lu.ddwyydemo04.pojo.Group;
-import com.lu.ddwyydemo04.pojo.TestEngineerInfo;
-import com.lu.ddwyydemo04.pojo.TesterInfo;
+import com.lu.ddwyydemo04.Service.TestManIndexService;
+import com.lu.ddwyydemo04.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 public class ScheduleBoardController {
     @Autowired
     private ScheduleBoardService scheduleBoardService;
+    @Autowired
+    private TestManIndexService testManIndexService;
 
 
     @GetMapping("/scheduleBoardController/getTestEngineers")
@@ -59,7 +61,6 @@ public class ScheduleBoardController {
     public ResponseEntity<Map<String, Object>> addTesterInfo(@RequestBody TesterInfo testerInfo) {
         Map<String, Object> response = new HashMap<>();
         try {
-            System.out.println("testerInfo::::" + testerInfo);
 
             // 先查询新增的名字是否已存在
             int count = scheduleBoardService.queryExistTester(testerInfo);
@@ -166,6 +167,31 @@ public class ScheduleBoardController {
 
         scheduleBoardService.addGroup(group);
         return "新增成功";
+    }
+
+
+
+    @PostMapping("/scheduleBoardController/searchProjects")
+    @ResponseBody
+    public List<PassbackData> searchProjects(@RequestBody Map<String, String> requestData) {
+        String sampleId = requestData.get("sampleId");
+        String sampleModel = requestData.get("sampleModel");
+        String tester = requestData.get("tester");
+
+        // 查询结果
+        List<PassbackData> results = scheduleBoardService.searchProjects(sampleId, sampleModel, tester);
+
+        // 遍历结果，补全 materialCode
+        for (PassbackData data : results) {
+            if (data.getMaterialCode() == null || data.getMaterialCode().trim().isEmpty()) {
+                String projectId = data.getSample_id(); // 或者 data.getProjectId()，看你数据结构
+                List<String> materialItems = testManIndexService.getMaterialCodes(projectId);
+                String materialItemsStr = String.join("，", materialItems);
+                data.setMaterialCode(materialItemsStr);
+            }
+        }
+
+        return results;
     }
 
 

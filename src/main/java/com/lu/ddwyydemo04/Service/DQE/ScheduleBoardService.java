@@ -2,9 +2,7 @@ package com.lu.ddwyydemo04.Service.DQE;
 
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
 import com.lu.ddwyydemo04.dao.DQE.ScheduleBoardDao;
-import com.lu.ddwyydemo04.pojo.Group;
-import com.lu.ddwyydemo04.pojo.TestEngineerInfo;
-import com.lu.ddwyydemo04.pojo.TesterInfo;
+import com.lu.ddwyydemo04.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,4 +55,11 @@ public class ScheduleBoardService {
     public void addGroup(Group group){
         scheduleBoardDao.addGroup(group);
     }
+
+    public List<PassbackData> searchProjects(String sample_id , String sample_model, String tester){
+        return scheduleBoardDao.searchProjects(sample_id, sample_model, tester);
+    }
+
+
+
 }
