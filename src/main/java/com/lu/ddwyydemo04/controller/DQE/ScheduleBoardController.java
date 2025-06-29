@@ -1,5 +1,10 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
+import com.dingtalk.api.DefaultDingTalkClient;
+import com.dingtalk.api.DingTalkClient;
+import com.dingtalk.api.request.OapiAttendanceGetupdatedataRequest;
+import com.dingtalk.api.response.OapiAttendanceGetupdatedataResponse;
+import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 import com.lu.ddwyydemo04.Service.DQE.ScheduleBoardService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
@@ -10,10 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -22,6 +25,9 @@ public class ScheduleBoardController {
     private ScheduleBoardService scheduleBoardService;
     @Autowired
     private TestManIndexService testManIndexService;
+
+    @Autowired
+    private AccessTokenService accessTokenService;
 
 
     @GetMapping("/scheduleBoardController/getTestEngineers")
@@ -194,5 +200,37 @@ public class ScheduleBoardController {
         return results;
     }
 
+
+    @PostMapping("/scheduleBoardController/getUpdateData")
+    @ResponseBody
+    public ResponseEntity<?> getAttendanceUpdateData(@RequestBody Map<String, String> requestMap) {
+        try {
+            String userid = requestMap.get("userid");
+            String workDateStr = requestMap.get("workDate"); // 格式如 "2021-01-14"
+            if (userid == null || workDateStr == null) {
+                return ResponseEntity.badRequest().body("缺少参数：userid 或 workDate");
+            }
+
+            // 日期转换
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date workDate = sdf.parse(workDateStr);
+
+            // access_token 推荐从缓存/服务中获取，这里只是演示写死
+            String accessToken = accessTokenService.getAccessToken();
+
+            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/attendance/getupdatedata");
+            OapiAttendanceGetupdatedataRequest req = new OapiAttendanceGetupdatedataRequest();
+            req.setUserid(userid);
+            req.setWorkDate(workDate);
+
+            OapiAttendanceGetupdatedataResponse rsp = client.execute(req, accessToken);
+            System.out.println("rsp.getBody():"+rsp.getBody());
+            return ResponseEntity.ok(rsp.getBody());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("查询失败：" + e.getMessage());
+        }
+    }
 
 }

@@ -370,7 +370,11 @@
         <div id="searchResults"></div>
     </div>
 </div>
-<!-- ... existing code ... -->
+
+
+<button id="checkAttendanceBtn">查询考勤</button>
+
+
 
 
 <script>
@@ -3154,6 +3158,28 @@
                     document.getElementById('searchResults').innerHTML = '搜索失败，请稍后重试。';
                 });
         });
+    });
+
+
+    document.getElementById('checkAttendanceBtn').addEventListener('click', function () {
+        const requestData = {
+            userid: "2329612068682307", // 后续可改为动态获取
+            workDate: "2025-06-26"
+        };
+
+        fetch('/scheduleBoardController/getUpdateData', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('考勤结果：', data);
+                alert(JSON.stringify(data));
+            })
+            .catch(error => {
+                console.error('请求出错：', error);
+            });
     });
 
 

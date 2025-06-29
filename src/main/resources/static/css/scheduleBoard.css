@@ -384,14 +384,15 @@
     margin-left: 20px;
     border: 1px solid #ccc;
     padding: 10px;
-    min-width: 150px;
+    min-width: 100px;
     min-height: 50px;
     background-color: red; /* 设置垃圾站背景为红色 */
 }
 
 #trashStation h3 {
     margin-top: 0; /* 去除 h3 顶部默认外边距 */
-    height: 30px;
+    height: 50px;
+    width: 200px;
 }
 
 #trashListModal h3{
