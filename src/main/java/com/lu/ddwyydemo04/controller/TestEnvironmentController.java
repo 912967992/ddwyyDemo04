@@ -687,7 +687,7 @@ public class TestEnvironmentController {
     @GetMapping("/getTesters")
     public ResponseEntity<List<Map<String, Object>>> getTesters() {
         List<Map<String, Object>> testers = testManIndexService.getAllTesters();
-        System.out.println("testers:"+testers);
+//        System.out.println("testers:"+testers);
         return ResponseEntity.ok(testers);
     }
 

@@ -772,64 +772,64 @@ public class AccessTokenService {
     }
 
     // 每天凌晨3:10执行
-    @Scheduled(cron = "0 30 4 * * ?")
-    public void syncEngineers() {
-        String[] engineerNames = {
-                "郭喆", "游宏", "殷嘉俊", "唐日顺", "官旺华", "刘鹏飞", "赵梓宇", "段平", "魏民",
-                "程奕阳", "赵爽", "罗清虎", "龙运", "黄兰姣", "李智龙", "肖灶炜", "肖龙生", "张国鹏",
-                "戴杏华", "李素欣1", "张锐", "阮晓晴", "廖建伟", "蔡义会"
-        }; // 测试人员数组
-
-        // 定义组别
-        Map<String, String> groupMap = new HashMap<>();
-        groupMap.put("龙运", "线材组");
-        groupMap.put("张国鹏", "线材组");
-        groupMap.put("唐日顺", "新人");
-        groupMap.put("殷嘉俊", "视频组");
-        groupMap.put("赵梓宇", "蓝牙组");
-        groupMap.put("游宏", "新人");
-        groupMap.put("郭喆", "PC");
-        groupMap.put("冯兴旺", "PC");
-        groupMap.put("戴杏华", "视频组");
-        groupMap.put("李智龙", "视频组");
-        groupMap.put("魏民", "视频组");
-        groupMap.put("肖灶炜", "视频组");
-        groupMap.put("李素欣1", "视频组");
-        groupMap.put("程奕阳", "视频组");
-        groupMap.put("张锐", "数据网通组");
-        groupMap.put("赵爽", "数据网通组");
-        groupMap.put("肖龙生", "数据网通组");
-        groupMap.put("黄兰姣", "蓝牙组");
-        groupMap.put("刘鹏飞", "蓝牙组");
-        groupMap.put("段平", "蓝牙组");
-        groupMap.put("罗清虎", "蓝牙组");
-        groupMap.put("阮晓晴", "耳机组");
-        groupMap.put("官旺华", "耳机组");
-        groupMap.put("廖建伟", "高频组");
-        groupMap.put("蔡义会", "高频组");
-
-        for (String name : engineerNames) {
-            Map<String, String> userInfo = findUserByUsername(name);
-
-            if (userInfo != null) {
-                String engineerId = userInfo.get("engineerId");
-                String testEngineerName = userInfo.get("testEngineerName");
-                String hire_date = userInfo.get("hire_date");
-                String responsible_category = groupMap.getOrDefault(testEngineerName, null); // 获取组别
-
-                Integer count = countEngineerByName(testEngineerName);
-
-                if (count != null && count > 0) {
-                    // 已存在，更新
-                    updateEngineer(engineerId, testEngineerName, hire_date, responsible_category);
-                } else {
-                    // 不存在，插入
-                    insertEngineer(engineerId, testEngineerName, hire_date, responsible_category);
-                }
-            }
-        }
-        logger.info("定时任务更新测试人员数据库已完毕!");
-    }
+//    @Scheduled(cron = "0 30 4 * * ?")
+//    public void syncEngineers() {
+//        String[] engineerNames = {
+//                "郭喆", "游宏", "殷嘉俊", "唐日顺", "官旺华", "刘鹏飞", "赵梓宇", "段平", "魏民",
+//                "程奕阳", "赵爽", "罗清虎", "龙运", "黄兰姣", "李智龙", "肖灶炜", "肖龙生", "张国鹏",
+//                "戴杏华", "李素欣1", "张锐", "阮晓晴", "廖建伟", "蔡义会"
+//        }; // 测试人员数组
+//
+//        // 定义组别
+//        Map<String, String> groupMap = new HashMap<>();
+//        groupMap.put("龙运", "线材组");
+//        groupMap.put("张国鹏", "线材组");
+//        groupMap.put("唐日顺", "新人");
+//        groupMap.put("殷嘉俊", "视频组");
+//        groupMap.put("赵梓宇", "蓝牙组");
+//        groupMap.put("游宏", "新人");
+//        groupMap.put("郭喆", "PC");
+//        groupMap.put("冯兴旺", "PC");
+//        groupMap.put("戴杏华", "视频组");
+//        groupMap.put("李智龙", "视频组");
+//        groupMap.put("魏民", "视频组");
+//        groupMap.put("肖灶炜", "视频组");
+//        groupMap.put("李素欣1", "视频组");
+//        groupMap.put("程奕阳", "视频组");
+//        groupMap.put("张锐", "数据网通组");
+//        groupMap.put("赵爽", "数据网通组");
+//        groupMap.put("肖龙生", "数据网通组");
+//        groupMap.put("黄兰姣", "蓝牙组");
+//        groupMap.put("刘鹏飞", "蓝牙组");
+//        groupMap.put("段平", "蓝牙组");
+//        groupMap.put("罗清虎", "蓝牙组");
+//        groupMap.put("阮晓晴", "耳机组");
+//        groupMap.put("官旺华", "耳机组");
+//        groupMap.put("廖建伟", "高频组");
+//        groupMap.put("蔡义会", "高频组");
+//
+//        for (String name : engineerNames) {
+//            Map<String, String> userInfo = findUserByUsername(name);
+//
+//            if (userInfo != null) {
+//                String engineerId = userInfo.get("engineerId");
+//                String testEngineerName = userInfo.get("testEngineerName");
+//                String hire_date = userInfo.get("hire_date");
+//                String responsible_category = groupMap.getOrDefault(testEngineerName, null); // 获取组别
+//
+//                Integer count = countEngineerByName(testEngineerName);
+//
+//                if (count != null && count > 0) {
+//                    // 已存在，更新
+//                    updateEngineer(engineerId, testEngineerName, hire_date, responsible_category);
+//                } else {
+//                    // 不存在，插入
+//                    insertEngineer(engineerId, testEngineerName, hire_date, responsible_category);
+//                }
+//            }
+//        }
+//        logger.info("定时任务更新测试人员数据库已完毕!");
+//    }
 
 
     public Map<String, String> findUserByUsername(String username){
