@@ -3,7 +3,9 @@ package com.lu.ddwyydemo04.controller.DQE;
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.OapiAttendanceGetupdatedataRequest;
+import com.dingtalk.api.request.OapiAttendanceListRecordRequest;
 import com.dingtalk.api.response.OapiAttendanceGetupdatedataResponse;
+import com.dingtalk.api.response.OapiAttendanceListRecordResponse;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 import com.lu.ddwyydemo04.Service.DQE.ScheduleBoardService;
@@ -203,34 +205,55 @@ public class ScheduleBoardController {
 
     @PostMapping("/scheduleBoardController/getUpdateData")
     @ResponseBody
-    public ResponseEntity<?> getAttendanceUpdateData(@RequestBody Map<String, String> requestMap) {
-        try {
-            String userid = requestMap.get("userid");
-            String workDateStr = requestMap.get("workDate"); // 格式如 "2021-01-14"
-            if (userid == null || workDateStr == null) {
-                return ResponseEntity.badRequest().body("缺少参数：userid 或 workDate");
+    public Map<String, Object> getAttendanceList(@RequestBody Map<String, Object> params) {
+        List<String> names = (List<String>) params.get("names");
+        String startDate = (String) params.get("startDate");
+        String endDate = (String) params.get("endDate");
+
+        if (startDate == null || startDate.trim().isEmpty()) {
+            return Collections.singletonMap("error", "开始时间不能为空");
+        }
+
+        // 如果 endDate 没填，默认为 startDate 当天
+        if (endDate == null || endDate.trim().isEmpty()) {
+            endDate = startDate;
+        }
+
+        // 1. 查询用户ID（假设你有 userService 方法）
+        List<String> userIds = new ArrayList<>();
+        for (String name : names) {
+            String userId = accessTokenService.getUserIdByName(name.trim()); // 自行实现
+            if (userId != null) {
+                userIds.add(userId);
             }
+        }
 
-            // 日期转换
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Date workDate = sdf.parse(workDateStr);
+        if (userIds.isEmpty()) {
+            return Collections.singletonMap("error", "未找到对应的用户ID");
+        }
 
-            // access_token 推荐从缓存/服务中获取，这里只是演示写死
-            String accessToken = accessTokenService.getAccessToken();
+        try {
+            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/attendance/listRecord");
+            OapiAttendanceListRecordRequest req = new OapiAttendanceListRecordRequest();
+            req.setUserIds(userIds);
+            req.setCheckDateFrom(startDate + " 00:00:00");
+            req.setCheckDateTo(endDate + " 23:59:59");
+            req.setIsI18n(false);
 
-            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/attendance/getupdatedata");
-            OapiAttendanceGetupdatedataRequest req = new OapiAttendanceGetupdatedataRequest();
-            req.setUserid(userid);
-            req.setWorkDate(workDate);
+            String accessToken = accessTokenService.getAccessToken(); // 自行实现 token 获取逻辑
+            OapiAttendanceListRecordResponse rsp = client.execute(req, accessToken);
 
-            OapiAttendanceGetupdatedataResponse rsp = client.execute(req, accessToken);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("data", rsp.getBody());
             System.out.println("rsp.getBody():"+rsp.getBody());
-            return ResponseEntity.ok(rsp.getBody());
+            return result;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("查询失败：" + e.getMessage());
+            return Collections.singletonMap("error", "调用钉钉接口失败: " + e.getMessage());
         }
     }
+
 
 }

@@ -3162,9 +3162,31 @@
 
 
     document.getElementById('checkAttendanceBtn').addEventListener('click', function () {
+        // 输入多个姓名（用逗号或空格隔开）
+        const nameInput = prompt("请输入姓名（多个用逗号或空格分隔）：");
+        if (!nameInput) return;
+
+        // 拆分为数组，去除空白项
+        const names = nameInput.split(/[,，\s]+/).map(n => n.trim()).filter(n => n);
+        if (names.length === 0) {
+            alert("请输入至少一个姓名");
+            return;
+        }
+
+        // 输入开始日期（必填）
+        const startDate = prompt("请输入开始日期（格式：2025-06-23）：");
+        if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+            alert("开始日期格式错误");
+            return;
+        }
+
+        // 输入结束日期（可选）
+        const endDate = prompt("请输入结束日期（可选，格式：2025-06-26）：");
+
         const requestData = {
-            userid: "2329612068682307", // 后续可改为动态获取
-            workDate: "2025-06-26"
+            names: names,                          // 传数组给后端
+            startDate: startDate.trim(),
+            endDate: endDate ? endDate.trim() : "" // 没填就是空字符串
         };
 
         fetch('/scheduleBoardController/getUpdateData', {
@@ -3175,7 +3197,7 @@
             .then(response => response.json())
             .then(data => {
                 console.log('考勤结果：', data);
-                alert(JSON.stringify(data));
+                alert(JSON.stringify(data, null, 2));
             })
             .catch(error => {
                 console.error('请求出错：', error);
