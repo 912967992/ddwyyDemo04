@@ -134,8 +134,7 @@ public class ScheduleBoardController {
     @GetMapping("/scheduleBoardController/getGroupData")
     @ResponseBody
     public List<Group> getGroupData() {
-        List<Group> groupList = scheduleBoardService.getGroupData();
-        return groupList;
+        return scheduleBoardService.getGroupData();
     }
 
     @PostMapping("/scheduleBoardController/saveGroupSettings")

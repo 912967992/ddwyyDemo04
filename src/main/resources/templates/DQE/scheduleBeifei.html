@@ -16,11 +16,18 @@
       <button id="addProjectBtn" style="margin-left: 10px;">新增项目</button>
       <!-- 假设管理节假日按钮代码如下，可根据实际情况修改 -->
       <button id="manageHolidaysBtn" class="nice-btn">管理节假日</button>
+      <!-- 新增管理测试人员按钮 -->
+      <button id="manageTesterBtn" class="nice-btn" onclick="showManageTestersModal()">管理测试人员</button>
+
+      <!-- 新增搜索按钮 -->
+      <button id="searchBtn" style="margin-left: 10px;">搜索查询</button>
       <!-- 新增垃圾站区域 -->
       <div id="trashStation">
-        <h3>回收站(右键可查看作废项目)</h3>
+        <h3>回收站(右键看作废列表)</h3>
         <div id="trashContent"></div>
       </div>
+
+
     </h2>
     <div id="projectPool">加载中...</div>
   </div>
@@ -244,6 +251,129 @@
 </div>
 
 
+<!-- 管理测试人员模态框遮罩层 -->
+<div id="manageTestersOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+<!-- 管理测试人员模态框 -->
+<div id="manageTestersModal" style="display: none;">
+  <div id="manageTestersModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; max-width: 800px; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="tester-management">
+        <h3>管理测试人员</h3>
+        <button id="addNewTesterBtn">新增测试人员</button>
+        <button id="manageGroupBtn">管理展示的组</button>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="saveTesterChangesBtn">保存</button>
+        <button id="closeManageTestersModalBtn">关闭</button>
+      </div>
+    </div>
+    <div id="manageTestersModalBody">
+      <table id="testersTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-bottom: 10px;">
+        <thead>
+        <tr>
+          <th>工程师ID</th>
+          <th>工程师名字</th>
+          <th>入职日期</th>
+          <th>负责的品类</th>
+          <th>技能描述</th>
+          <th>技能提升记录</th>
+          <th>当前技能等级</th>
+          <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="testersTableBody">
+        <!-- 测试人员数据将动态填充 -->
+        </tbody>
+      </table>
+      <!-- ... 新增测试人员部分保持不变 ... -->
+    </div>
+  </div>
+</div>
+
+
+<!-- 新增测试人员模态框 -->
+<div id="addTesterModal" style="display: none;">
+  <div id="addTesterModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>新增测试人员</h3>
+      <button id="closeAddTesterModalBtn">关闭</button>
+    </div>
+    <div id="addTesterModalBody">
+      <p><strong>测试人员姓名(<span class="required">*</span>)：</strong><input type="text" id="addTesterName" required></p>
+      <p><strong>负责组别(<span class="required">*</span>)：</strong><input type="text" id="addTesterGroup" required></p>
+      <p><strong>技能描述：</strong><input type="text" id="addTesterSkillDesc"></p>
+      <p><strong>技能提升：</strong><input type="text" id="addTesterSkillImprove"></p>
+      <p><strong>当前技能等级：</strong><input type="text" id="addTesterSkillLevel"></p>
+    </div>
+    <button id="saveNewTesterBtn">保存测试人员</button>
+  </div>
+</div>
+
+<!-- 管理展示的组模态框 -->
+<div id="manageGroupModal" style="display: none;">
+  <div id="manageGroupModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>管理展示的组</h3>
+      <button id="closeManageGroupModalBtn">关闭</button>
+    </div>
+    <table id="groupTable">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>组别</th>
+        <th>是否展示</th>
+        <th>显示顺序值</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- 这里将动态添加组信息 -->
+      </tbody>
+    </table>
+
+    <button id="saveGroupSettingsBtn">保存组别设置</button>
+
+    <!-- 新增组输入区域 -->
+    <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+      <input type="text" id="newGroupName" placeholder="组别名称" style="width: 150px;">
+      <select id="newGroupDisplay" style="width: 100px;">
+        <option value="true">展示</option>
+        <option value="false">不展示</option>
+      </select>
+      <input type="number" id="newGroupOrder" placeholder="展示权重" style="width: 100px;">
+      <button id="addGroupBtn">新增组</button>
+    </div>
+  </div>
+</div>
+
+<!-- 遮罩层 -->
+<div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 999;"></div>
+<!-- 新增搜索模态框 -->
+<div id="searchModal" style="display: none;">
+  <div id="searchModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>搜索项目</h3>
+      <button id="closeSearchModalBtn" class="modal-button">关闭</button>
+    </div>
+    <!-- 修改 searchModalBody 的样式 -->
+    <div id="searchModalBody" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+      <div>
+        <strong>电气编号：</strong><input type="text" id="searchSampleId">
+      </div>
+      <div>
+        <strong>大编码：</strong><input type="text" id="searchSampleModel">
+      </div>
+      <div>
+        <strong>测试人：</strong><input type="text" id="searchTester">
+      </div>
+      <button id="executeSearchBtn" class="modal-button">搜索</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+
+
+
 
 
 <script>
@@ -258,7 +388,32 @@
   // 定义全局变量 holidays 用于存储节假日数据
   let holidays = [];
 
+  // 存储待保存的修改
+  let pendingChanges = [];
 
+  // ⭐⭐ 新增：组别顺序数组
+  let groupOrder = []; // 按你的需求改顺序
+
+  function loadGroupOrder() {
+    fetch('/scheduleBoardController/getGroupOrder')
+            .then(response => {
+              if (!response.ok) throw new Error('网络错误');
+              return response.json();
+            })
+            .then(data => {
+              if (Array.isArray(data)) {
+                groupOrder = data;
+                console.log('已加载组别顺序:', groupOrder);
+                // 这里你可以调用渲染表格等函数，使用 groupOrder
+                // renderGroupTable(groupOrder);
+              } else {
+                console.warn('接口返回数据格式不正确', data);
+              }
+            })
+            .catch(error => {
+              console.error('获取组别顺序失败:', error);
+            });
+  }
 
   //默认让endDate+14天，进入页面的时候
   document.addEventListener('DOMContentLoaded', function () {
@@ -397,6 +552,9 @@
 
   // 页面加载后请求数据
   window.onload = function () {
+    // 获取展示的组的数据
+    loadGroupOrder();
+
     // 加载项目池子数据
     loadProjectPoolData(); // ✅ 页面初始化调用加载函数
     // 加载待送样池子数据
@@ -858,7 +1016,7 @@
     html += '<thead><tr>';
     html += '<th>组别</th>';
     html += '<th style="min-width: 100px;">测试人员</th>';
-    console.log("holidays.",holidays)
+    // console.log("holidays.",holidays)
     allDates.forEach(date => {
       const dateObj = new Date(date);
       const dayOfWeek = dateObj.getDay();
@@ -880,8 +1038,6 @@
 
     const groupedTesters = groupTestersByCategory(testers);
 
-    // ⭐⭐ 新增：组别顺序数组
-    const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"耳机组","PC", "高频组"]; // 按你的需求改顺序
 
     // ⭐⭐ 新增：先按照 groupOrder 遍历
     groupOrder.forEach(groupName => {
@@ -1071,120 +1227,250 @@
         }
 
         // 检查排期区域是否已被占用
+        let conflictFound = false;
         for (let i = startIndex; i < startIndex + roundedDays; i++) {
           if (rowCells[i].innerText.trim() !== '') {
+            conflictFound = true;
+            break;
+          }
+        }
 
-            const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
-            if (!confirmInsert) {
-              return;
+        if (conflictFound) {
+          const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
+          if (!confirmInsert) {
+            // 判断是否都是 0.5 天的项目
+            const draggedScheduleDays = parseFloat(taskData.schedule_days);
+            for (let i = startIndex; i < startIndex + roundedDays; i++) {
+              if (rowCells[i].innerText.trim() !== '') {
+                const conflictingScheduleDays = parseFloat(rowCells[i].getAttribute('data-schedule_days'));
+                if (draggedScheduleDays === 0.5 && conflictingScheduleDays === 0.5) {
+                  const confirmMerge = confirm('两个项目排期天数均为 0.5 天，是否合并单元格？');
+                  if (confirmMerge) {
+                    // 获取当前单元格（拖拽项目将放入的单元格）
+                    const targetCell = rowCells[i];
+
+                    // 将拖拽项目的属性添加到目标单元格，第二个项目属性以 data1- 为前缀
+                    Object.keys(taskData).forEach(key => {
+                      if (key !== 'days') {
+                        targetCell.setAttribute(`data1-${key}`, taskData[key]);
+                      }
+                    });
+
+                    // 获取原项目的属性并保留
+                    const originalAttributes = {};
+                    const attributesToCopy = [
+                      'sample_id', 'sample_name', 'sample_model', 'materialCode',
+                      'sample_category', 'version', 'priority', 'sample_leader',
+                      'supplier', 'test_project_category', 'test_projects', 'schedule',
+                      'create_time', 'schedule_days', 'schedule_start_date',
+                      'schedule_end_date', 'schedule_color', 'remark', 'job_number', 'tester'
+                    ];
+                    attributesToCopy.forEach(attr => {
+                      originalAttributes[attr] = targetCell.getAttribute(`data-${attr}`);
+                    });
+
+                    // 构造新的显示文本，合并两个项目信息
+                    const originalText = targetCell.innerText;
+                    const newText = `${originalText} | ${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+                    targetCell.innerText = newText;
+
+                    // 更新排期天数
+                    const newScheduleDays = parseFloat(targetCell.getAttribute('data-schedule_days')) + parseFloat(taskData.schedule_days);
+                    targetCell.setAttribute('data-schedule_days', newScheduleDays);
+
+                    // 记录合并变更到 localScheduleChanges
+                    const newChange = {
+                      change: "merge",
+                      sample_id: targetCell.getAttribute('data-sample_id'),
+                      sample_id1: taskData.sample_id,
+                      tester: targetCell.getAttribute('data-tester'),
+                      start_date: targetCell.getAttribute('data-date'),
+                      // 假设合并后结束日期不变
+                      end_date: targetCell.getAttribute('data-schedule_end_date'),
+                      scheduleDays: newScheduleDays,
+                      schedule_color: targetCell.getAttribute('data-schedule_color'),
+                      job_number: targetCell.getAttribute('data-job_number')
+                    };
+                    const existingIndex = localScheduleChanges.findIndex(item =>
+                            item.sample_id === targetCell.getAttribute('data-sample_id')
+                    );
+                    if (existingIndex !== -1) {
+                      localScheduleChanges[existingIndex] = newChange;
+                    } else {
+                      localScheduleChanges.push(newChange);
+                    }
+
+                    // 从原容器移除拖拽的项目卡片
+                    const projectEl = document.querySelector(`.project-card[data-sample_id="${taskData.sample_id}"]`);
+                    if (projectEl) projectEl.remove();
+
+                    // 清空拖拽来源的单元格
+                    const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+                    if (originalCell) {
+                      const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                      const originalStartIndex = originalRowCells.indexOf(originalCell);
+                      const originalScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+
+                      // 清除原单元格内容和属性
+                      originalCell.innerText = '';
+                      originalCell.removeAttribute('colspan');
+                      originalCell.classList.remove('assigned');
+                      originalCell.style.backgroundColor = '';
+
+                      const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+                      [...originalCell.attributes].forEach(attr => {
+                        if (!allowedAttributes.includes(attr.name)) {
+                          originalCell.removeAttribute(attr.name);
+                        }
+                      });
+
+                      // 恢复被隐藏的格子
+                      for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
+                        if (originalRowCells[j]) {
+                          originalRowCells[j].style.display = '';
+                        }
+                      }
+                    }
+                    return;
+                  } else {
+                    return;
+                  }
+                } else {
+                  return;
+                }
+              }
             }
-          }
-        }
+          } else {
+            // 后续项目后移逻辑保持原有
+            let conflictCells = [];
+            for (let i = startIndex; i < startIndex + roundedDays; i++) {
+              if (rowCells[i].innerText.trim() !== '') {
+                conflictCells.push(rowCells[i]);
+              }
+            }
+            const projectsToMove = [];
+            let diff;
+            if (conflictCells.length > 0) {
+              // 找到所有需要往后挪的项目
+              let currentIndex = startIndex;
+              while (currentIndex < rowCells.length) {
+                const currentCell = rowCells[currentIndex];
+                if (currentCell.innerText.trim() !== '') {
+                  const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
+                  const projectData = {};
+                  const attributes = [
+                    'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
+                    'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                    'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                  ];
+                  attributes.forEach(attr => {
+                    projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+                  });
+                  projectsToMove.push({
+                    startIndex: currentIndex,
+                    span: projectSpan,
+                    data: projectData
+                  });
+                  currentIndex += projectSpan;
+                } else {
+                  currentIndex++;
+                }
+              }
 
-        // 新增对后续项目没位置的判断
-        let conflictCells = [];
-        for (let i = startIndex; i < startIndex + roundedDays; i++) {
-          if (rowCells[i].innerText.trim() !== '') {
-            conflictCells.push(rowCells[i]);
+              let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
+              let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
+              let maxSpan = Infinity;  // 初始化最小的 startIndex 值
+              let maxSample_id = '';
+              // 找到最小的 startIndex
+              minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
+              maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
+              maxSpan = Math.max(...projectsToMove.map(project => project.span));
+              maxSample_id = projectsToMove[0].data.sample_id;
 
-          }
-        }
-        const projectsToMove = [];
-        let diff;
-        if (conflictCells.length > 0) {
-          // 找到所有需要往后挪的项目
-          let currentIndex = startIndex;
-          while (currentIndex < rowCells.length) {
-            const currentCell = rowCells[currentIndex];
-            if (currentCell.innerText.trim() !== '') {
-              const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
-              const projectData = {};
-              const attributes = [
-                'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
-                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
-              ];
-              attributes.forEach(attr => {
-                projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+              // 计算拖拽项目与最小startIndex的差值
+              diff = roundedDays - minStartIndex + startIndex;
+
+              if (maxSample_id === sample_id) {
+                alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来");
+                return;
+              }
+
+              if (maxStartIndex + diff + maxSpan > rowCells.length) {
+                alert("后续项目移动后超出可排范围！");
+                return;
+              }
+            }
+
+            // 确认可以放置项目后，再清空原排期
+            const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
+            if (originalCell) {
+              const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+              const originalStartIndex = originalRowCells.indexOf(originalCell);
+              const originalScheduleDays = Math.ceil((originalCell.getAttribute('data-schedule_days')) || 1);
+
+              // 清除原单元格内容和属性
+              originalCell.innerText = '';
+              originalCell.removeAttribute('colspan');
+              originalCell.classList.remove('assigned');
+              originalCell.style.backgroundColor = '';
+
+              const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+              [...originalCell.attributes].forEach(attr => {
+                if (!allowedAttributes.includes(attr.name)) {
+                  originalCell.removeAttribute(attr.name);
+                }
               });
-              projectsToMove.push({
-                startIndex: currentIndex,
-                span: projectSpan,
-                data: projectData
-              });
-              currentIndex += projectSpan;
-            } else {
-              currentIndex++;
+
+              // 恢复被隐藏的格子,项目拖拽到别的地方，先触发这里
+              for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
+                if (originalRowCells[i]) {
+                  originalRowCells[i].style.display = '';
+
+                  // 新增：复原周六和周日的边框样式
+                  const date = originalRowCells[i].getAttribute('data-date');
+                  console.log("date", date);
+                  console.log("i", i);
+                  setWeekendBorder(originalRowCells[i], date);
+                }
+              }
+            }
+
+            handleDrop(cell, cellList, taskData, conflictCells, projectsToMove, diff);
+          }
+        } else {
+          // 清空拖拽来源的单元格
+          const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+          if (originalCell) {
+            const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+            const originalStartIndex = originalRowCells.indexOf(originalCell);
+            const originalScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+
+            // 清除原单元格内容和属性
+            originalCell.innerText = '';
+            originalCell.removeAttribute('colspan');
+            originalCell.classList.remove('assigned');
+            originalCell.style.backgroundColor = '';
+
+            const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+            [...originalCell.attributes].forEach(attr => {
+              if (!allowedAttributes.includes(attr.name)) {
+                originalCell.removeAttribute(attr.name);
+              }
+            });
+
+            // 恢复被隐藏的格子
+            for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
+              if (originalRowCells[j]) {
+                originalRowCells[j].style.display = '';
+              }
             }
           }
-
-
-          let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
-          let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
-          let maxSpan = Infinity;  // 初始化最小的 startIndex 值
-          let maxSample_id = '';
-          // 找到最小的 startIndex
-          minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
-          maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
-          maxSpan = Math.max(...projectsToMove.map(project => project.span));
-          maxSample_id = projectsToMove[0].data.sample_id;
-
-
-          // 计算拖拽项目与最小startIndex的差值
-          diff = roundedDays - minStartIndex + startIndex;
-
-
-          if(maxSample_id === sample_id){
-            alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来")
-            return;
-          }
-
-          if (maxStartIndex + diff + maxSpan > rowCells.length ) {
-            alert("后续项目移动后超出可排范围！");
-            return;
-          }
-
+          // 没有冲突，直接处理放置
+          handleDrop(cell, cellList, taskData, [], [], 0);
         }
-
-        // 确认可以放置项目后，再清空原排期
-        const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
-        if (originalCell) {
-          const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
-          const originalStartIndex = originalRowCells.indexOf(originalCell);
-          const originalScheduleDays = Math.ceil((originalCell.getAttribute('data-schedule_days')) || 1);
-
-          // 清除原单元格内容和属性
-          originalCell.innerText = '';
-          originalCell.removeAttribute('colspan');
-          originalCell.classList.remove('assigned');
-          originalCell.style.backgroundColor = '';
-
-          const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
-          [...originalCell.attributes].forEach(attr => {
-            if (!allowedAttributes.includes(attr.name)) {
-              originalCell.removeAttribute(attr.name);
-            }
-          });
-
-          // 恢复被隐藏的格子,项目拖拽到别的地方，先触发这里
-          for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
-            if (originalRowCells[i]){
-              originalRowCells[i].style.display = '';
-
-              // 新增：复原周六和周日的边框样式
-              const date = originalRowCells[i].getAttribute('data-date');
-              console.log("date",date)
-              console.log("i",i)
-              setWeekendBorder(originalRowCells[i], date);
-            }
-
-          }
-        }
-
-
-        handleDrop(cell, cellList, taskData,  conflictCells ,projectsToMove ,diff );
       });
+
 
       cell.addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -1688,7 +1974,9 @@
   document.addEventListener('DOMContentLoaded', function () {
     const changeLogBtn = document.getElementById('changeLogBtn');
     changeLogBtn.addEventListener('click', function () {
-      const sample_id = document.getElementById('modalBody').querySelector('p:nth-child(1)').textContent.split('：')[1].trim();
+      // const sample_id = document.getElementById('modalBody').querySelector('p:nth-child(1)').textContent.split('：')[1].trim();
+      const sample_id = document.getElementById('editSampleId').value.trim();
+
       fetch(`/api/getChangeLog?sample_id=${sample_id}`)
               .then(response => response.json())
               .then(data => {
@@ -2390,6 +2678,617 @@
       console.error('获取节假日数据失败:', error);
     }
   });
+
+
+  // 显示管理测试人员模态框
+  function showManageTestersModal() {
+    loadTestersData();
+    document.getElementById('manageTestersOverlay').style.display = 'block';
+    document.getElementById('manageTestersModal').style.display = 'block';
+  }
+
+  // 加载测试人员数据
+  function loadTestersData() {
+    fetch('/scheduleBoardController/getTestEngineers')
+            .then(response => response.json())
+            .then(data => {
+              const testersTableBody = document.getElementById('testersTableBody');
+              testersTableBody.innerHTML = '';
+
+              // 按负责的品类分组
+              const groupedTesters = {};
+              data.forEach(tester => {
+                const category = tester.responsible_category || '未分组';
+                if (!groupedTesters[category]) {
+                  groupedTesters[category] = [];
+                }
+                groupedTesters[category].push(tester);
+              });
+
+              // 遍历每个分组
+              for (const category in groupedTesters) {
+                // 添加分组标题行
+                const groupRow = document.createElement('tr');
+                groupRow.innerHTML = `
+                        <td colspan="8" style="background-color: #f0f0f0; font-weight: bold;">${category}</td>
+                    `;
+                testersTableBody.appendChild(groupRow);
+
+                // 添加该分组下的测试人员数据
+                groupedTesters[category].forEach(tester => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                            <td>${tester.engineer_id}</td>
+                            <td>${tester.test_engineer_name}</td>
+                            <td>${tester.hire_date}</td>
+                            <td><span class="editable-field" data-field="responsible_category" data-test_engineer_name="${tester.test_engineer_name}">${tester.responsible_category || '/'}</span></td>
+                            <td><span class="editable-field" data-field="skill_description" data-test_engineer_name="${tester.test_engineer_name}">${tester.skill_description || '/'}</span></td>
+                            <td><span class="editable-field" data-field="skill_improvernment" data-test_engineer_name="${tester.test_engineer_name}">${tester.skill_improvernment || '/'}</span></td>
+                            <td><span class="editable-field" data-field="current_skill_level" data-test_engineer_name="${tester.test_engineer_name}">${tester.current_skill_level || '/'}</span></td>
+                            <td>
+                                <button id="deleteTestBtn" onclick="deleteTester('${tester.test_engineer_name}')">删除</button>
+                            </td>
+                        `;
+                  testersTableBody.appendChild(row);
+                });
+              }
+
+              // 为可编辑字段添加点击事件监听器
+              const editableFields = document.querySelectorAll('.editable-field');
+              editableFields.forEach(field => {
+                field.addEventListener('click', function () {
+                  makeEditable(this);
+                });
+              });
+            })
+            .catch(error => {
+              console.error('加载测试人员数据失败:', error);
+            });
+  }
+
+
+  // 关闭管理测试人员模态框
+  function closeManageTestersModal() {
+    document.getElementById('manageTestersOverlay').style.display = 'none';
+    document.getElementById('manageTestersModal').style.display = 'none';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const closeManageTestersModalBtn = document.getElementById('closeManageTestersModalBtn');
+    const manageTestersOverlay = document.getElementById('manageTestersOverlay');
+
+    // 点击关闭按钮隐藏模态框
+    closeManageTestersModalBtn.addEventListener('click', closeManageTestersModal);
+
+    // 点击遮罩层隐藏模态框
+    manageTestersOverlay.addEventListener('click', closeManageTestersModal);
+  });
+
+  //把同名的数据合并到同一个对象里
+  function mergePendingChanges(pendingChanges) {
+    const mergedChanges = {};
+
+    pendingChanges.forEach(change => {
+      const { test_engineer_name, field, value } = change;
+      if (!mergedChanges[test_engineer_name]) {
+        mergedChanges[test_engineer_name] = { test_engineer_name };
+      }
+      mergedChanges[test_engineer_name][field] = value;
+    });
+
+    return Object.values(mergedChanges);
+  }
+
+  function makeEditable(element) {
+    const fieldName = element.dataset.field;
+    const test_engineer_name = element.dataset.test_engineer_name;
+    const originalValue = element.textContent;
+    let inputElement;
+
+    if (fieldName === 'current_skill_level') {
+      inputElement = document.createElement('input');
+      inputElement.type = 'text';
+    } else {
+      inputElement = document.createElement('textarea');
+    }
+
+    inputElement.value = originalValue;
+    inputElement.className = 'editing';
+
+    // 替换元素
+    element.parentNode.replaceChild(inputElement, element);
+    inputElement.focus();
+
+    // 保存修改到暂存数组
+    const saveToPending = () => {
+      const newValue = inputElement.value;
+      if (newValue !== originalValue) {
+        // 检查是否已有相同工程师和字段的修改，有则更新
+        const existingIndex = pendingChanges.findIndex(change =>
+                change.test_engineer_name === test_engineer_name && change.field === fieldName
+        );
+        if (existingIndex !== -1) {
+          pendingChanges[existingIndex].value = newValue;
+        } else {
+          pendingChanges.push({
+            test_engineer_name: test_engineer_name,
+            field: fieldName,
+            value: newValue
+          });
+        }
+      }
+      // 重新创建文本节点
+      const newSpan = document.createElement('span');
+      newSpan.className = 'editable-field';
+      newSpan.dataset.field = fieldName;
+      newSpan.dataset.test_engineer_name = test_engineer_name;
+      newSpan.textContent = newValue;
+      newSpan.addEventListener('click', function () {
+        makeEditable(this);
+      });
+      inputElement.parentNode.replaceChild(newSpan, inputElement);
+    };
+
+    // 失去焦点时保存到暂存数组
+    inputElement.addEventListener('blur', saveToPending);
+
+    // // 按下回车键时保存到暂存数组
+    // inputElement.addEventListener('keydown', function (event) {
+    //     if (event.key === 'Enter') {
+    //         event.preventDefault();
+    //         saveToPending();
+    //     }
+    // });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+
+    const saveTesterChangesBtn = document.getElementById('saveTesterChangesBtn');
+    saveTesterChangesBtn.addEventListener('click', function () {
+      if (pendingChanges.length > 0) {
+        const mergedData = {};
+
+        pendingChanges.forEach(item => {
+          const name = item.test_engineer_name;
+          if (!mergedData[name]) {
+            mergedData[name] = { test_engineer_name: name };
+          }
+          // 将 field 作为属性名，value 作为属性值添加到对象中
+          mergedData[name][item.field] = item.value;
+        });
+
+        const finalChanges = Object.values(mergedData);
+        console.log("finalChanges,",finalChanges)
+
+        fetch('/scheduleBoardController/updateTesterInfo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(finalChanges)
+        })
+                .then(response => response.json())
+                .then(result => {
+                  if (result.success) {
+                    alert(result.message);
+                    loadTestersData(); // 重新加载数据
+                    pendingChanges = []; // 清空暂存数组
+                  } else {
+                    alert(result.message || '保存修改失败');
+                  }
+                })
+                .catch(error => {
+                  console.error('保存修改时出错:', error);
+                  alert('保存修改时出错，请稍后重试');
+                });
+      } else {
+        alert('没有需要保存的修改');
+      }
+    });
+  });
+
+  // 封装保存新增测试人员的方法
+  function saveNewTester() {
+    const testerName = document.getElementById('addTesterName').value.trim();
+    const testerGroup = document.getElementById('addTesterGroup').value.trim();
+    const testerSkillDesc = document.getElementById('addTesterSkillDesc').value.trim();
+    const testerSkillImprove = document.getElementById('addTesterSkillImprove').value.trim();
+    const testerSkillLevel = document.getElementById('addTesterSkillLevel').value.trim();
+
+    // 校验必填项
+    if (!testerName || !testerGroup) {
+      alert('请填写完整必填信息（测试人员姓名和负责组别）');
+      return;
+    }
+
+    const newTesterData = {
+      test_engineer_name: testerName,
+      responsible_category: testerGroup,
+      skill_description: testerSkillDesc,
+      skill_improvernment: testerSkillImprove,
+      current_skill_level: testerSkillLevel
+    };
+
+    // 发送 POST 请求到后端
+    fetch('/scheduleBoardController/addTesterInfo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newTesterData)
+    })
+            .then(response => response.json())
+            .then(result => {
+              console.log('后端返回:', result);
+              if (result.success) {
+                alert(result.message); // 测试人员添加成功
+                // 这里可以添加刷新测试人员列表等逻辑
+                showManageTestersModal();
+              } else {
+                alert(result.message || '新增测试人员失败！'); // 测试人员新增失败
+              }
+            })
+            .catch(error => {
+              console.error('新增测试人员失败:', error);
+              alert('新增测试人员失败！');
+            });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+
+    const addNewTesterBtn = document.getElementById('addNewTesterBtn');
+
+    // 新增测试人员模态框相关元素
+    const addTesterModal = document.getElementById('addTesterModal');
+    const closeAddTesterModalBtn = document.getElementById('closeAddTesterModalBtn');
+    const saveNewTesterBtn = document.getElementById('saveNewTesterBtn');
+
+
+    // 点击新增测试人员按钮显示新增测试人员模态框
+    addNewTesterBtn.addEventListener('click', function () {
+      addTesterModal.style.display = 'block';
+    });
+
+    // 点击关闭按钮隐藏新增测试人员模态框
+    closeAddTesterModalBtn.addEventListener('click', function () {
+      addTesterModal.style.display = 'none';
+    });
+
+    // 点击模态框外部隐藏新增测试人员模态框
+    addTesterModal.addEventListener('click', function (e) {
+      if (e.target === addTesterModal) {
+        addTesterModal.style.display = 'none';
+      }
+    });
+
+    // 封装保存新增测试人员的方法
+
+
+    // 保存新增测试人员按钮绑定方法
+    saveNewTesterBtn.addEventListener('click', saveNewTester);
+  });
+
+  // 删除测试人员的方法
+  async function deleteTester(test_engineer_name) {
+    if (!confirm("确定要删除该测试人员吗？")) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/scheduleBoardController/deleteTester', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          test_engineer_name: test_engineer_name
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`删除失败: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      alert(result.message);
+      showManageTestersModal();
+
+
+    } catch (error) {
+      console.error('删除测试人员失败:', error);
+      alert('删除测试人员失败，请稍后重试！');
+    }
+  }
+
+
+  // 在 DOM 加载完成后绑定按钮点击事件
+  document.addEventListener('DOMContentLoaded', function () {
+    const manageGroupBtn = document.getElementById('manageGroupBtn');
+    const manageGroupModal = document.getElementById('manageGroupModal');
+    const closeManageGroupModalBtn = document.getElementById('closeManageGroupModalBtn');
+    const saveGroupSettingsBtn = document.getElementById('saveGroupSettingsBtn');
+
+    // 点击管理展示的组按钮显示模态框
+    manageGroupBtn.addEventListener('click', function () {
+      loadGroupData();
+      manageGroupModal.style.display = 'block';
+    });
+
+    // 点击关闭按钮隐藏模态框
+    closeManageGroupModalBtn.addEventListener('click', function () {
+      manageGroupModal.style.display = 'none';
+    });
+
+    // 点击模态框外部隐藏模态框
+    manageGroupModal.addEventListener('click', function (e) {
+      if (e.target === manageGroupModal) {
+        manageGroupModal.style.display = 'none';
+      }
+    });
+
+    // 保存组设置
+    saveGroupSettingsBtn.addEventListener('click', function () {
+      const groupSettings = [];
+      const rows = document.querySelectorAll('#groupTable tbody tr');
+      rows.forEach((row, index) => {
+        const id = row.querySelector('td:nth-child(1)').textContent;
+        const name = row.querySelector('td:nth-child(2)').textContent;
+        const is_displayed = row.querySelector('input[type="checkbox"]').checked;
+        const displayOrderInput = row.querySelector('input[type="number"]');
+        const display_order = parseInt(displayOrderInput.value, 10) || 0; // fallback 为 0
+        groupSettings.push({
+          id: id,
+          display_order: display_order,
+          is_displayed: is_displayed,
+          name: name
+        });
+      });
+
+      // 只生成显示的组名数组作为排序
+      groupOrder = groupSettings
+              .filter(g => g.is_displayed)
+              .sort((a, b) => a.display_order - b.display_order)
+              .map(g => g.name);
+
+      // 发送请求到后端保存设置
+      fetch('/scheduleBoardController/saveGroupSettings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(groupSettings)
+      })
+              .then(response => response.json())
+              .then(result => {
+                if (result.success) {
+                  alert(result.message);
+                } else {
+                  alert(result.message || '保存组设置失败！');
+                }
+              })
+              .catch(error => {
+                console.error('保存组设置失败:', error);
+                alert('保存组设置失败！');
+              });
+    });
+  });
+
+  // 加载组数据
+  function loadGroupData() {
+    fetch('/scheduleBoardController/getGroupData')
+            .then(response => response.json())
+            .then(data => {
+              const tableBody = document.querySelector('#groupTable tbody');
+              tableBody.innerHTML = '';
+
+              data.forEach(group => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${group.id}</td>
+                    <td>${group.name}</td>
+                    <td><input type="checkbox" ${group.is_displayed ? 'checked' : ''}></td>
+                  <td><input type="number" value="${group.display_order}" class="display-order-input small-input" data-group-id="${group.id}"></td>
+
+                `;
+                tableBody.appendChild(row);
+              });
+
+
+            })
+            .catch(error => {
+              console.error('加载组数据失败:', error);
+              alert('加载组数据失败，请稍后重试。');
+            });
+  }
+
+  document.getElementById('addGroupBtn').addEventListener('click', async function () {
+    const name = document.getElementById('newGroupName').value.trim();
+    const display = document.getElementById('newGroupDisplay').value === 'true';
+    const order = document.getElementById('newGroupOrder').value.trim();
+
+    if (!name || !order) {
+      alert("请填写完整的组信息！");
+      return;
+    }
+
+    // 1. 先检查表格中是否已有同名组
+    const existingNames = Array.from(document.querySelectorAll('#groupTable tbody tr td:nth-child(2)'))
+            .map(td => td.textContent.trim().toLowerCase());
+    if (existingNames.includes(name.toLowerCase())) {
+      alert("该组别名称已存在（本地）！");
+      return;
+    }
+
+    // 3. 构造新组数据对象
+    const newGroup = {
+      name: name,
+      is_displayed: display,
+      display_order: parseInt(order)
+    };
+
+    // 4. 提交到后端接口
+    try {
+      const addResponse = await fetch('/scheduleBoardController/addGroup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGroup)
+      });
+
+      const result = await addResponse.text();
+      if (result === '新增成功') {
+        // 插入新行到表格
+        const tbody = document.querySelector('#groupTable tbody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+                <td>（自动生成）</td>
+                <td>${name}</td>
+                <td><input type="checkbox" ${display ? 'checked' : ''}></td>
+                <td><input type="number" value="${order}" style="width: 80px;"></td>
+            `;
+        tbody.appendChild(newRow);
+
+        // 清空输入框
+        // document.getElementById('newGroupName').value = '';
+        // document.getElementById('newGroupDisplay').value = 'true';
+        // document.getElementById('newGroupOrder').value = '';
+
+        alert("新增成功！");
+      } else {
+        alert("后端添加失败：" + result);
+      }
+    } catch (err) {
+      console.error("提交失败", err);
+      alert("提交数据时出错！");
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchBtn = document.getElementById('searchBtn');
+    const searchModal = document.getElementById('searchModal');
+    const closeSearchModalBtn = document.getElementById('closeSearchModalBtn');
+    const executeSearchBtn = document.getElementById('executeSearchBtn');
+
+    const modalContent = document.getElementById('searchModalContent');
+    const overlay = document.getElementById('searchModalOverlay');
+
+    // 打开模态框时显示遮罩和模态框（你自己调用）
+    function openSearchModal() {
+      overlay.style.display = 'block';
+      searchModal.style.display = 'block';
+    }
+
+    // 关闭模态框和遮罩
+    function closeSearchModal() {
+      overlay.style.display = 'none';
+      searchModal.style.display = 'none';
+    }
+
+    // 点击遮罩关闭
+    overlay.addEventListener('click', closeSearchModal);
+
+    // 关闭按钮
+    closeSearchModalBtn.addEventListener('click', closeSearchModal);
+
+
+
+    // 点击搜索按钮显示模态框
+    searchBtn.addEventListener('click', function () {
+      // searchModal.style.display = 'block';
+      openSearchModal();
+    });
+
+    // 点击关闭按钮隐藏模态框
+    closeSearchModalBtn.addEventListener('click', function () {
+      // searchModal.style.display = 'none';
+      closeSearchModal();
+    });
+
+    // 点击模态框外部隐藏模态框
+    searchModal.addEventListener('click', function (e) {
+      if (e.target === searchModal) {
+        searchModal.style.display = 'none';
+      }
+    });
+
+    // 执行搜索
+    executeSearchBtn.addEventListener('click', function () {
+      const sampleId = document.getElementById('searchSampleId').value;
+      const sampleModel = document.getElementById('searchSampleModel').value;
+      const tester = document.getElementById('searchTester').value;
+
+      // 发送搜索请求
+      fetch('/scheduleBoardController/searchProjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sampleId: sampleId,
+          sampleModel: sampleModel,
+          tester: tester
+        })
+      })
+              .then(response => response.json())
+              .then(data => {
+                const resultsContainer = document.getElementById('searchResults');
+                resultsContainer.innerHTML = '';
+
+                if (data.length === 0) {
+                  resultsContainer.innerHTML = '暂无搜索结果。';
+                } else {
+                  let html = '<table border="1">';
+                  html += `
+                        <thead>
+                            <tr>
+                                <th>电气编号</th>
+                                <th>大小编码</th>
+                                <th>预计排期开始时间</th>
+                                <th>预计排期结束时间</th>
+                                <th>排期天数</th>
+                                <th>测试人</th>
+                                <th>实际测试开始时间</th>
+                                <th>实际测试结束时间</th>
+                                <th>实测时长</th>
+                                <th>报告审核时间</th>
+                                <th>样品承认结果</th>
+                                <th>排期颜色</th>
+                                <th>是否作废</th>
+                            </tr>
+                        </thead>
+                        `;
+                  html += '<tbody>';
+                  data.forEach(item => {
+                    const startDate = item.schedule_start_date ? item.schedule_start_date.split('T')[0] : '';
+                    const endDate = item.schedule_end_date ? item.schedule_end_date.split('T')[0] : '';
+
+                    html += `<tr>
+                                <td>${item.sample_id}</td>
+                                <td>${item.sample_model} ${item.materialCode || ''}</td>
+                                <td>${startDate}</td>
+                                <td>${endDate}</td>
+                                <td>${item.scheduleDays}</td>
+                                <td>${item.tester}</td>
+                                <td>${item.actual_start_time}</td>
+                                <td>${item.actual_finish_time}</td>
+                                <td>${item.testDuration}</td>
+                                <td>${item.reportReviewTime}</td>
+                                <td>${item.sampleRecognizeResult}</td>
+                                <td style="background-color: ${item.schedule_color};">${item.schedule_color}</td>
+                                <td>${item.isCancel}</td>
+                            </tr>`;
+                  });
+
+                  html += '</tbody></table>';
+                  resultsContainer.innerHTML = html;
+                }
+              })
+              .catch(error => {
+                console.error('搜索失败:', error);
+                document.getElementById('searchResults').innerHTML = '搜索失败，请稍后重试。';
+              });
+    });
+  });
+
 
 
 </script>

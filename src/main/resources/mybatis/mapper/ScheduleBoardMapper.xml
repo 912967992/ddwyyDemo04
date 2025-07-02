@@ -48,6 +48,7 @@
 
     <select id="getGroupData" resultType="Group">
         select * FROM `groups`
+        ORDER BY display_order ASC
     </select>
 
     <!-- GroupMapper.xml 中的 SQL 映射 -->

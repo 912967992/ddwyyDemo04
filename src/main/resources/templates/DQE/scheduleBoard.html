@@ -160,21 +160,21 @@
             <p><strong>项目负责人(<span class="required">*</span>)：</strong><input type="text" id="addSampleLeader" required></p>
             <p><strong>排期天数(<span class="required">*</span>)：</strong><input type="number" id="addScheduleDays" required></p>
             <p><strong>设置颜色(<span class="required">*</span>)：</strong></p>
-                <label>
-                    <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
-                </label>
-                <label>
-                    <input type="radio" id="addColorGray" name="addScheduleColor" value="gray"> 灰色
-                </label>
-                <label>
-                    <input type="radio" id="addColorGreen" name="addScheduleColor" value="green"> 绿色
-                </label>
-                <label>
-                    <input type="radio" id="addColorYellow" name="addScheduleColor" value="yellow"> 黄色
-                </label>
-                <label>
-                    <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
-                </label>
+            <label>
+                <input type="radio" id="addColorNull" name="addScheduleColor" value="null" checked> 无
+            </label>
+            <label>
+                <input type="radio" id="addColorGray" name="addScheduleColor" value="gray"> 灰色
+            </label>
+            <label>
+                <input type="radio" id="addColorGreen" name="addScheduleColor" value="green"> 绿色
+            </label>
+            <label>
+                <input type="radio" id="addColorYellow" name="addScheduleColor" value="yellow"> 黄色
+            </label>
+            <label>
+                <input type="radio" id="addColorRed" name="addScheduleColor" value="red"> 红色
+            </label>
             </p>
             <p><strong>放池子分类（选填）：</strong><input type="text" id="addWaitSampleClassify"></p>
             <p><strong>送样备注（选填）：</strong><input type="text" id="addSampleRemark"></p>
@@ -322,7 +322,7 @@
                 <th>ID</th>
                 <th>组别</th>
                 <th>是否展示</th>
-                <th>展示权重</th>
+                <th>显示顺序值</th>
             </tr>
             </thead>
             <tbody>
@@ -372,7 +372,6 @@
 </div>
 
 
-<button id="checkAttendanceBtn">查询考勤</button>
 
 
 
@@ -1017,7 +1016,7 @@
         html += '<thead><tr>';
         html += '<th>组别</th>';
         html += '<th style="min-width: 100px;">测试人员</th>';
-        console.log("holidays.",holidays)
+        // console.log("holidays.",holidays)
         allDates.forEach(date => {
             const dateObj = new Date(date);
             const dayOfWeek = dateObj.getDay();
@@ -1228,120 +1227,317 @@
                 }
 
                 // 检查排期区域是否已被占用
+                let conflictFound = false;
                 for (let i = startIndex; i < startIndex + roundedDays; i++) {
                     if (rowCells[i].innerText.trim() !== '') {
+                        conflictFound = true;
+                        break;
+                    }
+                }
 
-                        const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
-                        if (!confirmInsert) {
-                            return;
+                if (conflictFound) {
+                    const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
+                    if (!confirmInsert) {
+                        // 判断是否都是 0.5 天的项目
+                        const draggedScheduleDays = parseFloat(taskData.schedule_days);
+                        for (let i = startIndex; i < startIndex + roundedDays; i++) {
+                            if (rowCells[i].innerText.trim() !== '') {
+                                const conflictingScheduleDays = parseFloat(rowCells[i].getAttribute('data-schedule_days'));
+                                if (draggedScheduleDays === 0.5 && conflictingScheduleDays === 0.5) {
+                                    const confirmMerge = confirm('两个项目排期天数均为 0.5 天，是否合并单元格？');
+                                    if (confirmMerge) {
+                                        // 获取当前单元格（拖拽项目将放入的单元格）
+                                        const targetCell = rowCells[i];
+
+                                        // 将拖拽项目的属性添加到目标单元格，第二个项目属性以 data1- 为前缀
+                                        Object.keys(taskData).forEach(key => {
+                                            if (key !== 'days') {
+                                                targetCell.setAttribute(`data1-${key}`, taskData[key]);
+                                            }
+                                        });
+
+                                        // 获取原项目的属性并保留
+                                        const originalAttributes = {};
+                                        const attributesToCopy = [
+                                            'sample_id', 'sample_name', 'sample_model', 'materialCode',
+                                            'sample_category', 'version', 'priority', 'sample_leader',
+                                            'supplier', 'test_project_category', 'test_projects', 'schedule',
+                                            'create_time', 'schedule_days', 'schedule_start_date',
+                                            'schedule_end_date', 'schedule_color', 'remark', 'job_number', 'tester'
+                                        ];
+                                        attributesToCopy.forEach(attr => {
+                                            originalAttributes[attr] = targetCell.getAttribute(`data-${attr}`);
+                                        });
+
+                                        // 构造新的显示文本，合并两个项目信息
+                                        const originalText = targetCell.innerText;
+                                        const newText = `${originalText} | ${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+                                        targetCell.innerText = newText;
+
+                                        // 更新排期天数
+                                        const newScheduleDays = 0.5;
+                                        targetCell.setAttribute('data-schedule_days', newScheduleDays);
+
+                                        // 记录合并变更到 localScheduleChanges
+                                        const newChange = {
+                                            change: "merge",
+                                            sample_id: targetCell.getAttribute('data-sample_id'),
+                                            sample_id1: taskData.sample_id,
+                                            tester: targetCell.getAttribute('data-tester'),
+                                            start_date: targetCell.getAttribute('data-date'),
+                                            // 假设合并后结束日期不变
+                                            end_date: targetCell.getAttribute('data-schedule_end_date'),
+                                            scheduleDays: newScheduleDays,
+                                            schedule_color: targetCell.getAttribute('data-schedule_color'),
+                                            job_number: targetCell.getAttribute('data-job_number')
+                                        };
+                                        const existingIndex = localScheduleChanges.findIndex(item =>
+                                            item.sample_id === targetCell.getAttribute('data-sample_id')
+                                        );
+                                        if (existingIndex !== -1) {
+                                            localScheduleChanges[existingIndex] = newChange;
+                                        } else {
+                                            localScheduleChanges.push(newChange);
+                                        }
+
+                                        // 从原容器移除拖拽的项目卡片
+                                        const projectEl = document.querySelector(`.project-card[data-sample_id="${taskData.sample_id}"]`);
+                                        if (projectEl) projectEl.remove();
+
+                                        // 清空拖拽来源的单元格
+                                        const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+                                        if (originalCell) {
+                                            const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                                            const originalStartIndex = originalRowCells.indexOf(originalCell);
+                                            const originalScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+
+                                            // 清除原单元格内容和属性
+                                            originalCell.innerText = '';
+                                            originalCell.removeAttribute('colspan');
+                                            originalCell.classList.remove('assigned');
+                                            originalCell.style.backgroundColor = '';
+
+                                            const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+                                            [...originalCell.attributes].forEach(attr => {
+                                                if (!allowedAttributes.includes(attr.name)) {
+                                                    originalCell.removeAttribute(attr.name);
+                                                }
+                                            });
+
+                                            // 恢复被隐藏的格子
+                                            for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
+                                                if (originalRowCells[j]) {
+                                                    originalRowCells[j].style.display = '';
+                                                }
+                                            }
+                                        }
+                                        return;
+                                    } else {
+                                        return;
+                                    }
+                                } else {
+                                    return;
+                                }
+                            }
                         }
-                    }
-                }
+                    } else {
+                        // 后续项目后移逻辑保持原有
+                        let conflictCells = [];
+                        for (let i = startIndex; i < startIndex + roundedDays; i++) {
+                            if (rowCells[i].innerText.trim() !== '') {
+                                conflictCells.push(rowCells[i]);
+                            }
+                        }
+                        const projectsToMove = [];
+                        let diff;
+                        if (conflictCells.length > 0) {
+                            // 找到所有需要往后挪的项目
+                            let currentIndex = startIndex;
+                            while (currentIndex < rowCells.length) {
+                                const currentCell = rowCells[currentIndex];
+                                if (currentCell.innerText.trim() !== '') {
+                                    const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
+                                    const projectData = {};
+                                    const attributes = [
+                                        'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
+                                        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                                        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                    ];
+                                    attributes.forEach(attr => {
+                                        projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+                                    });
+                                    projectsToMove.push({
+                                        startIndex: currentIndex,
+                                        span: projectSpan,
+                                        data: projectData
+                                    });
+                                    currentIndex += projectSpan;
+                                } else {
+                                    currentIndex++;
+                                }
+                            }
 
-                // 新增对后续项目没位置的判断
-                let conflictCells = [];
-                for (let i = startIndex; i < startIndex + roundedDays; i++) {
-                    if (rowCells[i].innerText.trim() !== '') {
-                        conflictCells.push(rowCells[i]);
+                            let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
+                            let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
+                            let maxSpan = Infinity;  // 初始化最小的 startIndex 值
+                            let maxSample_id = '';
+                            // 找到最小的 startIndex
+                            minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
+                            maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
+                            maxSpan = Math.max(...projectsToMove.map(project => project.span));
+                            maxSample_id = projectsToMove[0].data.sample_id;
 
-                    }
-                }
-                const projectsToMove = [];
-                let diff;
-                if (conflictCells.length > 0) {
-                    // 找到所有需要往后挪的项目
-                    let currentIndex = startIndex;
-                    while (currentIndex < rowCells.length) {
-                        const currentCell = rowCells[currentIndex];
-                        if (currentCell.innerText.trim() !== '') {
-                            const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
-                            const projectData = {};
-                            const attributes = [
-                                'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
-                                'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
-                                'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
-                            ];
-                            attributes.forEach(attr => {
-                                projectData[attr] = currentCell.getAttribute(`data-${attr}`);
+                            // 计算拖拽项目与最小startIndex的差值
+                            diff = roundedDays - minStartIndex + startIndex;
+
+                            if (maxSample_id === sample_id) {
+                                alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来");
+                                return;
+                            }
+
+                            if (maxStartIndex + diff + maxSpan > rowCells.length) {
+                                alert("后续项目移动后超出可排范围！");
+                                return;
+                            }
+                        }
+
+                        // 确认可以放置项目后，再清空原排期
+                        const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
+                        if (originalCell) {
+                            const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                            const originalStartIndex = originalRowCells.indexOf(originalCell);
+                            const originalScheduleDays = Math.ceil((originalCell.getAttribute('data-schedule_days')) || 1);
+
+                            // 清除原单元格内容和属性
+                            originalCell.innerText = '';
+                            originalCell.removeAttribute('colspan');
+                            originalCell.classList.remove('assigned');
+                            originalCell.style.backgroundColor = '';
+
+                            const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+                            [...originalCell.attributes].forEach(attr => {
+                                if (!allowedAttributes.includes(attr.name)) {
+                                    originalCell.removeAttribute(attr.name);
+                                }
                             });
-                            projectsToMove.push({
-                                startIndex: currentIndex,
-                                span: projectSpan,
-                                data: projectData
+
+                            // 恢复被隐藏的格子,项目拖拽到别的地方，先触发这里
+                            for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
+                                if (originalRowCells[i]) {
+                                    originalRowCells[i].style.display = '';
+
+                                    // 新增：复原周六和周日的边框样式
+                                    const date = originalRowCells[i].getAttribute('data-date');
+                                    console.log("date", date);
+                                    console.log("i", i);
+                                    setWeekendBorder(originalRowCells[i], date);
+                                }
+                            }
+                        }
+                        console.log("111")
+
+                        handleDrop(cell, cellList, taskData, conflictCells, projectsToMove, diff);
+                    }
+                } else {
+                    // 清空拖拽来源的单元格
+                    const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+                    if (originalCell) {
+                        // 判断是否含有 data1- 开头标签的参数
+                        let hasData1Attr = false;
+
+                        const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
+                        const originalStartIndex = originalRowCells.indexOf(originalCell);
+                        const originalScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+
+                        // 先保存原单元格的 innerText
+                        let originalInnerText = "";
+                        // 检查是否存在 data1- 开头的属性
+                        [...originalCell.attributes].forEach(attr => {
+                            if (attr.name.startsWith('data1-')) {
+                                hasData1Attr = true;
+                            }
+                        });
+
+
+                        if (hasData1Attr) {
+                            const text = originalCell.innerText;
+                            const parts = text.split('|');
+                            // 确保分割后有后半部分内容
+                            if (parts.length > 1) {
+                                // 从第二个元素开始，使用 join 方法处理可能有多个 | 的情况
+                                originalInnerText = parts.slice(1).join('|').trim();
+                            } else {
+                                originalInnerText = text.trim();
+                            }
+                        }
+
+                        // 清除原单元格内容和属性
+                        originalCell.innerText = '';
+                        originalCell.removeAttribute('colspan');
+                        originalCell.classList.remove('assigned');
+                        originalCell.style.backgroundColor = '';
+
+                        // 允许保留的属性，添加判断 data1- 开头的属性
+                        const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+                        [...originalCell.attributes].forEach(attr => {
+                            if (attr.name.startsWith('data1-')) {
+                                const newName = attr.name.replace('data1-', 'data-');
+                                originalCell.setAttribute(newName, attr.value);
+                                originalCell.removeAttribute(attr.name);
+                            } else if (!allowedAttributes.includes(attr.name)) {
+                                originalCell.removeAttribute(attr.name);
+                            }
+                        });
+
+                        // 恢复被隐藏的格子
+                        for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
+                            if (originalRowCells[j]) {
+                                originalRowCells[j].style.display = '';
+                            }
+                        }
+                        // 恢复原单元格的 innerText
+                        originalCell.innerText = originalInnerText;
+
+                        if (hasData1Attr) {
+                            // 重新设置可拖拽属性
+                            originalCell.setAttribute('draggable', 'true');
+
+                            // 绑定拖拽开始事件
+                            originalCell.addEventListener('dragstart', function (e) {
+                                const taskData = {};
+                                const attributes = [
+                                    'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                                    'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                                    'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                ];
+                                attributes.forEach(attr => {
+                                    taskData[attr] = this.getAttribute(`data-${attr}`);
+                                });
+                                Object.entries(taskData).forEach(([key, value]) => {
+                                    e.dataTransfer.setData(`project-${key}`, value);
+                                });
                             });
-                            currentIndex += projectSpan;
-                        } else {
-                            currentIndex++;
+
+                            // 绑定右键菜单事件
+                            originalCell.addEventListener('contextmenu', e => {
+                                e.preventDefault();
+                                if (originalCell.innerText.trim() === '') return;
+                                currentRightClickCell = originalCell;
+                                const contextMenu = document.getElementById('contextMenu');
+                                contextMenu.style.top = e.pageY + 'px';
+                                contextMenu.style.left = e.pageX + 'px';
+                                contextMenu.style.display = 'block';
+                            });
                         }
                     }
-
-
-                    let minStartIndex = Infinity;  // 初始化最小的 startIndex 值
-                    let maxStartIndex = Infinity;  // 初始化最小的 startIndex 值
-                    let maxSpan = Infinity;  // 初始化最小的 startIndex 值
-                    let maxSample_id = '';
-                    // 找到最小的 startIndex
-                    minStartIndex = Math.min(...projectsToMove.map(project => project.startIndex));
-                    maxStartIndex = Math.max(...projectsToMove.map(project => project.startIndex));
-                    maxSpan = Math.max(...projectsToMove.map(project => project.span));
-                    maxSample_id = projectsToMove[0].data.sample_id;
-
-
-                    // 计算拖拽项目与最小startIndex的差值
-                    diff = roundedDays - minStartIndex + startIndex;
-
-
-                    if(maxSample_id === sample_id){
-                        alert("请先移动到别的地方（例如项目池子或者空的日期），再拖拽回来")
-                        return;
-                    }
-
-                    if (maxStartIndex + diff + maxSpan > rowCells.length ) {
-                        alert("后续项目移动后超出可排范围！");
-                        return;
-                    }
-
+// 没有冲突，直接处理放置,这里是合并的单元格拖拽之后拆分后的项目，它拖拽进入的方法
+                    console.log("222")
+                    handleDrop(cell, cellList, taskData, [], [], 0);
                 }
-
-                // 确认可以放置项目后，再清空原排期
-                const originalCell = document.querySelector(`td[data-sample_id="${sample_id}"]`);
-                if (originalCell) {
-                    const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
-                    const originalStartIndex = originalRowCells.indexOf(originalCell);
-                    const originalScheduleDays = Math.ceil((originalCell.getAttribute('data-schedule_days')) || 1);
-
-                    // 清除原单元格内容和属性
-                    originalCell.innerText = '';
-                    originalCell.removeAttribute('colspan');
-                    originalCell.classList.remove('assigned');
-                    originalCell.style.backgroundColor = '';
-
-                    const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
-                    [...originalCell.attributes].forEach(attr => {
-                        if (!allowedAttributes.includes(attr.name)) {
-                            originalCell.removeAttribute(attr.name);
-                        }
-                    });
-
-                    // 恢复被隐藏的格子,项目拖拽到别的地方，先触发这里
-                    for (let i = originalStartIndex; i < Math.min(originalStartIndex + originalScheduleDays, originalRowCells.length); i++) {
-                        if (originalRowCells[i]){
-                            originalRowCells[i].style.display = '';
-
-                            // 新增：复原周六和周日的边框样式
-                            const date = originalRowCells[i].getAttribute('data-date');
-                            console.log("date",date)
-                            console.log("i",i)
-                            setWeekendBorder(originalRowCells[i], date);
-                        }
-
-                    }
-                }
-
-
-                handleDrop(cell, cellList, taskData,  conflictCells ,projectsToMove ,diff );
             });
+
 
             cell.addEventListener('contextmenu', e => {
                 e.preventDefault();
@@ -1412,7 +1608,9 @@
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData, conflictCells ,projectsToMove ,diff ) {
         const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
+        console.log("schedule_days,",schedule_days)
         const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
+        console.log("roundedDays",roundedDays)
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
 
@@ -1540,6 +1738,8 @@
         if (projectEl) projectEl.remove();
 
         const targetCell = rowCells[startIndex + roundedDays - 1];
+        console.log(startIndex )
+        console.log( roundedDays)
         if (!targetCell) {
             console.warn("无效拖拽内容：请勿选择别的进行拖拽，忽略本次拖拽。");
             return;
@@ -1939,7 +2139,8 @@
             card.setAttribute('data-test_projects', item.testProjects || '');
             card.setAttribute('data-schedule', item.schedule || '');
             card.setAttribute('data-create_time', item.create_time || '');
-            card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+            // card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+            card.setAttribute('data-schedule_days', item.scheduleDays);
             card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
             card.setAttribute('data-remark', item.remark != null ? item.remark : '');
             card.setAttribute('draggable', 'true');
@@ -3160,49 +3361,6 @@
         });
     });
 
-
-    document.getElementById('checkAttendanceBtn').addEventListener('click', function () {
-        // 输入多个姓名（用逗号或空格隔开）
-        const nameInput = prompt("请输入姓名（多个用逗号或空格分隔）：");
-        if (!nameInput) return;
-
-        // 拆分为数组，去除空白项
-        const names = nameInput.split(/[,，\s]+/).map(n => n.trim()).filter(n => n);
-        if (names.length === 0) {
-            alert("请输入至少一个姓名");
-            return;
-        }
-
-        // 输入开始日期（必填）
-        const startDate = prompt("请输入开始日期（格式：2025-06-23）：");
-        if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
-            alert("开始日期格式错误");
-            return;
-        }
-
-        // 输入结束日期（可选）
-        const endDate = prompt("请输入结束日期（可选，格式：2025-06-26）：");
-
-        const requestData = {
-            names: names,                          // 传数组给后端
-            startDate: startDate.trim(),
-            endDate: endDate ? endDate.trim() : "" // 没填就是空字符串
-        };
-
-        fetch('/scheduleBoardController/getUpdateData', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('考勤结果：', data);
-                alert(JSON.stringify(data, null, 2));
-            })
-            .catch(error => {
-                console.error('请求出错：', error);
-            });
-    });
 
 
 </script>
