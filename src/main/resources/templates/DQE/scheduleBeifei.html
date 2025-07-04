@@ -1275,25 +1275,25 @@
                     targetCell.innerText = newText;
 
                     // 更新排期天数
-                    const newScheduleDays = parseFloat(targetCell.getAttribute('data-schedule_days')) + parseFloat(taskData.schedule_days);
+                    const newScheduleDays = 0.5;
                     targetCell.setAttribute('data-schedule_days', newScheduleDays);
 
                     // 记录合并变更到 localScheduleChanges
                     const newChange = {
-                      change: "merge",
-                      sample_id: targetCell.getAttribute('data-sample_id'),
-                      sample_id1: taskData.sample_id,
-                      tester: targetCell.getAttribute('data-tester'),
-                      start_date: targetCell.getAttribute('data-date'),
+                      change: "add",
+                      sample_id: targetCell.getAttribute('data1-sample_id'),
+                      tester: targetCell.getAttribute('data1-tester'),
+                      start_date: targetCell.getAttribute('data1-schedule_start_date'),
                       // 假设合并后结束日期不变
-                      end_date: targetCell.getAttribute('data-schedule_end_date'),
+                      end_date: targetCell.getAttribute('data1-schedule_end_date'),
                       scheduleDays: newScheduleDays,
-                      schedule_color: targetCell.getAttribute('data-schedule_color'),
-                      job_number: targetCell.getAttribute('data-job_number')
+                      schedule_color: targetCell.getAttribute('data1-schedule_color'),
+                      job_number: targetCell.getAttribute('data1-job_number')
                     };
                     const existingIndex = localScheduleChanges.findIndex(item =>
                             item.sample_id === targetCell.getAttribute('data-sample_id')
                     );
+
                     if (existingIndex !== -1) {
                       localScheduleChanges[existingIndex] = newChange;
                     } else {
@@ -1305,6 +1305,7 @@
                     if (projectEl) projectEl.remove();
 
                     // 清空拖拽来源的单元格
+                    console.log("taskData.sample_id",taskData.sample_id)
                     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
                     if (originalCell) {
                       const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
@@ -1435,16 +1436,43 @@
                 }
               }
             }
+            console.log("111")
 
             handleDrop(cell, cellList, taskData, conflictCells, projectsToMove, diff);
           }
         } else {
-          // 清空拖拽来源的单元格
+          // 清空拖拽来源的单元格，这里是排期面板项目拖拽触发的方法！
           const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
           if (originalCell) {
+
+            // 判断是否含有 data1- 开头标签的参数
+            let hasData1Attr = false;
+
             const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
             const originalStartIndex = originalRowCells.indexOf(originalCell);
             const originalScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+
+            // 先保存原单元格的 innerText
+            let originalInnerText = "";
+            // 检查是否存在 data1- 开头的属性
+            [...originalCell.attributes].forEach(attr => {
+              if (attr.name.startsWith('data1-')) {
+                hasData1Attr = true;
+              }
+            });
+
+
+            if (hasData1Attr) {
+              const text = originalCell.innerText;
+              const parts = text.split('|');
+              // 确保分割后有后半部分内容
+              if (parts.length > 1) {
+                // 从第二个元素开始，使用 join 方法处理可能有多个 | 的情况
+                originalInnerText = parts.slice(1).join('天)|').trim();
+              } else {
+                originalInnerText = text.trim();
+              }
+            }
 
             // 清除原单元格内容和属性
             originalCell.innerText = '';
@@ -1452,9 +1480,14 @@
             originalCell.classList.remove('assigned');
             originalCell.style.backgroundColor = '';
 
+            // 允许保留的属性，添加判断 data1- 开头的属性
             const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
             [...originalCell.attributes].forEach(attr => {
-              if (!allowedAttributes.includes(attr.name)) {
+              if (attr.name.startsWith('data1-')) {
+                const newName = attr.name.replace('data1-', 'data-');
+                originalCell.setAttribute(newName, attr.value);
+                originalCell.removeAttribute(attr.name);
+              } else if (!allowedAttributes.includes(attr.name)) {
                 originalCell.removeAttribute(attr.name);
               }
             });
@@ -1465,9 +1498,52 @@
                 originalRowCells[j].style.display = '';
               }
             }
+            // 恢复原单元格的 innerText
+            originalCell.innerText = originalInnerText;
+
+            if (hasData1Attr) {
+              // 重新设置可拖拽属性
+              originalCell.setAttribute('draggable', 'true');
+
+              // 绑定拖拽开始事件
+              originalCell.addEventListener('dragstart', function (e) {
+                const taskData = {};
+                const attributes = [
+                  'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                  'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                  'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                  'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                ];
+                attributes.forEach(attr => {
+                  taskData[attr] = this.getAttribute(`data-${attr}`);
+                });
+                Object.entries(taskData).forEach(([key, value]) => {
+                  e.dataTransfer.setData(`project-${key}`, value);
+                });
+              });
+
+              // 绑定右键菜单事件
+              originalCell.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                if (originalCell.innerText.trim() === '') return;
+                currentRightClickCell = originalCell;
+                const contextMenu = document.getElementById('contextMenu');
+                contextMenu.style.top = e.pageY + 'px';
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.style.display = 'block';
+              });
+            }
           }
-          // 没有冲突，直接处理放置
+// 没有冲突，直接处理放置,这里是合并的单元格拖拽之后拆分后的项目，它拖拽进入的方法
+          console.log("222")
           handleDrop(cell, cellList, taskData, [], [], 0);
+
+          // 获取颜色值并渲染单元格颜色
+          const scheduleColor = originalCell.getAttribute('data-schedule_color');
+          if (scheduleColor) {
+            originalCell.style.backgroundColor = scheduleColor;
+          }
+
         }
       });
 
@@ -1541,7 +1617,9 @@
   // 处理拖拽放下事件
   function handleDrop(cell, cellList, taskData, conflictCells ,projectsToMove ,diff ) {
     const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
+    console.log("schedule_days,",schedule_days)
     const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
+    console.log("roundedDays",roundedDays)
     const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
     const startIndex = rowCells.indexOf(cell);
 
@@ -1669,6 +1747,8 @@
     if (projectEl) projectEl.remove();
 
     const targetCell = rowCells[startIndex + roundedDays - 1];
+    console.log(startIndex )
+    console.log( roundedDays)
     if (!targetCell) {
       console.warn("无效拖拽内容：请勿选择别的进行拖拽，忽略本次拖拽。");
       return;
@@ -1894,14 +1974,32 @@
     document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
 
     document.getElementById('saveScheduleBtn').onclick = function () {
+      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+      if (sampleId) {
+        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+        return; // 阻止后续操作
+      }
       saveScheduleAndColor(null, taskData);
     };
 
     document.getElementById('confirmColorBtn').onclick = function () {
+      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+      if (sampleId) {
+        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+        return; // 阻止后续操作
+      }
       saveScheduleAndColor(null, taskData);
     };
 
     document.getElementById('saveRemarkBtn').onclick = function () {
+      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+      if (sampleId) {
+        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+        return; // 阻止后续操作
+      }
       saveScheduleAndColor(null, taskData);
     };
 
@@ -1913,6 +2011,13 @@
 
     // 绑定修改电气编号按钮点击事件
     document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+      if (sampleId) {
+        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+        return; // 阻止后续操作
+      }
+
       const newSampleId = document.getElementById('editSampleId').value;
       const oldSampleId = taskData.sample_id;
 
@@ -2068,7 +2173,8 @@
       card.setAttribute('data-test_projects', item.testProjects || '');
       card.setAttribute('data-schedule', item.schedule || '');
       card.setAttribute('data-create_time', item.create_time || '');
-      card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+      // card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
+      card.setAttribute('data-schedule_days', item.scheduleDays);
       card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
       card.setAttribute('data-remark', item.remark != null ? item.remark : '');
       card.setAttribute('draggable', 'true');

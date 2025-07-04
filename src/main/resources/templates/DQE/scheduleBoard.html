@@ -740,7 +740,6 @@
         }
 
         const remark = document.getElementById('sampleRemark').value;
-        console.log("remark777",remark);
 
         const startDateCell = document.querySelector(`td[data-sample_id="${item.sample_id}"]`);
         let startDate = null;
@@ -1016,21 +1015,15 @@
         html += '<thead><tr>';
         html += '<th>组别</th>';
         html += '<th style="min-width: 100px;">测试人员</th>';
-        // console.log("holidays.",holidays)
         allDates.forEach(date => {
             const dateObj = new Date(date);
             const dayOfWeek = dateObj.getDay();
             let displayText = date;
-            // 检查是否为周六或周日
+            // 新增逻辑，判断是否为周六或周日并添加对应文字
             if (dayOfWeek === 6) {
                 displayText = `${date}<br>周六`;
             } else if (dayOfWeek === 0) {
                 displayText = `${date}<br>周日`;
-            }
-            // 检查是否为节假日
-            const holiday = holidays.find(h => h.holiday_date === date);
-            if (holiday) {
-                displayText = `${date}<br>${holiday.holiday_name}`;
             }
             html += `<th>${displayText}</th>`;
         });
@@ -1038,6 +1031,8 @@
 
         const groupedTesters = groupTestersByCategory(testers);
 
+        // ⭐⭐ 新增：组别顺序数组
+        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"耳机组","PC", "高频组"]; // 按你的需求改顺序
 
         // ⭐⭐ 新增：先按照 groupOrder 遍历
         groupOrder.forEach(groupName => {
@@ -1061,42 +1056,80 @@
                 let colIndex = 0;
                 while (colIndex < allDates.length) {
                     const currentDate = allDates[colIndex];
-                    const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
+                    // 筛选出当天所有 0.5 天的项目
+                    const halfDayTasks = dateMap[testerName]?.filter(t =>
+                        t.startDate === currentDate &&
+                        parseFloat(t.schedule_days) === 0.5
+                    ) || [];
 
                     const dateObj = new Date(currentDate);
                     const dayOfWeek = dateObj.getDay();
                     // 新增：判断是否为周六或周日，添加 weekend-border 类名
                     let weekendClass = '';
-                    // 检查是否为周末或者节假日
-                    const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
-                    const isHoliday = holidays.some(h => h.holiday_date === currentDate);
-                    if (isWeekend || isHoliday) {
+                    if (dayOfWeek === 6 || dayOfWeek === 0) {
                         weekendClass = 'weekend-border';
                     }
 
+                    if (halfDayTasks.length >= 2) {
+                        const firstTask = halfDayTasks[0];
+                        const secondTask = halfDayTasks[1];
+                        let cellHtml = `<td class="drop-cell assigned ${weekendClass}"
+                        data-tester="${testerName}"
+                        data-date="${currentDate}"
+                        data-job_number="${jobNumber}"
+                        data-sample_id="${firstTask.sample_id || ''}"
+                        data-sample_name="${firstTask.sample_name || ''}"
+                        data-sample_model="${firstTask.sample_model || ''}"
+                        data-materialCode="${firstTask.materialCode || ''}"
+                        data-sample_category="${firstTask.sample_category || ''}"
+                        data-version="${firstTask.version || ''}"
+                        data-priority="${firstTask.priority || ''}"
+                        data-sample_leader="${firstTask.sample_leader || ''}"
+                        data-supplier="${firstTask.supplier || ''}"
+                        data-test_project_category="${firstTask.test_project_category || ''}"
+                        data-test_projects="${firstTask.test_projects || ''}"
+                        data-schedule="${firstTask.schedule || ''}"
+                        data-create_time="${firstTask.create_time || ''}"
+                        data-schedule_days="${firstTask.schedule_days || ''}"
+                        data-sizecoding="${firstTask.sizecoding || ''}"
+                        data-schedule_start_date="${firstTask.schedule_start_date || ''}"
+                        data-schedule_end_date="${firstTask.schedule_end_date || ''}"
+                        data-schedule_color="${firstTask.schedule_color || ''}"
+                        data-remark="${firstTask.remark || ''}"`;
 
-                    if (task) {
-                        // const rangeDates = getDateRange(task.startDate, task.endDate);
-                        const colspan = Math.ceil(task.schedule_days);
-
-                        html += createTaskCell(task, testerName, currentDate, colspan, weekendClass);
-
-                        for (let i = 1; i < colspan; i++) {
-                            let styleAttr = 'style="display: none;"';
-                            if (weekendClass) {
-                                styleAttr += ` class="${weekendClass}"`;
+                        // 设置第二个任务的 data1- 属性
+                        Object.keys(secondTask).forEach(key => {
+                            if (key !== 'days') {
+                                cellHtml += ` data1-${key}="${secondTask[key] || ''}"`;
                             }
-                            html += `<td class="drop-cell" ${styleAttr} data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
-                        }
-                        colIndex += colspan;
-                    } else {
-                        const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
-                        if (!isCovered) {
-                            // 修改：添加 weekendClass 类名
-                            let cellHtml = `<td class="drop-cell ${weekendClass}" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}">`;
-                            html += cellHtml + `</td>`;
-                        }
+                        });
+
+                        // 使用 | 分隔两个项目信息
+                        cellHtml += `>${firstTask.sizecoding} (${firstTask.schedule_days}天)|${secondTask.sizecoding} (${secondTask.schedule_days}天)</td>`;
+                        html += cellHtml;
                         colIndex += 1;
+                    } else {
+                        const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
+                        if (task) {
+                            const colspan = Math.ceil(task.schedule_days);
+                            html += createTaskCell(task, testerName, currentDate, colspan, weekendClass);
+                            for (let i = 1; i < colspan; i++) {
+                                let styleAttr = 'style="display: none;"';
+                                if (weekendClass) {
+                                    styleAttr += ` class="${weekendClass}"`;
+                                }
+                                html += `<td class="drop-cell" ${styleAttr} data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
+                            }
+                            colIndex += colspan;
+                        } else {
+                            const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
+                            if (!isCovered) {
+                                // 修改：添加 weekendClass 类名
+                                let cellHtml = `<td class="drop-cell ${weekendClass}" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}">`;
+                                html += cellHtml + `</td>`;
+                            }
+                            colIndex += 1;
+                        }
                     }
                 }
 
@@ -1127,7 +1160,6 @@
                 });
             });
         });
-
         const cells = document.querySelectorAll('.drop-cell');
 
         // 定义待送样池子的容器 ID 数组
@@ -1278,22 +1310,25 @@
                                         const newScheduleDays = 0.5;
                                         targetCell.setAttribute('data-schedule_days', newScheduleDays);
 
+
+
                                         // 记录合并变更到 localScheduleChanges
                                         const newChange = {
-                                            change: "merge",
-                                            sample_id: targetCell.getAttribute('data-sample_id'),
-                                            sample_id1: taskData.sample_id,
-                                            tester: targetCell.getAttribute('data-tester'),
-                                            start_date: targetCell.getAttribute('data-date'),
+                                            change: "add",
+                                            sample_id: targetCell.getAttribute('data1-sample_id'),
+                                            tester: targetCell.getAttribute('data1-tester'),
+                                            start_date: targetCell.getAttribute('data1-schedule_start_date'),
                                             // 假设合并后结束日期不变
-                                            end_date: targetCell.getAttribute('data-schedule_end_date'),
+                                            end_date: targetCell.getAttribute('data1-schedule_end_date'),
                                             scheduleDays: newScheduleDays,
-                                            schedule_color: targetCell.getAttribute('data-schedule_color'),
-                                            job_number: targetCell.getAttribute('data-job_number')
+                                            schedule_color: targetCell.getAttribute('data1-schedule_color'),
+                                            job_number: targetCell.getAttribute('data1-job_number')
                                         };
+
                                         const existingIndex = localScheduleChanges.findIndex(item =>
-                                            item.sample_id === targetCell.getAttribute('data-sample_id')
+                                            item.sample_id === targetCell.getAttribute('data1-sample_id')
                                         );
+                                        console.log("existingIndex",existingIndex)
                                         if (existingIndex !== -1) {
                                             localScheduleChanges[existingIndex] = newChange;
                                         } else {
@@ -1304,7 +1339,9 @@
                                         const projectEl = document.querySelector(`.project-card[data-sample_id="${taskData.sample_id}"]`);
                                         if (projectEl) projectEl.remove();
 
-                                        // 清空拖拽来源的单元格
+
+                                        //这里目前有bug，两个0.5合并的localScheduleChanges会被覆盖掉前一个
+                                        console.log("localScheduleChanges.sample_id",localScheduleChanges)
                                         const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
                                         if (originalCell) {
                                             const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
@@ -1355,7 +1392,38 @@
                             let currentIndex = startIndex;
                             while (currentIndex < rowCells.length) {
                                 const currentCell = rowCells[currentIndex];
-                                if (currentCell.innerText.trim() !== '') {
+                                if (currentCell.innerText.trim() !== '' && currentCell.innerText.trim().includes("天)|")){
+                                    const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
+                                    const projectData = {};
+                                    const attributes = [
+                                        'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
+                                        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                                        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                    ];
+
+                                    attributes.forEach(attr => {
+                                        const normalKey = attr;
+                                        const data1Key = `data1-${attr}`;
+                                        const dataKey = `data-${attr}`;
+
+                                        // 获取 data-xxx 和 data1-xxx 的值
+                                        const dataValue = currentCell.getAttribute(dataKey);
+                                        const data1Value = currentCell.getAttribute(data1Key);
+
+                                        // 存入 projectData 中
+                                        projectData[normalKey] = dataValue;
+                                        projectData[data1Key] = data1Value;
+                                    });
+
+                                    projectsToMove.push({
+                                        startIndex: currentIndex,
+                                        span: projectSpan,
+                                        data: projectData
+                                    });
+
+                                    currentIndex += projectSpan;
+                                }else if(currentCell.innerText.trim() !== '') {
                                     const projectSpan = parseInt(currentCell.getAttribute('colspan')) || 1;
                                     const projectData = {};
                                     const attributes = [
@@ -1440,9 +1508,12 @@
                         handleDrop(cell, cellList, taskData, conflictCells, projectsToMove, diff);
                     }
                 } else {
-                    // 清空拖拽来源的单元格
+                    // 清空拖拽来源的单元格，这里是排期面板项目拖拽触发的方法！
                     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
+                    console.log("开始的originalCell",originalCell.getAttribute("data-tester"))
                     if (originalCell) {
+                        console.log("这里清空了tester")
+
                         // 判断是否含有 data1- 开头标签的参数
                         let hasData1Attr = false;
 
@@ -1466,7 +1537,7 @@
                             // 确保分割后有后半部分内容
                             if (parts.length > 1) {
                                 // 从第二个元素开始，使用 join 方法处理可能有多个 | 的情况
-                                originalInnerText = parts.slice(1).join('|').trim();
+                                originalInnerText = parts.slice(1).join('天)|').trim();
                             } else {
                                 originalInnerText = text.trim();
                             }
@@ -1478,17 +1549,31 @@
                         originalCell.classList.remove('assigned');
                         originalCell.style.backgroundColor = '';
 
+
                         // 允许保留的属性，添加判断 data1- 开头的属性
                         const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
                         [...originalCell.attributes].forEach(attr => {
-                            if (attr.name.startsWith('data1-')) {
-                                const newName = attr.name.replace('data1-', 'data-');
-                                originalCell.setAttribute(newName, attr.value);
-                                originalCell.removeAttribute(attr.name);
-                            } else if (!allowedAttributes.includes(attr.name)) {
-                                originalCell.removeAttribute(attr.name);
+                            const name = attr.name;
+
+                            if (name.startsWith('data1-')) {
+                                const newName = name.replace('data1-', 'data-');
+
+                                // 如果要替换的属性是受保护的，不动它！
+                                if (!allowedAttributes.includes(newName)) {
+                                    if (attr.value !== null && attr.value !== 'null') {
+                                        originalCell.setAttribute(newName, attr.value);
+                                    }
+                                    originalCell.removeAttribute(name);
+                                } else {
+                                    // 是受保护属性，不替换也不删除
+                                    originalCell.removeAttribute(name); // 可选：也可以保留 data1-tester 以便调试
+                                }
+                            } else if (!allowedAttributes.includes(name)) {
+                                // 普通非受保护属性，删除
+                                originalCell.removeAttribute(name);
                             }
                         });
+                        console.log("originalCell",originalCell)
 
                         // 恢复被隐藏的格子
                         for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
@@ -1531,10 +1616,18 @@
                                 contextMenu.style.display = 'block';
                             });
                         }
+                        // 获取颜色值并渲染单元格颜色
+                        const scheduleColor = originalCell.getAttribute('data-schedule_color');
+                        if (scheduleColor) {
+                            originalCell.style.backgroundColor = scheduleColor;
+                        }
                     }
 // 没有冲突，直接处理放置,这里是合并的单元格拖拽之后拆分后的项目，它拖拽进入的方法
                     console.log("222")
                     handleDrop(cell, cellList, taskData, [], [], 0);
+
+
+
                 }
             });
 
@@ -1607,6 +1700,7 @@
 
     // 处理拖拽放下事件
     function handleDrop(cell, cellList, taskData, conflictCells ,projectsToMove ,diff ) {
+
         const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
         console.log("schedule_days,",schedule_days)
         const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
@@ -1642,17 +1736,40 @@
                 }
 
 
+                console.log("projectsToMove,",projectsToMove)
                 // 创建新项目
                 const newStartCell = rowCells[newStartIndex];
-                newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
+                // newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
+                // 判断是否有 data1-sample_id
+                if (data["data1-sample_id"]) {
+                    newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)|${data["data1-sizecoding"] || ''} (${data["data1-schedule_days"] || ''}天)`;
+                } else {
+                    newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
+                }
+
                 newStartCell.classList.add('assigned');
                 newStartCell.style.backgroundColor = data.schedule_color || "";
                 newStartCell.setAttribute('colspan', span);
+                // Object.keys(data).forEach(key => {
+                //     if (key !== 'days') {
+                //         newStartCell.setAttribute(`data-${key}`, data[key]);
+                //     }
+                // });
+
+
                 Object.keys(data).forEach(key => {
                     if (key !== 'days') {
-                        newStartCell.setAttribute(`data-${key}`, data[key]);
+                        if (key.startsWith('data1-')) {
+                            // 直接写入 data1-xxx 属性（保持原样）
+                            newStartCell.setAttribute(key, data[key]);
+                        } else {
+                            // 正常 data-xxx 属性
+                            newStartCell.setAttribute(`data-${key}`, data[key]);
+                        }
                     }
                 });
+
+
                 for (let j = newStartIndex + 1; j < newStartIndex + span; j++) {
                     rowCells[j].style.display = 'none';
                 }
@@ -1668,6 +1785,7 @@
                     schedule_color: data.schedule_color,
                     job_number: data.job_number
                 };
+
                 const existingIndex = localScheduleChanges.findIndex(item =>
                     item.sample_id === data.sample_id
                 );
@@ -1675,6 +1793,28 @@
                     localScheduleChanges[existingIndex] = newChange;
                 } else {
                     localScheduleChanges.push(newChange);
+                }
+
+                if (data["data1-sample_id"]) {
+                    const newChangeData1 = {
+                        change: "add",
+                        sample_id: data["data1-sample_id"],
+                        tester: data.tester,  // 如果你也有 data1-tester，可以改成 data["data1-tester"]
+                        start_date: rowCells[newStartIndex].getAttribute('data-date'),
+                        end_date: newEndDate,
+                        scheduleDays: data["data1-schedule_days"],
+                        schedule_color: data["data1-schedule_color"],
+                        job_number: data.job_number  // 如果你也有 data1-job_number，可以改成 data["data1-job_number"]
+                    };
+
+                    const existingIndexData1 = localScheduleChanges.findIndex(item =>
+                        item.sample_id === data["data1-sample_id"]
+                    );
+                    if (existingIndexData1 !== -1) {
+                        localScheduleChanges[existingIndexData1] = newChangeData1;
+                    } else {
+                        localScheduleChanges.push(newChangeData1);
+                    }
                 }
                 console.log("标记6",localScheduleChanges)
 
@@ -1738,8 +1878,6 @@
         if (projectEl) projectEl.remove();
 
         const targetCell = rowCells[startIndex + roundedDays - 1];
-        console.log(startIndex )
-        console.log( roundedDays)
         if (!targetCell) {
             console.warn("无效拖拽内容：请勿选择别的进行拖拽，忽略本次拖拽。");
             return;
@@ -1965,14 +2103,32 @@
         document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
 
         document.getElementById('saveScheduleBtn').onclick = function () {
+            const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+            if (sampleId) {
+                alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                return; // 阻止后续操作
+            }
             saveScheduleAndColor(null, taskData);
         };
 
         document.getElementById('confirmColorBtn').onclick = function () {
+            const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+            if (sampleId) {
+                alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                return; // 阻止后续操作
+            }
             saveScheduleAndColor(null, taskData);
         };
 
         document.getElementById('saveRemarkBtn').onclick = function () {
+            const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+            if (sampleId) {
+                alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                return; // 阻止后续操作
+            }
             saveScheduleAndColor(null, taskData);
         };
 
@@ -1984,6 +2140,13 @@
 
         // 绑定修改电气编号按钮点击事件
         document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+            const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+
+            if (sampleId) {
+                alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                return; // 阻止后续操作
+            }
+
             const newSampleId = document.getElementById('editSampleId').value;
             const oldSampleId = taskData.sample_id;
 
