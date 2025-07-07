@@ -312,7 +312,7 @@ public class TestManIndexService {
 
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
-        if ("delete".equals(change)) {
+        if ("delete".equals(change) || "drop".equals(change)) {
             String container = getContainerName(latestChange.get("container"));
             // 更新 electric_info 里的 sample_id 的 isUsed = 0
             testManDao.deleteElectric_info(sample_id,container);
@@ -339,6 +339,8 @@ public class TestManIndexService {
                 isUsed = "使用";
             } else if ("delete".equalsIgnoreCase(change)) {
                 isUsed = "未使用";
+            }else if("drop".equalsIgnoreCase(change)){
+                isUsed = "作废";
             }
             String changeLog = tester+ "#" +
                     start_date + "#" +

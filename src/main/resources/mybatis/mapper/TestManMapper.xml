@@ -373,6 +373,7 @@
         WHERE (ei.isUsed = 0 OR ei.isUsed IS NULL)
           AND ei.isCancel = 0
           AND (ei.waitSample_classify IS NULL OR ei.waitSample_classify = '')
+          AND ei.sample_leader NOT IN ('占海英', '贺斌' ,'姚遥')
     </select>
 
 

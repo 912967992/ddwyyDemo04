@@ -403,7 +403,7 @@
             .then(data => {
                 if (Array.isArray(data)) {
                     groupOrder = data;
-                    console.log('已加载组别顺序:', groupOrder);
+
                     // 这里你可以调用渲染表格等函数，使用 groupOrder
                     // renderGroupTable(groupOrder);
                 } else {
@@ -823,7 +823,6 @@
 
                 // 更新卡片
                 if (card) {
-                    console.log("days",days)
                     card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
                     card.setAttribute('data-schedule_days', days || '1');
 
@@ -846,7 +845,7 @@
                     cell.setAttribute('data-remark', remark);
 
                     cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
-                    console.log("selectedColor111:"+selectedColor)
+
                     if (selectedColor === null || selectedColor === "null") {
                         selectedColor = "white"
                     }
@@ -1503,8 +1502,6 @@
 
                                     // 新增：复原周六和周日的边框样式
                                     const date = originalRowCells[i].getAttribute('data-date');
-                                    console.log("date", date);
-                                    console.log("i", i);
                                     setWeekendBorder(originalRowCells[i], date);
                                 }
                             }
@@ -1516,9 +1513,8 @@
                 } else {
                     // 清空拖拽来源的单元格，这里是排期面板项目拖拽触发的方法！
                     const originalCell = document.querySelector(`td[data-sample_id="${taskData.sample_id}"]`);
-                    console.log("开始的originalCell",originalCell.getAttribute("data-tester"))
+
                     if (originalCell) {
-                        console.log("这里清空了tester")
 
                         // 判断是否含有 data1- 开头标签的参数
                         let hasData1Attr = false;
@@ -1579,7 +1575,6 @@
                                 originalCell.removeAttribute(name);
                             }
                         });
-                        console.log("originalCell",originalCell)
 
                         // 恢复被隐藏的格子
                         for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {
@@ -1708,9 +1703,9 @@
     function handleDrop(cell, cellList, taskData, conflictCells ,projectsToMove ,diff ) {
 
         const { sample_id, days, sizecoding, tester, job_number, startDate, schedule_days, schedule_color } = taskData;
-        console.log("schedule_days,",schedule_days)
+
         const roundedDays = Math.ceil(parseFloat(schedule_days)); // 使用 schedule_days 确定合并单元格数量
-        console.log("roundedDays",roundedDays)
+
         const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
         const startIndex = rowCells.indexOf(cell);
 
@@ -1742,7 +1737,6 @@
                 }
 
 
-                console.log("projectsToMove,",projectsToMove)
                 // 创建新项目
                 const newStartCell = rowCells[newStartIndex];
                 // newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
@@ -1932,9 +1926,11 @@
 
 
     // 处理撤回排期事件，撤回排期按钮触发这个方法
-    function handleUndo(rowCells, startIndex, taskData, container) {
+    function handleUndo(rowCells, startIndex, taskData, container, originalCell, isRenderCard = false) {
         const { schedule_days, sample_id } = taskData;
         const currentRightClickCell = rowCells[startIndex];
+
+        let change = "delete";
 
         // 清除原始内容和属性
         currentRightClickCell.innerText = '';
@@ -1942,11 +1938,91 @@
         currentRightClickCell.classList.remove('assigned');
 
         const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
-        [...currentRightClickCell.attributes].forEach(attr => {
-            if (!allowedAttributes.includes(attr.name)) {
-                currentRightClickCell.removeAttribute(attr.name);
+
+        // 这里是负责把合并项目拖回去，恢复排期面板原来data1数据
+        // 判断是否含有 data1- 开头标签的参数
+        let hasData1Attr = false;
+
+        // 先保存原单元格的 innerText
+        let originalInnerText = "";
+        // 检查是否存在 data1- 开头的属性
+        if(originalCell){
+            [...originalCell.attributes].forEach(attr => {
+                if (attr.name.startsWith('data1-')) {
+                    hasData1Attr = true;
+                }
+            });
+            if (hasData1Attr) {
+                const text = originalCell.getAttribute("data1-sizecoding") + "(" + originalCell.getAttribute("data1-schedule_days") + "天)";
+                originalInnerText = text.trim();
             }
-        });
+            // 清除原单元格内容和属性
+            originalCell.innerText = '';
+            originalCell.removeAttribute('colspan');
+            originalCell.classList.remove('assigned');
+            originalCell.style.backgroundColor = '';
+
+            // 恢复原单元格的 innerText
+            originalCell.innerText = originalInnerText;
+
+            [...originalCell.attributes].forEach(attr => {
+                const name = attr.name;
+
+                if (name.startsWith('data1-')) {
+                    const newName = name.replace('data1-', 'data-');
+
+                    // 如果要替换的属性是受保护的，不动它！
+                    if (!allowedAttributes.includes(newName)) {
+                        if (attr.value !== null && attr.value !== 'null') {
+                            originalCell.setAttribute(newName, attr.value);
+                        }
+                        originalCell.removeAttribute(name);
+                    } else {
+                        // 是受保护属性，不替换也不删除
+                        originalCell.removeAttribute(name); // 可选：也可以保留 data1-tester 以便调试
+                    }
+                } else if (!allowedAttributes.includes(name)) {
+                    // 普通非受保护属性，删除
+                    originalCell.removeAttribute(name);
+                }
+            });
+
+            if (hasData1Attr) {
+                // 重新设置可拖拽属性
+                originalCell.setAttribute('draggable', 'true');
+
+                // 绑定拖拽开始事件
+                originalCell.addEventListener('dragstart', function (e) {
+                    const taskData = {};
+                    const attributes = [
+                        'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+                        'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+                        'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                    ];
+                    attributes.forEach(attr => {
+                        taskData[attr] = this.getAttribute(`data-${attr}`);
+                    });
+                    Object.entries(taskData).forEach(([key, value]) => {
+                        e.dataTransfer.setData(`project-${key}`, value);
+                    });
+                });
+            }
+
+            // 获取颜色值并渲染单元格颜色
+            const scheduleColor = originalCell.getAttribute('data-schedule_color');
+            if (scheduleColor) {
+                originalCell.style.backgroundColor = scheduleColor;
+            }
+
+        }else{
+            [...currentRightClickCell.attributes].forEach(attr => {
+                if (!allowedAttributes.includes(attr.name)) {
+                    currentRightClickCell.removeAttribute(attr.name);
+                }
+            });
+        }
+
 
         // 恢复被隐藏的格子
         for (let i = startIndex; i < Math.min(startIndex + Number(schedule_days), rowCells.length); i++) {
@@ -1959,64 +2035,70 @@
             }
         }
 
-        // 重新生成拖拽项目卡片
-        const restoredProject = document.createElement('div');
-        restoredProject.className = 'project-card';
+        if(isRenderCard){
+            change = "drop";
 
-        // ✅ 设置颜色 class（默认 gray）
-        const colorClass = taskData.schedule_color || 'gray';
-        restoredProject.classList.add(colorClass);
+        }else{
+            // 重新生成拖拽项目卡片
+            const restoredProject = document.createElement('div');
+            restoredProject.className = 'project-card';
 
-        restoredProject.setAttribute('draggable', 'true');
-        restoredProject.setAttribute('data-sample_id', sample_id);
-        restoredProject.setAttribute('data-schedule_days', schedule_days);
-        //   这里
-        restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
+            // ✅ 设置颜色 class（默认 gray）
+            const colorClass = taskData.schedule_color || 'gray';
+            restoredProject.classList.add(colorClass);
+
+            restoredProject.setAttribute('draggable', 'true');
+            restoredProject.setAttribute('data-sample_id', sample_id);
+            restoredProject.setAttribute('data-schedule_days', schedule_days);
+            //   这里
+            restoredProject.textContent = `${taskData.sizecoding} (${schedule_days}天)`;
+
+            //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
+            Object.keys(taskData).forEach(key => {
+                if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number'
+                    && key!== 'tester') {
+                    restoredProject.setAttribute(`data-${key}`, taskData[key]);
+                }
+            });
+
+            setDraggable(restoredProject, true);
+
+            const restoredItem = {
+                sample_id: sample_id,
+                sample_name: taskData.sample_name,
+                sample_model: taskData.sample_model,
+                materialCode: taskData.materialCode,
+                sample_category: taskData.sample_category,
+                version: taskData.version,
+                priority: taskData.priority,
+                sample_leader: taskData.sample_leader,
+                supplier: taskData.supplier,
+                testProjectCategory: taskData.test_project_category,
+                testProjects: taskData.test_projects,
+                schedule: taskData.schedule,
+                create_time: taskData.create_time,
+                scheduleDays: schedule_days,
+                schedule_color: taskData.schedule_color,
+                remark: taskData.remark
+            };
+
+            restoredProject.oncontextmenu = (event) => {
+                event.preventDefault();
+                bindCardContextMenu(restoredProject, restoredItem);
+            };
+
+            // 这里是排期面板拖拽项目到池子的容器存放区域，我接下来要判定放在哪个池子，0605
+            container.appendChild(restoredProject);
+        }
 
 
-        //这里是撤回排期点击的时候，放回去的时候检查哪些标签去掉
-        Object.keys(taskData).forEach(key => {
-            if (key !== 'days' && key !== 'schedule_start_date' && key !== 'schedule_end_date' && key!== 'job_number'
-                && key!== 'tester') {
-                restoredProject.setAttribute(`data-${key}`, taskData[key]);
-            }
-        });
 
-        setDraggable(restoredProject, true);
 
-        const restoredItem = {
-            sample_id: sample_id,
-            sample_name: taskData.sample_name,
-            sample_model: taskData.sample_model,
-            materialCode: taskData.materialCode,
-            sample_category: taskData.sample_category,
-            version: taskData.version,
-            priority: taskData.priority,
-            sample_leader: taskData.sample_leader,
-            supplier: taskData.supplier,
-            testProjectCategory: taskData.test_project_category,
-            testProjects: taskData.test_projects,
-            schedule: taskData.schedule,
-            create_time: taskData.create_time,
-            scheduleDays: schedule_days,
-            schedule_color: taskData.schedule_color,
-            remark: taskData.remark
-        };
-
-        restoredProject.oncontextmenu = (event) => {
-            event.preventDefault();
-            bindCardContextMenu(restoredProject, restoredItem);
-        };
-
-        // const projectPool = document.getElementById('projectPool');
-        // 这里是排期面板拖拽项目到池子的容器存放区域，我接下来要判定放在哪个池子，0605
-        container.appendChild(restoredProject);
-        // videoSamplePool.appendChild(restoredProject);
 
 
         // 记录删除操作到 localScheduleChanges，避免重复添加
         const newChange = {
-            change: "delete",
+            change: change,
             sample_id: sample_id,
             tester: taskData.tester,
             start_date: taskData.schedule_start_date,
@@ -2370,7 +2452,8 @@
                     if (originalCell) {
                         const originalRowCells = Array.from(originalCell.parentElement.querySelectorAll('.drop-cell'));
                         const originalStartIndex = originalRowCells.indexOf(originalCell);
-                        handleUndo(originalRowCells, originalStartIndex, taskData, container);
+
+                        handleUndo(originalRowCells, originalStartIndex, taskData, container,originalCell);
                     } else {
                         // 新增：检查目标容器是否已经存在该卡片
                         const existingCardInTarget = container.querySelector(`[data-sample_id="${taskData.sample_id}"]`);
@@ -2415,7 +2498,7 @@
                         } else {
                             localScheduleChanges.push(newChange);
                         }
-                        console.log(localScheduleChanges)
+
                     }
                 });
 
@@ -2513,7 +2596,7 @@
             })
                 .then(response => response.json())
                 .then(result => {
-                    console.log('后端返回:', result);
+
                     if (result.success) {
                         alert(result.message); // 项目添加成功
                         addProjectModal.style.display = 'none';
@@ -2571,13 +2654,15 @@
         // 处理 drop 事件
         trashStation.addEventListener('drop', function (e) {
             e.preventDefault();
+
             const sampleId = e.dataTransfer.getData('project-sample_id');
+
             if (sampleId) {
                 if (!confirm("确定要删除该项目吗？")) {
                     return;
                 }
                 // 调用删除接口
-                deleteProject(sampleId);
+                deleteProject(sampleId, e.dataTransfer);
 
                 // 从原容器移除卡片
                 const fromContainerId = e.dataTransfer.getData('project-from_container');
@@ -2606,7 +2691,9 @@
                     attributes.forEach(attr => {
                         taskData[attr] = originalCell.getAttribute(`data-${attr}`);
                     });
-                    handleUndo(originalRowCells, originalStartIndex, taskData, document.getElementById('projectPool'));
+                    // 新增一个参数，用来传递到方法里去判断是否需要渲染卡片
+                    const isRenderCard = true;
+                    handleUndo(originalRowCells, originalStartIndex, taskData, document.getElementById('projectPool'),originalCell,isRenderCard);
                 }
             }
         });
@@ -2623,7 +2710,14 @@
     });
 
     // 定义删除项目的函数，带确认框和可选的删除理由
-    function deleteProject(sampleId) {
+    function deleteProject(sampleId, element ) {
+        // 丢回收站的时候，多传一些数据作为变更记录
+        const tester = element.getData('project-tester');
+        const start_date = element.getData('project-schedule_start_date');
+        const end_date = element.getData('project-schedule_end_date');
+        const schedule_color = element.getData('project-schedule_color');
+        const change = "drop";
+
 
         const reason = prompt("请输入删除理由（可选）：");
 
@@ -2635,7 +2729,12 @@
             body: JSON.stringify({
                 sample_id: sampleId,
                 cancel_reason: reason ? reason.trim() : "", // 如果没有填写则传空字符串
-                username: username
+                username: username,
+                tester: tester,
+                start_date: start_date,
+                end_date: end_date,
+                schedule_color: schedule_color,
+                change: change
             })
         })
             .then(response => {
@@ -2727,7 +2826,7 @@
         const isHoliday = holidays.some(h => h.holiday_date === date);
 
         if (isWeekend || isHoliday) {
-            console.log(`添加 ${weekendClass} 样式，日期: ${date}，原因: ${isWeekend ? '周末' : '节假日'}`);
+            // console.log(`添加 ${weekendClass} 样式，日期: ${date}，原因: ${isWeekend ? '周末' : '节假日'}`);
             cell.classList.add(weekendClass);
         } else {
             cell.classList.remove(weekendClass);
@@ -2798,7 +2897,7 @@
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = '删除';
                     deleteBtn.addEventListener('click', function () {
-                        console.log("holiday.id,",holiday.id)
+
                         deleteHoliday(holiday.id);
                     });
 
@@ -3099,7 +3198,6 @@
                 });
 
                 const finalChanges = Object.values(mergedData);
-                console.log("finalChanges,",finalChanges)
 
                 fetch('/scheduleBoardController/updateTesterInfo', {
                     method: 'POST',
@@ -3160,7 +3258,6 @@
         })
             .then(response => response.json())
             .then(result => {
-                console.log('后端返回:', result);
                 if (result.success) {
                     alert(result.message); // 测试人员添加成功
                     // 这里可以添加刷新测试人员列表等逻辑

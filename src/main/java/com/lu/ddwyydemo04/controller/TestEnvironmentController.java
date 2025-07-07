@@ -3,6 +3,7 @@ package com.lu.ddwyydemo04.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
+import com.lu.ddwyydemo04.dao.TestManDao;
 import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
 import com.lu.ddwyydemo04.pojo.Holiday;
 import com.lu.ddwyydemo04.pojo.PassbackData;
@@ -41,6 +42,9 @@ public class TestEnvironmentController {
 
     @Autowired
     private TestManIndexService testManIndexService;
+
+    @Autowired
+    private TestManDao testManDao;
 
     @GetMapping("/loginTestEnvironment")
     public String loginTestEnvironment(){
@@ -824,16 +828,58 @@ public class TestEnvironmentController {
             String sampleId = (String) request.get("sample_id");
             String cancel_reason = (String) request.get("cancel_reason");
             String username = (String) request.get("username");
-            System.out.println("cancelReason:"+cancel_reason);
 
             // 作废人：
             String job_number = testManIndexService.queryJobnumberFromUser(username);
-            System.out.println("job_number:"+job_number);
 
             LocalDateTime cancelDate = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
 
             boolean updateCancel = testManIndexService.cancelElectricalCode(sampleId,cancel_reason,username,
                     job_number,cancelDate);
+
+            // 插入回收站的变更记录
+            String change = (String)request.get("change");
+            String sample_id = (String) request.get("sample_id");
+            String tester = (String) request.get("tester");
+            String start_date = (String)request.get("start_date");
+            String end_date = (String)request.get("end_date");
+            String schedule_color = (String)request.get("schedule_color");
+            // 查询旧数据
+            Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
+            if (oldSchedule != null) {
+                // 获取当前北京时间（东八区）
+                String updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                String remark = testManIndexService.queryRemark(sample_id);
+
+                // 根据 change 类型决定 isUsed 值
+                String isUsed = "未知";
+                if ("add".equalsIgnoreCase(change)) {
+                    isUsed = "使用";
+                } else if ("delete".equalsIgnoreCase(change)) {
+                    isUsed = "未使用";
+                } else if ("drop".equalsIgnoreCase(change)) {
+                    isUsed = "作废";
+                }
+                String changeLog = tester + "#" +
+                        start_date + "#" +
+                        end_date + "#" +
+                        updateTime + "#" +
+                        schedule_color + "#" +
+                        isUsed + "#" +
+                        remark;
+
+                // 获取 electric_info 表原有的 changeRecord 内容
+                String existingLog = testManIndexService.getChangeRecordBySampleId(sampleId);
+                String newLog = (existingLog == null || existingLog.isEmpty())
+                        ? changeLog
+                        : existingLog + " | " + changeLog;
+
+                // 更新 electric_info.changeRecord 字段
+                testManDao.updateChangeRecord(sampleId, newLog);
+            }
+
+
             if (updateCancel) {
                 response.put("success", true);
                 response.put("message", "项目删除成功");
