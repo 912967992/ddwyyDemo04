@@ -125,6 +125,7 @@
                                 testProjects: "项目" + i
                             }
                         ]
+
                     };
                 });
 
@@ -220,13 +221,13 @@
             document.getElementById("testProcessModal").style.display = "none";
         }
 
-        // 提交测试编号
+        // 提交电气编号
         function submitTest() {
             const testNumber = document.getElementById("testNumber").value.trim();
             const actual_time = new Date().toISOString().replace("T", " ").substring(0, 19); // 获取当前时间
 
             if (!testNumber) {
-                alert("请输入测试编号");
+                alert("请输入电气编号");
                 return;
             }
 
@@ -260,12 +261,12 @@
         }
 
 
-        // 提交测试编号
+        // 提交电气编号
         function submitFinishTest() {
             const testFinishNumber = document.getElementById("testFinishNumber").value.trim();
 
             if (!testFinishNumber) {
-                alert("请输入测试编号");
+                alert("请输入电气编号");
                 return;
             }
 
@@ -298,12 +299,12 @@
         }
 
 
-        // 提交测试编号
+        // 提交电气编号
         function submitProcessTest() {
             const testProcessNumber = document.getElementById("testProcessNumber").value.trim();
 
             if (!testProcessNumber) {
-                alert("请输入测试编号");
+                alert("请输入电气编号");
                 return;
             }
 
@@ -344,7 +345,7 @@
             const file = document.getElementById('fileInput').files[0];
 
             if (!testId || !file) {
-                alert("请填写测试编号并选择文件");
+                alert("请填写电气编号并选择文件");
                 return;
             }
 
@@ -366,6 +367,85 @@
                     console.error(err);
                 });
         }
+
+        function showTestDataUploadModal() {
+            document.getElementById("testDataUploadModal").style.display = "block";
+        }
+
+        function hideTestDataUploadModal() {
+            document.getElementById("testDataUploadModal").style.display = "none";
+        }
+
+        // 提交并发送测试数据
+        async function submitTestDataUpload() {
+            const requirementUrls = document.getElementById("productRequirementInput").value.trim();
+            const approvalUrls = document.getElementById("productApprovalDocInput").value.trim();
+
+            const payload = Array.from({ length: 5 }, (_, i) => {
+                const timestamp = Date.now() + i;
+                return {
+                    sample_id: "ET" + timestamp,
+                    sample_category: "2025031900" + (i + 1),
+                    sample_model: "LP15" + i,
+                    sample_coding: null,
+                    sample_name: "测试样品" + i,
+                    version: "1",
+                    priority: "加急",
+                    sample_leader: "测试人" + i,
+                    supplier: "测试供应商" + i,
+                    schedule: "待测试",
+
+                    // ✅ 用户填写的 URL 直接传入
+                    productRequirement: requirementUrls,
+                    productApprovalDoc: approvalUrls,
+
+                    materialItems: [
+                        {
+                            STTestCode: "ST" + timestamp,
+                            materialCode: "50" + (728 + i),
+                            sample_frequency: 2
+                        }
+                    ],
+                    electricalTestItems: [
+                        {
+                            ETTestCode: "ET" + timestamp,
+                            testProjectCategory: "分类" + i,
+                            testProjects: "项目" + i
+                        }
+                    ],
+                    sample_sender: '送样人'+i,
+                    sample_tyoe: '全新功能样',
+                    sample_quantity: i,
+                    high_frequency: '是'
+                };
+            });
+
+            try {
+                const response = await fetch('/passback/receiveData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || '服务器返回错误');
+                }
+
+                alert('✅ 接口接收成功\n状态码: ' + data.status + '\n信息: ' + data.message);
+                hideTestDataUploadModal();
+                refreshPage();
+            } catch (error) {
+                console.error('发送请求失败:', error);
+                alert('❌ 请求发送失败\n原因: ' + error.message);
+            }
+        }
+
+
+
     </script>
 </head>
 <body>
@@ -373,7 +453,9 @@
 <button class="fixed-button" onclick="refreshPage()">刷新页面</button>
 
 <!-- 测试数据发送按钮 -->
-<button class="fixed-button" onclick="sendTestData()">发送测试数据</button>
+<!--<button class="fixed-button" onclick="sendTestData()">发送测试数据</button>-->
+<button class="fixed-button" onclick="showTestDataUploadModal()">发送测试数据</button>
+
 
 <button class="fixed-button" onclick="openModal()">作废数据按钮</button>
 
@@ -387,24 +469,24 @@
 <button class="fixed-button" onclick="showTestUploadModal()">上传文件(测试流程用)</button>
 
 
-<!-- 测试编号测试开始模态框 -->
+<!-- 电气编号测试开始模态框 -->
 <div id="testModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTestModal()">&times;</span>
-        <h3>填写测试编号</h3>
-        <label>测试编号：</label>
-        <input type="text" id="testNumber" class="input-field" placeholder="请输入测试编号">
+        <h3>填写电气编号</h3>
+        <label>电气编号：</label>
+        <input type="text" id="testNumber" class="input-field" placeholder="请输入电气编号">
         <button class="submit-btn" onclick="submitTest()">确定</button>
     </div>
 </div>
 
-<!-- 测试编号结束测试模态框 -->
+<!-- 电气编号结束测试模态框 -->
 <div id="testFinishModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTestModal()">&times;</span>
-        <h3>填写测试编号</h3>
-        <label>测试编号：</label>
-        <input type="text" id="testFinishNumber" class="input-field" placeholder="请输入测试编号">
+        <h3>填写电气编号</h3>
+        <label>电气编号：</label>
+        <input type="text" id="testFinishNumber" class="input-field" placeholder="请输入电气编号">
         <button class="submit-btn" onclick="submitFinishTest()">确定</button>
     </div>
 </div>
@@ -413,9 +495,9 @@
 <div id="testProcessModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTestModal()">&times;</span>
-        <h3>填写测试编号</h3>
-        <label>测试编号：</label>
-        <input type="text" id="testProcessNumber" class="input-field" placeholder="请输入测试编号">
+        <h3>填写电气编号</h3>
+        <label>电气编号：</label>
+        <input type="text" id="testProcessNumber" class="input-field" placeholder="请输入电气编号">
         <button class="submit-btn" onclick="submitProcessTest()">确定</button>
     </div>
 </div>
@@ -481,8 +563,8 @@
 <!-- 弹出 Modal -->
 <div id="testUploadModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
     <h3>上传报告</h3>
-    <label>测试编号：</label>
-    <input type="text" id="testIdInput" placeholder="请输入测试编号" /><br/><br/>
+    <label>电气编号：</label>
+    <input type="text" id="testIdInput" placeholder="请输入电气编号" /><br/><br/>
 
     <label>上传文件（.xlsx）：</label>
     <input type="file" id="fileInput" accept=".xlsx" /><br/><br/>
@@ -492,11 +574,28 @@
 </div>
 
 <div class="filter-bar">
-    <label>测试编号：</label>
-    <input type="text" id="sampleIdFilter" placeholder="请输入测试编号">
+    <label>电气编号：</label>
+    <input type="text" id="sampleIdFilter" placeholder="请输入电气编号">
     <button onclick="applySampleIdFilter()">查询</button>
     <button onclick="refreshPage()">重置</button>
 </div>
+
+<!-- 输入 URL 的模态框 -->
+<div id="testDataUploadModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="hideTestDataUploadModal()">&times;</span>
+        <h3>填写产品开发资料链接</h3>
+
+        <label>产品开发要求 URL（多个用英文逗号 , 隔开）:</label><br>
+        <textarea id="productRequirementInput" rows="3" style="width: 100%;"></textarea><br><br>
+
+        <label>产品承认书 URL（多个用英文逗号 , 隔开）:</label><br>
+        <textarea id="productApprovalDocInput" rows="3" style="width: 100%;"></textarea><br><br>
+
+        <button onclick="submitTestDataUpload()">确定上传</button>
+    </div>
+</div>
+
 
 
 </body>

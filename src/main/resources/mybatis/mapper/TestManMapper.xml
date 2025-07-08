@@ -410,7 +410,13 @@
             scheduleDays,
             schedule_color,
             remark,
-            waitSample_classify
+            waitSample_classify,
+            sample_sender,
+            sample_type,
+            sample_quantity,
+            high_frequency,
+            productRequirement,
+            productApprovalDoc
         )
         VALUES (
                    #{sample_id},
@@ -430,9 +436,16 @@
                    #{scheduleDays},
                    #{schedule_color},
                    #{remark},
-                    #{waitSample_classify}
+                   #{waitSample_classify},
+                   #{sample_sender},
+                   #{sample_type},
+                   #{sample_quantity},
+                   #{high_frequency},
+                   #{productRequirement},
+                   #{productApprovalDoc}
                )
     </insert>
+
 
     <update id="updateElectricInfo" parameterType="PassbackData">
         UPDATE electric_info
@@ -740,17 +753,26 @@
 
     <insert id="insertElectricalTestItem">
         INSERT IGNORE INTO electrical_test_items (
-        sample_id, ETTestCode, testProjectCategory, testProjects
-        ) VALUES
+        sample_id,
+        ETTestCode,
+        testProjectCategory,
+        testProjects,
+        testOwner,
+        testRemark
+        )
+        VALUES
         <foreach collection="list" item="item" separator=",">
             (
             #{sample_id},
             #{item.ETTestCode},
             #{item.testProjectCategory},
-            #{item.testProjects}
+            #{item.testProjects},
+            #{item.testOwner},
+            #{item.testRemark}
             )
         </foreach>
     </insert>
+
 
 
 

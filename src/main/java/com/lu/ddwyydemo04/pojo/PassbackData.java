@@ -61,6 +61,18 @@ public class PassbackData {
 
     private String waitSample_classify;
 
+    //20250708 新增字段
+    private String sample_sender;   // 送样人
+    private String sample_type;   //送样类别： 功能样品OR大货样
+
+    private String sample_quantity;   //送样数量
+    private String high_frequency;   // 是否高频
+    private String productRequirement;   // 产品开发要求
+    private String productApprovalDoc;   // 产品承认书
+
+
+    // 0707新增字段，送养人，样品状态，送样备注，电气测试数量，是否含高频，产品开发要求，产品承认书
+
     public int getId() {
         return id;
     }
@@ -367,6 +379,54 @@ public class PassbackData {
         this.waitSample_classify = waitSample_classify;
     }
 
+    public String getSample_sender() {
+        return sample_sender;
+    }
+
+    public void setSample_sender(String sample_sender) {
+        this.sample_sender = sample_sender;
+    }
+
+    public String getSample_type() {
+        return sample_type;
+    }
+
+    public void setSample_type(String sample_type) {
+        this.sample_type = sample_type;
+    }
+
+    public String getSample_quantity() {
+        return sample_quantity;
+    }
+
+    public void setSample_quantity(String sample_quantity) {
+        this.sample_quantity = sample_quantity;
+    }
+
+    public String getHigh_frequency() {
+        return high_frequency;
+    }
+
+    public void setHigh_frequency(String high_frequency) {
+        this.high_frequency = high_frequency;
+    }
+
+    public String getProductRequirement() {
+        return productRequirement;
+    }
+
+    public void setProductRequirement(String productRequirement) {
+        this.productRequirement = productRequirement;
+    }
+
+    public String getProductApprovalDoc() {
+        return productApprovalDoc;
+    }
+
+    public void setProductApprovalDoc(String productApprovalDoc) {
+        this.productApprovalDoc = productApprovalDoc;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -408,6 +468,12 @@ public class PassbackData {
                 ", filepath='" + filepath + '\'' +
                 ", remark='" + remark + '\'' +
                 ", waitSample_classify='" + waitSample_classify + '\'' +
+                ", sample_sender='" + sample_sender + '\'' +
+                ", sample_type='" + sample_type + '\'' +
+                ", sample_quantity='" + sample_quantity + '\'' +
+                ", high_frequency='" + high_frequency + '\'' +
+                ", productRequirement='" + productRequirement + '\'' +
+                ", productApprovalDoc='" + productApprovalDoc + '\'' +
                 '}';
     }
 }

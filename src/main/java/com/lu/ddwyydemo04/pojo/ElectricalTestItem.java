@@ -9,6 +9,11 @@ public class ElectricalTestItem {
     private String testProjectCategory;
     private String testProjects;
 
+    // 0707 新增字段：测试归属，对应的测试备注
+    private String testOwner;   //测试归属
+
+    private String testRemark;   //对应测试备注
+
     public String getETTestCode() {
         return ETTestCode;
     }
@@ -33,12 +38,30 @@ public class ElectricalTestItem {
         this.testProjects = testProjects;
     }
 
+    public String getTestOwner() {
+        return testOwner;
+    }
+
+    public void setTestOwner(String testOwner) {
+        this.testOwner = testOwner;
+    }
+
+    public String getTestRemark() {
+        return testRemark;
+    }
+
+    public void setTestRemark(String testRemark) {
+        this.testRemark = testRemark;
+    }
+
     @Override
     public String toString() {
         return "ElectricalTestItem{" +
                 "ETTestCode='" + ETTestCode + '\'' +
                 ", testProjectCategory='" + testProjectCategory + '\'' +
                 ", testProjects='" + testProjects + '\'' +
+                ", testOwner='" + testOwner + '\'' +
+                ", testRemark='" + testRemark + '\'' +
                 '}';
     }
 }

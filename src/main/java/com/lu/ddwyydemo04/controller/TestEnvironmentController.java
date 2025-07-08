@@ -57,6 +57,9 @@ public class TestEnvironmentController {
     public ResponseEntity<Map<String, Object>> receiveData(@RequestBody List<PassbackData> requestData) {
         Map<String, Object> response = new HashMap<>();
         try {
+            // 0708  准备修改这里，新增承认书那些字段
+
+
             testManIndexService.saveAll(requestData);
             response.put("status", "200");
             response.put("message", "全部数据接收成功");
