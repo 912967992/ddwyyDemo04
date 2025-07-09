@@ -73,6 +73,12 @@
                 <td>${item.cancel_code || ''}</td>
                 <td>${item.cancel_date || ''}</td>
                 <td>${item.filepath || ''}</td>
+                <td>${item.sample_sender || ''}</td>
+                <td>${item.sample_type || ''}</td>
+                <td>${item.sample_quantity || ''}</td>
+                <td>${item.high_frequency || ''}</td>
+                <td>${item.productRequirement || ''}</td>
+                <td>${item.productApprovalDoc || ''}</td>
             </tr>`;
                     tableBody.innerHTML += row;
                 });
@@ -537,6 +543,12 @@
             <th>作废工号</th>
             <th>作废时间</th>
             <th>文件存放路径</th>
+            <th>送样人</th>
+            <th>送样类别</th>
+            <th>送样数量</th>
+            <th>是否高频</th>
+            <th>产品开发要求</th>
+            <th>产品承认书</th>
         </tr>
         </thead>
         <tbody id="dataBody"></tbody>

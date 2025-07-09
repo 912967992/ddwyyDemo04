@@ -824,7 +824,13 @@
             -- 合并 electrical_test_items 表中的数据，使用 DISTINCT 去重
             GROUP_CONCAT(DISTINCT CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
             -- 合并 material_items 表中的数据，使用 DISTINCT 去重
-            GROUP_CONCAT(DISTINCT CONCAT(mi.STTestCode, '-', mi.materialCode, '-', mi.sample_frequency) SEPARATOR ', ') AS materialCode
+            GROUP_CONCAT(DISTINCT CONCAT(mi.STTestCode, '-', mi.materialCode, '-', mi.sample_frequency) SEPARATOR ', ') AS materialCode,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.sample_quantity,
+            ei.high_frequency,
+            ei.productRequirement,
+            ei.productApprovalDoc
         FROM
             electric_info ei
                 LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
