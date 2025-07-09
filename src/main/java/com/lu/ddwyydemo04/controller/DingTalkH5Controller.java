@@ -110,7 +110,7 @@ public class DingTalkH5Controller {
 
             // 特殊用户名覆盖 job 为 "it"
             if ("陈少侠".equals(username) || "郭丽纯".equals(username) ||
-                    "占海英".equals(username) || "刘定荣".equals(username)) {
+                    "占海英".equals(username) || "刘定荣".equals(username) || "姚遥".equals(username)) {
                 job = "projectLeader";
             }
 

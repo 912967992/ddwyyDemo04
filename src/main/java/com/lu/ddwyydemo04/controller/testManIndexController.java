@@ -1707,10 +1707,10 @@ public class testManIndexController {
 
             // 判断是否包含多个，用逗号分隔
             String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
-//            System.out.println("scheduleStartTune:"+scheduleStartTune);
-//            System.out.println("scheduleEndTune:"+scheduleEndTune);
-//            System.out.println("scheduleTestCycle:"+scheduleTestCycle);
-//            System.out.println(String.format("codeEntries: %s", codeEntries));
+
+            String cleanElectricSampleId = sanitizeFileName(electric_sample_id);
+            String cleanMaterialCode = sanitizeFileName(materialCodeStr);
+
 
             for (String codeEntry : codeEntries) {
                 String trimmed = codeEntry.trim(); // 去空格
@@ -1724,7 +1724,9 @@ public class testManIndexController {
 //                        excelShowService.sampleCount();
                         Samples sample = new Samples();
                         // 创建空 Excel 文件
-                        String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
+//                        String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
+                        String fileName = cleanElectricSampleId + "_" + cleanMaterialCode + "_" + sampleFrequency + ".xlsx";
+
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
                         System.out.println("filePath:"+filePath);
@@ -1907,7 +1909,10 @@ public class testManIndexController {
         return result;
     }
 
-
+    // 清洗非法字符
+    public static String sanitizeFileName(String input) {
+        return input.replaceAll("[\\\\/:*?\"<>|]", "_");
+    }
 
 
 }
