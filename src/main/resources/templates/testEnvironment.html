@@ -59,7 +59,7 @@
                 <td>${item.tester || ''}</td>
                 <td>${item.supplier || ''}</td>
                 <td>${item.testProjectCategory || ''}</td>
-                <td>${item.testProjects || ''}</td>
+<!--                <td>${item.testProjects || ''}</td>-->
                 <td>${scheduleText}</td>
                 <td>${item.create_time || ''}</td>
                 <td>${item.actual_start_time || ''}</td>
@@ -75,6 +75,7 @@
                 <td>${item.filepath || ''}</td>
                 <td>${item.sample_sender || ''}</td>
                 <td>${item.sample_type || ''}</td>
+                <td>${item.remark || ''}</td>
                 <td>${item.sample_quantity || ''}</td>
                 <td>${item.high_frequency || ''}</td>
                 <td>${item.productRequirement || ''}</td>
@@ -529,7 +530,7 @@
             <th>测试负责人</th>
             <th>供应商</th>
             <th>试验项目类别</th>
-            <th>测试子项目</th>
+<!--            <th>测试子项目</th>-->
             <th>当前进度</th>
             <th>创建时间</th>
             <th>实际开始时间</th>
@@ -544,8 +545,9 @@
             <th>作废时间</th>
             <th>文件存放路径</th>
             <th>送样人</th>
-            <th>送样类别</th>
-            <th>送样数量</th>
+            <th>样品状态</th>
+            <th>送样备注</th>
+            <th>电气测试数量</th>
             <th>是否高频</th>
             <th>产品开发要求</th>
             <th>产品承认书</th>

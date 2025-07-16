@@ -486,7 +486,7 @@
     margin-right: 15px; /* 添加右间隔 */
 }
 
-.export-button,.exportFile-button, .restore-btn{
+.export-button,.exportFile-button, .restore-btn ,.passbackProblem-button{
     background-color: #a97d49; /* 绿色背景 */
     color: white; /* 字体颜色为白色 */
     border-radius: 10px; /* 边框圆润 */
@@ -499,6 +499,7 @@
 
     margin-right: 15px; /* 添加右间隔 */
 }
+
 
 
 /* 悬停时的样式 */

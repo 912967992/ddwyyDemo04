@@ -3,7 +3,7 @@ package com.lu.ddwyydemo04.pojo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MaterialItem {
-    @JsonProperty("STTestCode")  // 映射前端 JSON 字段名
+//    @JsonProperty("STTestCode")  // 映射前端 JSON 字段名
     private String STTestCode;
     private String materialCode;
     private int sample_frequency;

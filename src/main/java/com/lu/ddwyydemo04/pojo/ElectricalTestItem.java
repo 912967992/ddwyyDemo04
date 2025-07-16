@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ElectricalTestItem {
 
-    @JsonProperty("ETTestCode")  // 映射前端 JSON 字段名
+//    @JsonProperty("ETTestCode")  // 映射前端 JSON 字段名
     private String ETTestCode;
     private String testProjectCategory;
     private String testProjects;

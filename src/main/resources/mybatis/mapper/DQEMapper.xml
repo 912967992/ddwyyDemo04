@@ -14,20 +14,32 @@
         </foreach>
     </select>
 
+<!--    <select id="selectTestIssuesFromSampleid" resultType="TestIssues">-->
+<!--        SELECT *-->
+<!--        FROM test_issues-->
+<!--        WHERE sample_id = #{sampleId}-->
+<!--          AND (-->
+<!--                (created_by = 'tester' AND history_id = (-->
+<!--                    SELECT MAX(history_id)-->
+<!--                    FROM test_issues-->
+<!--                    WHERE sample_id = #{sampleId}-->
+<!--                      AND created_by = 'tester'-->
+<!--                ))-->
+<!--                OR created_by != 'tester'-->
+<!--            )-->
+<!--    </select>-->
+
     <select id="selectTestIssuesFromSampleid" resultType="TestIssues">
         SELECT *
         FROM test_issues
         WHERE sample_id = #{sampleId}
-          AND (
-                (created_by = 'tester' AND history_id = (
-                    SELECT MAX(history_id)
-                    FROM test_issues
-                    WHERE sample_id = #{sampleId}
-                      AND created_by = 'tester'
-                ))
-                OR created_by != 'tester'
-            )
+          AND history_id = (
+            SELECT MAX(history_id)
+            FROM test_issues
+            WHERE sample_id = #{sampleId}
+        )
     </select>
+
 
     <select id="searchSamplesDQE" resultType="Samples">
         SELECT * FROM samples
@@ -69,7 +81,8 @@
         sample_schedule LIKE CONCAT('%', #{key}, '%') OR
         result_judge LIKE CONCAT('%', #{key}, '%') OR
         rd_result_judge LIKE CONCAT('%', #{key}, '%') OR
-        sample_leader LIKE CONCAT('%', #{key}, '%'))
+        sample_leader LIKE CONCAT('%', #{key}, '%') OR
+        electric_sample_id LIKE CONCAT('%',#{key},'%'))
         ORDER BY finish_time DESC;
     </select>
 

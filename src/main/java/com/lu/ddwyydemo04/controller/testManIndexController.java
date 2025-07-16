@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -827,12 +828,12 @@ public class testManIndexController {
             String created_at = now.format(formatter);
             // 使用相同的格式化器解析字符串
             LocalDateTime parsedDateTime = LocalDateTime.parse(created_at, formatter);
-            System.out.println("Parsed LocalDateTime: " + parsedDateTime);
+//            System.out.println("Parsed LocalDateTime: " + parsedDateTime);
             //要先获取samples的id主键，然后搜索历史版本id，没有的话就是0，有就加1
             int sample_id = testManIndexService.querySampleId(filepath);
-            System.out.println("sample_id:"+sample_id);
+//            System.out.println("sample_id:"+sample_id);
             int history_id = testManIndexService.queryHistoryid(sample_id);
-            System.out.println("history_id:"+history_id);
+//            System.out.println("history_id:"+history_id);
 
 
             for (Map<String, String> rowMap : filteredRows) {
@@ -913,11 +914,11 @@ public class testManIndexController {
                 testIssues.setHistory_id(history_id);
 
 //                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
-                System.out.println("testIssues:"+testIssues);
+//                System.out.println("testIssues:"+testIssues);
 
                 int insertProblem = testManIndexService.insertTestIssues(testIssues);
 
-                if(insertProblem == 1){
+                if(insertProblem > 0){
                     logger.info("问题点上传成功："+filepath);
                 }
 
@@ -1626,8 +1627,8 @@ public class testManIndexController {
     @ResponseBody
     public ResponseEntity<List<String>> getScheduleSampleIdByName(@RequestParam String username) {
         List<String> sampleIds = testManIndexService.getScheduleSampleIdByName(username);
-        System.out.println("username: " + username);
-        System.out.println("sampleIds: " + sampleIds);
+//        System.out.println("username: " + username);
+//        System.out.println("sampleIds: " + sampleIds);
         return ResponseEntity.ok(sampleIds);
     }
 
@@ -1640,7 +1641,7 @@ public class testManIndexController {
         List<String> materialItems = testManIndexService.getMaterialCodes(projectId);
         String materialItemsStr = String.join("，", materialItems); // 可用逗号分隔也行
 
-        System.out.println("materialItems: " + materialItemsStr);
+//        System.out.println("materialItems: " + materialItemsStr);
 
         if (electricInfoList != null && !electricInfoList.isEmpty()) {
             PassbackData data = electricInfoList.get(0);
@@ -1658,13 +1659,10 @@ public class testManIndexController {
         Map<String, Object> response = new HashMap<>();
 
         String questStats = (String) params.get("questStats");
-        String isHighFrequency = (String) params.get("isHighFrequency");
-        String category = (String) params.get("category");
-        int quantity = Integer.parseInt(String.valueOf(params.get("quantity")));
-        System.out.println("quantity:"+quantity);
+
 
         Map<String, Object> projectData = (Map<String, Object>) params.get("projectData");
-        System.out.println("projectData:"+projectData);
+//        System.out.println("projectData:"+projectData);
         if (projectData == null) {
             response.put("message", "缺少项目信息");
             response.put("success", false); // 可选：用于前端区分是否成功
@@ -1672,6 +1670,10 @@ public class testManIndexController {
         }
         String sample_actual_id = (String) projectData.get("sample_actual_id");
         String electric_sample_id = (String) projectData.get("sample_id");
+
+        String category = (String) projectData.get("sample_type");
+        String isHighFrequency = (String) projectData.get("high_frequency");
+        int quantity = Integer.parseInt(projectData.get("sample_quantity").toString());
 
         // 20250616 判断是否包含 "XZ"
         if (electric_sample_id != null && !electric_sample_id.isEmpty() && electric_sample_id.contains("XZ")) {
@@ -1729,13 +1731,13 @@ public class testManIndexController {
 
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
-                        System.out.println("filePath:"+filePath);
+//                        System.out.println("filePath:"+filePath);
 
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
                                 int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
-                                System.out.println("count:"+count);
+//                                System.out.println("count:"+count);
                                 if(count == 0){
                                     workbook.write(out);
                                     sample.setFilepath(filePath);
@@ -1764,7 +1766,7 @@ public class testManIndexController {
                                         return ResponseEntity.badRequest().body("插入失败，请重新试一下或者联系管理员卢健！");
                                     }else{
                                         String sampleId = sample.getSample_id(); // ✅ 这里能拿到自动生成的 samples表的sample_id
-                                        System.out.println("sampleId:"+sampleId);
+//                                        System.out.println("sampleId:"+sampleId);
                                         int insertActual = testManIndexService.updateActualSampleId(electric_sample_id,sampleId);
                                         if(insertActual>0){
                                             logger.info("排期面板的id插入真实id成功："+sampleId+"成功插入到对应的electric_info表的"+electric_sample_id);
@@ -1913,6 +1915,265 @@ public class testManIndexController {
     public static String sanitizeFileName(String input) {
         return input.replaceAll("[\\\\/:*?\"<>|]", "_");
     }
+
+
+    @GetMapping("/testManIndex/viewData")
+    @ResponseBody
+    public Map<String, String> viewData(@RequestParam String sample_id) {
+        // 模拟两组 URL 数据（用逗号分隔）
+        String admitUrls = testManIndexService.getProductApprovalDoc(sample_id);
+        String devUrls = testManIndexService.getProductRequirement(sample_id);
+
+        Map<String, String> result = new HashMap<>();
+        result.put("admit", admitUrls);
+        result.put("develop", devUrls);
+        return result;
+    }
+
+
+    private static final Map<String, String> fieldMapping = new HashMap<>();
+
+    static {
+        fieldMapping.put("样品型号", "full_model");
+        fieldMapping.put("SKU", "sku");
+        fieldMapping.put("样品阶段", "sample_stage");
+        fieldMapping.put("版本", "version");
+        fieldMapping.put("芯片方案", "chip_solution");
+        fieldMapping.put("测试平台", "test_platform");
+        fieldMapping.put("显示设备", "test_device");
+        fieldMapping.put("其他设备", "other_device");
+        fieldMapping.put("问题点", "problem");
+        fieldMapping.put("问题类别", "problemCategory");
+        fieldMapping.put("问题视频或图片", "problem_image_or_video");
+        fieldMapping.put("日期", "problem_time"); // 报告日期
+        fieldMapping.put("报告日期", "problem_time"); // 冗余处理
+        fieldMapping.put("复现概率", "reproduction_probability");
+        fieldMapping.put("复现手法", "reproduction_method");
+        fieldMapping.put("恢复方法", "recovery_method");
+        fieldMapping.put("缺陷等级", "defect_level");
+        fieldMapping.put("当前状态", "current_status");
+        fieldMapping.put("对比上一版或竞品", "comparison_with_previous");
+        fieldMapping.put("测试人员", "tester");
+        fieldMapping.put("DQE确认（每个版本的回复请勿删除）", "green_union_dqe");
+        fieldMapping.put("研发确认（每个版本的回复请勿删除）", "green_union_rd");
+        fieldMapping.put("DQE责任人", "dqe");
+        fieldMapping.put("分析责任人", "responsible_person");
+        fieldMapping.put("责任单位", "responsibleDepartment");
+        fieldMapping.put("改善后风险", "post_improvement_risk");
+        fieldMapping.put("评审结论", "review_conclusion");
+        fieldMapping.put("下一版回归测试", "next_version_regression_test");
+        fieldMapping.put("备注", "remark");
+        fieldMapping.put("供应商", "supplier");
+        fieldMapping.put("内/外贸", "test_Overseas");
+    }
+
+    @PostMapping("/testManIndex/passbackProblem")
+    @ResponseBody
+    public Map<String, Object> handlePassbackProblem(@RequestParam("excelFile") MultipartFile file,
+                                                     @RequestParam("sample_id") int sampleId,
+                                                     @RequestParam("job") String job) {
+        Map<String, Object> result = new HashMap<>();
+
+        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            Sheet sheet = workbook.getSheet("测试问题点汇总");
+            if (sheet == null) {
+                result.put("message", "未找到名称为 '测试问题点汇总' 的工作表");
+                return result;
+            }
+
+            List<Map<String, String>> parsedData = new ArrayList<>();
+            Iterator<Row> rowIterator = sheet.iterator();
+
+            if (rowIterator.hasNext()) rowIterator.next(); // 跳过第一行
+
+            List<String> headers = new ArrayList<>();
+            if (rowIterator.hasNext()) {
+                Row headerRow = rowIterator.next();
+                for (Cell cell : headerRow) {
+                    headers.add(cell.toString().replaceAll("\\s+", "").replaceAll("\n", ""));
+                }
+            }
+
+            int history_id = testManIndexService.queryHistoryid(sampleId);
+            Drawing<?> drawing = sheet.getDrawingPatriarch(); // 获取绘图对象
+            String sheetName = sheet.getSheetName();
+
+            int successCount = 0, failCount = 0;
+
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                Map<String, String> rowMap = new LinkedHashMap<>();
+
+                for (int i = 0; i < headers.size(); i++) {
+                    Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    cell.setCellType(CellType.STRING);
+                    rowMap.put(headers.get(i), cell.getStringCellValue().trim());
+                }
+
+                // 跳过空行
+                boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
+                if (isEmpty) continue;
+
+                TestIssues issue = convertToTestIssue(rowMap, sampleId, history_id, job);
+                String problem = issue.getProblem();
+                if (problem == null || problem.trim().isEmpty()) continue;
+
+                try {
+                    // 插入并获取 ID（你要实现该方法并配置 MyBatis 的 useGeneratedKeys）
+                    int insertedId = testManIndexService.insertTestIssues(issue);
+//                    System.out.println("insertedId:"+insertedId);
+
+                    if (insertedId > 0) {
+                        successCount++;
+
+                        // 查找“问题视频或图片”列索引
+                        int imageColIndex = -1;
+                        for (int i = 0; i < headers.size(); i++) {
+                            if (headers.get(i).contains("问题视频或图片")) {
+                                imageColIndex = i;
+                                break;
+                            }
+                        }
+
+                        // 提取图片并保存
+                        if (imageColIndex >= 0 && drawing != null) {
+                            Cell imageCell = row.getCell(imageColIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                            String imagePath = saveImageFromCell(
+                                    imageCell,
+                                    drawing,
+                                    sheetName,            // 第三个参数 String sheetName
+                                    row.getRowNum(),      // 第四个参数 int rowIndex
+                                    imageColIndex,        // 第五个参数 int columnIndex
+                                    String.valueOf(sampleId),  // 第六个参数 String filepath —— 这里随便传个字符串，主要用来构造图片文件名
+                                    imageColIndex,        // 第七个参数 Integer finalCurrentCol
+                                    issue.getId(),
+                                    sampleId
+                            );
+
+                            // 更新数据库
+                            if (imagePath != null && !imagePath.isEmpty()) {
+                                int uploadImage = dqEproblemMoudleService.uploadImage(issue.getId(),imagePath);
+//                                System.out.println("uploadImage:"+uploadImage);
+
+                            }
+                        }
+                    } else {
+                        failCount++;
+                    }
+                } catch (Exception e) {
+                    System.err.println("处理行失败：" + e.getMessage());
+                    failCount++;
+                }
+            }
+
+            result.put("message", "上传并解析成功，共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("message", "处理文件失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    public TestIssues convertToTestIssue(Map<String, String> rowData, Integer sampleId, Integer historyId, String job) {
+        TestIssues issue = new TestIssues();
+
+        for (Map.Entry<String, String> entry : rowData.entrySet()) {
+            String rawKey = entry.getKey().replaceAll("\\s+", "").replaceAll("\n", "");
+            String value = entry.getValue();
+
+            String javaField = fieldMapping.get(rawKey);
+            if (javaField == null) continue;
+
+            try {
+                Field field = TestIssues.class.getDeclaredField(javaField);
+                field.setAccessible(true);
+
+                if (field.getType() == String.class) {
+                    field.set(issue, value);
+                } else if (field.getType() == Integer.class || field.getType() == int.class) {
+                    if (!value.isEmpty()) {
+                        field.set(issue, Integer.parseInt(value));
+                    }
+                } else if (field.getType() == LocalDateTime.class) {
+                    if (!value.isEmpty()) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("[yyyy.MM.dd][yyyy-MM-dd]");
+                        field.set(issue, LocalDate.parse(value, formatter).atStartOfDay());
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("字段赋值失败：" + javaField + " <- " + value);
+            }
+        }
+
+        // 设置通用字段
+        issue.setSample_id(sampleId.toString());
+        issue.setHistory_id(historyId);
+        issue.setCreated_at(LocalDateTime.now());
+        issue.setCreated_by("tester");
+        issue.setDqe_confirm("未确认");
+        issue.setRd_confirm("未确认");
+        issue.setCreated_by(job);
+        issue.setDqe_confirm("确认");
+        issue.setDqe_review_at(LocalDateTime.now());
+
+        return issue;
+    }
+
+
+
+    private String saveImageFromCell(Cell cell, Drawing<?> drawing, String sheetName, int rowIndex, int columnIndex, String filepath, Integer finalCurrentCol,Long insertedId ,int sampleId) {
+        try {
+            // 检查单元格是否包含图片
+            for (Shape shape : drawing) {
+                if (shape instanceof Picture) {
+                    Picture picture = (Picture) shape;
+
+                    // 确保 picture 和其相关的 anchor 不为 null
+                    ClientAnchor anchor = picture.getClientAnchor();
+
+                    if (anchor != null && finalCurrentCol == anchor.getCol1() && cell.getRowIndex() == anchor.getRow1()) {
+                        // 增加对 picture.getPictureData() 的空指针检查
+                        if (picture.getPictureData() != null) {
+                            byte[] pictureData = picture.getPictureData().getData();
+
+                            int lastIndex = filepath.lastIndexOf('\\');
+                            String fileName = filepath.substring(lastIndex + 1);
+
+                            // 生成图片文件名
+                            String imageName = sampleId + "_" + insertedId + ".png";
+
+                            // 检查并创建目录
+                            if (!Files.exists(getImageLocationC())) {
+                                Files.createDirectories(getImageLocationC());
+                            }
+
+                            // 保存图片到指定目录
+                            Path imagePathC = getImageLocationC().resolve(imageName);
+                            Files.write(imagePathC, pictureData);
+
+                            // 返回图片文件路径
+                            return "/issuespath/" + imageName;
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            // 处理空指针异常以确保继续执行
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    private Path getImageLocationC(){
+        return Paths.get(issuespath.replace("/","\\"));
+    }
+
+    @Value("${file.storage.issuespath}")
+    private String issuespath;
 
 
 }

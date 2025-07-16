@@ -21,7 +21,7 @@
 <!--    <meta name="wpk-bid" content="dta_1_3078576183">-->
 
 <div class="title-container">
-    <button id="announcement-btn">查看公告(v2.1，20250111创建报告现在请按计划表来填写三个排期字段)</button>
+    <button id="announcement-btn">查看公告(v2.2，20250706新增回传问题点功能)</button>
     <div class="title">主页</div>
     <!-- 排期项目面板按钮 -->
     <button id="schedule-panel-btn" class="schedule-panel-btn">排期项目按钮</button>
@@ -50,18 +50,6 @@
             <div id="task-attributes" style="margin-top: 20px; display: none;">
                 <h3>填写以下内容</h3>
                 <label>
-                    产品类别：
-                    <select id="sample-category">
-                        <option value="">请选择</option>
-                        <option value="大货样">大货样</option>
-                        <option value="功能样">功能样</option>
-                        <option value="竞品">竞品</option>
-                        <option value="预研">预研</option>
-                        <option value="选品">选品</option>
-                    </select>
-                </label>
-                <br/><br/>
-                <label>
                     任务属性：
                     <select id="questStats-detail">
                         <option value="">请选择</option>
@@ -75,20 +63,7 @@
                     </select>
                 </label>
                 <br/><br/>
-                <label>
-                    样品数量：
-                    <input type="number" id="sample-quantity" min="1" placeholder="请输入样品数量" style="width: 200px;" />
-                </label>
-                <br/><br/>
-                <label>
-                    是否高频：
-                    <select id="is-high-frequency">
-                        <option value="">请选择</option>
-                        <option value="是">是</option>
-                        <option value="否">否</option>
-                    </select>
-                </label>
-                <br/><br/>
+
                 <button id="confirm-task-btn">确认开始测试</button>
             </div>
 
@@ -374,33 +349,25 @@
         </div>
     </div>
 
+    <!-- 查看资料模态框 -->
+    <div id="viewDataModal" class="viewDataModal">
+        <div class="modal-content">
+            <span class="close" id="closeViewDataModal">&times;</span>
+            <h2>资料下载</h2>
+
+            <h3>承认书</h3>
+            <ul id="admitLinksContainer"></ul>
+
+            <h3>开发要求</h3>
+            <ul id="developLinksContainer"></ul>
+        </div>
+    </div>
+
 
 
     <!-- 引入 jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-    // // 钉钉监控用到的代码
-    // var isDingtalk = navigator && /DingTalk/.test(navigator.userAgent);
-    // var isProductEnv = window && window.location && window.location.host
-    //     && window.location.host.indexOf('127.0.0.1') === -1
-    //     && window.location.host.indexOf('localhost') === -1
-    //     && window.location.host.indexOf('192.168.') === -1;
-    // // 如果有其它测试域名，请一起排掉，减少测试环境对生产环境监控的干扰
-    // if (isProductEnv) {
-    //     !(function(c, i, e, b) {
-    //         var h = i.createElement("script");
-    //         var f = i.getElementsByTagName("script")[0];
-    //         h.type = "text/javascript";
-    //         h.crossOrigin = true;
-    //         h.onload = function() {
-    //             c[b] || (c[b] = new c.wpkReporter({bid: "dta_1_3078576183"}));
-    //             c[b].installAll();
-    //             console.log(c[b]);
-    //         };
-    //         f.parentNode.insertBefore(h, f);
-    //         h.src = e;
-    //     })(window, document, "https://g.alicdn.com/woodpeckerx/jssdk??wpkReporter.js", "__wpk");
-    // }
 
     //排期项目的属性
     let currentProjectData = null;
@@ -652,6 +619,18 @@
                 // 此处注释掉，不然点击外框就会关闭输入的模态框
                 // infoModal.style.display = "none";
             }
+
+            const modal = document.getElementById('viewDataModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+
+
+            const editModal = document.getElementById('editModal');
+            if (event.target === editModal) {
+                editModal.style.display = 'none';
+            }
+
         }
 
         function loadCategories() {
@@ -936,6 +915,8 @@
                         <div class="edith2-container">
                             <h2>请输入产品信息</h2>
                             <div class="button-group">
+                                <button type="button" id="passbackProblemBtn">回传<br>问题点页面</button>
+                                <button type="button" id="viewDataBtn">查看<br>资料</button>
                                 <button type="button" id="viewProblemBtn">查看<br>问题点</button>
                                  <!-- 隐藏的文件输入框 -->
                                 <input type="file" id="fileInput" accept=".xlsx" style="display:none;" />
@@ -1022,6 +1003,7 @@
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
                                 <option value="骆书英">骆书英</option>
+                                <option value="梁秋宇">梁秋宇</option>
                                 <option value="黄梁">黄梁</option>
                                 <option value="张健榆">张健榆</option>
                                 <option value="卢健">卢健</option>
@@ -1225,7 +1207,6 @@
         };
 
 
-
         document.querySelector('#jumpButton').onclick = function() {
             // 显示模态框
             document.getElementById('loadingModal').style.display = 'block';
@@ -1350,6 +1331,63 @@
             }
         };
 
+        // 为 passbackProblemBtn 添加点击事件
+        document.getElementById('passbackProblemBtn').addEventListener('click', function() {
+
+            var sample_id = $('#edit_sample_id').val();
+
+            // 创建文件输入元素
+            const fileInput = document.createElement
+            ('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.xlsx';
+
+            // 监听文件选择事件
+            fileInput.addEventListener('change', async function() {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('请选择一个文件');
+                    return;
+                }
+
+                // 验证文件类型
+                const fileName = file.name;
+                const fileExtension = fileName.slice(fileName.lastIndexOf('.') + 1).toLowerCase();
+                if (fileExtension !== 'xlsx') {
+                    alert('请上传一个 .xlsx 格式的文件');
+                    return;
+                }
+
+                // 创建表单数据对象并添加文件
+                const formData = new FormData();
+                formData.append('excelFile', file);
+                formData.append('sample_id', sample_id);
+                formData.append('job', job);
+
+                try {
+                    // 显示上传提示
+                    alert('文件正在上传，请稍候...');
+                    const response = await fetch('/testManIndex/passbackProblem', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('服务器响应异常');
+                    }
+
+                    const result = await response.json();
+                    alert(result.message);
+                } catch (error) {
+                    console.error('处理文件时出错:', error);
+                    alert('处理文件时出错: ' + error.message);
+                }
+            });
+
+            // 触发文件选择对话框
+            fileInput.click();
+        });
+
 
         // 为表单添加提交事件监听器
         document.getElementById('fileEditForm').onsubmit = function(event) {
@@ -1405,10 +1443,9 @@
             editClickBtn(product.sample_id)
         };
 
-
-
-
-
+        document.getElementById('viewDataBtn').onclick = function() {
+            viewDataClick(product.sample_id)
+        };
 
 
     }
@@ -2779,65 +2816,6 @@
         });
     }
 
-    // function createEditableSpan(value, item, attr, modifiedData, valueDiv) {
-    //     const span = document.createElement('span');
-    //     span.textContent = value || '无';  // 如果没有数据，展示为 '无'
-    //
-    //     // 当前编辑值
-    //     let currentEditValue = value || '';
-    //
-    //     // 点击后变为输入框
-    //     span.addEventListener('click', function () {
-    //         const textarea = document.createElement('textarea');
-    //         textarea.style.height = '50px';  // 设置高度，可以根据需求调整
-    //         textarea.style.width = '100%';  // 确保文本框的宽度与父容器相同
-    //
-    //          textarea.style.minWidth = '120px';  // 设置最小宽度
-    //         textarea.value = currentEditValue; // 使用当前编辑值
-    //
-    //         // 添加一些样式，避免选择区域不明显
-    //         textarea.style.outline = 'none';  // 去除焦点时的外边框
-    //         textarea.style.backgroundColor = 'white';  // 确保背景是白色
-    //         textarea.style.color = 'black';  // 确保文本颜色是黑色
-    //         textarea.style.border = '1px solid #ccc';  // 设置边框样式
-    //         textarea.style.padding = '5px';  // 设置内边距，使文本有一定的空间
-    //
-    //         // 监听失焦事件
-    //         textarea.addEventListener('blur', function () {
-    //             const newValue = textarea.value.trim() || '';  // 新值为空字符串则转换为空
-    //
-    //             // 如果新值和旧值都为空，或者它们相等，则不更新
-    //             if (newValue !== currentEditValue) {
-    //                 currentEditValue = newValue;  // 更新当前编辑值
-    //                 span.textContent = currentEditValue || '无';  // 更新 span 的内容
-    //                 // 更新 item 的值，并标记修改过的数据
-    //                 item[attr.field] = currentEditValue;
-    //                 if (!modifiedData.includes(item)) {
-    //                     modifiedData.push(item);  // 标记修改过的数据
-    //                 }
-    //             }
-    //
-    //             // 将 textarea 替换回 span
-    //             valueDiv.replaceChild(span, textarea);
-    //         });
-    //
-    //         // 将 span 替换为 textarea
-    //         valueDiv.replaceChild(textarea, span);
-    //         textarea.focus(); // 聚焦到 textarea，用户可以开始编辑
-    //
-    //         // 不进行自动全选，允许用户自由选择文本
-    //         // 去掉全选的代码，避免覆盖用户的选择操作
-    //         // textarea.select();  // 不进行强制全选
-    //
-    //         // 监听用户选择的文本
-    //         textarea.addEventListener('select', function () {
-    //             console.log('用户选择的文本：', textarea.value.substring(textarea.selectionStart, textarea.selectionEnd));
-    //         });
-    //     });
-    //
-    //     valueDiv.appendChild(span);
-    // }
-
     function createEditableSpan(value, item, attr, modifiedData, valueDiv,responsiblePersonValue) {
         const div = document.createElement('div');
         div.textContent = value || '无';  // 如果没有数据，展示为 '无'
@@ -3291,7 +3269,7 @@
     }
 
     function exportProblemXlsx(data, exportButton) {
-        console.log(data);
+        // console.log(data);
 
         // 选择联系人
         dd.biz.contact.choose({
@@ -3707,6 +3685,10 @@
                 <p><strong>测试负责人：</strong> ${data.tester || ''}</p>
                 <p><strong>实际测试时长：</strong> ${data.testDuration || ''}</p>
                 <p><strong>样品承认结果：</strong> ${data.sampleRecognizeResult || ''}</p>
+
+                <p><strong>产品类别：</strong> ${data.sample_type || ''}</p>
+                <p><strong>样品数量：</strong> ${data.sample_quantity || ''}</p>
+                <p><strong>是否高频：</strong> ${data.high_frequency || ''}</p>
             `;
                 document.getElementById("project-detail-info").innerHTML = html;
                 document.getElementById("project-detail-modal").style.display = "block";
@@ -3727,12 +3709,12 @@
         if (btn.disabled) return; // 防止重复点击
 
         const questStats = document.getElementById("questStats-detail").value;
-        const isHighFrequency = document.getElementById("is-high-frequency").value;
-        const category = document.getElementById("sample-category").value;
-        const quantity = document.getElementById("sample-quantity").value;
+        // const isHighFrequency = document.getElementById("is-high-frequency").value;
+        // const category = document.getElementById("sample-category").value;
+        // const quantity = document.getElementById("sample-quantity").value;
 
-        if (!questStats || !isHighFrequency || !category || !quantity) {
-            alert("请全部勾选值才允许进入下一步！");
+        if (!questStats ) {
+            alert("请勾选值才允许进入下一步！");
             return;
         }
 
@@ -3743,9 +3725,6 @@
 
         const payload = {
             questStats,
-            isHighFrequency,
-            category,
-            quantity,
             projectData: currentProjectData
         };
 
@@ -3778,6 +3757,64 @@
             btn.innerText = originalText;
         }
     });
+
+    function viewDataClick(sample_id) {
+        fetch(`/testManIndex/viewData?sample_id=${encodeURIComponent(sample_id)}`)
+            .then(response => response.json())
+            .then(data => {
+                // 承认书区域
+                const admitContainer = document.getElementById('admitLinksContainer');
+                admitContainer.innerHTML = '';
+                const admitUrls = (data.admit || '').split(',').map(u => u.trim()).filter(Boolean);
+                if (admitUrls.length === 0) {
+                    admitContainer.innerHTML = '<li>无承认书资料</li>';
+                } else {
+                    admitUrls.forEach((url, index) => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.textContent = url.split('/').pop();
+                        a.download = '';
+                        a.target = '_blank';
+                        li.appendChild(a);
+                        admitContainer.appendChild(li);
+                    });
+                }
+
+                // 开发要求区域
+                const developContainer = document.getElementById('developLinksContainer');
+                developContainer.innerHTML = '';
+                const developUrls = (data.develop || '').split(',').map(u => u.trim()).filter(Boolean);
+                if (developUrls.length === 0) {
+                    developContainer.innerHTML = '<li>无开发要求资料</li>';
+                } else {
+                    developUrls.forEach((url, index) => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.textContent = url.split('/').pop();
+                        a.download = '';
+                        a.target = '_blank';
+                        li.appendChild(a);
+                        developContainer.appendChild(li);
+                    });
+                }
+
+                // 显示模态框
+                document.getElementById('viewDataModal').style.display = 'block';
+            })
+            .catch(error => {
+                alert('资料加载失败: ' + error);
+            });
+
+        // 关闭按钮
+        document.getElementById('closeViewDataModal').onclick = function () {
+            document.getElementById('viewDataModal').style.display = 'none';
+        };
+
+    }
+
+
 
 
 

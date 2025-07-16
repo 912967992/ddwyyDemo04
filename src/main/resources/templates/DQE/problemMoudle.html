@@ -2147,6 +2147,19 @@
                         exportFile(sampleId);
                     });
 
+                    // 新增一个导出测试报告的按钮
+                    const passbackProblemBtn = document.createElement('button');
+                    passbackProblemBtn.textContent = '回传\n问题点'; // 按钮名称
+                    passbackProblemBtn.className = 'passbackProblem-button'; // 给按钮添加类名
+                    contentDiv.appendChild(passbackProblemBtn);
+
+                    passbackProblemBtn.addEventListener('click', () => {
+                        passbackProblemBtnClick(sampleId);
+
+                    });
+
+
+
                     // ESC快捷键退出点击的模态框
                     modal.style.display = 'block';
 
@@ -2780,6 +2793,63 @@
             });
         }
 
+
+        function passbackProblemBtnClick(sampleId) {
+            // 创建文件输入元素
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.xlsx';
+
+            // 监听文件选择事件
+            fileInput.addEventListener('change', async function () {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('请选择一个文件');
+                    return;
+                }
+
+                // 验证文件类型
+                const fileName = file.name;
+                const fileExtension = fileName.slice(fileName.lastIndexOf('.') + 1).toLowerCase();
+                if (fileExtension !== 'xlsx') {
+                    alert('请上传一个 .xlsx 格式的文件');
+                    return;
+                }
+
+                // 创建表单数据对象并添加文件和参数
+                const formData = new FormData();
+                formData.append('excelFile', file);
+                formData.append('sample_id', sampleId);
+                formData.append('job', job); // 如果有其他业务含义可以替换这个字符串
+
+                try {
+                    // 显示上传提示
+                    alert('文件正在上传，请稍候...');
+
+                    const response = await fetch('/testManIndex/passbackProblem', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('服务器响应异常');
+                    }
+
+                    const result = await response.json();
+                    alert(result.message);
+                    // 上传成功后执行编辑按钮逻辑
+                    editClickBtn(sampleId);
+                } catch (error) {
+                    console.error('处理文件时出错:', error);
+                    alert('处理文件时出错: ' + error.message);
+                }
+            });
+
+            // 触发文件选择对话框
+            fileInput.click();
+        }
+
+
     });
 
 
@@ -2808,6 +2878,7 @@
             }
         });
     }
+
 
 
 

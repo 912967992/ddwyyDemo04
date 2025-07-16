@@ -183,4 +183,7 @@ public interface TestManDao {
     boolean updateHoliday(@Param("holiday_date")String holiday_date,@Param("holiday_name")String holiday_name);
     boolean deleteHoliday(@Param("id")int id);
 
+    String getProductApprovalDoc(@Param("sample_id")String sample_id);
+    String getProductRequirement(@Param("sample_id")String sample_id);
+
 }

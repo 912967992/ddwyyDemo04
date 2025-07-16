@@ -115,6 +115,8 @@ public class TestIssues {
     private String supplier;
     private String review_conclusion;
 
+    private String test_Overseas;
+
 
     public Long getId() {
         return id;
@@ -469,6 +471,15 @@ public class TestIssues {
         this.review_conclusion = review_conclusion;
     }
 
+
+    public String getTest_Overseas() {
+        return test_Overseas;
+    }
+
+    public void setTest_Overseas(String test_Overseas) {
+        this.test_Overseas = test_Overseas;
+    }
+
     @Override
     public String toString() {
         return "TestIssues{" +
@@ -516,6 +527,7 @@ public class TestIssues {
                 ", solution_provider='" + solution_provider + '\'' +
                 ", supplier='" + supplier + '\'' +
                 ", review_conclusion='" + review_conclusion + '\'' +
+                ", test_Overseas='" + test_Overseas + '\'' +
                 '}';
     }
 }

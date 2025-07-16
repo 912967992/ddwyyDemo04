@@ -211,7 +211,7 @@
             filepath = #{filepath}
     </select>
 
-    <insert id="insertTestIssues" parameterType="map">
+    <insert id="insertTestIssues" parameterType="map" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO test_issues (
             full_model,
             sample_stage,
@@ -238,7 +238,8 @@
             created_at,
             sample_id,
             history_id,
-            sku, green_union_dqe, green_union_rd, solution_provider, supplier, review_conclusion
+            sku, green_union_dqe, green_union_rd, solution_provider, supplier, review_conclusion,
+            responsibleDepartment,dqe,dqe_confirm,dqe_review_at, test_Overseas
         ) VALUES (
                      #{full_model},
                      #{sample_stage},
@@ -265,7 +266,8 @@
                      #{created_at},
                      #{sample_id},
                      #{history_id},
-                     #{sku}, #{green_union_dqe}, #{green_union_rd}, #{solution_provider}, #{supplier}, #{review_conclusion}
+                     #{sku}, #{green_union_dqe}, #{green_union_rd}, #{solution_provider}, #{supplier}, #{review_conclusion},
+                    #{responsibleDepartment},#{dqe}, #{dqe_confirm} ,#{dqe_review_at} ,#{test_Overseas}
                  )
     </insert>
 
@@ -791,59 +793,68 @@
         </foreach>
     </insert>
 
-
     <select id="getAllReceivedData" resultType="PassbackData">
         SELECT
-            ei.id,
-            ei.sample_id,
-            ei.sample_category,
-            ei.sample_model,
-            -- ei.materialCode,  // 如果不需要，保持注释
-            ei.sample_frequency,
-            ei.sample_name,
-            ei.version,
-            ei.priority,
-            ei.sample_leader,
-            ei.supplier,
-            -- ei.testProjectCategory,  // 如果不需要，保持注释
-            ei.testProjects,
-            ei.schedule,
-            ei.create_time,
-            ei.actual_start_time,
-            ei.actual_finish_time,
-            ei.isCancel,
-            ei.cancel_reason,
-            ei.cancel_by,
-            ei.cancel_code,
-            ei.cancel_date,
-            ei.tester,
-            ei.testDuration,
-            ei.reportReviewTime,
-            ei.sampleRecognizeResult,
-            ei.filepath,
-            -- 合并 electrical_test_items 表中的数据，使用 DISTINCT 去重
-            GROUP_CONCAT(DISTINCT CONCAT(eti.ETTestCode, '-', eti.testProjectCategory, '-', eti.testProjects) SEPARATOR ', ') AS testProjectCategory,
-            -- 合并 material_items 表中的数据，使用 DISTINCT 去重
-            GROUP_CONCAT(DISTINCT CONCAT(mi.STTestCode, '-', mi.materialCode, '-', mi.sample_frequency) SEPARATOR ', ') AS materialCode,
-            ei.sample_sender,
-            ei.sample_type,
-            ei.sample_quantity,
-            ei.high_frequency,
-            ei.productRequirement,
-            ei.productApprovalDoc
+        ei.id,
+        ei.sample_id,
+        ei.sample_category,
+        ei.sample_model,
+        ei.sample_frequency,
+        ei.sample_name,
+        ei.version,
+        ei.priority,
+        ei.sample_leader,
+        ei.supplier,
+        ei.testProjects,
+        ei.schedule,
+        ei.create_time,
+        ei.actual_start_time,
+        ei.actual_finish_time,
+        ei.isCancel,
+        ei.cancel_reason,
+        ei.cancel_by,
+        ei.cancel_code,
+        ei.cancel_date,
+        ei.tester,
+        ei.testDuration,
+        ei.reportReviewTime,
+        ei.sampleRecognizeResult,
+        ei.filepath,
+        ei.sample_sender,
+        ei.sample_type,
+        ei.remark,
+        ei.sample_quantity,
+        ei.high_frequency,
+        ei.productRequirement,
+        ei.productApprovalDoc,
+
+        -- ✅ 加了 IFNULL 处理 null 值
+        GROUP_CONCAT(DISTINCT CONCAT(
+        IFNULL(eti.testProjectCategory, ''), '-',
+        IFNULL(eti.testProjects, ''), '-',
+        IFNULL(eti.testOwner, ''), '-',
+        IFNULL(eti.testRemark, '')
+        ) SEPARATOR ', ') AS testProjectCategory,
+
+        GROUP_CONCAT(DISTINCT CONCAT(
+        IFNULL(mi.STTestCode, ''), '-',
+        IFNULL(mi.materialCode, ''), '-',
+        IFNULL(mi.sample_frequency, '')
+        ) SEPARATOR ', ') AS materialCode
+
         FROM
-            electric_info ei
-                LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
-                LEFT JOIN material_items mi ON ei.sample_id = mi.sample_id
+        electric_info ei
+        LEFT JOIN electrical_test_items eti ON ei.sample_id = eti.sample_id
+        LEFT JOIN material_items mi ON ei.sample_id = mi.sample_id
+
         <where>
             <if test="sample_id != null and sample_id != ''">
                 ei.sample_id LIKE CONCAT('%', #{sample_id}, '%')
             </if>
         </where>
-        GROUP BY
-            ei.id
-        ORDER BY
-            ei.create_time DESC;
+
+        GROUP BY ei.id
+        ORDER BY ei.create_time DESC;
     </select>
 
 
@@ -1250,6 +1261,18 @@
     <delete id="deleteHoliday">
         DELETE FROM holidays WHERE id = #{id}
     </delete>
+
+    <select id="getProductApprovalDoc" resultType="String">
+        select productRequirement from electric_info
+        WHERE FIND_IN_SET(#{sample_id}, sample_actual_id)
+    </select>
+
+    <select id="getProductRequirement" resultType="String">
+        SELECT productApprovalDoc
+        FROM electric_info
+        WHERE FIND_IN_SET(#{sample_id}, sample_actual_id)
+    </select>
+
 
 
 </mapper>

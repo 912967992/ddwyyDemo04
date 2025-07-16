@@ -91,6 +91,7 @@ public class TestEnvironmentController {
     public ResponseEntity<List<PassbackData>> getAllReceivedData(@RequestParam(required = false) String sample_id) {
         List<PassbackData> receivedData = testManIndexService.getAllReceivedData(sample_id);
         logger.info("/passback/getAllReceivedData 查询参数 sample_id = " + sample_id);
+//        System.out.println("receivedData:"+receivedData);
         return ResponseEntity.ok(receivedData);
     }
 

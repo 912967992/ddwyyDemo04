@@ -707,5 +707,11 @@ public class TestManIndexService {
         return testManDao.deleteHoliday(id);
     }
 
+    public String getProductApprovalDoc(String sample_id){
+        return testManDao.getProductApprovalDoc(sample_id);
+    }
+    public String getProductRequirement(String sample_id){
+        return testManDao.getProductRequirement(sample_id);
+    }
 
 }
