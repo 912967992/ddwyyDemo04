@@ -251,8 +251,12 @@
 
     let interfaceInfoData = [];
     let interfaceId;
-    const username = sessionStorage.getItem('username');
-    const job = localStorage.getItem("job");
+    // const username = sessionStorage.getItem('username');
+    // const job = localStorage.getItem("job");
+
+    const username = "卢健";
+    const job = "tester";
+
 
     // 获取 a 标签并修改其 href 属性
     var linkElement = document.querySelector("#durationLink a");
@@ -338,7 +342,7 @@
 
         const headers = [
             "设备ID", "统计人", "名称", "品牌", "区域", "设备类型" ,"操作系统版本",  "操作系统详细版本号", "版本号", "系统架构",
-            "记录更新时间", "处理器", "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
+            "记录更新时间", "处理器", "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息" , "设备发布日期", "设备购买日期", "设备维修记录"
         ];
 
         headers.forEach(headerText => {
@@ -358,7 +362,7 @@
                 item.id,item.personCharge, item.computerName,item.brand, item.area, item.deviceType, item.version, item.osVersion, item.fullOS,
                 item.architecture, item.created_at, item.cpu, item.memory,
                 item.displays,  item.maxResolution, item.maxRefreshRate,
-                item.interfaceInfo
+                item.interfaceInfo, item.deviceReleaseDate, item.devicePurchaseDate , item.deviceRepairHistory
             ];
 
             const allowedUsers = ["李智龙", "卢健", "戴杏华"]; // 允许编辑的用户名
@@ -394,7 +398,8 @@
                         const fieldKeys = [
                             "id", "personCharge","computerName", "brand", "area","deviceType", "version", "osVersion", "fullOS",
                             "architecture", "created_at", "cpu", "memory",
-                            "displays", "maxResolution", "maxRefreshRate"
+                            "displays", "maxResolution", "maxRefreshRate", "interfaceInfo",
+                            "deviceReleaseDate", "devicePurchaseDate", "deviceRepairHistory"
                         ];
                         const key = fieldKeys[index];
 

@@ -471,6 +471,10 @@
             );
             e.dataTransfer.setData('project-schedule_color', projectEl.getAttribute('data-schedule_color'));
             e.dataTransfer.setData('project-remark', projectEl.getAttribute('data-remark'));
+            e.dataTransfer.setData('project-sample_sender', projectEl.getAttribute('data-sample_sender'));
+            e.dataTransfer.setData('project-sample_type', projectEl.getAttribute('data-sample_type'));
+            e.dataTransfer.setData('project-sample_quantity', projectEl.getAttribute('data-sample_quantity'));
+            e.dataTransfer.setData('project-high_frequency', projectEl.getAttribute('data-high_frequency'));
 
         });
         if(isProject){
@@ -542,6 +546,10 @@
             card.setAttribute('data-schedule_days', item.scheduleDays != null ? item.scheduleDays : '1');
             card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
             card.setAttribute('data-remark', item.remark != null ? item.remark : '');
+            card.setAttribute('data-sample_sender', item.sample_sender != null ? item.sample_sender : '');
+            card.setAttribute('data-sample_type', item.sample_type != null ? item.sample_type : '');
+            card.setAttribute('data-sample_quantity', item.sample_quantity != null ? item.sample_quantity : '');
+            card.setAttribute('data-high_frequency', item.high_frequency != null ? item.high_frequency : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, true);
@@ -607,6 +615,10 @@
             <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
             <p><strong>测试子项目：</strong>${item.testProjects}</p>
             <p><strong>状态：</strong>${getScheduleText(item.schedule)}</p>
+            <p><strong>送样人：</strong>${item.sample_sender}</p>
+            <p><strong>送样类别：</strong>${item.sample_type}</p>
+            <p><strong>送样数量：</strong>${item.sample_quantity}</p>
+            <p><strong>是否高频：</strong>${item.high_frequency}</p>
             <p><strong>创建时间：</strong>${item.create_time}</p>
         `;
 
@@ -960,7 +972,11 @@
                         schedule_end_date: item.schedule_end_date,
                         schedule_color: item.schedule_color,
                         job_number: item.job_number,
-                        remark: item.remark
+                        remark: item.remark,
+                        sample_sender: item.sample_sender,
+                        sample_type: item.sample_type,
+                        sample_quantity: item.sample_quantity,
+                        high_frequency: item.high_frequency
                     };
 
                     const tester = item.tester || '未知测试人员';
@@ -1094,7 +1110,11 @@
                         data-schedule_start_date="${firstTask.schedule_start_date || ''}"
                         data-schedule_end_date="${firstTask.schedule_end_date || ''}"
                         data-schedule_color="${firstTask.schedule_color || ''}"
-                        data-remark="${firstTask.remark || ''}"`;
+                        data-remark="${firstTask.remark || ''}"
+                        data-sample_sender="${firstTask.sample_sender || ''}"
+                        data-sample_type="${firstTask.sample_type || ''}"
+                        data-sample_quantity="${firstTask.sample_quantity || ''}"
+                        data-high_frequency="${firstTask.high_frequency || ''}"`;
 
                         // 设置第二个任务的 data1- 属性
                         Object.keys(secondTask).forEach(key => {
@@ -1149,7 +1169,8 @@
                     'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                     'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                     'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                    'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
                 ];
                 attributes.forEach(attr => {
                     taskData[attr] = cell.getAttribute(`data-${attr}`);
@@ -1244,7 +1265,11 @@
                     schedule_start_date: startDate,
                     schedule_end_date: schedule_end_date,
                     schedule_color: e.dataTransfer.getData('project-schedule_color'),
-                    remark: e.dataTransfer.getData('project-remark')
+                    remark: e.dataTransfer.getData('project-remark'),
+                    sample_sender: e.dataTransfer.getData('project-sample_sender'),
+                    sample_type: e.dataTransfer.getData('project-sample_type'),
+                    sample_quantity: e.dataTransfer.getData('project-sample_quantity'),
+                    high_frequency: e.dataTransfer.getData('project-high_frequency')
                 };
 
                 const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
@@ -1686,6 +1711,10 @@
           data-schedule_end_date="${task.schedule_end_date || ''}"
           data-schedule_color="${task.schedule_color || ''}"
           data-remark="${task.remark || ''}"
+          data-sample_sender="${task.sample_sender || ''}"
+          data-sample_type="${task.sample_type || ''}"
+          data-sample_quantity="${task.sample_quantity || ''}"
+          data-high_frequency="${task.high_frequency || ''}"
           ${classAttribute}
           >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
@@ -1998,7 +2027,8 @@
                         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                        'sample_sender','sample_type','sample_quantity','high_frequency'
                     ];
                     attributes.forEach(attr => {
                         taskData[attr] = this.getAttribute(`data-${attr}`);
@@ -2079,7 +2109,11 @@
                 create_time: taskData.create_time,
                 scheduleDays: schedule_days,
                 schedule_color: taskData.schedule_color,
-                remark: taskData.remark
+                remark: taskData.remark,
+                sample_sender: taskData.sample_sender,
+                sample_type: taskData.sample_type,
+                sample_quantity: taskData.sample_quantity,
+                high_frequency: taskData.high_frequency
             };
 
             restoredProject.oncontextmenu = (event) => {
@@ -2157,7 +2191,11 @@
             create_time: currentRightClickCell.getAttribute('data-create_time'),
             scheduleDays: currentRightClickCell.getAttribute('data-schedule_days'),
             schedule_color: currentRightClickCell.getAttribute('data-schedule_color'),
-            remark: currentRightClickCell.getAttribute('data-remark')
+            remark: currentRightClickCell.getAttribute('data-remark'),
+            sample_sender: currentRightClickCell.getAttribute('data-sample_sender'),
+            sample_type: currentRightClickCell.getAttribute('data-sample_type'),
+            sample_quantity: currentRightClickCell.getAttribute('data-sample_quantity'),
+            high_frequency: currentRightClickCell.getAttribute('data-high_frequency')
         };
 
         // 设置模态框内容
@@ -2177,6 +2215,10 @@
             <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
             <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
             <p><strong>状态：</strong>${getScheduleText(taskData.schedule)}</p>
+            <p><strong>送样人：</strong>${taskData.sample_sender}</p>
+            <p><strong>送样类别：</strong>${taskData.sample_type}</p>
+            <p><strong>送样数量：</strong>${taskData.sample_quantity}</p>
+            <p><strong>是否高频：</strong>${taskData.high_frequency}</p>
             <p><strong>创建时间：</strong>${taskData.create_time}</p>
         `;
 
@@ -2394,6 +2436,10 @@
             card.setAttribute('data-schedule_days', item.scheduleDays);
             card.setAttribute('data-schedule_color', item.schedule_color != null ? item.schedule_color : '');
             card.setAttribute('data-remark', item.remark != null ? item.remark : '');
+            card.setAttribute('data-sample_sender', item.sample_sender != null ? item.sample_sender : '');
+            card.setAttribute('data-sample_type', item.sample_type != null ? item.sample_type : '');
+            card.setAttribute('data-sample_quantity', item.sample_quantity != null ? item.sample_quantity : '');
+            card.setAttribute('data-high_frequency', item.high_frequency != null ? item.high_frequency : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, false);
@@ -2422,7 +2468,8 @@
                         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                        'sample_sender','sample_type','sample_quantity','high_frequency'
                     ];
                     attributes.forEach(attr => {
                         taskData[attr] = e.dataTransfer.getData(`project-${attr}`);

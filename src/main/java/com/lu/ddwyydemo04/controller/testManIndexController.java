@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -1398,7 +1399,7 @@ public class testManIndexController {
     @ResponseBody
     public String saveSystemInfoChange(@RequestBody List<SystemInfo> updatedDevices) {
         try {
-//            System.out.println("updatedDevices: " + updatedDevices);
+            System.out.println("updatedDevices: " + updatedDevices);
             testManIndexService.saveSystemInfoChange(updatedDevices);
             return "保存成功";
         } catch (Exception e) {
@@ -1419,7 +1420,7 @@ public class testManIndexController {
             String[] columns = {
                     "设备ID","统计人", "名称", "品牌", "区域","设备类型", "操作系统版本", "操作系统详细版本号",
                     "版本号", "系统架构", "记录更新时间", "处理器",
-                    "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息"
+                    "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息" , "设备发布日期", "设备购买日期", "设备维修记录"
             };
 
             // 创建样式（居中）
@@ -1471,6 +1472,9 @@ public class testManIndexController {
                         case 14: value = item.get("maxResolution"); break;
                         case 15: value = item.get("maxRefreshRate"); break;
                         case 16: value = item.get("interfaceInfo"); break;
+                        case 17: value = item.get("deviceReleaseDate"); break;
+                        case 18: value = item.get("devicePurchaseDate"); break;
+                        case 19: value = item.get("deviceRepairHistory"); break;
                     }
 
                     cell.setCellValue(value != null ? value.toString() : "");
@@ -1527,6 +1531,9 @@ public class testManIndexController {
                 item.put("maxResolution", getCellStringValue(row.getCell(14)));
                 item.put("maxRefreshRate", getCellStringValue(row.getCell(15)));
                 item.put("interfaceInfo", getCellStringValue(row.getCell(16)));
+                item.put("deviceReleaseDate", getCellStringValue(row.getCell(17)));
+                item.put("devicePurchaseDate", getCellStringValue(row.getCell(18)));
+                item.put("deviceRepairHistory", getCellStringValue(row.getCell(19)));
 
                 parsedData.add(item);
             }
@@ -1566,6 +1573,9 @@ public class testManIndexController {
                 info.setMaxResolution((String) item.get("maxResolution"));
                 info.setMaxRefreshRate((String) item.get("maxRefreshRate"));
                 info.setInterfaceInfo((String) item.get("interfaceInfo"));
+                info.setDeviceReleaseDate((String) item.get("deviceReleaseDate"));
+                info.setDevicePurchaseDate((String) item.get("devicePurchaseDate"));
+                info.setDeviceRepairHistory((String) item.get("deviceRepairHistory"));
 
                 if(existing > 0){
                     testManIndexService.updateSystemInfoByXlsx(info);
@@ -1582,25 +1592,59 @@ public class testManIndexController {
         }
     }
 
+//    private String getCellStringValue(Cell cell) {
+//        if (cell == null) return "";
+//        switch (cell.getCellType()) {
+//            case STRING:
+//                return cell.getStringCellValue().trim();
+//            case NUMERIC:
+//                if (DateUtil.isCellDateFormatted(cell)) {
+//                    return cell.getLocalDateTimeCellValue().toString().replace("T", " ");
+//                } else {
+//                    return String.valueOf(cell.getNumericCellValue());
+//                }
+//            case BOOLEAN:
+//                return String.valueOf(cell.getBooleanCellValue());
+//            case FORMULA:
+//                return cell.getCellFormula();
+//            default:
+//                return "";
+//        }
+//    }
+
     private String getCellStringValue(Cell cell) {
         if (cell == null) return "";
+
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getLocalDateTimeCellValue().toString().replace("T", " ");
+                    // 自定义日期格式：yyyy/M/d
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/M/d");
+                    return sdf.format(cell.getDateCellValue());
                 } else {
+                    // 普通数字
                     return String.valueOf(cell.getNumericCellValue());
                 }
             case BOOLEAN:
                 return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
-                return cell.getCellFormula();
+                try {
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/M/d");
+                        return sdf.format(cell.getDateCellValue());
+                    } else {
+                        return cell.getStringCellValue();
+                    }
+                } catch (Exception e) {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
             default:
                 return "";
         }
     }
+
 
     @RequestMapping(value = "/labModuleTester/deleteSystemInfoByIds")
     @ResponseBody

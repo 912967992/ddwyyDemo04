@@ -214,7 +214,7 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
-//        System.out.println("result:"+result);
+        System.out.println("result:"+result);
 
         return result;
     }
@@ -258,6 +258,10 @@ public class TestEnvironmentController {
             merged.put("isUsed", passback.getIsUsed());
             merged.put("schedule_color", passback.getSchedule_color());
             merged.put("remark", passback.getRemark());
+            merged.put("sample_sender", passback.getSample_sender());
+            merged.put("sample_type", passback.getSample_type());
+            merged.put("sample_quantity", passback.getSample_quantity());
+            merged.put("high_frequency", passback.getHigh_frequency());
         }
 
         return merged;

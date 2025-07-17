@@ -26,6 +26,11 @@ public class SystemInfo {
     private String maxRefreshRate;  //刷新率
     private String interfaceInfo;  //接口信息
 
+    private String deviceReleaseDate;
+
+    private String devicePurchaseDate;
+    private String deviceRepairHistory;
+
 
 
     // Getter 和 Setter 方法
@@ -173,6 +178,30 @@ public class SystemInfo {
         this.area = area;
     }
 
+    public String getDeviceReleaseDate() {
+        return deviceReleaseDate;
+    }
+
+    public void setDeviceReleaseDate(String deviceReleaseDate) {
+        this.deviceReleaseDate = deviceReleaseDate;
+    }
+
+    public String getDevicePurchaseDate() {
+        return devicePurchaseDate;
+    }
+
+    public void setDevicePurchaseDate(String devicePurchaseDate) {
+        this.devicePurchaseDate = devicePurchaseDate;
+    }
+
+    public String getDeviceRepairHistory() {
+        return deviceRepairHistory;
+    }
+
+    public void setDeviceRepairHistory(String deviceRepairHistory) {
+        this.deviceRepairHistory = deviceRepairHistory;
+    }
+
     @Override
     public String toString() {
         return "SystemInfo{" +
@@ -193,6 +222,9 @@ public class SystemInfo {
                 ", maxResolution='" + maxResolution + '\'' +
                 ", maxRefreshRate='" + maxRefreshRate + '\'' +
                 ", interfaceInfo='" + interfaceInfo + '\'' +
+                ", deviceReleaseDate='" + deviceReleaseDate + '\'' +
+                ", devicePurchaseDate='" + devicePurchaseDate + '\'' +
+                ", deviceRepairHistory='" + deviceRepairHistory + '\'' +
                 '}';
     }
 }

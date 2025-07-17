@@ -182,14 +182,25 @@
     background-color: #ffffff;
 }
 
-#scheduleBoardTable th,
+
 #scheduleBoardTable td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: center;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /*  这里是修改单元格展示长度多少的时候才出现省略号 */
+    max-width: 500px;
+
 }
 
 #scheduleBoardTable th {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+
     background-color: #d9edf7;
     font-weight: bold;
 }

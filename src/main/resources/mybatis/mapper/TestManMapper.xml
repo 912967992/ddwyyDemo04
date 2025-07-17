@@ -370,7 +370,11 @@
             ei.filepath,
             ei.update_time,
             ei.remark,
-            ei.waitSample_classify
+            ei.waitSample_classify,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.sample_quantity,
+            ei.high_frequency
         FROM electric_info ei
         WHERE (ei.isUsed = 0 OR ei.isUsed IS NULL)
           AND ei.isCancel = 0
@@ -638,7 +642,11 @@
         ei.filepath,
         ei.update_time,
         ei.remark,
-        ei.waitSample_classify
+        ei.waitSample_classify,
+        ei.sample_sender,
+        ei.sample_type,
+        ei.sample_quantity,
+        ei.high_frequency
         FROM electric_info ei
         WHERE ei.sample_id IN
         <foreach collection="electricInfoIds" item="id" open="(" separator="," close=")">
@@ -927,7 +935,11 @@
             displays = #{displays},
             maxResolution = #{maxResolution},
             maxRefreshRate = #{maxRefreshRate},
-            created_at = NOW()
+            created_at = NOW(),
+            deviceReleaseDate = #{deviceReleaseDate},
+            devicePurchaseDate= #{devicePurchaseDate},
+            deviceRepairHistory = #{deviceRepairHistory}
+
         WHERE id = #{id}
     </update>
 
@@ -954,7 +966,10 @@
             displays,
             maxResolution,
             maxRefreshRate,
-            interfaceInfo
+            interfaceInfo,
+            deviceReleaseDate,
+            devicePurchaseDate,
+            deviceRepairHistory
         ) VALUES (
                      #{personCharge},
                      #{brand},
@@ -971,7 +986,10 @@
                      #{displays},
                      #{maxResolution},
                      #{maxRefreshRate},
-                     #{interfaceInfo}
+                     #{interfaceInfo},
+                     #{deviceReleaseDate},
+                     #{devicePurchaseDate},
+                     #{deviceRepairHistory}
                  );
 
     </insert>
@@ -993,7 +1011,11 @@
         maxResolution = #{maxResolution},
         maxRefreshRate = #{maxRefreshRate},
         interfaceInfo = #{interfaceInfo},
-        created_at = NOW()  <!-- 可选，假如你要更新创建时间 -->
+        created_at = NOW(),
+        deviceReleaseDate = #{deviceReleaseDate},
+        devicePurchaseDate = #{devicePurchaseDate},
+        deviceRepairHistory = #{deviceRepairHistory}
+
         WHERE computerName = #{computerName};
     </update>
 

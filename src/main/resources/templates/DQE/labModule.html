@@ -518,7 +518,7 @@
 
             const headers = [
                 "设备ID", "名称", "设备类型" ,"操作系统版本", "操作系统安装日期", "操作系统详细版本号", "版本号", "系统架构", "系统型号",
-                "记录更新时间", "处理器", "内存", "显卡", "网络适配器", "内置屏最大分辨率", "内置屏最大刷新率", "接口信息"
+                "记录更新时间", "处理器", "内存", "显卡", "网络适配器", "内置屏最大分辨率", "内置屏最大刷新率", "接口信息", "设备发布日期", "设备购买日期", "设备维修记录"
             ];
 
             headers.forEach(headerText => {
@@ -538,7 +538,7 @@
                     item.id, item.computerName, item.deviceType, item.version, item.installationDate, item.osVersion, item.fullOS,
                     item.architecture, item.systemModel, item.created_at, item.cpu, item.memory,
                     item.displays, item.networkAdapters, item.maxResolution, item.maxRefreshRate,
-                    item.interfaceInfo
+                    item.interfaceInfo, item.deviceReleaseDate, item.devicePurchaseDate , item.deviceRepairHistory
                 ];
 
                 const allowedUsers = ["李智龙", "卢健", "戴杏华"]; // 允许编辑的用户名
@@ -569,7 +569,9 @@
                             const fieldKeys = [
                                 "id", "computerName", "deviceType","version", "installationDate", "osVersion", "fullOS",
                                 "architecture", "systemModel", "created_at", "cpu", "memory",
-                                "displays", "networkAdapters", "maxResolution", "maxRefreshRate"
+                                "displays", "networkAdapters", "maxResolution", "maxRefreshRate",
+                                "interfaceInfo",
+                                "deviceReleaseDate", "devicePurchaseDate", "deviceRepairHistory"
                             ];
                             const key = fieldKeys[index];
 
