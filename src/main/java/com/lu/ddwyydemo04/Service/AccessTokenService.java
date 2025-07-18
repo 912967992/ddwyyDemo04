@@ -151,7 +151,7 @@ public class AccessTokenService {
 
 
     // 根据用户名和部门id来遍历部门，直到匹配就返回userid
-    public Long findUserIdByUsernameInDeptHierarchy(String receiver,  Samples sample,
+    public Map<String, Object> findUserIdByUsernameInDeptHierarchy(String receiver,  Samples sample,
                                                       String statusBarBgColor,String sender,String notify_time,
                                                     String warn_time,String personCharge) throws ApiException, UnsupportedEncodingException {
 
@@ -160,30 +160,44 @@ public class AccessTokenService {
 
         if (reveiverJob == null) {
             logger.info("接收者为空");
-            // 根据业务逻辑决定是抛异常还是直接返回
-            return 1L;
+            Map<String, Object> result = new HashMap<>();
+            result.put("taskId", 1L);
+            result.put("messageUrl", null);
+            return result;
         }
-
         // 定义要发送的消息内容
         //下边这个链接很重要，OA消息发送的时候用户点击的话会跳转到工作台直接进入我的应用
-//        String messageUrl = "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=http://219.134.191.195:64000"; // 跳转链接
-        String sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
-        String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
-//        String baseUrl = "http://38knkf.natappfree.cc/problemMoudle?dd_orientation=landscape";
-        String redirectUrl = String.format(
-                "%s&sample_id=%s&username=%s&job=%s",
-                baseUrl,
-                sampleId,
-                URLEncoder.encode(receiver, "UTF-8"), // 编码 username 参数
-                URLEncoder.encode(reveiverJob, "UTF-8")       // 编码 job 参数
-        );
-        String messageUrl = String.format(
-                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=%s",
-                URLEncoder.encode(redirectUrl, "UTF-8")
+//        String sampleId = sample.getSample_id(); // 获取 sample_id，类型为 int
+//        String baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
+//        String redirectUrl = String.format(
+//                "%s&sample_id=%s&username=%s&job=%s",
+//                baseUrl,
+//                sampleId,
+//                URLEncoder.encode(receiver, "UTF-8"), // 编码 username 参数
+//                URLEncoder.encode(reveiverJob, "UTF-8")       // 编码 job 参数
+//        );
+//        String messageUrl = String.format(
+//                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=%s",
+//                URLEncoder.encode(redirectUrl, "UTF-8")
+//        );
+
+        // 新增一个中转页面，获取username和job然后跳转到问题点页面
+        String sampleId = sample.getSample_id(); // 获取 sample_id
+        String redirectMidPageUrl = String.format(
+                "http://219.134.191.195:64000/authRedirect?sample_id=%s", // 注意：sample_id 也传进去
+                URLEncoder.encode(sampleId, "UTF-8")
         );
 
+        String messageUrl = String.format(
+                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f" +
+                        "&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=%s",
+                URLEncoder.encode(redirectMidPageUrl, "UTF-8")
+        );
+
+
         String userId = getUserIdByName(receiver);
-        System.out.println("userId:"+userId);
+
+//        System.out.println("messageUrl:"+messageUrl);
 
         OapiMessageCorpconversationAsyncsendV2Response response = sendDingTalkNotification(
                 userId,
@@ -201,8 +215,11 @@ public class AccessTokenService {
 
         // 处理发送结果
         if (response.getErrcode() == 0) {
-            logger.info("OA消息发送成功，用户名：" +receiver +",用户ID: " + userId);
-            return response.getTaskId(); // 返回 taskId
+            logger.info("OA消息发送成功，用户名：" + receiver + ", 用户ID: " + userId);
+            Map<String, Object> result = new HashMap<>();
+            result.put("taskId", response.getTaskId());
+            result.put("messageUrl", messageUrl);
+            return result;
         } else {
             logger.info("OA消息发送失败，错误码: " + response.getErrcode() + "，错误信息: " + response.getErrmsg());
             return null; // 或者抛出异常，根据需要
@@ -521,12 +538,12 @@ public class AccessTokenService {
 //                    receiver = "卢健";
 //
 //                }
-                Long task_id_Once = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderOnce,createTimeString,warnTimeString,personCharge);
-                System.out.println("id:"+id);
+//                Long task_id_Once = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderOnce,createTimeString,warnTimeString,personCharge);
+                Map<String, Object> resultMap = findUserIdByUsernameInDeptHierarchy(receiver, sample, statusBarBgColor, senderOnce, createTimeString, warnTimeString, personCharge);
+                Long task_id_Once = (Long) resultMap.get("taskId");
+
                 int updateTaskNodesOnce = updateTaskNodesOnce(id, currentTime);
-                if(updateTaskNodesOnce>0){
-                    System.out.println("更新成功");
-                }
+
             }
 
             int days_dqe = Integer.parseInt(notify_days_dqe); // 将字符串转换为整数
@@ -585,8 +602,11 @@ public class AccessTokenService {
 ////                    receiver = "黄家灿";
 //                    receiver = "卢健";
 //                }
-                Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString, personCharge);
-//                System.out.println("task_id_OSecond:"+task_id_OSecond);
+//                Long task_id_OSecond = findUserIdByUsernameInDeptHierarchy(receiver,sample,statusBarBgColor,senderSecond,createTimeString,warnTimeString, personCharge);
+
+                Map<String, Object> resultMap_OSecond = findUserIdByUsernameInDeptHierarchy(receiver, sample, statusBarBgColor, senderSecond, createTimeString, warnTimeString, personCharge);
+                Long task_id_OSecond = (Long) resultMap_OSecond.get("taskId");
+
                 int updateTaskNodesSecond = updateTaskNodesSecond(id, currentTime);
                 if(updateTaskNodesSecond>0){
                     System.out.println("第二次超期的数据更新数据库成功");

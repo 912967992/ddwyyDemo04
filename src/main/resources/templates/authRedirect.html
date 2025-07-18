@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>研发质量管理系统登陆验证中...</title>
+    <style>
+        /* 背景遮罩层 */
+        #alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        /* 模态框 */
+        #alert-modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            text-align: center;
+            padding: 20px;
+        }
+        #alert-modal p {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        #alert-modal button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #alert-modal button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.7.0/dingtalk.open.js"></script>
+
+<div id="alert-overlay"></div>
+<div id="alert-modal">
+    <p id="alert-message"></p>
+    <button id="alert-confirm">确定</button>
+</div>
+
+<script>
+    function alertModal(message) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('alert-overlay');
+            const modal = document.getElementById('alert-modal');
+            const messageElem = document.getElementById('alert-message');
+            const confirmButton = document.getElementById('alert-confirm');
+
+            messageElem.textContent = message;
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+
+            confirmButton.onclick = () => {
+                overlay.style.display = 'none';
+                modal.style.display = 'none';
+                resolve();
+            };
+        });
+    }
+
+    // 请求免登获取用户信息
+    dd.ready(function () {
+        dd.runtime.permission.requestAuthCode({
+            corpId: "ding39a9d20442a933ec35c2f4657eb6378f", // 你的企业CorpId
+            onSuccess: function (result) {
+                sendAuthCodeToServer(result.code);
+            },
+            onFail: function (err) {
+                alertModal('获取authCode失败: ' + JSON.stringify(err));
+            }
+        });
+    });
+
+    function setLocalStorageItem(key, value) {
+        if (localStorage.getItem(key) !== null) localStorage.removeItem(key);
+        localStorage.setItem(key, value);
+    }
+
+    async function sendAuthCodeToServer(authCode) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/getUserInfo', true); // 后端接口地址，请确认
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = async function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var response = JSON.parse(xhr.responseText);
+
+                // 存储用户信息
+                sessionStorage.setItem('userId', response.userId);
+                sessionStorage.setItem('username', response.username);
+                sessionStorage.setItem('job', response.job);
+                // 你需要的其他信息也存储...
+
+                setLocalStorageItem("username", response.username);
+                setLocalStorageItem("job", response.job);
+                setLocalStorageItem("corp_id", response.corp_id);
+
+                // 显示欢迎提示
+                await alertModal('姓名: ' + response.username + '，角色：' + response.job + '，你好！');
+
+                // 解析URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const sampleId = urlParams.get('sample_id');
+
+                if (sampleId && response.job !== "tester") {
+                    // 构造跳转的钉钉链接
+                    const baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
+                    const redirectUrl = `${baseUrl}&sample_id=${encodeURIComponent(sampleId)}&username=${encodeURIComponent(response.username)}&job=${encodeURIComponent(response.job)}`;
+
+                    const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;
+
+                    window.location.href = messageUrl;
+                } else {
+                    // 根据角色跳转默认页面
+                    if(response.job === "it" ){
+                        window.location.href = '/loginTestEnvironment';
+                    } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
+                        window.location.href = '/DQEIndex';
+                    } else {
+                        window.location.href = '/testManIndex';
+                    }
+                }
+            } else if(xhr.readyState == 4) {
+                await alertModal('获取用户信息失败，状态码：' + xhr.status);
+            }
+        };
+        xhr.send(JSON.stringify({ authCode: authCode }));
+    }
+</script>
+</body>
+</html>

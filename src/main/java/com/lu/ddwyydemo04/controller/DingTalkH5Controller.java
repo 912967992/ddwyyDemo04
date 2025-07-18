@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
@@ -274,7 +275,7 @@ public class DingTalkH5Controller {
         if ("官旺华".equals(username) || "赵梓宇".equals(username) || "刘鹏飞".equals(username)) {
             return "tester";
         } else {
-            if ("卢绮敏".equals(username) || "蓝明城".equals(username) || "陈鑫".equals(username) || "李良健".equals(username)) {
+            if ("许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) || "陈鑫".equals(username) || "李良健".equals(username)) {
                 return "DQE";
             }
 
@@ -283,7 +284,7 @@ public class DingTalkH5Controller {
 
         // 解析 JSON 响应
         JSONObject response = JSON.parseObject(jsonResponse);
-        System.out.println("response:"+response);
+//        System.out.println("response:"+response);
         String job = "";
         // 检查 errcode 是否为 0
         if (response.getInteger("errcode") == 0) {
@@ -296,14 +297,14 @@ public class DingTalkH5Controller {
 
                 // 检查部门 ID 并打印相应的信息
                 if (parentDeptIdList.contains(62712385L)) {
-                    System.out.println("产品研发部");
+//                    System.out.println("产品研发部");
                     job = "rd";
                 }
                 if (parentDeptIdList.contains(63652303L)) {
-                    System.out.println("品质工程部");
+//                    System.out.println("品质工程部");
 //                    if (parentDeptIdList.contains(523459714L) && !username.equals("卢健")) {
                     if (parentDeptIdList.contains(523459714L) ) {
-                        System.out.println("有电子测试组，是测试技术员");
+//                        System.out.println("有电子测试组，是测试技术员");
                         job = "tester";  // 设置为 "tester"，并优先返回
                         break;  // 找到后可选择立即返回
                     }else{
@@ -314,17 +315,17 @@ public class DingTalkH5Controller {
                 //20241105 新增一个产品经营部的job判定方法：
                 // 针对大部门 ID 为 62632390L 的情况
                 if (parentDeptIdList.contains(62632390L)) {
-                    System.out.println("产品经营部");
+//                    System.out.println("产品经营部");
 
                     // 检查是否属于耳机部门的两个指定 ID，并且排除特定用户
                     if ((parentDeptIdList.contains(925840291L) || parentDeptIdList.contains(925828219L))
                             && !username.equals("高玄英") && !username.equals("姜呈祥")) {
                         job = "rd";
-                        System.out.println("耳机部门的用户，设为 RD");
+//                        System.out.println("耳机部门的用户，设为 RD");
                         break;
                     } else {
                         job = "projectLeader";
-                        System.out.println("非耳机部门或特定用户，设为 Project Leader");
+//                        System.out.println("非耳机部门或特定用户，设为 Project Leader");
                     }
                 }
 
@@ -335,9 +336,20 @@ public class DingTalkH5Controller {
         return job;
     }
 
-    private boolean isExcludedUsername(String username) {
-        return username.equals("卢健");
-//        return username.equals("邓小英") || username.equals("胡雪梅") ;
+
+    @GetMapping("/authRedirect")
+    public String authRedirect(
+            @RequestParam(value = "sample_id", required = false) String sampleId,
+            HttpServletRequest request) {
+
+        // 这里可选将 sampleId 放到请求属性中（如果需要JSP等模板用），
+        // 但如果是纯静态html，页面用JS解析URL参数即可，下面可以不写
+        if (sampleId != null) {
+            request.setAttribute("sample_id", sampleId);
+        }
+
+        // 返回静态html页面名（不带后缀）
+        return "authRedirect";
     }
 
 

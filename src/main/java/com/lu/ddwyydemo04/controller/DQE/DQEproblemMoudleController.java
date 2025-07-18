@@ -586,40 +586,6 @@ public class DQEproblemMoudleController {
         }
 
 
-//        if(job.equals("DQE")){
-//            if(sampleSchedule.equals("2")){ //下一步是待研发审核
-//                dept_id = Long.parseLong("62712385");
-//                setting_role = "rdManager";
-//
-//
-//            }else if(sampleSchedule.equals("4")){  //下一步是已完成,这里应该是要发送OA给研发和测试人员两个，但是此时不需要警示时间了，所以这里用okManager
-//                if(isReceiverTester!=null){
-//                    if(isReceiverTester.equals("true")){
-//                        dept_id = Long.parseLong("523459714");
-//                    }
-//                }else{
-//                    dept_id = Long.parseLong("62712385");
-//                }
-//
-//                setting_role = "okManager";
-//
-//
-//            }
-//        }else if(job.equals("rd")){
-//            dept_id = Long.parseLong("523528658");
-//            setting_role = "dqeManager";
-//        }else if(job.equals("tester")){
-//            dept_id = Long.parseLong("523528658");
-//            if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
-//                setting_role = "okManager";
-//            }else {
-//                setting_role = "dqeManager";
-//            }
-//
-//        }else if(job.equals("notice")){ //通知给绮敏的，便于她统计每日完成情况
-//            setting_role = "okManager";
-//        }
-
 
         List<Samples> sampleList = dqeproblemMoudleService.querySamples(sampleId);
         // 检查列表是否为空并获取第一条记录
@@ -642,7 +608,7 @@ public class DQEproblemMoudleController {
         // 更新 schedule
         int isUpdated = dqeproblemMoudleService.updateSampleWithSchAndResult(sampleId, sampleSchedule, job, selectedOption);
         if(isUpdated>0){
-            System.out.println("isUpdated状态修改成功");
+//            System.out.println("isUpdated状态修改成功");
             if(selectedOption!=null){
                 if(sample!=null){
                     if(job.equals("DQE")){
@@ -660,7 +626,7 @@ public class DQEproblemMoudleController {
         // 获取当前时间并格式化为字符串
         LocalDateTime notifyTime = LocalDateTime.now();
         String notify_time = notifyTime.format(formatter);
-        System.out.println("notify_time: " + notify_time);
+//        System.out.println("notify_time: " + notify_time);
 
         // 计算 warn_time
         String warn_time = null;
@@ -673,11 +639,17 @@ public class DQEproblemMoudleController {
             }
 
             warn_time = warnTime.format(formatter);
-            System.out.println("warn_time: " + warn_time);
+//            System.out.println("warn_time: " + warn_time);
         }
 
-        Long task_id  = accessTokenService.findUserIdByUsernameInDeptHierarchy(receiver , sample ,statusBarBgColor,sender,
-                notify_time,warn_time,"");
+//        Long task_id  = accessTokenService.findUserIdByUsernameInDeptHierarchy(receiver , sample ,statusBarBgColor,sender,
+//                notify_time,warn_time,"");
+        Map<String, Object> resultMap = accessTokenService.findUserIdByUsernameInDeptHierarchy(
+                receiver, sample, statusBarBgColor, sender, notify_time, warn_time, "");
+
+        Long task_id = (Long) resultMap.get("taskId");
+        String messageUrl = (String) resultMap.get("messageUrl");
+
 
         // 如果找到匹配的用户ID，执行更新逻辑，否则返回失败消息
         if (task_id != null && task_id != 1L) {
@@ -729,7 +701,12 @@ public class DQEproblemMoudleController {
 
             String getSchedule = accessTokenService.getOASchedule(task_id);
 
-            if (getSchedule.equals("ok")) {
+            // 修改一下这里，我希望
+            if (sampleSchedule.equals("1") && getSchedule.equals("ok")) {
+                String content = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+ messageUrl;
+                return ResponseEntity.ok("copyable|" + content);
+            }
+            else if (getSchedule.equals("ok")) {
                 return ResponseEntity.ok("进度更新成功！OA消息已发送给 " + receiver);
             } else {
                 return ResponseEntity.status(400).body("Failed to update schedule");
