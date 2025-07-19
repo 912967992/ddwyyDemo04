@@ -252,8 +252,8 @@ public class AccessTokenService {
         // 设置消息内容
         OapiMessageCorpconversationAsyncsendV2Request.Msg msg = new OapiMessageCorpconversationAsyncsendV2Request.Msg();
 
-        // 区分发给卢绮敏的信息,卢健的userId是：2329612068682307，卢绮敏的是：210139201721546755
-        if(userId.equals("210139201721546755") || userId.equals("16016618681230627")){
+        // 区分发给卢绮敏的信息,卢健的userId是：2329612068682307，卢绮敏的是：210139201721546755 ， 许梦瑶：01555026451935233352
+        if(userId.equals("210139201721546755") || userId.equals("16016618681230627") || userId.equals("01555026451935233352")){
             msg.setMsgtype("text");
 
             // 创建 Text 类型的消息内容

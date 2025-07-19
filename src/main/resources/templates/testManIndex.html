@@ -1944,9 +1944,6 @@
                     setTimeout(() => {
                         updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "陈鑫", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
 
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
@@ -1954,9 +1951,7 @@
                     setTimeout(() => {
                         updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "陈鑫", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
+
                 }else if(response.message.includes("竞品文件完成")){
 
                     if (dqe) {
@@ -1974,9 +1969,6 @@
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
                         updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "陈鑫", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
                 }
                 initData();
@@ -3433,7 +3425,7 @@
     }
 
 
-    function updateSchedule(sample_schedule, sample_id, receiver, statusBarBgColor, sender, job ,selectedOption,isReceiverTester) {
+    function updateSchedule(sample_schedule, sample_id, recceiver, statusBarBgColor, sender, job ,selectedOption,isReceiverTester) {
         fetch('/problemMoudle/updateSchedule', {
             method: 'POST',
             headers: {

@@ -678,7 +678,7 @@ public class DQEproblemMoudleController {
                 }
                 // 处理逻辑，首先获取所有的 task_id
                 List<Long> taskIds = accessTokenService.selectTaskId(sampleId);
-                System.out.println("taskIds:"+taskIds);
+//                System.out.println("taskIds:"+taskIds);
                 for(Long taskId:taskIds){
                     // 更新状态栏信息，用for循环把所有的节点的task_id状态栏都更新为最新
                     String updateStatusBar = accessTokenService.updateStatusBar(taskId,sampleSchedule,statusBg,sample);
