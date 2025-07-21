@@ -61,5 +61,8 @@ public class ScheduleBoardService {
     }
 
 
+    public boolean deleteGroupById(String id){
+        return scheduleBoardDao.deleteGroupById(id);
+    }
 
 }

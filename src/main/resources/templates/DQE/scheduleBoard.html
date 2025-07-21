@@ -323,6 +323,7 @@
                 <th>组别</th>
                 <th>是否展示</th>
                 <th>显示顺序值</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
@@ -3495,19 +3496,49 @@
                     <td>${group.id}</td>
                     <td>${group.name}</td>
                     <td><input type="checkbox" ${group.is_displayed ? 'checked' : ''}></td>
-                  <td><input type="number" value="${group.display_order}" class="display-order-input small-input" data-group-id="${group.id}"></td>
-
+                    <td><input type="number" value="${group.display_order}" class="display-order-input small-input" data-group-id="${group.id}"></td>
+                    <td><button class="delete-group-btn" data-group-id="${group.id}">删除</button></td>
                 `;
                     tableBody.appendChild(row);
                 });
 
-
+                // 为每个删除按钮绑定事件
+                document.querySelectorAll('.delete-group-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const groupId = this.getAttribute('data-group-id');
+                        deleteGroup(groupId);
+                    });
+                });
             })
             .catch(error => {
                 console.error('加载组数据失败:', error);
                 alert('加载组数据失败，请稍后重试。');
             });
     }
+
+
+    // 删除组的按钮
+    function deleteGroup(groupId) {
+        if (!confirm('确定要删除这个组别吗？')) return;
+
+        fetch(`/scheduleBoardController/deleteGroup/${groupId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('组别删除成功！');
+                    loadGroupData(); // 重新加载数据
+                } else {
+                    alert('删除失败，请稍后再试。');
+                }
+            })
+            .catch(error => {
+                console.error('删除组别失败:', error);
+                alert('删除组别失败，请稍后重试。');
+            });
+    }
+
+
 
     document.getElementById('addGroupBtn').addEventListener('click', async function () {
         const name = document.getElementById('newGroupName').value.trim();

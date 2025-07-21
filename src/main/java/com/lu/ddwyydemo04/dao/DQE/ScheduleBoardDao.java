@@ -26,4 +26,10 @@ public interface ScheduleBoardDao {
     List<Group> getAllGroupsOrderByDisplayOrder();
 
     List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester);
+
+    boolean deleteGroupById(@Param("id")String id);
+
+
+
+
 }

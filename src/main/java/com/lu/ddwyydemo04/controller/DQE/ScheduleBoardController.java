@@ -254,5 +254,12 @@ public class ScheduleBoardController {
         }
     }
 
+    @DeleteMapping("/scheduleBoardController/deleteGroup/{id}")
+    public ResponseEntity<String> deleteGroup(@PathVariable("id") String id) {
+        boolean success = scheduleBoardService.deleteGroupById(id);
+        System.out.println("success:"+success);
+        return success ? ResponseEntity.ok("删除成功") : ResponseEntity.status(500).body("删除失败");
+    }
+
 
 }

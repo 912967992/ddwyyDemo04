@@ -88,4 +88,11 @@
             </if>
         </where>
     </select>
+
+    <delete id="deleteGroupById" parameterType="String">
+        DELETE FROM `groups`
+        WHERE id = #{id}
+    </delete>
+
+
 </mapper>
