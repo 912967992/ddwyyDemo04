@@ -188,11 +188,11 @@
     padding: 8px;
     text-align: center;
 
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     /*  这里是修改单元格展示长度多少的时候才出现省略号 */
-    max-width: 500px;
+    /*max-width: 500px;*/
 
 }
 

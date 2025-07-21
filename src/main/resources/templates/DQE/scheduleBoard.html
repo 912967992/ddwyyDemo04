@@ -403,6 +403,7 @@
             .then(data => {
                 if (Array.isArray(data)) {
                     groupOrder = data;
+                    console.log("groupOrder",groupOrder)
 
                     // 这里你可以调用渲染表格等函数，使用 groupOrder
                     // renderGroupTable(groupOrder);
@@ -527,7 +528,17 @@
 
             const scheduleColor = item.schedule_color || 'null';
             card.classList.add(scheduleColor);
-            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " + item.remark + " " +"(" + item.scheduleDays + "天)" ;
+            // card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " + item.remark + " " +"(" + item.scheduleDays + "天)" ;
+
+            card.textContent =
+                item.sample_model + " " +
+                item.materialCode + " " +
+                item.sample_leader.charAt(0) + " " +
+                (item.remark && item.remark.length > 10
+                    ? item.remark.substring(0, 10) + "..."
+                    : item.remark || "") + " " +
+                "(" + item.scheduleDays + "天)";
+
 
             card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " "+item.remark );
             card.setAttribute('data-sample_id', item.sample_id || '');
@@ -835,7 +846,9 @@
 
                 // 更新卡片
                 if (card) {
-                    card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    // card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${item.remark?.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark ?? ""} (${item.scheduleDays}天)`;
+
                     card.setAttribute('data-schedule_days', days || '1');
 
                     card.classList.remove('gray', 'green', 'yellow', 'red');
@@ -856,7 +869,9 @@
                     cell.setAttribute('data-schedule_days', days);
                     cell.setAttribute('data-remark', remark);
 
-                    cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    // cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
+                    cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${(item.remark ? (item.remark.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark) : "")} (${days}天)`;
+
 
                     if (selectedColor === null || selectedColor === "null") {
                         selectedColor = "white"
@@ -1046,8 +1061,6 @@
 
         const groupedTesters = groupTestersByCategory(testers);
 
-        // ⭐⭐ 新增：组别顺序数组
-        const groupOrder = ['线材组', '新人', '视频组', '数据网通组', '蓝牙组' ,"耳机组","PC", "高频组"]; // 按你的需求改顺序
 
         // ⭐⭐ 新增：先按照 groupOrder 遍历
         groupOrder.forEach(groupName => {
@@ -1335,7 +1348,10 @@
 
                                         // 构造新的显示文本，合并两个项目信息
                                         const originalText = targetCell.innerText;
-                                        const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+                                        // const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
+                                        const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark?.length > 10 ? taskData.remark.substring(0, 10) + "..." : taskData.remark ?? ""} (${taskData.schedule_days}天)`;
+
+
                                         targetCell.innerText = newText;
 
                                         // 更新排期天数
@@ -2416,7 +2432,14 @@
 
             const scheduleColor = item.schedule_color || 'null';
             card.classList.add(scheduleColor);
-            card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0)  + " " + item.remark+ " " +"(" + item.scheduleDays + "天)";
+            // card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0)  + " " + item.remark+ " " +"(" + item.scheduleDays + "天)";
+            card.textContent =
+                item.sample_model + " " +
+                item.materialCode + " " +
+                item.sample_leader.charAt(0) + " " +
+                (item.remark?.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark ?? "") + " " +
+                "(" + item.scheduleDays + "天)";
+
 
             card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " " + item.remark );
             card.setAttribute('data-sample_id', item.sample_id || '');

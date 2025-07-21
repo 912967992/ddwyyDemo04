@@ -214,7 +214,7 @@ public class TestEnvironmentController {
         for (ElectricScheduleInfo schedule : scheduleList) {
             result.add(mergeScheduleAndPassback(schedule, passbackMap));
         }
-        System.out.println("result:"+result);
+//        System.out.println("result:"+result);
 
         return result;
     }
