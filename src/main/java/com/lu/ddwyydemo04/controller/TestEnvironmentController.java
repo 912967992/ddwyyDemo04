@@ -365,6 +365,8 @@ public class TestEnvironmentController {
             // 遍历每条排期变更数据（每个 sample_id 只存在一条记录）
         for (Map<String, String> change : scheduleChanges) {
             String sampleId = change.get("sample_id");
+            System.out.println("sampleId:"+sampleId);
+            System.out.println("change:"+change);
 
             testManIndexService.processScheduleUpdate(sampleId, change); // 旧参数 changes 传 null 或者干脆改方法签名
         }

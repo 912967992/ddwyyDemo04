@@ -126,6 +126,81 @@
     border-radius: 10px;
 }
 
+/* 表头冻结容器样式 */
+.schedule-table-container {
+    position: relative;
+    max-height: 70vh; /* 限制最大高度，避免页面过长 */
+    overflow: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 添加阴影效果 */
+}
+
+/* 冻结表头样式 */
+.schedule-table-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #d9edf7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 表头阴影 */
+}
+
+/* 确保表头单元格样式正确 */
+.schedule-table-container thead th {
+    background-color: #d9edf7 !important;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative; /* 确保定位正确 */
+}
+
+/* 确保表格内容区域样式正确 */
+.schedule-table-container tbody {
+    background-color: #ffffff;
+}
+
+/* 响应式设计 - 小屏幕优化 */
+@media (max-width: 768px) {
+    .schedule-table-container {
+        max-height: 60vh; /* 小屏幕下减小高度 */
+        font-size: 12px; /* 减小字体 */
+    }
+    
+    .schedule-table-container thead th,
+    .schedule-table-container tbody td {
+        padding: 6px 4px; /* 减小内边距 */
+    }
+}
+
+/* 响应式设计 - 大屏幕优化 */
+@media (min-width: 1200px) {
+    .schedule-table-container {
+        max-height: 75vh; /* 大屏幕下增加高度 */
+    }
+}
+
+/* 自定义滚动条样式 */
+.schedule-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.schedule-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.schedule-table-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.schedule-table-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
 .schedule-board-header {
     display: flex;
     justify-content: space-between;
@@ -180,6 +255,7 @@
     width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
+    margin: 0; /* 确保没有外边距 */
 }
 
 
@@ -198,8 +274,11 @@
 
 #scheduleBoardTable th {
     border: 1px solid #ccc;
-    padding: 8px;
+    background-color: #f5f5f5;
+    font-weight: bold;
+    padding: 10px 8px;
     text-align: center;
+    vertical-align: middle;
 
     background-color: #d9edf7;
     font-weight: bold;
@@ -489,7 +568,101 @@
 }
 
 .weekend-border {
-    border: 2px solid blue !important;
+    border: 2px solid #007bff !important;
+    background-color: #f8f9fa !important;
+    position: relative;
+}
+
+/* 周末/节假日项目单元格保持原有颜色 */
+.weekend-border.assigned {
+    background-color: inherit !important;
+}
+
+/* 确保节假日项目颜色优先级最高 */
+#scheduleBoardTable td.weekend-border.assigned[data-schedule_color] {
+    background-color: inherit !important;
+}
+
+.weekend-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(0, 123, 255, 0.1) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+/* 节假日表头特殊样式 */
+#scheduleBoardTable th.weekend-border,
+.schedule-table-container thead th.weekend-border {
+    background-color: #e3f2fd !important;
+    color: #1976d2;
+    font-weight: bold;
+    border: 2px solid #007bff !important;
+}
+
+/* 测试人员姓名样式 */
+.tester-name {
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.tester-name:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.05);
+}
+
+/* 高亮的测试人员姓名 */
+.tester-name.highlighted-tester {
+    background-color: #1976d2 !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+    transform: scale(1.1);
+}
+
+/* 高亮的行 - 使用outline添加边框，不影响布局 */
+#scheduleBoardTable tbody tr.highlighted-row {
+    position: relative;
+    z-index: 1;
+    outline: 3px solid #1976d2;
+    outline-offset: -3px;
+}
+
+/* 高亮行中的单元格 - 只设置边框颜色 */
+#scheduleBoardTable tbody tr.highlighted-row td {
+    border-color: #1976d2 !important;
+    position: relative;
+}
+
+/* 高亮行中的项目单元格 - 完全保持项目原有颜色 */
+#scheduleBoardTable tbody tr.highlighted-row td.assigned {
+    border-color: #1976d2 !important;
+    position: relative;
+}
+
+/* 高亮行中的周末/节假日单元格 - 保持原有样式 */
+#scheduleBoardTable tbody tr.highlighted-row td.weekend-border {
+    background-color: #d1ecf1 !important;
+    border-color: #007bff !important;
+}
+
+/* 高亮行中的周末/节假日项目单元格 - 保持项目颜色，不设置背景色 */
+#scheduleBoardTable tbody tr.highlighted-row td.weekend-border.assigned {
+    border-color: #007bff !important;
+}
+
+/* 高亮行的动画效果 */
+#scheduleBoardTable tbody tr {
+    transition: all 0.3s ease;
+}
+
+/* 高亮行中的单元格动画 */
+#scheduleBoardTable tbody tr.highlighted-row td {
+    transition: all 0.3s ease;
 }
 
 .nice-btn {
