@@ -142,7 +142,7 @@
         <div class="grid-container">
             <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
             <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
-            <div class="module" onclick="goToScheduleBoard()">项目<br>排期</div>
+            <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
 <!--            <div class="module" onclick="location.href='/scheduleBoard'">项目<br>排期</div>-->
 <!--            <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>-->
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
@@ -335,8 +335,8 @@
     function downloadGuideline() {
         // 固定文件路径
         // const filePath = "C:\\ddwyy-lj\\templatesDirectory\\研发质量管理系统操作指导V2.0.docx";
-        const filePath = "Z:\\ddwyy-lj\\templatesDirectory\\研发质量管理系统操作指导V2.0.docx";
-        const fileName = "研发质量管理系统操作指导V2.0.docx"; // 固定文件名
+        const filePath = "Z:\\ddwyy-lj\\templatesDirectory\\研发质量管理系统操作指导20250718.docx";
+        const fileName = "研发质量管理系统操作指导20250718.docx"; // 固定文件名
 
         // if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
         //     return; // 用户选择不上传
