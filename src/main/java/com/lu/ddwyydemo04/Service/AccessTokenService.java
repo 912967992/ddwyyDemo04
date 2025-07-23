@@ -188,11 +188,22 @@ public class AccessTokenService {
                 URLEncoder.encode(sampleId, "UTF-8")
         );
 
+//        String redirectMidPageUrl = String.format(
+//                "http://j77482b6.natappfree.cc/authRedirect?sample_id=%s", // 注意：sample_id 也传进去
+//                URLEncoder.encode(sampleId, "UTF-8")
+//        );
+
         String messageUrl = String.format(
                 "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f" +
                         "&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=%s",
                 URLEncoder.encode(redirectMidPageUrl, "UTF-8")
         );
+
+//        String messageUrl = String.format(
+//                "dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f" +
+//                        "&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=%s",
+//                URLEncoder.encode(redirectMidPageUrl, "UTF-8")
+//        );
 
 
         String userId = getUserIdByName(receiver);
