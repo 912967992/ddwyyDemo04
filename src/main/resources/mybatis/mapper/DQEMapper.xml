@@ -581,6 +581,10 @@
 
 
 
+    <select id="queryResultJudge" resultType="String">
+        SELECT result_judge from samples
+        WHERE sample_id = #{sample_id}
+    </select>
 
 
 

@@ -1012,5 +1012,21 @@ public class DQEproblemMoudleController {
     }
 
 
+    @GetMapping("/problemMoudle/queryResultJudge")
+    @ResponseBody
+    public ResponseEntity<Boolean> queryResultJudge(@RequestParam("sample_id") String sample_id) {
+        try {
+            String hasValue = dqeproblemMoudleService.queryResultJudge(sample_id);
+
+            // 只要 hasValue 不为 null，就返回 true
+            boolean result = (hasValue != null);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
 
 }

@@ -1647,7 +1647,14 @@ public class testManIndexController {
 
         String category = (String) projectData.get("sample_type");
         String isHighFrequency = (String) projectData.get("high_frequency");
+
+
         int quantity = Integer.parseInt(projectData.get("sample_quantity").toString());
+
+
+        System.out.println("category:"+category);
+        System.out.println("isHighFrequency:"+isHighFrequency);
+        System.out.println("quantity:"+quantity);
 
         // 20250616 判断是否包含 "XZ"
         if (electric_sample_id != null && !electric_sample_id.isEmpty() && electric_sample_id.contains("XZ")) {

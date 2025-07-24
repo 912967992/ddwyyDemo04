@@ -143,4 +143,5 @@ public interface DQEDao {
                         @Param("hire_date")String hire_date,
                         @Param("responsible_category")String responsible_category);
 
+    String queryResultJudge(@Param("sample_id")String sample_id);
 }

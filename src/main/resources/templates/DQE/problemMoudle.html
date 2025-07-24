@@ -936,7 +936,7 @@
         // }
 
         // 20250103 修改一下可编辑的列
-        function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter) {
+        function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter, isEditDisabled) {
             const div = document.createElement('div');
             div.textContent = value || '无'; // 如果没有数据，展示为 '无'
 
@@ -956,7 +956,8 @@
                 attr.field === 'reproduction_probability' || attr.field === 'defect_level' || attr.field === 'next_version_regression_test';
             const canEdit = isRestrictedField ? presenter === username : true;
 
-            if (canEdit) {
+            // 如果禁用编辑或没有编辑权限，不允许编辑
+            if (canEdit && !isEditDisabled) {
                 div.addEventListener('click', function () {
                     // 创建 textarea
                     const textarea = document.createElement('textarea');
@@ -1352,7 +1353,7 @@
 
                             }else{
                                 // 创建可编辑的内容
-                                createEditableSpan(value, newItem, attr, modifiedData, newDiv,username); // 使用获取的值
+                                createEditableSpan(value, newItem, attr, modifiedData, newDiv, username, false); // 使用获取的值，新增行默认允许编辑
                             }
 
                         }
@@ -1402,7 +1403,7 @@
 
 
 
-        function editClickBtn(sampleId) {
+        async function editClickBtn(sampleId) {
             // 如果正在编辑，直接返回，避免重复请求
             if (isEditing){
                 alert("请不要频繁点击，正在搜索上一个点击的问题点,如果一直出现这个提示，可以关闭应用重新进来")
@@ -1410,6 +1411,12 @@
             }
 
             isEditing = true; // 设置为正在编辑状态
+
+            // **先调用通用方法获取参数**
+            const checkJudge = await checkSampleResult(sampleId);
+            
+            // 如果 checkJudge 为 true，禁用编辑功能
+            const isEditDisabled = checkJudge === true;
 
             currentSampleId = sampleId;
             fetch(`/problemMoudle/editClickBtn?sampleId=${sampleId}`, {
@@ -1645,8 +1652,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+                                        
                                         const selectedValue = select.value;
                                         console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1689,8 +1708,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+                                        
                                         const selectedValue = select.value;
                                         console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1736,8 +1767,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+                                        
                                         const selectedValue = select.value;
                                         console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1783,8 +1826,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+                                        
                                         const selectedValue = select.value;
 
                                         // 如果新值和旧值不同，标记为已修改
@@ -1828,6 +1883,12 @@
                                     valueText.style.color = '#2954e3'; // 设置不允许修改的列的字体颜色
 
                                     valueText.addEventListener('click', () => {
+                                        // 如果禁用状态，不允许删除
+                                        if (isEditDisabled) {
+                                            alert('DQE已审核完成，不允许修改');
+                                            return;
+                                        }
+                                        
                                         confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`)
                                             .then((confirmation) => {
                                                 if (confirmation) {
@@ -1883,27 +1944,36 @@
                                         }
                                     }
 
-                                    // 监听复选框变化事件
-                                    if ((attr.field === 'dqe_confirm' && checkbox.getAttribute('data-dqe') === 'true') ||
-                                        (attr.field === 'rd_confirm' && checkbox.getAttribute('data-rd') === 'true')) {
-                                        // 监听复选框变化事件
-                                        checkbox.addEventListener('change', function () {
-                                            const newValue = checkbox.checked ? '确认' : '未确认'; // 更新状态
-                                            if (newValue !== item[attr.field]) {
-                                                item[attr.field] = newValue; // 更新数据对象
-
-                                                // 确保 modifiedData 中没有重复项
-                                                if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
+                                    // 如果禁用编辑，禁用复选框
+                                    if (isEditDisabled) {
+                                        checkbox.disabled = true;
+                                        checkbox.style.opacity = '0.5';
+                                        checkbox.style.cursor = 'not-allowed';
+                                        checkbox.style.backgroundColor = '#f0f0f0';
+                                        checkbox.style.border = '1px solid #ccc';
                                     } else {
-                                        checkbox.disabled = true; // 禁用复选框
-                                        checkbox.style.opacity = '1'; // 设为不透明
-                                        checkbox.style.cursor = 'not-allowed'; // 更改鼠标指针样式
-                                        checkbox.style.backgroundColor = '#f0f0f0'; // 设置背景颜色
-                                        checkbox.style.border = '1px solid #ccc'; // 设置边框
+                                        // 监听复选框变化事件
+                                        if ((attr.field === 'dqe_confirm' && checkbox.getAttribute('data-dqe') === 'true') ||
+                                            (attr.field === 'rd_confirm' && checkbox.getAttribute('data-rd') === 'true')) {
+                                            // 监听复选框变化事件
+                                            checkbox.addEventListener('change', function () {
+                                                const newValue = checkbox.checked ? '确认' : '未确认'; // 更新状态
+                                                if (newValue !== item[attr.field]) {
+                                                    item[attr.field] = newValue; // 更新数据对象
+
+                                                    // 确保 modifiedData 中没有重复项
+                                                    if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
+                                                        modifiedData.push(item); // 标记修改过的数据
+                                                    }
+                                                }
+                                            });
+                                        } else {
+                                            checkbox.disabled = true; // 禁用复选框
+                                            checkbox.style.opacity = '1'; // 设为不透明
+                                            checkbox.style.cursor = 'not-allowed'; // 更改鼠标指针样式
+                                            checkbox.style.backgroundColor = '#f0f0f0'; // 设置背景颜色
+                                            checkbox.style.border = '1px solid #ccc'; // 设置边框
+                                        }
                                     }
 
                                     valueDiv.appendChild(checkbox);
@@ -1945,7 +2015,7 @@
 
                             } else {
 
-                                createEditableSpan(value, item, attr, modifiedData, valueDiv ,responsiblePersonValue);
+                                createEditableSpan(value, item, attr, modifiedData, valueDiv, responsiblePersonValue, isEditDisabled);
                             }
 
                             enableDragScroll(valueDiv);
@@ -1983,10 +2053,23 @@
                     const saveButton = document.createElement('button');
                     saveButton.textContent = '保存\n修改'; // 使用换行符分两行显示文本
                     saveButton.className = 'save-button'; // 添加类名
+                    
+                    // 如果 checkJudge 为 true，禁用保存按钮
+                    if (isEditDisabled) {
+                        // saveButton.disabled = true;
+                        saveButton.style.opacity = '0.5';
+                        saveButton.style.cursor = 'not-allowed';
+                        saveButton.title = '当前状态不允许编辑';
+                    }
 
                     contentDiv.appendChild(saveButton);
 
                     saveButton.addEventListener('click', function () {
+                        // 如果禁用状态，不允许保存
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         saveChanges(modifiedData,sampleId,true); // 只发送修改的数据
                     });
 
@@ -1994,10 +2077,24 @@
                     const addButton = document.createElement('button');
                     addButton.textContent = '新增\n问题';
                     addButton.className = 'add-button'; // 给新增问题按钮添加类名
+                    
+                    // 如果 checkJudge 为 true，禁用新增问题按钮
+                    if (isEditDisabled) {
+                        // addButton.disabled = true;
+                        addButton.style.opacity = '0.5';
+                        addButton.style.cursor = 'not-allowed';
+                        addButton.title = '当前状态不允许编辑';
+                    }
+                    
                     contentDiv.appendChild(addButton);
 
                     // 新增问题按钮点击事件
                     addButton.addEventListener('click', function () {
+                        // 如果禁用状态，不允许新增
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         addNewRow(sampleId,attributes,modifiedData,table);
                     });
 
@@ -2151,11 +2248,24 @@
                     const passbackProblemBtn = document.createElement('button');
                     passbackProblemBtn.textContent = '回传\n问题点'; // 按钮名称
                     passbackProblemBtn.className = 'passbackProblem-button'; // 给按钮添加类名
+                    
+                    // 如果 checkJudge 为 true，禁用回传问题点按钮
+                    if (isEditDisabled) {
+                        // passbackProblemBtn.disabled = true;
+                        passbackProblemBtn.style.opacity = '0.5';
+                        passbackProblemBtn.style.cursor = 'not-allowed';
+                        passbackProblemBtn.title = '当前状态不允许编辑';
+                    }
+                    
                     contentDiv.appendChild(passbackProblemBtn);
 
                     passbackProblemBtn.addEventListener('click', () => {
+                        // 如果禁用状态，不允许回传
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         passbackProblemBtnClick(sampleId);
-
                     });
 
 
@@ -2877,6 +2987,28 @@
                 console.error('导出失败:', error);
             }
         });
+    }
+
+    // 通用方法：根据 sampleId 查询数据库信息并返回数据
+    async function checkSampleResult(sampleId) {
+        try {
+            const response = await fetch(`/problemMoudle/queryResultJudge?sample_id=${sampleId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`查询数据库失败，状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;  // 返回查询结果
+        } catch (error) {
+            console.error("fetchSampleInfo 出错：", error);
+            return null;  // 出错时返回 null
+        }
     }
 
 

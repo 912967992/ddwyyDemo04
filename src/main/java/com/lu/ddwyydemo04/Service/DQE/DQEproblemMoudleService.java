@@ -145,5 +145,8 @@ public class DQEproblemMoudleService {
         return dqeDao.updateNodeAsFinishWithRD(sampleId );
     }
 
+    public String queryResultJudge(String sample_id){
+        return dqeDao.queryResultJudge(sample_id);
+    }
 
 }
