@@ -13,6 +13,7 @@ import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.*;
 
+import com.lu.ddwyydemo04.pojo.ElectricalTestItem;
 import com.taobao.api.ApiException;
 import com.taobao.api.internal.util.WebUtils;
 
@@ -1909,6 +1910,12 @@ public class testManIndexController {
         result.put("admit", admitUrls);
         result.put("develop", devUrls);
         return result;
+    }
+
+    @GetMapping("/testManIndex/getTestItems")
+    @ResponseBody
+    public List<ElectricalTestItem> getTestItems(@RequestParam String sample_id) {
+        return testManIndexService.getTestItemsBySampleId(sample_id);
     }
 
 

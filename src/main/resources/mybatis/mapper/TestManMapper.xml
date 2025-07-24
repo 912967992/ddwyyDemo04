@@ -1295,6 +1295,26 @@
         WHERE FIND_IN_SET(#{sample_id}, sample_actual_id)
     </select>
 
+    <!-- 查询测试项数据 -->
+    <select id="getTestItemsBySampleId" resultType="ElectricalTestItem">
+        SELECT
+            ETTestCode,
+            testProjectCategory,
+            testProjects,
+            testOwner,
+            testRemark
+        FROM electrical_test_items
+        WHERE sample_id = (
+            SELECT ei.sample_id
+            FROM electric_info ei
+            WHERE FIND_IN_SET(#{sample_id}, ei.sample_actual_id) > 0
+            LIMIT 1
+        )
+        ORDER BY ETTestCode
+    </select>
+
+
+
 
 
 </mapper>

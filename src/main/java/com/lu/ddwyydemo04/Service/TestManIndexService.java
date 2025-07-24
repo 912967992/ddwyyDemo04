@@ -13,6 +13,8 @@ import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.QuestDao;
 import com.lu.ddwyydemo04.dao.TestManDao;
 import com.lu.ddwyydemo04.pojo.*;
+
+import com.lu.ddwyydemo04.pojo.ElectricalTestItem;
 import com.taobao.api.ApiException;
 import com.taobao.api.FileItem;
 import com.taobao.api.internal.util.WebUtils;
@@ -712,6 +714,11 @@ public class TestManIndexService {
     }
     public String getProductRequirement(String sample_id){
         return testManDao.getProductRequirement(sample_id);
+    }
+
+    // 查询测试项数据
+    public List<ElectricalTestItem> getTestItemsBySampleId(String sample_id){
+        return testManDao.getTestItemsBySampleId(sample_id);
     }
 
 }

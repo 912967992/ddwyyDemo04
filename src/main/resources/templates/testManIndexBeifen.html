@@ -388,6 +388,29 @@
         </div>
     </div>
 
+    <!-- 查看测试项模态框 -->
+    <div id="viewTestItemsModal" class="viewDataModal">
+        <div class="modal-content">
+            <span class="close" id="closeViewTestItemsModal">&times;</span>
+            <h2>测试项详情</h2>
+            <div id="testItemsContainer">
+                <table id="testItemsTable" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">序号</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">试验项目类别</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试子项目</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试归属</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">备注</th>
+                    </tr>
+                    </thead>
+                    <tbody id="testItemsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- 引入 jQuery -->
@@ -650,6 +673,10 @@
                     modal.style.display = 'none';
                 }
 
+                const testModal = document.getElementById('viewTestItemsModal');
+                if (event.target === testModal) {
+                    testModal.style.display = 'none';
+                }
 
                 const editModal = document.getElementById('editModal');
                 if (event.target === editModal) {
@@ -941,6 +968,7 @@
                             <h2>请输入产品信息</h2>
                             <div class="button-group">
                                 <button type="button" id="passbackProblemBtn">回传<br>问题点页面</button>
+                                <button type="button" id="viewTestItemsBtn">查看<br>测试项</button>
                                 <button type="button" id="viewDataBtn">查看<br>资料</button>
                                 <button type="button" id="viewProblemBtn">查看<br>问题点</button>
                                  <!-- 隐藏的文件输入框 -->
@@ -1357,9 +1385,18 @@
             };
 
             // 为 passbackProblemBtn 添加点击事件
-            document.getElementById('passbackProblemBtn').addEventListener('click', function() {
+            document.getElementById('passbackProblemBtn').addEventListener('click', async function() {
 
                 var sample_id = $('#edit_sample_id').val();
+
+                // 检查 checkJudge 状态
+                const checkJudge = await checkSampleResult(sample_id);
+
+                // 如果 checkJudge 为 true，禁用回传问题点功能
+                if (checkJudge === true) {
+                    alert('DQE已审核，不允许回传问题点');
+                    return;
+                }
 
                 // 创建文件输入元素
                 const fileInput = document.createElement
@@ -1470,6 +1507,10 @@
 
             document.getElementById('viewDataBtn').onclick = function() {
                 viewDataClick(product.sample_id)
+            };
+
+            document.getElementById('viewTestItemsBtn').onclick = function() {
+                viewTestItemsClick(product.sample_id)
             };
 
 
@@ -4048,6 +4089,42 @@
                 document.getElementById('viewDataModal').style.display = 'none';
             };
 
+        }
+
+        function viewTestItemsClick(sample_id) {
+            fetch(`/testManIndex/getTestItems?sample_id=${encodeURIComponent(sample_id)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('testItemsTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暂无测试项数据</td></tr>';
+                    } else {
+                        data.forEach((item, index) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjectCategory || ''}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjects || ''}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testOwner || ''}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testRemark || ''}</td>
+                        `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+
+                    // 显示模态框
+                    document.getElementById('viewTestItemsModal').style.display = 'block';
+                })
+                .catch(error => {
+                    alert('测试项数据加载失败: ' + error);
+                });
+
+            // 关闭按钮
+            document.getElementById('closeViewTestItemsModal').onclick = function () {
+                document.getElementById('viewTestItemsModal').style.display = 'none';
+            };
         }
 
 

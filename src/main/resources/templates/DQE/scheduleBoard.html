@@ -655,12 +655,52 @@
                 card.setAttribute('data-' + key.replace('project-', ''), dragData[key]);
             }
         });
+        
+        // 确保这四个重要属性被正确设置
+        card.setAttribute('data-sample_sender', dragData['project-sample_sender'] || '');
+        card.setAttribute('data-sample_type', dragData['project-sample_type'] || '');
+        card.setAttribute('data-sample_quantity', dragData['project-sample_quantity'] || '');
+        card.setAttribute('data-high_frequency', dragData['project-high_frequency'] || '');
         card.setAttribute('draggable', 'false');
         setDraggable(card, true);
+        
+        // 创建项目数据对象用于右键菜单
+        const itemData = {
+            sample_id: dragData['project-sample_id'],
+            sample_name: dragData['project-sample_name'],
+            sample_model: dragData['project-sample_model'],
+            materialCode: dragData['project-materialCode'],
+            sample_category: dragData['project-sample_category'],
+            version: dragData['project-version'],
+            priority: dragData['project-priority'],
+            sample_leader: dragData['project-sample_leader'],
+            supplier: dragData['project-supplier'],
+            testProjectCategory: dragData['project-test_project_category'],
+            testProjects: dragData['project-test_projects'],
+            schedule: dragData['project-schedule'],
+            create_time: dragData['project-create_time'],
+            scheduleDays: dragData['project-schedule_days'],
+            schedule_color: dragData['project-schedule_color'],
+            remark: dragData['project-remark'],
+            sample_sender: dragData['project-sample_sender'],
+            sample_type: dragData['project-sample_type'],
+            sample_quantity: dragData['project-sample_quantity'],
+            high_frequency: dragData['project-high_frequency']
+        };
+        
+        // 绑定右键菜单
+        bindCardContextMenu(card, itemData);
+        
         poolDom.appendChild(card);
 
         // 清理排期面板原单元格（如果有）
         if (draggedElement && draggedElement.classList.contains('assigned')) {
+            // 获取原单元格的行和列信息
+            const originalRowCells = Array.from(draggedElement.parentElement.querySelectorAll('.drop-cell'));
+            const originalStartIndex = originalRowCells.indexOf(draggedElement);
+            const originalScheduleDays = Math.ceil(parseFloat(draggedElement.getAttribute('data-schedule_days')) || 1);
+
+            // 清除原单元格内容和属性
             draggedElement.innerText = '';
             draggedElement.removeAttribute('colspan');
             draggedElement.classList.remove('assigned');
@@ -672,6 +712,16 @@
                     draggedElement.removeAttribute(attr.name);
                 }
             });
+
+            // 恢复被隐藏的格子
+            for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
+                if (originalRowCells[i]) {
+                    originalRowCells[i].style.display = '';
+                    // 恢复周末样式
+                    const date = originalRowCells[i].getAttribute('data-date');
+                    setWeekendBorder(originalRowCells[i], date);
+                }
+            }
 
             // 记录删除操作到 localScheduleChanges
             const sample_id = dragData['project-sample_id'];
@@ -1700,7 +1750,8 @@
                                             'sample_category', 'version', 'priority', 'sample_leader',
                                             'supplier', 'test_project_category', 'test_projects', 'schedule',
                                             'create_time', 'schedule_days', 'schedule_start_date',
-                                            'schedule_end_date', 'schedule_color', 'remark', 'job_number', 'tester'
+                                            'schedule_end_date', 'schedule_color', 'remark', 'job_number', 'tester',
+                                            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
                                         ];
                                         attributesToCopy.forEach(attr => {
                                             originalAttributes[attr] = targetCell.getAttribute(`data-${attr}`);
@@ -2276,7 +2327,8 @@
                         'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
                     ];
                     attributes.forEach(attr => {
                         taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -2388,7 +2440,8 @@
                 'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color' , 'remark'
+                'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color' , 'remark',
+                'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
             ];
             attributes.forEach(attr => {
                 taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);

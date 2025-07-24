@@ -1,6 +1,8 @@
 package com.lu.ddwyydemo04.dao;
 
 import com.lu.ddwyydemo04.pojo.*;
+
+import com.lu.ddwyydemo04.pojo.ElectricalTestItem;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -169,6 +171,9 @@ public interface TestManDao {
 
     int updateRemark(@Param("sample_id") String sample_id,@Param("remark")String remark);
     String queryRemark(@Param("sample_id") String sample_id);
+
+    // 查询测试项数据
+    List<ElectricalTestItem> getTestItemsBySampleId(@Param("sample_id") String sample_id);
 
     List<TrashProject> getTrashedProjects();
     boolean recoverProjectById(@Param("sample_id")String sample_id);
