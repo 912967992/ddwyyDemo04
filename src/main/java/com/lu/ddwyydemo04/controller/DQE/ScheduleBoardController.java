@@ -1,5 +1,6 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
+import cn.hutool.json.JSONObjectIter;
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.OapiAttendanceGetupdatedataRequest;
@@ -31,6 +32,13 @@ public class ScheduleBoardController {
     @Autowired
     private AccessTokenService accessTokenService;
 
+    /**
+     * 变更记录搜索看板页面
+     */
+    @GetMapping("/changeRecordSearch")
+    public String changeRecordSearchPage() {
+        return "DQE/changeRecordSearch";
+    }
 
     @GetMapping("/scheduleBoardController/getTestEngineers")
     @ResponseBody
@@ -199,6 +207,187 @@ public class ScheduleBoardController {
         }
 
         return results;
+    }
+
+    /**
+     * 基于 changeRecord 的搜索功能
+     */
+    @PostMapping("/scheduleBoardController/searchByChangeRecord")
+    @ResponseBody
+    public List<Map<String, Object>> searchByChangeRecord(@RequestBody Map<String, String> requestData) {
+        System.out.println("requestData:"+requestData);
+
+        String ETTestCode = requestData.get("ETTestCode");
+        String sampleModel = requestData.get("sampleModel");
+        String sampleCategory = requestData.get("sampleCategory");
+        String sampleLeader = requestData.get("sampleLeader");
+        String sampleSender = requestData.get("sampleSender");
+
+        String tester = requestData.get("tester");
+        String startDate = requestData.get("startDate");
+        String endDate = requestData.get("endDate");
+        String isUsed = requestData.get("isUsed");
+
+
+        String isCancel  = requestData.get("isCancel");
+        String schedule = requestData.get("schedule");
+        String remark = requestData.get("remark");
+        String changeRecordStartDate = requestData.get("changeRecordStartDate");
+        String changeRecordEndDate = requestData.get("changeRecordEndDate");
+        String changeRecordRemark = requestData.get("changeRecordRemark");
+
+
+
+//        System.out.println("搜索参数 - ETTestCode: " + ETTestCode);
+//        System.out.println("搜索参数 - sampleModel: " + sampleModel);
+//        System.out.println("搜索参数 - sampleCategory: " + sampleCategory);
+//        System.out.println("搜索参数 - sampleLeader: " + sampleLeader);
+//        System.out.println("搜索参数 - sampleSender: " + sampleSender);
+//
+//        System.out.println("搜索参数 - tester: " + tester);
+//        System.out.println("搜索参数 - startDate: " + startDate);
+//        System.out.println("搜索参数 - endDate: " + endDate);
+//        System.out.println("搜索参数 - isUsed: " + isUsed);
+//
+//        System.out.println("搜索参数 - isCancel: " + isCancel);
+//        System.out.println("搜索参数 - schedule: " + schedule);
+//        System.out.println("搜索参数 - remark: " + remark);
+//        System.out.println("搜索参数 - changeRecordStartDate: " + changeRecordStartDate);
+//        System.out.println("搜索参数 - changeRecordEndDate: " + changeRecordEndDate);
+//        System.out.println("搜索参数 - changeRecordRemark: " + changeRecordRemark);
+
+
+        //
+        List<Map<String, Object>> changeRecordResults = scheduleBoardService.searchByChangeRecord(tester, startDate, endDate, isUsed, remark);
+        System.out.println("changeRecordResults:"+changeRecordResults);
+        return changeRecordResults;
+    }
+
+
+
+    /**
+     * 解析 changeRecord 字符串为结构化数据
+     */
+    private List<Map<String, Object>> parseChangeRecord(String changeRecord) {
+        List<Map<String, Object>> records = new ArrayList<>();
+        if (changeRecord == null || changeRecord.trim().isEmpty()) {
+            return records;
+        }
+
+        String[] recordArray = changeRecord.split("\\|");
+        for (String record : recordArray) {
+            String[] parts = record.trim().split("#");
+            if (parts.length >= 7) {
+                Map<String, Object> recordMap = new HashMap<>();
+                recordMap.put("tester", parts[0].equals("null") ? "" : parts[0]);
+                recordMap.put("start_date", parts[1].equals("null") ? "" : parts[1]);
+                recordMap.put("end_date", parts[2].equals("null") ? "" : parts[2]);
+                recordMap.put("update_time", parts[3].equals("null") ? "" : parts[3]);
+                recordMap.put("schedule_color", parts[4].equals("null") ? "" : parts[4]);
+                recordMap.put("is_used", parts[5].equals("null") ? "" : parts[5]);
+                recordMap.put("remark", parts[6].equals("null") ? "" : parts[6]);
+                records.add(recordMap);
+            }
+        }
+        return records;
+    }
+
+    /**
+     * 获取变更记录统计信息
+     */
+    @PostMapping("/scheduleBoardController/getChangeRecordStats")
+    @ResponseBody
+    public Map<String, Object> getChangeRecordStats(@RequestBody Map<String, String> requestData) {
+        String startDate = requestData.get("startDate");
+        String endDate = requestData.get("endDate");
+        
+        Map<String, Object> stats = scheduleBoardService.getChangeRecordStats(startDate, endDate);
+        return stats;
+    }
+
+    /**
+     * 基于新表的变更记录搜索
+     */
+    @PostMapping("/scheduleBoardController/searchByChangeRecordNew")
+    @ResponseBody
+    public List<Map<String, Object>> searchByChangeRecordNew(@RequestBody Map<String, String> requestData) {
+        try {
+            System.out.println("收到新接口请求数据: " + requestData);
+            
+            String ETTestCode = requestData.get("ETTestCode");
+            String sampleModel = requestData.get("sampleModel");
+            String sampleCategory = requestData.get("sampleCategory");
+            String sampleLeader = requestData.get("sampleLeader");
+            String sampleSender = requestData.get("sampleSender");
+            String tester = requestData.get("tester");
+            String startDate = requestData.get("startDate");
+            String endDate = requestData.get("endDate");
+            String isUsed = requestData.get("isUsed");
+            String isCancel = requestData.get("isCancel");
+            String schedule = requestData.get("schedule");
+            String remark = requestData.get("remark");
+            String dateRangeStart = requestData.get("dateRangeStart");
+            String dateRangeEnd = requestData.get("dateRangeEnd");
+            String changeRecordRemark = requestData.get("changeRecordRemark");
+
+            List<Map<String, Object>> results = scheduleBoardService.searchByChangeRecordNew(
+                ETTestCode, sampleModel, sampleCategory, sampleLeader, sampleSender, tester, startDate, endDate, 
+                isUsed, isCancel, schedule, remark, dateRangeStart, dateRangeEnd, changeRecordRemark);
+            System.out.println("results:"+results);
+
+            return results;
+        } catch (Exception e) {
+            System.err.println("新接口处理异常: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // 重新抛出异常，让Spring处理
+        }
+    }
+
+    /**
+     * 解析变更记录详情字符串
+     */
+    private List<Map<String, Object>> parseChangeRecordDetail(String changeRecordsDetail) {
+        List<Map<String, Object>> records = new ArrayList<>();
+        if (changeRecordsDetail == null || changeRecordsDetail.trim().isEmpty()) {
+            return records;
+        }
+
+        String[] recordArray = changeRecordsDetail.split("###");
+        for (String record : recordArray) {
+            String[] parts = record.trim().split("\\|");
+            if (parts.length >= 7) {
+                Map<String, Object> recordMap = new HashMap<>();
+                recordMap.put("tester", parts[0].equals("null") ? "" : parts[0]);
+                recordMap.put("start_date", parts[1].equals("null") ? "" : parts[1]);
+                recordMap.put("end_date", parts[2].equals("null") ? "" : parts[2]);
+                recordMap.put("update_time", parts[3].equals("null") ? "" : parts[3]);
+                recordMap.put("schedule_color", parts[4].equals("null") ? "" : parts[4]);
+                recordMap.put("is_used", parts[5].equals("null") ? "" : parts[5]);
+                recordMap.put("remark", parts[6].equals("null") ? "" : parts[6]);
+                records.add(recordMap);
+            }
+        }
+        return records;
+    }
+
+    /**
+     * 测试方法：查看 changeRecord 数据
+     */
+    @GetMapping("/scheduleBoardController/testChangeRecord")
+    @ResponseBody
+    public List<Map<String, Object>> testChangeRecord() {
+        List<PassbackData> results = scheduleBoardService.testChangeRecord();
+        List<Map<String, Object>> formattedResults = new ArrayList<>();
+        
+        for (PassbackData data : results) {
+            Map<String, Object> formattedData = new HashMap<>();
+            formattedData.put("sample_id", data.getSample_id());
+            formattedData.put("changeRecord", data.getChangeRecord());
+            formattedData.put("create_time", data.getCreate_time());
+            formattedResults.add(formattedData);
+        }
+        
+        return formattedResults;
     }
 
 

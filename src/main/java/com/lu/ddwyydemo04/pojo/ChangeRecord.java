@@ -11,6 +11,7 @@ public class ChangeRecord {
     private LocalDateTime  update_time;
     private String schedule_color;
     private String isUsed;
+    private String remark;
 
     public String getTester() {
         return tester;
@@ -60,6 +61,14 @@ public class ChangeRecord {
         this.isUsed = isUsed;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public String toString() {
         return "changeRecord{" +
@@ -69,6 +78,7 @@ public class ChangeRecord {
                 ", update_time=" + update_time +
                 ", schedule_color='" + schedule_color + '\'' +
                 ", isUsed='" + isUsed + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

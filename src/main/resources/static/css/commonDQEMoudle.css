@@ -507,6 +507,52 @@
     background-color: #4CAF50; /* 悬停时更亮的绿色 */
 }
 
+/* 流程确认按钮的特殊样式 */
+.process-confirm-button {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important; /* 红色渐变背景 */
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 18px !important;
+    padding: 12px 20px !important;
+    border-radius: 15px !important;
+    border: 3px solid #ff4757 !important;
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: pulse-glow 2s infinite !important;
+}
+
+/* 流程确认按钮的脉冲发光动画 */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        transform: scale(1.05);
+    }
+    100% {
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        transform: scale(1);
+    }
+}
+
+/* 流程确认按钮悬停效果 */
+.process-confirm-button:hover {
+    background: linear-gradient(135deg, #ff5252, #d63031) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.7) !important;
+    animation: none !important;
+}
+
+/* 流程确认按钮点击效果 */
+.process-confirm-button:active {
+    background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+    transform: scale(0.95) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5) !important;
+}
 
 /* 点击时的样式 */
 .save-button:active, .add-button:active {

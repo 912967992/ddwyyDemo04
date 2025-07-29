@@ -1313,6 +1313,21 @@
         ORDER BY ETTestCode
     </select>
 
+    <!-- 变更记录同步相关SQL -->
+
+    <!-- 获取指定时间之后更新的sample_id列表 -->
+    <select id="getUpdatedSampleIdsAfterTime" resultType="String">
+        SELECT DISTINCT sample_id
+        FROM electric_info
+        WHERE changeRecord IS NOT NULL
+          AND changeRecord != ''
+          AND changeRecord != 'null'
+          <if test="lastSyncTime != null and lastSyncTime != ''">
+            AND update_time > #{lastSyncTime}
+          </if>
+    </select>
+
+
 
 
 

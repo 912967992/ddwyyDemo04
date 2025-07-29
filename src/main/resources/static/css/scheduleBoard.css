@@ -578,9 +578,9 @@
     background-color: inherit !important;
 }
 
-/* 确保节假日项目颜色优先级最高 */
+/* 确保节假日项目颜色优先级最高 - 修复：使用项目实际颜色而不是inherit */
 #scheduleBoardTable td.weekend-border.assigned[data-schedule_color] {
-    background-color: inherit !important;
+    background-color: var(--project-color) !important;
 }
 
 .weekend-border::before {
@@ -795,7 +795,7 @@
     background-color: #d5d5d5;
 }
 
-#searchBtn {
+#searchBtn , #changeRecordSearchBtn{
     padding: 6px 12px;
     background-color: #4c9daf;
     color: white;

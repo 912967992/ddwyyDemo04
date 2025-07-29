@@ -21,6 +21,8 @@
 
       <!-- 新增搜索按钮 -->
       <button id="searchBtn" style="margin-left: 10px;">搜索查询</button>
+      <!-- 新增变更记录搜索看板按钮 -->
+      <button id="changeRecordSearchBtn" style="margin-left: 10px;">变更记录搜索看板</button>
       <!-- 新增垃圾站区域 -->
       <div id="trashStation">
         <h3>回收站(右键看作废列表)</h3>
@@ -369,6 +371,154 @@
       <button id="executeSearchBtn" class="modal-button">搜索</button>
     </div>
     <div id="searchResults"></div>
+  </div>
+</div>
+
+<!-- 变更记录搜索看板模态框 -->
+<div id="changeRecordSearchModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1001;">
+  <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; max-width: 1400px; height: 90%; max-height: 800px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; font-size: 24px;">🔍 变更记录搜索看板</h2>
+      <button id="closeChangeRecordSearchModal" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 16px;">✕ 关闭</button>
+    </div>
+
+    <div style="padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
+      <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+        <form id="changeRecordSearchForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; align-items: end;">
+          <!-- 第一行：基本信息 -->
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🔌 电气编号</label>
+            <input type="text" id="changeRecordETTestCode" placeholder="输入电气编号" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📋 大编码</label>
+            <input type="text" id="changeRecordModel" placeholder="输入大编码" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🏷️ 产品类别</label>
+            <input type="text" id="changeRecordCategory" placeholder="输入产品类别" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">👤 项目负责人</label>
+            <input type="text" id="changeRecordLeader" placeholder="输入项目负责人" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📦 送样人</label>
+            <input type="text" id="changeRecordSender" placeholder="输入送样人" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <!-- 第二行：测试相关信息 -->
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🧪 测试人</label>
+            <input type="text" id="changeRecordTester" placeholder="输入测试人姓名" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📅 排期开始日期</label>
+            <input type="date" id="changeRecordStartDate" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📅 排期结束日期</label>
+            <input type="date" id="changeRecordEndDate" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">✅ 排期状态</label>
+            <select id="changeRecordIsUsed" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+              <option value="">全部状态</option>
+              <option value="1">已排期</option>
+              <option value="0">未排期</option>
+            </select>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🗑️ 是否作废</label>
+            <select id="changeRecordIsCancel" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+              <option value="">全部</option>
+              <option value="0">正常</option>
+              <option value="1">已作废</option>
+            </select>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📊 当前进度</label>
+            <select id="changeRecordSchedule" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+              <option value="">全部进度</option>
+              <option value="0">待测试</option>
+              <option value="1">待DQE和研发审核</option>
+              <option value="2">测试完成</option>
+            </select>
+          </div>
+
+          <!-- 第三行：备注和变更记录 -->
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📝 送样备注</label>
+            <input type="text" id="changeRecordRemark" placeholder="输入送样备注" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🕒 变更记录开始日期</label>
+            <input type="date" id="changeRecordStartDate2" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">🕒 变更记录结束日期</label>
+            <input type="date" id="changeRecordEndDate2" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: 600; margin-bottom: 5px; color: #555;">📝 变更记录备注</label>
+            <input type="text" id="changeRecordRemark2" placeholder="输入变更记录备注" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s;">
+          </div>
+
+          <!-- 操作按钮 -->
+          <div style="display: flex; flex-direction: column;">
+            <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">🔍 搜索</button>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <button type="button" onclick="clearChangeRecordForm()" style="background: #6c757d; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);">🗑️ 清空</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="changeRecordResultsPanel" style="background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); overflow: hidden; display: none;">
+        <div style="background: #f8f9fa; padding: 15px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+          <div id="changeRecordResultsCount" style="font-weight: 600; color: #495057;">搜索结果：0 条记录</div>
+          <button onclick="exportChangeRecordResults()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">📊 导出结果</button>
+        </div>
+
+        <div id="changeRecordResultsContent" style="overflow-x: auto;">
+          <table id="changeRecordResultsTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+            <tr>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🔌 电气编号</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🏷️ 大编码</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">👤 项目负责人</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📦 送样人</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🧪 测试人</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期开始日期</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期结束日期</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📝 备注</th>
+            </tr>
+            </thead>
+            <tbody id="changeRecordResultsTableBody">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="changeRecordPagination" style="display: none; justify-content: center; align-items: center; padding: 20px; gap: 10px;">
+          <button onclick="previousChangeRecordPage()" id="changeRecordPrevBtn" style="padding: 8px 12px; border: 1px solid #dee2e6; background: white; cursor: pointer; border-radius: 4px;">上一页</button>
+          <span id="changeRecordPageInfo" style="margin: 0 10px;">第 1 页，共 1 页</span>
+          <button onclick="nextChangeRecordPage()" id="changeRecordNextBtn" style="padding: 8px 12px; border: 1px solid #dee2e6; background: white; cursor: pointer; border-radius: 4px;">下一页</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1215,6 +1365,8 @@
 
                 cell.style.backgroundColor = selectedColor;
                 cell.dataset.schedule_color = selectedColor;
+                // 设置CSS变量，供CSS规则使用
+                cell.style.setProperty('--project-color', selectedColor);
 
                 const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
                 const startIndex = rowCells.indexOf(cell);
@@ -2091,6 +2243,8 @@
             const scheduleColor = originalCell.getAttribute('data-schedule_color');
             if (scheduleColor && scheduleColor !== 'null') {
               originalCell.style.backgroundColor = scheduleColor;
+              // 设置CSS变量，供CSS规则使用
+              originalCell.style.setProperty('--project-color', scheduleColor);
               // 如果是周末单元格，强制设置颜色优先级
               if (originalCell.classList.contains('weekend-border')) {
                 originalCell.style.setProperty('background-color', scheduleColor, 'important');
@@ -2126,6 +2280,8 @@
       const color = cell.getAttribute('data-schedule_color');
       if (color && color !== 'null') {
         cell.style.backgroundColor = color;
+        // 设置CSS变量，供CSS规则使用
+        cell.style.setProperty('--project-color', color);
         // 确保节假日项目也能正确显示颜色
         if (cell.classList.contains('weekend-border')) {
           cell.style.backgroundColor = color;
@@ -2240,6 +2396,8 @@
         // 设置项目颜色，确保周末项目也能正确显示颜色
         if (data.schedule_color && data.schedule_color !== 'null') {
           newStartCell.style.backgroundColor = data.schedule_color;
+          // 设置CSS变量，供CSS规则使用
+          newStartCell.style.setProperty('--project-color', data.schedule_color);
           // 如果是周末单元格，强制设置颜色优先级
           if (newStartCell.classList.contains('weekend-border')) {
             newStartCell.style.setProperty('background-color', data.schedule_color, 'important');
@@ -2382,6 +2540,8 @@
     // 设置项目颜色，确保周末项目也能正确显示颜色
     if (schedule_color && schedule_color !== 'null') {
       startCell.style.backgroundColor = schedule_color;
+      // 设置CSS变量，供CSS规则使用
+      startCell.style.setProperty('--project-color', schedule_color);
       // 如果是周末单元格，强制设置颜色优先级
       if (startCell.classList.contains('weekend-border')) {
         startCell.style.setProperty('background-color', schedule_color, 'important');
@@ -2562,6 +2722,8 @@
       const scheduleColor = originalCell.getAttribute('data-schedule_color');
       if (scheduleColor && scheduleColor !== 'null') {
         originalCell.style.backgroundColor = scheduleColor;
+        // 设置CSS变量，供CSS规则使用
+        originalCell.style.setProperty('--project-color', scheduleColor);
         // 如果是周末单元格，强制设置颜色优先级
         if (originalCell.classList.contains('weekend-border')) {
           originalCell.style.setProperty('background-color', scheduleColor, 'important');
@@ -4314,7 +4476,392 @@
                 document.getElementById('searchResults').innerHTML = '搜索失败，请稍后重试。';
               });
     });
+
+    // 变更记录搜索看板相关功能
+    const changeRecordSearchBtn = document.getElementById('changeRecordSearchBtn');
+    const changeRecordSearchModal = document.getElementById('changeRecordSearchModal');
+    const closeChangeRecordSearchModal = document.getElementById('closeChangeRecordSearchModal');
+    const changeRecordSearchForm = document.getElementById('changeRecordSearchForm');
+
+    // 变更记录搜索看板按钮点击事件
+    changeRecordSearchBtn.addEventListener('click', function() {
+      changeRecordSearchModal.style.display = 'block';
+      // 设置默认日期范围（最近30天）
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+      document.getElementById('changeRecordStartDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+      document.getElementById('changeRecordEndDate').value = today.toISOString().split('T')[0];
+    });
+
+    // 关闭变更记录搜索看板模态框
+    closeChangeRecordSearchModal.addEventListener('click', function() {
+      changeRecordSearchModal.style.display = 'none';
+    });
+
+    // 点击模态框外部关闭
+    changeRecordSearchModal.addEventListener('click', function(e) {
+      if (e.target === changeRecordSearchModal) {
+        changeRecordSearchModal.style.display = 'none';
+      }
+    });
+
+    // 变更记录搜索表单提交事件
+    changeRecordSearchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      performChangeRecordSearch();
+    });
   });
+
+  // 变更记录搜索相关变量
+  let changeRecordCurrentPage = 1;
+  const changeRecordPageSize = 10;
+  let changeRecordAllResults = [];
+  let changeRecordCurrentResults = [];
+
+  // 执行变更记录搜索
+  function performChangeRecordSearch() {
+    const formData = {
+      ETTestCode: document.getElementById('changeRecordETTestCode').value,
+      sampleModel: document.getElementById('changeRecordModel').value,
+      sampleCategory: document.getElementById('changeRecordCategory').value,
+      sampleLeader: document.getElementById('changeRecordLeader').value,
+      sampleSender: document.getElementById('changeRecordSender').value,
+
+      tester: document.getElementById('changeRecordTester').value,
+      startDate: document.getElementById('changeRecordStartDate').value,
+      endDate: document.getElementById('changeRecordEndDate').value,
+      isUsed: document.getElementById('changeRecordIsUsed').value,
+      isCancel: document.getElementById('changeRecordIsCancel').value,
+
+      schedule: document.getElementById('changeRecordSchedule').value,
+      remark: document.getElementById('changeRecordRemark').value,
+      dateRangeStart: document.getElementById('changeRecordStartDate2').value,
+      dateRangeEnd: document.getElementById('changeRecordEndDate2').value,
+      changeRecordRemark: document.getElementById('changeRecordRemark2').value
+    };
+
+    // 显示加载状态
+    document.getElementById('changeRecordResultsPanel').style.display = 'block';
+    document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
+
+    // 优先使用新的搜索接口，如果失败则回退到旧接口
+    fetch('/scheduleBoardController/searchByChangeRecordNew', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+            .then(response => {
+              console.log('新接口响应状态:', response.status, response.statusText);
+              if (!response.ok) {
+                throw new Error(`新接口请求失败: ${response.status} ${response.statusText}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('变更记录搜索返回的数据:', data);
+              changeRecordAllResults = data;
+              changeRecordCurrentPage = 1;
+              displayChangeRecordResults();
+            })
+            .catch(error => {
+              console.warn('新接口不可用，尝试使用旧接口:', error);
+              // 回退到旧接口
+              return fetch('/scheduleBoardController/searchByChangeRecord', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+              })
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error(`旧接口请求失败: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                      })
+                      .then(data => {
+                        console.log('旧接口变更记录搜索返回的数据:', data);
+                        changeRecordAllResults = data;
+                        changeRecordCurrentPage = 1;
+                        displayChangeRecordResults();
+                      })
+                      .catch(oldError => {
+                        console.error('旧接口也失败了:', oldError);
+                        throw oldError; // 重新抛出错误，让外层catch处理
+                      });
+            })
+            .catch(error => {
+              console.error('变更记录搜索失败:', error);
+              document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
+            });
+  }
+
+  // 显示变更记录搜索结果
+  function displayChangeRecordResults() {
+    const resultsTableBody = document.getElementById('changeRecordResultsTableBody');
+    const pagination = document.getElementById('changeRecordPagination');
+    const resultsCount = document.getElementById('changeRecordResultsCount');
+    const pageInfo = document.getElementById('changeRecordPageInfo');
+    const prevBtn = document.getElementById('changeRecordPrevBtn');
+    const nextBtn = document.getElementById('changeRecordNextBtn');
+
+    console.log('显示变更记录结果，数据长度:', changeRecordAllResults.length);
+
+    // 没有结果时
+    if (!changeRecordAllResults || changeRecordAllResults.length === 0) {
+      resultsTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
+      pagination.style.display = 'none';
+      resultsCount.textContent = '搜索结果：0 条记录';
+      return;
+    }
+
+    // 总记录数 & 总页数
+    const totalResults = changeRecordAllResults.length;
+    const totalPages = Math.ceil(totalResults / changeRecordPageSize);
+
+    // 确保当前页在合法范围内
+    if (changeRecordCurrentPage > totalPages) changeRecordCurrentPage = totalPages;
+    if (changeRecordCurrentPage < 1) changeRecordCurrentPage = 1;
+
+    // 分页数据
+    const startIndex = (changeRecordCurrentPage - 1) * changeRecordPageSize;
+    const endIndex = Math.min(startIndex + changeRecordPageSize, totalResults);
+    changeRecordCurrentResults = changeRecordAllResults.slice(startIndex, endIndex);
+
+    // 更新结果计数
+    resultsCount.textContent = `搜索结果：${totalResults} 条记录`;
+
+    // 渲染表格 - 直接显示change_records表的数据
+    const tableHtml = changeRecordCurrentResults.map(item => `
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.electric_sample_id || item.sample_id || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_model || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_leader || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_sender || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.tester || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.start_date) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.end_date) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.remark || '-'}</td>
+            </tr>
+        `).join('');
+
+    resultsTableBody.innerHTML = tableHtml;
+
+    // 显示分页
+    if (totalPages > 1) {
+      pageInfo.textContent = `第 ${changeRecordCurrentPage} 页，共 ${totalPages} 页`;
+      prevBtn.disabled = changeRecordCurrentPage === 1;
+      nextBtn.disabled = changeRecordCurrentPage === totalPages;
+      pagination.style.display = 'flex';
+    } else {
+      pagination.style.display = 'none';
+    }
+  }
+
+
+
+
+
+  // 格式化变更记录日期
+  function formatChangeRecordDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN');
+  }
+
+  // 清空变更记录表单
+  function clearChangeRecordForm() {
+    document.getElementById('changeRecordSearchForm').reset();
+
+    // 重新设置默认日期范围
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+    document.getElementById('changeRecordStartDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+    document.getElementById('changeRecordEndDate').value = today.toISOString().split('T')[0];
+
+    // 清空变更记录日期范围
+    document.getElementById('changeRecordStartDate2').value = '';
+    document.getElementById('changeRecordEndDate2').value = '';
+
+    // 重置下拉选择框
+    document.getElementById('changeRecordIsUsed').value = '';
+    document.getElementById('changeRecordIsCancel').value = '';
+    document.getElementById('changeRecordSchedule').value = '';
+
+    // 显示清空成功提示
+    showToast('表单已清空', 'success');
+  }
+
+  // 显示提示消息
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+    switch(type) {
+      case 'success':
+        toast.style.background = '#28a745';
+        break;
+      case 'error':
+        toast.style.background = '#dc3545';
+        break;
+      case 'warning':
+        toast.style.background = '#ffc107';
+        toast.style.color = '#212529';
+        break;
+      default:
+        toast.style.background = '#007bff';
+    }
+
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease-in';
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+
+  // 变更记录上一页
+  function previousChangeRecordPage() {
+    if (changeRecordCurrentPage > 1) {
+      changeRecordCurrentPage--;
+      displayChangeRecordResults();
+    }
+  }
+
+  // 变更记录下一页
+  function nextChangeRecordPage() {
+    const totalPages = Math.ceil(changeRecordAllResults.length / changeRecordPageSize);
+    if (changeRecordCurrentPage < totalPages) {
+      changeRecordCurrentPage++;
+      displayChangeRecordResults();
+    }
+  }
+
+  // 导出变更记录结果
+  function exportChangeRecordResults() {
+    if (changeRecordAllResults.length === 0) {
+      alert('没有数据可导出');
+      return;
+    }
+
+    // 创建CSV内容
+    let csvContent = '电气编号,大编码,项目负责人,送样人,测试人,排期开始日期,排期结束日期,备注\n';
+
+    changeRecordAllResults.forEach(function(item) {
+      csvContent += `"${item.electric_sample_id || item.sample_id || ''}","${item.sample_model || ''}","${item.sample_leader || ''}","${item.sample_sender || ''}","${item.tester || ''}","${formatChangeRecordDate(item.start_date) || ''}","${formatChangeRecordDate(item.end_date) || ''}","${item.remark || ''}"\n`;
+    });
+
+    // 下载CSV文件
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `变更记录搜索结果_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // 添加变更记录状态样式
+  const style = document.createElement('style');
+  style.textContent = `
+        .status-used { color: #28a745; font-weight: 600; }
+        .status-unused { color: #dc3545; font-weight: 600; }
+        .status-cancelled { color: #6c757d; font-weight: 600; }
+
+        .color-gray { color: #6c757d; font-weight: 600; }
+        .color-green { color: #28a745; font-weight: 600; }
+        .color-yellow { color: #ffc107; font-weight: 600; }
+        .color-red { color: #dc3545; font-weight: 600; }
+        .color-default { color: #6c757d; font-weight: 600; }
+
+        #changeRecordPrevBtn:disabled,
+        #changeRecordNextBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 变更记录横向滚动条样式 */
+        #changeRecordResultsTableBody td:last-child div::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        #changeRecordResultsTableBody td:last-child div::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        #changeRecordResultsTableBody td:last-child div::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        #changeRecordResultsTableBody td:last-child div::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* 输入框焦点样式 */
+        #changeRecordSearchForm input:focus,
+        #changeRecordSearchForm select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        /* 按钮悬停效果 */
+        #changeRecordSearchForm button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        /* 变更记录卡片悬停效果 */
+        #changeRecordResultsTableBody .change-record-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Toast动画 */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+  document.head.appendChild(style);
 
 
 

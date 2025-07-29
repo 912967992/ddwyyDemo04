@@ -89,10 +89,231 @@
         </where>
     </select>
 
-    <delete id="deleteGroupById" parameterType="String">
-        DELETE FROM `groups`
-        WHERE id = #{id}
-    </delete>
+    <!-- 基于 changeRecord 的搜索功能 -->
+    <select id="searchByChangeRecord" resultType="map">
+        SELECT
+            cr.id as change_record_id,
+            cr.electric_sample_id as sample_id,
+            cr.tester,
+            cr.start_date as schedule_start_date,
+            cr.end_date as schedule_end_date,
+            cr.update_time,
+            cr.schedule_color,
+            cr.is_used,
+            cr.remark,
+            ei.sample_model,
+            ei.sample_leader,
+            ei.sample_sender
+        FROM change_records cr
+        LEFT JOIN electric_info ei ON cr.electric_sample_id = ei.sample_id
+        <where>
+            <!-- 测试人搜索 -->
+            <if test="tester != null and tester != ''">
+                AND cr.tester LIKE CONCAT('%', #{tester}, '%')
+            </if>
+            
+            <!-- 状态搜索 -->
+            <if test="isUsed != null and isUsed != ''">
+                AND cr.is_used = #{isUsed}
+            </if>
+            
+            <!-- 备注搜索 -->
+            <if test="remark != null and remark != ''">
+                AND cr.remark LIKE CONCAT('%', #{remark}, '%')
+            </if>
+            
+            <!-- 日期范围搜索 -->
+            <if test="startDate != null and startDate != ''">
+                AND cr.start_date >= #{startDate}
+            </if>
+            
+            <if test="endDate != null and endDate != ''">
+                AND cr.end_date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY cr.update_time DESC
+        LIMIT 100
+    </select>
 
+    <!-- 基于新变更记录表的搜索功能 - 直接返回change_records表数据 -->
+    <select id="searchByChangeRecordNew" resultType="map">
+        SELECT 
+            cr.electric_sample_id,
+            cr.tester,
+            cr.start_date,
+            cr.end_date,
+            cr.update_time,
+            cr.schedule_color,
+            cr.is_used,
+            cr.remark,
+            ei.sample_model,
+            ei.sample_leader,
+            ei.sample_sender
+        FROM change_records cr
+        LEFT JOIN electric_info ei ON cr.electric_sample_id = ei.sample_id
+        <where>
+            <!-- 电气编号搜索 -->
+            <if test="ETTestCode != null and ETTestCode != ''">
+                AND cr.electric_sample_id LIKE CONCAT('%', #{ETTestCode}, '%')
+            </if>
+            
+            <!-- 大编码搜索 -->
+            <if test="sampleModel != null and sampleModel != ''">
+                AND ei.sample_model LIKE CONCAT('%', #{sampleModel}, '%')
+            </if>
+
+            <!-- 产品类别搜索 -->
+            <if test="sampleCategory != null and sampleCategory != ''">
+                AND ei.sample_category LIKE CONCAT('%', #{sampleCategory}, '%')
+            </if>
+            
+            <!-- 项目负责人搜索 -->
+            <if test="sampleLeader != null and sampleLeader != ''">
+                AND ei.sample_leader LIKE CONCAT('%', #{sampleLeader}, '%')
+            </if>
+            
+            <!-- 送样人搜索 -->
+            <if test="sampleSender != null and sampleSender != ''">
+                AND ei.sample_sender LIKE CONCAT('%', #{sampleSender}, '%')
+            </if>
+            
+            <!-- 测试人搜索 -->
+            <if test="tester != null and tester != ''">
+                AND cr.tester LIKE CONCAT('%', #{tester}, '%')
+            </if>
+            
+            <!-- 排期开始日期搜索 -->
+            <if test="startDate != null and startDate != ''">
+                AND cr.start_date >= #{startDate}
+            </if>
+            
+            <!-- 排期结束日期搜索 -->
+            <if test="endDate != null and endDate != ''">
+                AND cr.end_date &lt;= #{endDate}
+            </if>
+            
+            <!-- 排期状态搜索 -->
+            <if test="isUsed != null and isUsed != ''">
+                AND cr.is_used = #{isUsed}
+            </if>
+            
+            <!-- 是否作废搜索 -->
+            <if test="isCancel != null and isCancel != ''">
+                AND ei.isCancel = #{isCancel}
+            </if>
+            
+            <!-- 当前进度搜索 -->
+            <if test="schedule != null and schedule != ''">
+                AND ei.schedule = #{schedule}
+            </if>
+            
+            <!-- 送样备注搜索 -->
+            <if test="remark != null and remark != ''">
+                AND ei.remark LIKE CONCAT('%', #{remark}, '%')
+            </if>
+            
+            <!-- 变更记录开始日期搜索 -->
+            <if test="dateRangeStart != null and dateRangeStart != ''">
+                AND cr.update_time >= CONCAT(#{dateRangeStart}, ' 00:00:00')
+            </if>
+            
+            <!-- 变更记录结束日期搜索 -->
+            <if test="dateRangeEnd != null and dateRangeEnd != ''">
+                AND cr.update_time &lt;= CONCAT(#{dateRangeEnd}, ' 23:59:59')
+            </if>
+            
+            <!-- 变更记录备注搜索 -->
+            <if test="changeRecordRemark != null and changeRecordRemark != ''">
+                AND cr.remark LIKE CONCAT('%', #{changeRecordRemark}, '%')
+            </if>
+        </where>
+        ORDER BY cr.update_time DESC
+    </select>
+
+    <!-- 获取变更记录统计信息（基于新表） -->
+    <select id="getChangeRecordStatsNew" resultType="map">
+        SELECT 
+            (SELECT COUNT(DISTINCT ei2.sample_id) FROM electric_info ei2) as total_projects,
+            (SELECT COUNT(cr2.id) FROM change_records cr2) as total_changes,
+            (SELECT COUNT(DISTINCT cr3.tester) FROM change_records cr3 WHERE cr3.tester IS NOT NULL) as total_testers,
+            (SELECT COUNT(cr4.id) FROM change_records cr4 WHERE cr4.is_used = '1') as used_count,
+            (SELECT COUNT(cr5.id) FROM change_records cr5 WHERE cr5.is_used = '0') as unused_count,
+            (SELECT COUNT(ei3.id) FROM electric_info ei3 WHERE ei3.isCancel = '1') as cancelled_count
+        FROM dual
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND EXISTS (
+                    SELECT 1 FROM change_records cr6 
+                    WHERE cr6.update_time >= CONCAT(#{startDate}, ' 00:00:00')
+                )
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND EXISTS (
+                    SELECT 1 FROM change_records cr7 
+                    WHERE cr7.update_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 获取变更记录统计信息 -->
+    <select id="getChangeRecordStats" resultType="map">
+        SELECT 
+            COUNT(*) as total_records,
+            COUNT(CASE WHEN changeRecord LIKE '%使用%' THEN 1 END) as used_count,
+            COUNT(CASE WHEN changeRecord LIKE '%未使用%' THEN 1 END) as unused_count
+        FROM electric_info 
+        WHERE changeRecord IS NOT NULL 
+        AND changeRecord != '' 
+        AND changeRecord != 'null'
+        <if test="startDate != null and startDate != ''">
+            AND changeRecord REGEXP CONCAT('.*', #{startDate}, '.*')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND changeRecord REGEXP CONCAT('.*', #{endDate}, '.*')
+        </if>
+    </select>
+
+    <!-- 测试方法：查看 changeRecord 数据 -->
+    <select id="testChangeRecord" resultType="PassbackData">
+        SELECT sample_id, changeRecord, create_time
+        FROM electric_info 
+        WHERE changeRecord IS NOT NULL 
+        AND changeRecord != '' 
+        AND changeRecord != 'null'
+        LIMIT 10
+    </select>
+
+    <!-- 获取所有 changeRecord 数据 -->
+    <select id="getAllChangeRecords" resultType="string">
+        SELECT changeRecord
+        FROM electric_info 
+        WHERE changeRecord IS NOT NULL 
+        AND changeRecord != '' 
+        AND changeRecord != 'null'
+    </select>
+
+    <!-- 获取所有变更记录数据 -->
+    <select id="getAllChangeRecordData" resultType="PassbackData">
+        SELECT *
+        FROM electric_info 
+        WHERE changeRecord IS NOT NULL 
+        AND changeRecord != '' 
+        AND changeRecord != 'null'
+    </select>
+
+    <!-- 获取指定时间之后的变更记录数据 -->
+    <select id="getChangeRecordDataAfterTime" resultType="PassbackData">
+        SELECT *
+        FROM electric_info 
+        WHERE changeRecord IS NOT NULL 
+        AND changeRecord != '' 
+        AND changeRecord != 'null'
+        AND create_time > #{lastSyncTime}
+    </select>
+
+    <delete id="deleteGroupById">
+        DELETE FROM `groups` WHERE id = #{id}
+    </delete>
 
 </mapper>
