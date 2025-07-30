@@ -1678,6 +1678,13 @@ public class testManIndexController {
             String materialCodeStr = materialCodeObj.toString().trim();
 
             String model = (String) projectData.get("sample_model");
+            // 清理文件名中的非法字符
+            if (model != null) {
+                model = sanitizeFileName(model.trim());
+            }
+            if (materialCodeStr != null) {
+                materialCodeStr = sanitizeFileName(materialCodeStr);
+            }
             //  it传过来的sample_category暂定是小类
             String small_species = (String) projectData.get("sample_category");
             String version = (String) projectData.get("version");
@@ -1722,7 +1729,8 @@ public class testManIndexController {
             String[] codeEntries = materialCodeStr.split("，|,"); // 支持中文逗号或英文逗号
 
             String cleanElectricSampleId = sanitizeFileName(electric_sample_id);
-            String cleanMaterialCode = sanitizeFileName(materialCodeStr);
+            // materialCodeStr 已经在上面清理过了，这里直接使用
+            String cleanMaterialCode = materialCodeStr;
 
 
             for (String codeEntry : codeEntries) {
@@ -1736,9 +1744,9 @@ public class testManIndexController {
 
 //                        excelShowService.sampleCount();
                         Samples sample = new Samples();
-                        // 创建空 Excel 文件
+                        // 创建空 Excel 文件，使用清理后的 model 和 materialCode
 //                        String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
-                        String fileName = cleanElectricSampleId + "_" + cleanMaterialCode + "_" + sampleFrequency + ".xlsx";
+                        String fileName = cleanElectricSampleId + "_" + (model != null ? model : "") + "_" + cleanMaterialCode + "_" + sampleFrequency + ".xlsx";
 
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;

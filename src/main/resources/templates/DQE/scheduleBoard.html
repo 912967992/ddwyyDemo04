@@ -6,6 +6,94 @@
     <!-- 引入外部CSS文件 -->
     <link rel="stylesheet" href="/css/scheduleBoard.css">
 
+    <!-- 自定义 Alert 组件样式 -->
+    <style>
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-alert {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            animation: alertSlideIn 0.3s ease-out;
+        }
+
+        @keyframes alertSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .custom-alert-message {
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            word-wrap: break-word;
+        }
+
+        .custom-alert-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .custom-alert-button:hover {
+            background: #0056b3;
+        }
+
+        .custom-alert-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .custom-alert-close:hover {
+            color: #333;
+        }
+
+        .custom-alert-timer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #007bff;
+            border-radius: 0 0 8px 8px;
+            transition: width 0.1s linear;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -4892,7 +4980,97 @@
     `;
     document.head.appendChild(style);
 
+    // 自定义 Alert 组件 HTML 结构
+    const customAlertHTML = `
+        <div id="customAlertOverlay" class="custom-alert-overlay">
+            <div class="custom-alert">
+                <button class="custom-alert-close" onclick="closeCustomAlert()">&times;</button>
+                <div class="custom-alert-message" id="customAlertMessage"></div>
+                <button class="custom-alert-button" onclick="closeCustomAlert()">确定</button>
+                <div class="custom-alert-timer" id="customAlertTimer"></div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', customAlertHTML);
 
+    // 自定义 Alert 函数
+    let customAlertTimeout = null;
+    let customAlertTimer = null;
+    let alertEventListenersAdded = false;
+
+    function customAlert(message, duration = 3000) {
+        // 清除之前的定时器
+        if (customAlertTimeout) {
+            clearTimeout(customAlertTimeout);
+        }
+        if (customAlertTimer) {
+            clearInterval(customAlertTimer);
+        }
+
+        const overlay = document.getElementById('customAlertOverlay');
+        const messageEl = document.getElementById('customAlertMessage');
+        const timerEl = document.getElementById('customAlertTimer');
+
+        messageEl.textContent = message;
+        overlay.style.display = 'flex';
+        timerEl.style.width = '100%';
+
+        // 设置自动关闭定时器
+        customAlertTimeout = setTimeout(() => {
+            closeCustomAlert();
+        }, duration);
+
+        // 设置进度条动画
+        const startTime = Date.now();
+        const endTime = startTime + duration;
+        
+        customAlertTimer = setInterval(() => {
+            const now = Date.now();
+            const remaining = Math.max(0, endTime - now);
+            const progress = (remaining / duration) * 100;
+            timerEl.style.width = progress + '%';
+            
+            if (remaining <= 0) {
+                clearInterval(customAlertTimer);
+            }
+        }, 10);
+
+        // 只在第一次添加事件监听器
+        if (!alertEventListenersAdded) {
+            // 点击遮罩层关闭
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    closeCustomAlert();
+                }
+            });
+
+            // ESC 键关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeCustomAlert();
+                }
+            });
+
+            alertEventListenersAdded = true;
+        }
+    }
+
+    function closeCustomAlert() {
+        const overlay = document.getElementById('customAlertOverlay');
+        overlay.style.display = 'none';
+        
+        if (customAlertTimeout) {
+            clearTimeout(customAlertTimeout);
+            customAlertTimeout = null;
+        }
+        if (customAlertTimer) {
+            clearInterval(customAlertTimer);
+            customAlertTimer = null;
+        }
+    }
+
+    // 替换原生 alert 函数
+    window.alert = customAlert;
 
 </script>
 

@@ -968,6 +968,7 @@
                             <h2>请输入产品信息</h2>
                             <div class="button-group">
                                 <button type="button" id="passbackProblemBtn">回传<br>问题点页面</button>
+                                <button type="button" id="copyLinkBtn">复制<br>链接</button>
                                 <button type="button" id="viewTestItemsBtn">查看<br>测试项</button>
                                 <button type="button" id="viewDataBtn">查看<br>资料</button>
                                 <button type="button" id="viewProblemBtn">查看<br>问题点</button>
@@ -1055,6 +1056,7 @@
                             <label for="tester">当前测试者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
+                                <option value="翟世鸿">翟世鸿</option>
                                 <option value="骆书英">骆书英</option>
                                 <option value="梁秋宇">梁秋宇</option>
                                 <option value="黄梁">黄梁</option>
@@ -1448,6 +1450,21 @@
 
                 // 触发文件选择对话框
                 fileInput.click();
+            });
+
+            // 为 copyLinkBtn 添加点击事件
+            document.getElementById('copyLinkBtn').addEventListener('click', function() {
+                // 获取当前样品的sample_id
+                const sampleId = $('#edit_sample_id').val();
+
+                // 构建中转页面URL
+                const redirectMidPageUrl = `http://219.134.191.195:64000/authRedirect?sample_id=${encodeURIComponent(sampleId)}`;
+
+                // 构建钉钉跳转链接
+                const messageUrl = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+`dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectMidPageUrl)}`;
+
+                // 调用showCustomAlertWithCopy函数显示链接
+                showCustomAlertWithCopy(messageUrl);
             });
 
 
@@ -2007,9 +2024,9 @@
                         }, 2000); // 2000 毫秒 = 2 秒
 
                         // 等待 2 秒后发送给绮敏
-                        // setTimeout(() => {
-                        //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                        // }, 2000); // 2000 毫秒 = 2 秒
+                        setTimeout(() => {
+                            updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                        }, 2000); // 2000 毫秒 = 2 秒
 
                     }else if(dqe && response.message.includes("退样成功")){
                         updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
@@ -2677,8 +2694,9 @@
                                         confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`)
                                             .then((confirmation) => {
                                                 if (confirmation) {
+                                                    alert(item.tester )
                                                     // 检查测试人是否为"/"，如果是则允许删除
-                                                    if (item.tester === "/" || (username && username === item.tester)) {
+                                                    if (item.tester === "/" || item.tester === null || item.tester === "" || (username && username === item.tester)) {
                                                         // 发送删除请求到控制层
                                                         fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
                                                             .then(response => {
