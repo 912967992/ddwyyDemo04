@@ -1653,9 +1653,9 @@ public class testManIndexController {
         int quantity = Integer.parseInt(projectData.get("sample_quantity").toString());
 
 
-        System.out.println("category:"+category);
-        System.out.println("isHighFrequency:"+isHighFrequency);
-        System.out.println("quantity:"+quantity);
+//        System.out.println("category:"+category);
+//        System.out.println("isHighFrequency:"+isHighFrequency);
+//        System.out.println("quantity:"+quantity);
 
         // 20250616 判断是否包含 "XZ"
         if (electric_sample_id != null && !electric_sample_id.isEmpty() && electric_sample_id.contains("XZ")) {
@@ -1687,6 +1687,35 @@ public class testManIndexController {
 
             String scheduleStartTune = (String) projectData.get("schedule_start_date");
             String scheduleEndTune = (String) projectData.get("schedule_end_date");
+            
+            // 修改时间格式：开始时间设置为10:00:00，结束时间设置为18:30:00
+            if (scheduleStartTune != null && !scheduleStartTune.trim().isEmpty()) {
+                // 处理包含T的ISO格式时间，提取日期部分，时间部分设置为10:00:00
+                String datePart;
+                if (scheduleStartTune.contains("T")) {
+                    // 处理ISO格式：2025-07-23T00:00:00
+                    datePart = scheduleStartTune.split("T")[0];
+                } else {
+                    // 处理普通格式：2025-07-23 00:00:00
+                    String[] startParts = scheduleStartTune.split(" ");
+                    datePart = startParts[0];
+                }
+                scheduleStartTune = datePart + " 10:00:00";
+            }
+            
+            if (scheduleEndTune != null && !scheduleEndTune.trim().isEmpty()) {
+                // 处理包含T的ISO格式时间，提取日期部分，时间部分设置为18:30:00
+                String datePart;
+                if (scheduleEndTune.contains("T")) {
+                    // 处理ISO格式：2025-07-23T00:00:00
+                    datePart = scheduleEndTune.split("T")[0];
+                } else {
+                    // 处理普通格式：2025-07-23 00:00:00
+                    String[] endParts = scheduleEndTune.split(" ");
+                    datePart = endParts[0];
+                }
+                scheduleEndTune = datePart + " 18:30:00";
+            }
             String scheduleTestCycle = String.valueOf(projectData.get("scheduleDays"));
 
             // 判断是否包含多个，用逗号分隔
@@ -1987,6 +2016,7 @@ public class testManIndexController {
             String sheetName = sheet.getSheetName();
 
             int successCount = 0, failCount = 0;
+            boolean hasValidIssues = false; // 标记是否有有效的问题点
 
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
@@ -2013,6 +2043,7 @@ public class testManIndexController {
 
                     if (insertedId > 0) {
                         successCount++;
+                        hasValidIssues = true; // 标记有有效问题点
 
                         // 查找“问题视频或图片”列索引
                         int imageColIndex = -1;
@@ -2054,7 +2085,25 @@ public class testManIndexController {
                 }
             }
 
-            result.put("message", "上传并解析成功，共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+            // 如果没有有效的问题点，插入一条默认的问题点记录
+            if (!hasValidIssues) {
+                try {
+                    TestIssues defaultIssue = createDefaultIssue(sampleId, history_id, job);
+                    int insertedId = testManIndexService.insertTestIssues(defaultIssue);
+                    if (insertedId > 0) {
+                        successCount++;
+                        result.put("message", "文件解析完成，未发现有效问题点，已插入默认问题点记录。共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+                    } else {
+                        failCount++;
+                        result.put("message", "文件解析完成，未发现有效问题点，插入默认问题点失败。共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+                    }
+                } catch (Exception e) {
+                    failCount++;
+                    result.put("message", "文件解析完成，未发现有效问题点，插入默认问题点时发生错误: " + e.getMessage() + "。共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+                }
+            } else {
+                result.put("message", "上传并解析成功，共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             result.put("message", "处理文件失败: " + e.getMessage());
@@ -2106,6 +2155,37 @@ public class testManIndexController {
         issue.setDqe_review_at(LocalDateTime.now());
 
         return issue;
+    }
+
+    /**
+     * 创建默认的问题点记录
+     * @param sampleId 样品ID
+     * @param historyId 历史版本ID
+     * @param job 操作人员
+     * @return 默认的TestIssues对象
+     */
+    private TestIssues createDefaultIssue(Integer sampleId, Integer historyId, String job) {
+        TestIssues defaultIssue = new TestIssues();
+        
+        // 设置基本信息
+        defaultIssue.setSample_id(sampleId.toString());
+        defaultIssue.setHistory_id(historyId);
+        defaultIssue.setCreated_at(LocalDateTime.now());
+
+        // 设置默认问题点
+        defaultIssue.setProblem("本次回传无问题点，此条问题点用于迭代作用而已");
+
+        defaultIssue.setTester("/");
+        
+        // 设置其他必要字段的默认值
+        defaultIssue.setDqe_confirm("未确认");
+        defaultIssue.setRd_confirm("未确认");
+        defaultIssue.setDqe_review_at(LocalDateTime.now());
+        
+        // 设置当前时间作为问题时间
+        defaultIssue.setProblem_time(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        
+        return defaultIssue;
     }
 
 

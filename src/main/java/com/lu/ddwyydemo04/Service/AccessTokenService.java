@@ -533,7 +533,8 @@ public class AccessTokenService {
 
                 if(nodeNumber.equals("1")){
                     senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给DQE主管级别,节点负责人为："+sample.getSample_DQE();
-                    receiver = "张华";
+//                    receiver = "张华";
+                    receiver = "李良健";
 //                    receiver = "卢健";
                     personCharge = sample.getSample_DQE();
 

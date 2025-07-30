@@ -1831,8 +1831,8 @@
                                         confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`)
                                             .then((confirmation) => {
                                                 if (confirmation) {
-                                                    // 检查用户名是否匹配
-                                                    if (username && username === item.tester) {
+                                                    // 检查测试人是否为"/"，如果是则允许删除
+                                                    if (item.tester === "/" || (username && username === item.tester)) {
                                                         // 发送删除请求到控制层
                                                         fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
                                                             .then(response => {
