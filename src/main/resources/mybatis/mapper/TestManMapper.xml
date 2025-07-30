@@ -1327,9 +1327,44 @@
           </if>
     </select>
 
+    <!-- 插入变更记录到 change_records 表 -->
+    <insert id="insertChangeRecord" parameterType="ChangeRecord">
+        INSERT INTO change_records (
+            electric_sample_id,
+            tester,
+            start_date,
+            end_date,
+            update_time,
+            schedule_color,
+            is_used,
+            remark
+        ) VALUES (
+            #{electric_sample_id},
+            #{tester},
+            #{start_date},
+            #{end_date},
+            #{update_time},
+            #{schedule_color},
+            #{is_used},
+            #{remark}
+        )
+    </insert>
 
-
-
-
+    <!-- 从 change_records 表获取变更记录 -->
+    <select id="getChangeRecordsBySampleId" resultType="ChangeRecord">
+        SELECT 
+            id,
+            electric_sample_id,
+            tester,
+            start_date,
+            end_date,
+            update_time,
+            schedule_color,
+            is_used,
+            remark
+        FROM change_records
+        WHERE electric_sample_id = #{sample_id}
+        ORDER BY update_time DESC
+    </select>
 
 </mapper>

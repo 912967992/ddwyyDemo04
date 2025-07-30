@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -311,7 +312,6 @@ public class TestManIndexService {
         String scheduleDays = latestChange.get("scheduleDays");
         String schedule_color = latestChange.get("schedule_color");
 
-
         // 如果scheduleDays没有值，这里会显示为null
 //        System.out.println("scheduleDays:"+scheduleDays);
         if ("delete".equals(change) || "drop".equals(change)) {
@@ -327,43 +327,47 @@ public class TestManIndexService {
         }else if("move".equals(change)){
 
         }
-        // 查询旧数据
-        Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
-        if (oldSchedule != null) {
+        
+        // 保存变更记录到 change_records 表
+        try {
             // 获取当前北京时间（东八区）
-            String updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toLocalDateTime();
             String remark = queryRemark(sample_id);
 
-            // 根据 change 类型决定 isUsed 值
-            String isUsed = "0";
+            // 根据 change 类型决定 is_used 值
+            String isUsed = "未使用";
             if ("add".equalsIgnoreCase(change)) {
                 isUsed = "使用";
             } else if ("delete".equalsIgnoreCase(change)) {
                 isUsed = "未使用";
-            }else if("drop".equalsIgnoreCase(change)){
+            } else if("drop".equalsIgnoreCase(change)){
                 isUsed = "作废";
             }
-            String changeLog = tester+ "#" +
-                    start_date + "#" +
-                    end_date + "#" +
-                    updateTime + "#" +
-                    schedule_color + "#" +
-                    isUsed + "#" +
-                    remark;
 
-            // 获取 electric_info 表原有的 changeRecord 内容
-            String existingLog = getChangeRecordBySampleId(sampleId);
-            String newLog = (existingLog == null || existingLog.isEmpty())
-                    ? changeLog
-                    : existingLog + " | " + changeLog;
+            // 创建变更记录对象
+            ChangeRecord changeRecord = new ChangeRecord();
+            changeRecord.setElectric_sample_id(sample_id);
+            changeRecord.setTester(tester);
+            changeRecord.setStart_date(start_date != null && !start_date.isEmpty() ? 
+                LocalDate.parse(start_date) : null);
+            changeRecord.setEnd_date(end_date != null && !end_date.isEmpty() ? 
+                LocalDate.parse(end_date) : null);
+            changeRecord.setUpdate_time(updateTime);
+            changeRecord.setSchedule_color(schedule_color);
+            changeRecord.setIs_used(isUsed);
+            changeRecord.setRemark(remark);
 
-            // 更新 electric_info.changeRecord 字段
-            testManDao.updateChangeRecord(sampleId, newLog);
+            // 插入到 change_records 表
+            int result = insertChangeRecord(changeRecord);
+            if (result > 0) {
+                System.out.println("变更记录保存成功: " + sample_id);
+            } else {
+                System.out.println("变更记录保存失败: " + sample_id);
+            }
+        } catch (Exception e) {
+            System.err.println("保存变更记录时发生错误: " + e.getMessage());
+            e.printStackTrace();
         }
-
-
-
     }
 
     public String getContainerName(String containerId) {
@@ -663,6 +667,16 @@ public class TestManIndexService {
 
     public String queryRemark(String sample_id){
         return testManDao.queryRemark(sample_id);
+    }
+
+    // 插入变更记录到 change_records 表
+    public int insertChangeRecord(ChangeRecord changeRecord){
+        return testManDao.insertChangeRecord(changeRecord);
+    }
+
+    // 从 change_records 表获取变更记录
+    public List<ChangeRecord> getChangeRecordsBySampleId(String sample_id){
+        return testManDao.getChangeRecordsBySampleId(sample_id);
     }
 
     public List<TrashProject> getTrashedProjects(){

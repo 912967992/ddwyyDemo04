@@ -4,11 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.dao.TestManDao;
-import com.lu.ddwyydemo04.pojo.ElectricScheduleInfo;
-import com.lu.ddwyydemo04.pojo.Holiday;
-import com.lu.ddwyydemo04.pojo.PassbackData;
+import com.lu.ddwyydemo04.pojo.*;
 
-import com.lu.ddwyydemo04.pojo.TrashProject;
 import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -847,22 +845,20 @@ public class TestEnvironmentController {
             boolean updateCancel = testManIndexService.cancelElectricalCode(sampleId,cancel_reason,username,
                     job_number,cancelDate);
 
-            // 插入回收站的变更记录
+            // 插入回收站的变更记录到 change_records 表
             String change = (String)request.get("change");
             String sample_id = (String) request.get("sample_id");
             String tester = (String) request.get("tester");
             String start_date = (String)request.get("start_date");
             String end_date = (String)request.get("end_date");
             String schedule_color = (String)request.get("schedule_color");
-            // 查询旧数据
-            Map<String, Object> oldSchedule = testManDao.getScheduleInfoBySampleId(sampleId);
-            if (oldSchedule != null) {
+            
+            try {
                 // 获取当前北京时间（东八区）
-                String updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                LocalDateTime updateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toLocalDateTime();
                 String remark = testManIndexService.queryRemark(sample_id);
 
-                // 根据 change 类型决定 isUsed 值
+                // 根据 change 类型决定 is_used 值
                 String isUsed = "未知";
                 if ("add".equalsIgnoreCase(change)) {
                     isUsed = "使用";
@@ -871,22 +867,30 @@ public class TestEnvironmentController {
                 } else if ("drop".equalsIgnoreCase(change)) {
                     isUsed = "作废";
                 }
-                String changeLog = tester + "#" +
-                        start_date + "#" +
-                        end_date + "#" +
-                        updateTime + "#" +
-                        schedule_color + "#" +
-                        isUsed + "#" +
-                        remark;
 
-                // 获取 electric_info 表原有的 changeRecord 内容
-                String existingLog = testManIndexService.getChangeRecordBySampleId(sampleId);
-                String newLog = (existingLog == null || existingLog.isEmpty())
-                        ? changeLog
-                        : existingLog + " | " + changeLog;
+                // 创建变更记录对象
+                ChangeRecord changeRecord = new ChangeRecord();
+                changeRecord.setElectric_sample_id(sample_id);
+                changeRecord.setTester(tester);
+                changeRecord.setStart_date(start_date != null && !start_date.isEmpty() ? 
+                    LocalDate.parse(start_date) : null);
+                changeRecord.setEnd_date(end_date != null && !end_date.isEmpty() ? 
+                    LocalDate.parse(end_date) : null);
+                changeRecord.setUpdate_time(updateTime);
+                changeRecord.setSchedule_color(schedule_color);
+                changeRecord.setIs_used(isUsed);
+                changeRecord.setRemark(remark);
 
-                // 更新 electric_info.changeRecord 字段
-                testManDao.updateChangeRecord(sampleId, newLog);
+                // 插入到 change_records 表
+                int result = testManIndexService.insertChangeRecord(changeRecord);
+                if (result > 0) {
+                    System.out.println("变更记录保存成功: " + sample_id);
+                } else {
+                    System.out.println("变更记录保存失败: " + sample_id);
+                }
+            } catch (Exception e) {
+                System.err.println("保存变更记录时发生错误: " + e.getMessage());
+                e.printStackTrace();
             }
 
 

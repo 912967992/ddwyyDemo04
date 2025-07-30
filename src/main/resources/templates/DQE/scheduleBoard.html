@@ -497,6 +497,7 @@
                     <table id="changeRecordResultsTable" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🔢 ID序号</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🔌 电气编号</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🏷️ 大编码</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">👤 项目负责人</th>
@@ -504,6 +505,12 @@
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🧪 测试人</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期开始日期</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期结束日期</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🎨 颜色</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🕒 更新时间</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">✅ 是否使用</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📊 排期天数</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🗑️ 是否作废</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📝 作废理由</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📝 备注</th>
                             </tr>
                         </thead>
@@ -4543,7 +4550,7 @@
 
         // 显示加载状态
         document.getElementById('changeRecordResultsPanel').style.display = 'block';
-        document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
+        document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
 
         // 优先使用新的搜索接口，如果失败则回退到旧接口
         fetch('/scheduleBoardController/searchByChangeRecordNew', {
@@ -4595,7 +4602,7 @@
         })
         .catch(error => {
             console.error('变更记录搜索失败:', error);
-            document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
+            document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
         });
     }
 
@@ -4612,7 +4619,7 @@
 
         // 没有结果时
         if (!changeRecordAllResults || changeRecordAllResults.length === 0) {
-            resultsTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
+            resultsTableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
             pagination.style.display = 'none';
             resultsCount.textContent = '搜索结果：0 条记录';
             return;
@@ -4635,8 +4642,9 @@
         resultsCount.textContent = `搜索结果：${totalResults} 条记录`;
 
         // 渲染表格 - 直接显示change_records表的数据
-        const tableHtml = changeRecordCurrentResults.map(item => `
+        const tableHtml = changeRecordCurrentResults.map((item, index) => `
             <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.id || (startIndex + index + 1)}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.electric_sample_id || item.sample_id || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_model || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_leader || '-'}</td>
@@ -4644,6 +4652,15 @@
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.tester || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.start_date) || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.end_date) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">
+                    <span style="display: inline-block; width: 20px; height: 20px; border-radius: 3px; background-color: ${getColorValue(item.schedule_color)}; border: 1px solid #ddd; margin-right: 5px;"></span>
+                    ${item.schedule_color || '-'}
+                </td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.update_time) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_used === 1 ? '是' : item.is_used === 0 ? '否' : '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.scheduleDays || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_cancel === 1 ? '是' : item.is_cancel === 0 ? '否' : '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.cancel_reason || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.remark || '-'}</td>
             </tr>
         `).join('');
@@ -4669,7 +4686,19 @@
     function formatChangeRecordDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        return date.toLocaleString('zh-CN');
+        return date.toISOString().split('T')[0]; // 返回 YYYY-MM-DD 格式
+    }
+
+    // 获取颜色值
+    function getColorValue(colorName) {
+        const colorMap = {
+            'red': '#ff6b6b',
+            'green': '#51cf66',
+            'yellow': '#ffd43b',
+            'gray': '#868e96',
+            'null': '#ffffff'
+        };
+        return colorMap[colorName] || '#ffffff';
     }
 
     // 清空变更记录表单

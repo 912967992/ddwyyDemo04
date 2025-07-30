@@ -191,5 +191,10 @@ public interface TestManDao {
     String getProductApprovalDoc(@Param("sample_id")String sample_id);
     String getProductRequirement(@Param("sample_id")String sample_id);
 
+    // 插入变更记录到 change_records 表
+    int insertChangeRecord(ChangeRecord changeRecord);
+
+    // 从 change_records 表获取变更记录
+    List<ChangeRecord> getChangeRecordsBySampleId(@Param("sample_id") String sample_id);
 
 }

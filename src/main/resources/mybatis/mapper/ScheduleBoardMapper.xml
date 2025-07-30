@@ -92,6 +92,7 @@
     <!-- 基于 changeRecord 的搜索功能 -->
     <select id="searchByChangeRecord" resultType="map">
         SELECT
+            cr.id,
             cr.id as change_record_id,
             cr.electric_sample_id as sample_id,
             cr.tester,
@@ -103,7 +104,10 @@
             cr.remark,
             ei.sample_model,
             ei.sample_leader,
-            ei.sample_sender
+            ei.sample_sender,
+            ei.scheduleDays,
+            ei.isCancel as is_cancel,
+            ei.cancel_reason
         FROM change_records cr
         LEFT JOIN electric_info ei ON cr.electric_sample_id = ei.sample_id
         <where>
@@ -138,6 +142,7 @@
     <!-- 基于新变更记录表的搜索功能 - 直接返回change_records表数据 -->
     <select id="searchByChangeRecordNew" resultType="map">
         SELECT 
+            cr.id,
             cr.electric_sample_id,
             cr.tester,
             cr.start_date,
@@ -148,7 +153,10 @@
             cr.remark,
             ei.sample_model,
             ei.sample_leader,
-            ei.sample_sender
+            ei.sample_sender,
+            ei.scheduleDays,
+            ei.isCancel as is_cancel,
+            ei.cancel_reason
         FROM change_records cr
         LEFT JOIN electric_info ei ON cr.electric_sample_id = ei.sample_id
         <where>

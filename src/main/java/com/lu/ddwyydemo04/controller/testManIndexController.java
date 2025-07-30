@@ -1869,55 +1869,26 @@ public class testManIndexController {
     @GetMapping("/api/getChangeLog")
     @ResponseBody
     public List<Map<String, String>> getChangeLog(@RequestParam String sample_id) {
-        String rawLog = testManIndexService.getChangeRecordBySampleId(sample_id);
+        List<ChangeRecord> changeRecords = testManIndexService.getChangeRecordsBySampleId(sample_id);
         System.out.println("sample_id:"+sample_id);
-        System.out.println("rawLog:"+rawLog);
+        System.out.println("changeRecords count:"+changeRecords.size());
         List<Map<String, String>> result = new ArrayList<>();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        if (changeRecords != null && !changeRecords.isEmpty()) {
+            for (ChangeRecord record : changeRecords) {
+                Map<String, String> map = new HashMap<>();
+                map.put("tester", record.getTester() != null ? record.getTester() : "");
+                map.put("startDate", record.getStart_date() != null ? record.getStart_date().toString() : "");
+                map.put("endDate", record.getEnd_date() != null ? record.getEnd_date().toString() : "");
+                map.put("updateTime", record.getUpdate_time() != null ? record.getUpdate_time().toString() : "");
+                map.put("color", record.getSchedule_color() != null ? record.getSchedule_color() : "");
+                map.put("used", record.getIs_used() != null ? record.getIs_used() : "");
+                map.put("remark", record.getRemark() != null ? record.getRemark() : "");
 
-        if (rawLog != null && !rawLog.trim().isEmpty()) {
-            String[] records = rawLog.split("\\|");
-
-            // 倒序遍历记录
-            for (int i = records.length - 1; i >= 0; i--) {
-                String record = records[i].trim();
-                String[] parts = record.split("#");
-                if (parts.length >= 6) {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("tester", parts[0]);
-                    map.put("startDate", parts[1]);
-                    map.put("endDate", parts[2]);
-                    map.put("updateTime", parts[3] == null || parts[3].equals("null") ? "" : parts[3]);
-                    map.put("color", parts[4]);
-                    map.put("used", parts[5]);
-
-                    // 安全处理 remark
-                    String remark = (parts.length >= 7 && parts[6] != null && !parts[6].equals("null")) ? parts[6] : "";
-                    map.put("remark", remark);
-
-                    result.add(map);
-                }
-
+                result.add(map);
             }
-
-            // 排序：根据 updateTime 倒序
-            result.sort((m1, m2) -> {
-                String t1 = m1.get("updateTime");
-                String t2 = m2.get("updateTime");
-                if (t1.isEmpty() && t2.isEmpty()) return 0;
-                if (t1.isEmpty()) return 1;
-                if (t2.isEmpty()) return -1;
-
-                try {
-                    LocalDateTime time1 = LocalDateTime.parse(t1, formatter);
-                    LocalDateTime time2 = LocalDateTime.parse(t2, formatter);
-                    return time2.compareTo(time1); // 倒序
-                } catch (Exception e) {
-                    return 0; // 出现格式问题时，不参与排序
-                }
-            });
         }
+        
         System.out.println("result:"+result);
         return result;
     }
