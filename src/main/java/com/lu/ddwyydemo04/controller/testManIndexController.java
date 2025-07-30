@@ -319,8 +319,8 @@ public class testManIndexController {
     @ResponseBody
     public Map<String, Object> updateSamples(
             @RequestParam("edit_sample_id") String sample_id,
-            @RequestParam("edit_model") String editModel,
-            @RequestParam("edit_coding") String editCoding,
+            @RequestParam("edit_model") String editModelStr,
+            @RequestParam("edit_coding") String editCodingStr,
             @RequestParam("edit_category") String editCategory,
             @RequestParam("edit_questStats") String questStats,
             @RequestParam("edit_big_species") String big_species,
@@ -355,7 +355,7 @@ public class testManIndexController {
 
             Samples sample = new Samples();
 
-            System.out.println("edit_electric_id:"+edit_electric_id);
+//            System.out.println("edit_electric_id:"+edit_electric_id);
             //先查询这个sample_id是否有electric_info表的真实id
             String testNumber = testManIndexService.queryElectricIdByActualId(sample_id);
             int isExist = testManIndexService.queryElectricalCode(edit_electric_id);
@@ -428,6 +428,9 @@ public class testManIndexController {
 
 
             // 调用服务类的方法来更新样品信息
+            //这里加这两个是因为之前有bug，接收IT那边的时候有携带特殊符号
+            String editModel = sanitizeFileName(editModelStr.trim());
+            String editCoding = sanitizeFileName(editCodingStr.trim());
 
             sample.setSample_id(sample_id);
             sample.setSample_model(editModel);
