@@ -312,7 +312,7 @@ public class ScheduleBoardController {
     @ResponseBody
     public List<Map<String, Object>> searchByChangeRecordNew(@RequestBody Map<String, String> requestData) {
         try {
-            System.out.println("收到新接口请求数据: " + requestData);
+//            System.out.println("收到新接口请求数据: " + requestData);
             
             String ETTestCode = requestData.get("ETTestCode");
             String sampleModel = requestData.get("sampleModel");
@@ -333,7 +333,7 @@ public class ScheduleBoardController {
             List<Map<String, Object>> results = scheduleBoardService.searchByChangeRecordNew(
                 ETTestCode, sampleModel, sampleCategory, sampleLeader, sampleSender, tester, startDate, endDate, 
                 isUsed, isCancel, schedule, remark, dateRangeStart, dateRangeEnd, changeRecordRemark);
-            System.out.println("results:"+results);
+//            System.out.println("results:"+results);
 
             return results;
         } catch (Exception e) {
