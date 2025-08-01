@@ -377,13 +377,23 @@ public class TestManIndexService {
             case "videoSamplePool":
                 return "视频类";
             case "wireSamplePool":
-                return "线材类";
+                return "数据线类";
+            case "audioVideoWireSamplePool":
+                return "音视频线类";
             case "dataSamplePool":
                 return "数据类";
             case "bluetoothSamplePool":
                 return "蓝牙类";
             case "highFrequencySamplePool":
                 return "高频类";
+            case "keyboardMouseSamplePool":
+                return "键鼠类";
+            case "headphoneSamplePool":
+                return "耳机类";
+            case "locatorSamplePool":
+                return "定位器类";
+            case "ipcSamplePool":
+                return "IPC类";
             default:
                 return "未知池子";
         }

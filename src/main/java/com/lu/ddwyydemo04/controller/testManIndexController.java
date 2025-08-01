@@ -2027,7 +2027,7 @@ public class testManIndexController {
                         successCount++;
                         hasValidIssues = true; // 标记有有效问题点
 
-                        // 查找“问题视频或图片”列索引
+                        // 查找"问题视频或图片"列索引
                         int imageColIndex = -1;
                         for (int i = 0; i < headers.size(); i++) {
                             if (headers.get(i).contains("问题视频或图片")) {
@@ -2225,5 +2225,26 @@ public class testManIndexController {
     @Value("${file.storage.issuespath}")
     private String issuespath;
 
+    @GetMapping("/testScheduleEndTime")
+    @ResponseBody
+    public ResponseEntity<String> testScheduleEndTime() {
+        try {
+            accessTokenService.testScheduleEndTimeQuery();
+            return ResponseEntity.ok("排期结束时间检查测试完成，请查看日志");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("测试失败: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/testFindAllValidSamples")
+    @ResponseBody
+    public ResponseEntity<String> testFindAllValidSamples() {
+        try {
+            accessTokenService.testFindAllValidSamples();
+            return ResponseEntity.ok("findAllValidSamples测试完成，请查看日志");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("测试失败: " + e.getMessage());
+        }
+    }
 
 }

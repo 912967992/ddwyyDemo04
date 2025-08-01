@@ -134,6 +134,9 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 添加阴影效果 */
+    /* 确保水平滚动正常工作 */
+    overflow-x: auto;
+    overflow-y: auto;
 }
 
 /* 冻结表头样式 */
@@ -253,6 +256,7 @@
 
 #scheduleBoardTable {
     width: 100%;
+    min-width: 1200px; /* 确保表格有最小宽度，触发水平滚动 */
     border-collapse: collapse;
     background-color: #ffffff;
     margin: 0; /* 确保没有外边距 */
@@ -263,7 +267,7 @@
     border: 1px solid #ccc;
     padding: 8px;
     text-align: center;
-
+    min-width: 100px; /* 确保单元格有最小宽度 */
     white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -279,6 +283,7 @@
     padding: 10px 8px;
     text-align: center;
     vertical-align: middle;
+    min-width: 100px; /* 确保表头单元格有最小宽度 */
 
     background-color: #d9edf7;
     font-weight: bold;
@@ -428,14 +433,159 @@
     border-bottom: 1px solid #ccc;
     padding-bottom: 10px;
 }
-#videoSamplePool, #wireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool {
+
+/* 新增：两列布局样式 */
+.pending-sample-columns {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.pending-sample-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 600px; /* 固定列高度 */
+    overflow-y: auto; /* 如果内容过多，允许滚动 */
+}
+
+.pending-sample-column:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.pending-sample-column .pending-sample-category {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+    transition: all 0.2s ease;
+    flex: 1; /* 让每个类别区域平均分配空间 */
+    display: flex;
+    flex-direction: column;
+    min-height: 110px; /* 最小高度确保一致性 */
+}
+
+.pending-sample-column .pending-sample-category:hover {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px;
+    margin: -8px -8px 7px -8px;
+}
+
+.pending-sample-column .pending-sample-category:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.pending-sample-column h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+    padding: 5px 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+    transition: all 0.2s ease;
+    height: 28px; /* 固定标题高度 */
+    display: flex;
+    align-items: center;
+    flex-shrink: 0; /* 防止标题被压缩 */
+}
+
+.pending-sample-column h3:hover {
+    background-color: #dee2e6;
+    transform: translateX(2px);
+}
+
+#videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-    background-color: #f9f9f9;
+    gap: 8px;
+    padding: 8px;
+    background-color: #ffffff;
     justify-content: flex-start;
     overflow-y: auto;
+    height: 80px; /* 固定高度，确保所有池子大小一致 */
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    flex: 1; /* 让池子容器占满剩余空间 */
+}
+
+/* 待送样池子中的项目卡片特殊样式 */
+.pending-sample-column .pending-sample-card {
+    width: 140px;
+    height: 28px;
+    font-size: 12px;
+    margin: 2px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.pending-sample-column .pending-sample-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* 待送样池子的滚动条样式 */
+#videoSamplePool::-webkit-scrollbar,
+#dataWireSamplePool::-webkit-scrollbar,
+#audioVideoWireSamplePool::-webkit-scrollbar,
+#dataSamplePool::-webkit-scrollbar,
+#bluetoothSamplePool::-webkit-scrollbar,
+#highFrequencySamplePool::-webkit-scrollbar,
+#keyboardMouseSamplePool::-webkit-scrollbar,
+#headphoneSamplePool::-webkit-scrollbar,
+#locatorSamplePool::-webkit-scrollbar,
+#ipcSamplePool::-webkit-scrollbar {
+    width: 6px;
+}
+
+#videoSamplePool::-webkit-scrollbar-track,
+#dataWireSamplePool::-webkit-scrollbar-track,
+#audioVideoWireSamplePool::-webkit-scrollbar-track,
+#dataSamplePool::-webkit-scrollbar-track,
+#bluetoothSamplePool::-webkit-scrollbar-track,
+#highFrequencySamplePool::-webkit-scrollbar-track,
+#keyboardMouseSamplePool::-webkit-scrollbar-track,
+#headphoneSamplePool::-webkit-scrollbar-track,
+#locatorSamplePool::-webkit-scrollbar-track,
+#ipcSamplePool::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+#videoSamplePool::-webkit-scrollbar-thumb,
+#dataWireSamplePool::-webkit-scrollbar-thumb,
+#audioVideoWireSamplePool::-webkit-scrollbar-thumb,
+#dataSamplePool::-webkit-scrollbar-thumb,
+#bluetoothSamplePool::-webkit-scrollbar-thumb,
+#highFrequencySamplePool::-webkit-scrollbar-thumb,
+#keyboardMouseSamplePool::-webkit-scrollbar-thumb,
+#headphoneSamplePool::-webkit-scrollbar-thumb,
+#locatorSamplePool::-webkit-scrollbar-thumb,
+#ipcSamplePool::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+#videoSamplePool::-webkit-scrollbar-thumb:hover,
+#dataWireSamplePool::-webkit-scrollbar-thumb:hover,
+#audioVideoWireSamplePool::-webkit-scrollbar-thumb:hover,
+#dataSamplePool::-webkit-scrollbar-thumb:hover,
+#bluetoothSamplePool::-webkit-scrollbar-thumb:hover,
+#highFrequencySamplePool::-webkit-scrollbar-thumb:hover,
+#keyboardMouseSamplePool::-webkit-scrollbar-thumb:hover,
+#headphoneSamplePool::-webkit-scrollbar-thumb:hover,
+#locatorSamplePool::-webkit-scrollbar-thumb:hover,
+#ipcSamplePool::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 #addProjectModal {
@@ -457,6 +607,73 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: 22px;
+}
+
+/* 为新的池子类别添加特殊样式 */
+#dataWireSamplePool {
+    border-left: 4px solid #2196F3; /* 蓝色边框 */
+}
+
+#audioVideoWireSamplePool {
+    border-left: 4px solid #FF9800; /* 橙色边框 */
+}
+
+#keyboardMouseSamplePool {
+    border-left: 4px solid #9C27B0; /* 紫色边框 */
+}
+
+#headphoneSamplePool {
+    border-left: 4px solid #E91E63; /* 粉色边框 */
+}
+
+#locatorSamplePool {
+    border-left: 4px solid #607D8B; /* 蓝灰色边框 */
+}
+
+#ipcSamplePool {
+    border-left: 4px solid #795548; /* 棕色边框 */
+}
+
+/* 为不同类别的标题添加颜色标识 */
+.pending-sample-column .pending-sample-category:nth-child(1) h3 {
+    border-left-color: #dc3545; /* 视频类 - 红色 */
+}
+
+.pending-sample-column .pending-sample-category:nth-child(2) h3 {
+    border-left-color: #2196F3; /* 数据线类 - 蓝色 */
+}
+
+.pending-sample-column .pending-sample-category:nth-child(3) h3 {
+    border-left-color: #FF9800; /* 音视频线类 - 橙色 */
+}
+
+.pending-sample-column .pending-sample-category:nth-child(4) h3 {
+    border-left-color: #4CAF50; /* 数据类 - 绿色 */
+}
+
+.pending-sample-column .pending-sample-category:nth-child(5) h3 {
+    border-left-color: #9C27B0; /* 蓝牙类 - 紫色 */
+}
+
+/* 右列的颜色标识 */
+.pending-sample-column:last-child .pending-sample-category:nth-child(1) h3 {
+    border-left-color: #E91E63; /* 键鼠类 - 粉色 */
+}
+
+.pending-sample-column:last-child .pending-sample-category:nth-child(2) h3 {
+    border-left-color: #607D8B; /* 耳机类 - 蓝灰色 */
+}
+
+.pending-sample-column:last-child .pending-sample-category:nth-child(3) h3 {
+    border-left-color: #795548; /* 定位器类 - 棕色 */
+}
+
+.pending-sample-column:last-child .pending-sample-category:nth-child(4) h3 {
+    border-left-color: #FF5722; /* IPC类 - 深橙色 */
+}
+
+.pending-sample-column:last-child .pending-sample-category:nth-child(5) h3 {
+    border-left-color: #00BCD4; /* 高频类 - 青色 */
 }
 
 #manageHolidaysBtn, #manageTesterBtn {
@@ -609,18 +826,27 @@
     padding: 4px 8px;
     border-radius: 4px;
     display: inline-block;
+    color: #dc3545;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
 }
 
 .tester-name:hover {
-    background-color: #e3f2fd;
+    background-color: #f8d7da;
+    color: #721c24;
     transform: scale(1.05);
+    border-radius: 4px;
+    padding: 2px 4px;
+    border: 1px solid #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
 }
 
 /* 高亮的测试人员姓名 */
 .tester-name.highlighted-tester {
-    background-color: #1976d2 !important;
+    background-color: #dc3545 !important;
     color: white !important;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
     transform: scale(1.1);
 }
 
@@ -628,19 +854,19 @@
 #scheduleBoardTable tbody tr.highlighted-row {
     position: relative;
     z-index: 1;
-    outline: 3px solid #1976d2;
+    outline: 3px solid #dc3545;
     outline-offset: -3px;
 }
 
 /* 高亮行中的单元格 - 只设置边框颜色 */
 #scheduleBoardTable tbody tr.highlighted-row td {
-    border-color: #1976d2 !important;
+    border-color: #dc3545 !important;
     position: relative;
 }
 
 /* 高亮行中的项目单元格 - 完全保持项目原有颜色 */
 #scheduleBoardTable tbody tr.highlighted-row td.assigned {
-    border-color: #1976d2 !important;
+    border-color: #dc3545 !important;
     position: relative;
 }
 
@@ -792,16 +1018,71 @@
 }
 
 #closeSearchModalBtn:hover {
-    background-color: #d5d5d5;
+    background-color: #c82333;
 }
 
 #searchBtn , #changeRecordSearchBtn{
     padding: 6px 12px;
-    background-color: #4c9daf;
+    background-color: #17a2b8;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 22px;
+}
+
+/* 响应式设计：待送样池子两列布局 */
+@media (max-width: 1200px) {
+    .pending-sample-columns {
+        gap: 15px;
+    }
+    
+    .pending-sample-column {
+        height: 550px;
+    }
+    
+    .pending-sample-column h3 {
+        font-size: 13px;
+    }
+    
+    #videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
+        gap: 6px;
+        padding: 6px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pending-sample-columns {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .pending-sample-column {
+        width: 100%;
+        height: auto;
+        min-height: 400px;
+    }
+    
+    .pending-sample-column .pending-sample-category {
+        margin-bottom: 10px;
+        min-height: 90px;
+    }
+    
+    .pending-sample-column h3 {
+        font-size: 12px;
+    }
+    
+    #videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
+        gap: 5px;
+        padding: 5px;
+        height: 60px;
+    }
+    
+    .project-card, .pending-sample-card {
+        width: 120px;
+        height: 25px;
+        font-size: 12px;
+    }
 }
 

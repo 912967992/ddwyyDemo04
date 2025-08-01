@@ -586,6 +586,16 @@
         WHERE sample_id = #{sample_id}
     </select>
 
+    <!-- 查询所有有效的samples记录（用于Java端过滤） -->
+    <select id="findAllValidSamples" resultType="Samples">
+        SELECT * FROM samples 
+        WHERE scheduleEndTime IS NOT NULL
+        AND tester IS NOT NULL 
+        AND tester != ''
+        AND sample_schedule != '4'  -- 排除已完成的样品
+        AND sample_schedule != '9'  -- 排除测试人员退样的样品
+        AND sample_schedule != '10' -- 排除测试人员竞品完成的样品
+    </select>
 
 
 </mapper>

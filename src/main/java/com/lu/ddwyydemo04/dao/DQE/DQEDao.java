@@ -144,4 +144,9 @@ public interface DQEDao {
                         @Param("responsible_category")String responsible_category);
 
     String queryResultJudge(@Param("sample_id")String sample_id);
+    
+    /**
+     * 查询所有有效的samples记录（用于Java端过滤）
+     */
+    List<Samples> findAllValidSamples();
 }

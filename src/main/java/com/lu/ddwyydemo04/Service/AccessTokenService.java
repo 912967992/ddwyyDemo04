@@ -929,4 +929,200 @@ public class AccessTokenService {
     }
 
 
+    @Scheduled(fixedRate = 900000) // 15分钟 = 900000毫秒
+    public void checkScheduleEndTime() {
+        logger.info("开始执行排期结束时间检查任务...");
+        
+        try {
+            // 获取当前时间
+            LocalDateTime currentTime = LocalDateTime.now();
+            // 计算1小时后的时间
+            LocalDateTime oneHourLater = currentTime.plusHours(1);
+            
+            logger.info("当前时间: " + currentTime + ", 检查时间范围: " + oneHourLater.minusMinutes(15) + " 到 " + oneHourLater.plusMinutes(15));
+            
+            // 查询距离排期结束时间还有1小时的samples记录
+            List<Samples> samplesToNotify = findSamplesNearScheduleEndTime(oneHourLater);
+            
+            logger.info("找到 " + samplesToNotify.size() + " 个样品需要发送通知");
+            
+            for (Samples sample : samplesToNotify) {
+                try {
+                    // 获取测试人员姓名
+                    String tester = sample.getTester();
+                    if (tester != null && !tester.trim().isEmpty()) {
+                        // 发送通知给测试人员
+                        sendScheduleEndTimeNotification(tester, sample);
+                        logger.info("已发送排期结束时间通知给测试人员: " + tester + ", 样品ID: " + sample.getSample_id());
+                    } else {
+                        logger.warn("样品ID: " + sample.getSample_id() + " 的测试人员为空，跳过通知");
+                    }
+                } catch (Exception e) {
+                    logger.error("发送排期结束时间通知失败，样品ID: " + sample.getSample_id() + ", 错误: " + e.getMessage(), e);
+                }
+            }
+            
+            if (!samplesToNotify.isEmpty()) {
+                logger.info("本次检查发现 " + samplesToNotify.size() + " 个样品需要发送排期结束时间通知");
+            } else {
+                logger.info("本次检查没有发现需要发送排期结束时间通知的样品");
+            }
+            
+        } catch (Exception e) {
+            logger.error("执行排期结束时间检查任务时出错: ", e);
+        }
+    }
+    
+    /**
+     * 查询距离排期结束时间还有1小时的samples记录
+     */
+    private List<Samples> findSamplesNearScheduleEndTime(LocalDateTime targetTime) {
+        // 先获取所有有效的samples记录
+        List<Samples> allSamples = dqeDao.findAllValidSamples();
+        List<Samples> filteredSamples = new ArrayList<>();
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        
+        for (Samples sample : allSamples) {
+            try {
+                String scheduleEndTimeStr = sample.getScheduleEndTime();
+                if (scheduleEndTimeStr != null && !scheduleEndTimeStr.trim().isEmpty()) {
+                    // 验证日期格式
+                    if (scheduleEndTimeStr.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                        LocalDateTime scheduleEndTime = LocalDateTime.parse(scheduleEndTimeStr, formatter);
+                        
+                        // 检查是否在目标时间前后15分钟范围内
+                        LocalDateTime startTime = targetTime.minusMinutes(15);
+                        LocalDateTime endTime = targetTime.plusMinutes(15);
+                        
+                        if (scheduleEndTime.isAfter(startTime) && scheduleEndTime.isBefore(endTime)) {
+                            filteredSamples.add(sample);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("解析样品ID " + sample.getSample_id() + " 的排期结束时间失败: " + sample.getScheduleEndTime() + ", 错误: " + e.getMessage());
+            }
+        }
+        
+        return filteredSamples;
+    }
+    
+    /**
+     * 发送排期结束时间通知给测试人员
+     */
+    private void sendScheduleEndTimeNotification(String tester, Samples sample) throws ApiException, UnsupportedEncodingException {
+        // 获取测试人员的userId
+        String userId = getUserIdByName(tester);
+        
+        if (userId == null || userId.isEmpty()) {
+            logger.warn("未找到测试人员 " + tester + " 的userId");
+            return;
+        }
+        
+        // 构建通知消息
+        String messageContent = buildScheduleEndTimeMessage(sample);
+        
+        // 发送文本消息通知
+        sendTextNotification(userId, messageContent);
+    }
+    
+    /**
+     * 构建排期结束时间通知消息
+     */
+    private String buildScheduleEndTimeMessage(Samples sample) {
+        StringBuilder message = new StringBuilder();
+        message.append("【排期提醒】\n");
+        message.append("您的测试样品即将到达排期结束时间：\n");
+        message.append("样品ID: ").append(sample.getSample_id()).append("\n");
+        message.append("完整型号: ").append(sample.getFull_model()).append("\n");
+        message.append("产品名称: ").append(sample.getSample_name()).append("\n");
+        message.append("排期结束时间: ").append(sample.getScheduleEndTime()).append("\n");
+        message.append("距离结束时间还有1小时，请及时完成测试工作！");
+        
+        return message.toString();
+    }
+    
+    /**
+     * 发送文本消息通知
+     */
+    private void sendTextNotification(String userId, String content) throws ApiException {
+        DingTalkClient client = new DefaultDingTalkClient(SEND_MESSAGE_URL);
+        OapiMessageCorpconversationAsyncsendV2Request request = new OapiMessageCorpconversationAsyncsendV2Request();
+        
+        request.setAgentId(AGENT_ID);
+        request.setUseridList(userId);
+        request.setToAllUser(false);
+        
+        // 设置文本消息
+        OapiMessageCorpconversationAsyncsendV2Request.Msg msg = new OapiMessageCorpconversationAsyncsendV2Request.Msg();
+        msg.setMsgtype("text");
+        
+        OapiMessageCorpconversationAsyncsendV2Request.Text text = new OapiMessageCorpconversationAsyncsendV2Request.Text();
+        text.setContent(content);
+        msg.setText(text);
+        
+        request.setMsg(msg);
+        
+        // 发送请求
+        OapiMessageCorpconversationAsyncsendV2Response response = client.execute(request, getAccessToken());
+        
+        if (response.getErrcode() != 0) {
+            logger.error("发送文本通知失败，错误码: " + response.getErrcode() + "，错误信息: " + response.getErrmsg());
+        }
+    }
+    
+    /**
+     * 测试方法：验证SQL查询是否正常工作
+     */
+    public void testScheduleEndTimeQuery() {
+        try {
+            LocalDateTime testTime = LocalDateTime.now().plusHours(1);
+            logger.info("开始测试排期结束时间检查，目标时间: " + testTime);
+            
+            // 先获取所有有效记录
+            List<Samples> allSamples = dqeDao.findAllValidSamples();
+            logger.info("数据库中共有 " + allSamples.size() + " 个有效样品记录");
+            
+            // 进行过滤
+            List<Samples> samples = findSamplesNearScheduleEndTime(testTime);
+            logger.info("过滤后找到 " + samples.size() + " 个需要通知的样品");
+            
+            for (Samples sample : samples) {
+                logger.info("样品ID: " + sample.getSample_id() + 
+                          ", 排期结束时间: " + sample.getScheduleEndTime() + 
+                          ", 测试人员: " + sample.getTester() +
+                          ", 完整型号: " + sample.getFull_model());
+            }
+        } catch (Exception e) {
+            logger.error("测试查询失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 简单测试方法：只测试findAllValidSamples查询
+     */
+    public void testFindAllValidSamples() {
+        try {
+            logger.info("开始测试findAllValidSamples查询...");
+            List<Samples> allSamples = dqeDao.findAllValidSamples();
+            logger.info("查询成功，找到 " + allSamples.size() + " 个有效样品记录");
+            
+            // 显示前5个记录的scheduleEndTime值
+            int count = 0;
+            for (Samples sample : allSamples) {
+                if (count < 5) {
+                    logger.info("样品ID: " + sample.getSample_id() + 
+                              ", scheduleEndTime: '" + sample.getScheduleEndTime() + "'" +
+                              ", tester: '" + sample.getTester() + "'");
+                    count++;
+                } else {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("测试findAllValidSamples失败: " + e.getMessage(), e);
+        }
+    }
+
 }

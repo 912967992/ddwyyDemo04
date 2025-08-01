@@ -6,6 +6,94 @@
   <!-- 引入外部CSS文件 -->
   <link rel="stylesheet" href="/css/scheduleBoard.css">
 
+  <!-- 自定义 Alert 组件样式 -->
+  <style>
+    .custom-alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .custom-alert {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      position: relative;
+      animation: alertSlideIn 0.3s ease-out;
+    }
+
+    @keyframes alertSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .custom-alert-message {
+      margin-bottom: 20px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      word-wrap: break-word;
+    }
+
+    .custom-alert-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    .custom-alert-button:hover {
+      background: #0056b3;
+    }
+
+    .custom-alert-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #999;
+      line-height: 1;
+    }
+
+    .custom-alert-close:hover {
+      color: #333;
+    }
+
+    .custom-alert-timer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #007bff;
+      border-radius: 0 0 8px 8px;
+      transition: width 0.1s linear;
+    }
+  </style>
+
 </head>
 <body>
 
@@ -35,25 +123,53 @@
   </div>
   <div class="pending-sample-container">
     <h2>待送样池子</h2>
-    <div class="pending-sample-category">
-      <h3>视频类</h3>
-      <div id="videoSamplePool">加载中...</div>
-    </div>
-    <div class="pending-sample-category">
-      <h3>线材类</h3>
-      <div id="wireSamplePool">加载中...</div>
-    </div>
-    <div class="pending-sample-category">
-      <h3>数据类</h3>
-      <div id="dataSamplePool">加载中...</div>
-    </div>
-    <div class="pending-sample-category">
-      <h3>蓝牙类</h3>
-      <div id="bluetoothSamplePool">加载中...</div>
-    </div>
-    <div class="pending-sample-category">
-      <h3>高频类</h3>
-      <div id="highFrequencySamplePool">加载中...</div>
+    <div class="pending-sample-columns">
+      <!-- 左列 -->
+      <div class="pending-sample-column">
+        <div class="pending-sample-category">
+          <h3>视频类</h3>
+          <div id="videoSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>数据线类</h3>
+          <div id="wireSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>音视频线类</h3>
+          <div id="audioVideoWireSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>数据类</h3>
+          <div id="dataSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>蓝牙类</h3>
+          <div id="bluetoothSamplePool">加载中...</div>
+        </div>
+      </div>
+      <!-- 右列 -->
+      <div class="pending-sample-column">
+        <div class="pending-sample-category">
+          <h3>键鼠类</h3>
+          <div id="keyboardMouseSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>耳机类</h3>
+          <div id="headphoneSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>定位器类</h3>
+          <div id="locatorSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>IPC类</h3>
+          <div id="ipcSamplePool">加载中...</div>
+        </div>
+        <div class="pending-sample-category">
+          <h3>高频类</h3>
+          <div id="highFrequencySamplePool">加载中...</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -497,6 +613,7 @@
           <table id="changeRecordResultsTable" style="width: 100%; border-collapse: collapse;">
             <thead>
             <tr>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🔢 ID序号</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🔌 电气编号</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🏷️ 大编码</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">👤 项目负责人</th>
@@ -504,6 +621,11 @@
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🧪 测试人</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期开始日期</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📅 排期结束日期</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📊 排期天数</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🎨 颜色</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🕒 更新时间</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">✅ 是否使用</th>
+              <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🗑️ 是否作废</th>
               <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📝 备注</th>
             </tr>
             </thead>
@@ -681,6 +803,63 @@
 
     dragPreview.style.left = (e.clientX - dragPreview.offsetWidth / 2) + 'px';
     dragPreview.style.top = (e.clientY - dragPreview.offsetHeight / 2) + 'px';
+
+    // 获取排期表格容器
+    const scheduleContainer = document.querySelector('.schedule-table-container');
+    if (!scheduleContainer) return;
+
+    // 自动滚动逻辑 - 垂直和水平方向
+    const scrollSpeed = 10; // 滚动速度
+    const triggerDistance = 50; // 触发滚动的距离
+    const containerRect = scheduleContainer.getBoundingClientRect();
+    const { clientX, clientY } = e;
+
+    // 调试信息 - 每10次移动输出一次
+    if (!window.debugCounter) window.debugCounter = 0;
+    window.debugCounter++;
+    if (window.debugCounter % 10 === 0) {
+      console.log('鼠标位置:', clientX, clientY, '容器位置:', containerRect);
+      console.log('右侧触发条件:', clientX, '>', containerRect.right - triggerDistance, '=', clientX > containerRect.right - triggerDistance);
+      console.log('顶部触发条件:', clientY, '<', containerRect.top + triggerDistance, '=', clientY < containerRect.top + triggerDistance);
+      console.log('底部触发条件:', clientY, '>', containerRect.bottom - triggerDistance, '=', clientY > containerRect.bottom - triggerDistance);
+      console.log('容器滚动位置:', scheduleContainer.scrollTop, scheduleContainer.scrollLeft);
+    }
+
+    // 垂直方向自动滚动
+    // 靠近容器顶部，向上滚动
+    if (clientY < containerRect.top + triggerDistance) {
+      scheduleContainer.scrollTop -= scrollSpeed;
+      console.log('向上滚动', clientY, containerRect.top + triggerDistance);
+    }
+    // 靠近容器底部，向下滚动
+    else if (clientY > containerRect.bottom - triggerDistance) {
+      scheduleContainer.scrollTop += scrollSpeed;
+      console.log('向下滚动', clientY, containerRect.bottom - triggerDistance);
+    }
+
+    // 同时支持window滚动（当鼠标在容器外时）
+    // 靠近页面顶部，向上滚动window
+    if (clientY < triggerDistance) {
+      window.scrollBy(0, -scrollSpeed);
+      console.log('window向上滚动', clientY, triggerDistance);
+    }
+    // 靠近页面底部，向下滚动window
+    else if (clientY > window.innerHeight - triggerDistance) {
+      window.scrollBy(0, scrollSpeed);
+      console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
+    }
+
+    // 水平方向自动滚动
+    // 靠近容器左侧，向左滚动
+    if (clientX < containerRect.left + triggerDistance) {
+      scheduleContainer.scrollLeft -= scrollSpeed;
+      console.log('向左滚动', clientX, containerRect.left + triggerDistance);
+    }
+    // 靠近容器右侧，向右滚动
+    else if (clientX > containerRect.right - triggerDistance) {
+      scheduleContainer.scrollLeft += scrollSpeed;
+      console.log('向右滚动', clientX, containerRect.right - triggerDistance);
+    }
   }
 
   // 处理鼠标点击（放下）
@@ -701,9 +880,14 @@
       'projectPool',
       'videoSamplePool',
       'wireSamplePool',
+      'audioVideoWireSamplePool',
       'dataSamplePool',
       'bluetoothSamplePool',
-      'highFrequencySamplePool'
+      'highFrequencySamplePool',
+      'keyboardMouseSamplePool',
+      'headphoneSamplePool',
+      'locatorSamplePool',
+      'ipcSamplePool'
     ];
 
     // 查找最近的 .drop-cell 元素
@@ -748,9 +932,14 @@
               'projectPool',
               'videoSamplePool',
               'wireSamplePool',
+              'audioVideoWireSamplePool',
               'dataSamplePool',
               'bluetoothSamplePool',
-              'highFrequencySamplePool'
+              'highFrequencySamplePool',
+              'keyboardMouseSamplePool',
+              'headphoneSamplePool',
+              'locatorSamplePool',
+              'ipcSamplePool'
             ];
             for (const poolId of poolIds) {
               const pool = document.getElementById(poolId);
@@ -778,9 +967,14 @@
       'projectPool',
       'videoSamplePool',
       'wireSamplePool',
+      'audioVideoWireSamplePool',
       'dataSamplePool',
       'bluetoothSamplePool',
-      'highFrequencySamplePool'
+      'highFrequencySamplePool',
+      'keyboardMouseSamplePool',
+      'headphoneSamplePool',
+      'locatorSamplePool',
+      'ipcSamplePool'
     ];
 
     poolIds.forEach(poolId => {
@@ -921,9 +1115,14 @@
         'projectPool',
         'videoSamplePool',
         'wireSamplePool',
+        'audioVideoWireSamplePool',
         'dataSamplePool',
         'bluetoothSamplePool',
-        'highFrequencySamplePool'
+        'highFrequencySamplePool',
+        'keyboardMouseSamplePool',
+        'headphoneSamplePool',
+        'locatorSamplePool',
+        'ipcSamplePool'
       ];
 
       for (const poolId of poolIds) {
@@ -1762,9 +1961,14 @@
       'projectPool',
       'videoSamplePool',
       'wireSamplePool',
+      'audioVideoWireSamplePool',
       'dataSamplePool',
       'bluetoothSamplePool',
-      'highFrequencySamplePool'
+      'highFrequencySamplePool',
+      'keyboardMouseSamplePool',
+      'headphoneSamplePool',
+      'locatorSamplePool',
+      'ipcSamplePool'
     ];
 
     // 调用通用函数为待送样池子的容器添加拖拽事件
@@ -1776,19 +1980,46 @@
 
         cell.classList.add('over');
 
-        // 自动滚动逻辑
+        // 获取排期表格容器
+        const scheduleContainer = document.querySelector('.schedule-table-container');
+        if (!scheduleContainer) return;
+
+        // 自动滚动逻辑 - 垂直和水平方向
         const scrollSpeed = 10; // 滚动速度
         const triggerDistance = 50; // 触发滚动的距离
-        const viewportHeight = window.innerHeight;
-        const { clientY } = e;
+        const containerRect = scheduleContainer.getBoundingClientRect();
+        const { clientX, clientY } = e;
 
-        // 靠近顶部，向上滚动
+        // 垂直方向自动滚动
+        // 靠近容器顶部，向上滚动
+        if (clientY < containerRect.top + triggerDistance) {
+          scheduleContainer.scrollTop -= scrollSpeed;
+        }
+        // 靠近容器底部，向下滚动
+        else if (clientY > containerRect.bottom - triggerDistance) {
+          scheduleContainer.scrollTop += scrollSpeed;
+        }
+
+        // 同时支持window滚动（当鼠标在容器外时）
+        // 靠近页面顶部，向上滚动window
         if (clientY < triggerDistance) {
           window.scrollBy(0, -scrollSpeed);
         }
-        // 靠近底部，向下滚动
-        else if (clientY > viewportHeight - triggerDistance) {
+        // 靠近页面底部，向下滚动window
+        else if (clientY > window.innerHeight - triggerDistance) {
           window.scrollBy(0, scrollSpeed);
+        }
+
+        // 水平方向自动滚动
+        // 靠近容器左侧，向左滚动
+        if (clientX < containerRect.left + triggerDistance) {
+          scheduleContainer.scrollLeft -= scrollSpeed;
+          console.log('单元格向左滚动', clientX, containerRect.left + triggerDistance);
+        }
+        // 靠近容器右侧，向右滚动
+        else if (clientX > containerRect.right - triggerDistance) {
+          scheduleContainer.scrollLeft += scrollSpeed;
+          console.log('单元格向右滚动', clientX, containerRect.right - triggerDistance);
         }
       });
 
@@ -3067,10 +3298,15 @@
   function loadPendingSamplePoolData() {
     const categories = [
       { id: 'videoSamplePool', name: '视频类' },
-      { id: 'wireSamplePool', name: '线材类' },
+      { id: 'wireSamplePool', name: '数据线类' },
+      { id: 'audioVideoWireSamplePool', name: '音视频线类' },
       { id: 'dataSamplePool', name: '数据类' },
       { id: 'bluetoothSamplePool', name: '蓝牙类' },
-      { id: 'highFrequencySamplePool', name: '高频类' }
+      { id: 'highFrequencySamplePool', name: '高频类' },
+      { id: 'keyboardMouseSamplePool', name: '键鼠类' },
+      { id: 'headphoneSamplePool', name: '耳机类' },
+      { id: 'locatorSamplePool', name: '定位器类' },
+      { id: 'ipcSamplePool', name: 'IPC类' }
     ];
 
     categories.forEach(category => {
@@ -3080,10 +3316,48 @@
                 renderPendingSamplePool(data, category.id);
               })
               .catch(error => {
-                document.getElementById(category.id).innerHTML = '加载失败，请稍后重试。';
-                console.error('Error fetching pending sample data:', error);
+                // 如果后端接口不存在，为新的池子添加示例数据
+                if (error.message.includes('404') || error.message.includes('Not Found')) {
+                  const sampleData = getSampleDataForCategory(category.name);
+                  renderPendingSamplePool(sampleData, category.id);
+                } else {
+                  document.getElementById(category.id).innerHTML = '加载失败，请稍后重试。';
+                  console.error('Error fetching pending sample data:', error);
+                }
               });
     });
+  }
+
+  // 为新的池子类别提供示例数据
+  function getSampleDataForCategory(categoryName) {
+    const sampleData = {
+      '数据线类': [
+        { sample_id: 'DT001', sample_name: 'USB-C数据线', sample_model: 'USB-C', materialCode: 'DT001', sample_leader: '张三', scheduleDays: 2, schedule_color: 'green', remark: '高速传输' },
+        { sample_id: 'DT002', sample_name: 'Type-C充电线', sample_model: 'Type-C', materialCode: 'DT002', sample_leader: '李四', scheduleDays: 1, schedule_color: 'yellow', remark: '快充支持' }
+      ],
+      '音视频线类': [
+        { sample_id: 'AV001', sample_name: 'HDMI高清线', sample_model: 'HDMI', materialCode: 'AV001', sample_leader: '王五', scheduleDays: 3, schedule_color: 'blue', remark: '4K传输' },
+        { sample_id: 'AV002', sample_name: '音频连接线', sample_model: 'AUDIO', materialCode: 'AV002', sample_leader: '赵六', scheduleDays: 1, schedule_color: 'gray', remark: '立体声' }
+      ],
+      '键鼠类': [
+        { sample_id: 'KM001', sample_name: '无线键盘', sample_model: 'KB-WL', materialCode: 'KM001', sample_leader: '孙七', scheduleDays: 2, schedule_color: 'green', remark: '蓝牙连接' },
+        { sample_id: 'KM002', sample_name: '游戏鼠标', sample_model: 'MS-GM', materialCode: 'KM002', sample_leader: '周八', scheduleDays: 1, schedule_color: 'red', remark: '高精度' }
+      ],
+      '耳机类': [
+        { sample_id: 'HP001', sample_name: '蓝牙耳机', sample_model: 'HP-BT', materialCode: 'HP001', sample_leader: '吴九', scheduleDays: 2, schedule_color: 'blue', remark: '降噪功能' },
+        { sample_id: 'HP002', sample_name: '有线耳机', sample_model: 'HP-WL', materialCode: 'HP002', sample_leader: '郑十', scheduleDays: 1, schedule_color: 'gray', remark: '高音质' }
+      ],
+      '定位器类': [
+        { sample_id: 'LC001', sample_name: 'GPS定位器', sample_model: 'GPS-LC', materialCode: 'LC001', sample_leader: '钱一', scheduleDays: 3, schedule_color: 'green', remark: '高精度定位' },
+        { sample_id: 'LC002', sample_name: '室内定位器', sample_model: 'IN-LC', materialCode: 'LC002', sample_leader: '孙二', scheduleDays: 2, schedule_color: 'yellow', remark: '室内导航' }
+      ],
+      'IPC类': [
+        { sample_id: 'IPC001', sample_name: '网络摄像头', sample_model: 'IPC-NET', materialCode: 'IPC001', sample_leader: '李三', scheduleDays: 2, schedule_color: 'blue', remark: '高清监控' },
+        { sample_id: 'IPC002', sample_name: '智能摄像头', sample_model: 'IPC-SMART', materialCode: 'IPC002', sample_leader: '王四', scheduleDays: 3, schedule_color: 'green', remark: 'AI识别' }
+      ]
+    };
+
+    return sampleData[categoryName] || [];
   }
 
   // 渲染待送样池子
@@ -3149,6 +3423,46 @@
         // 为容器添加 dragover 事件监听器，阻止默认行为以允许放置
         container.addEventListener('dragover', e => {
           e.preventDefault();
+
+          // 获取排期表格容器
+          const scheduleContainer = document.querySelector('.schedule-table-container');
+          if (!scheduleContainer) return;
+
+          // 自动滚动逻辑 - 垂直和水平方向
+          const scrollSpeed = 10; // 滚动速度
+          const triggerDistance = 50; // 触发滚动的距离
+          const containerRect = scheduleContainer.getBoundingClientRect();
+          const { clientX, clientY } = e;
+
+          // 垂直方向自动滚动
+          // 靠近容器顶部，向上滚动
+          if (clientY < containerRect.top + triggerDistance) {
+            scheduleContainer.scrollTop -= scrollSpeed;
+          }
+          // 靠近容器底部，向下滚动
+          else if (clientY > containerRect.bottom - triggerDistance) {
+            scheduleContainer.scrollTop += scrollSpeed;
+          }
+
+          // 同时支持window滚动（当鼠标在容器外时）
+          // 靠近页面顶部，向上滚动window
+          if (clientY < triggerDistance) {
+            window.scrollBy(0, -scrollSpeed);
+          }
+          // 靠近页面底部，向下滚动window
+          else if (clientY > window.innerHeight - triggerDistance) {
+            window.scrollBy(0, scrollSpeed);
+          }
+
+          // 水平方向自动滚动
+          // 靠近容器左侧，向左滚动
+          if (clientX < containerRect.left + triggerDistance) {
+            scheduleContainer.scrollLeft -= scrollSpeed;
+          }
+          // 靠近容器右侧，向右滚动
+          else if (clientX > containerRect.right - triggerDistance) {
+            scheduleContainer.scrollLeft += scrollSpeed;
+          }
         });
 
         // 为容器添加 drop 事件监听器，处理拖拽放下的逻辑
@@ -3388,6 +3702,46 @@
     // 阻止 dragover 默认行为，允许放置（兼容传统拖拽）
     trashStation.addEventListener('dragover', function (e) {
       e.preventDefault();
+
+      // 获取排期表格容器
+      const scheduleContainer = document.querySelector('.schedule-table-container');
+      if (!scheduleContainer) return;
+
+      // 自动滚动逻辑 - 垂直和水平方向
+      const scrollSpeed = 10; // 滚动速度
+      const triggerDistance = 50; // 触发滚动的距离
+      const containerRect = scheduleContainer.getBoundingClientRect();
+      const { clientX, clientY } = e;
+
+      // 垂直方向自动滚动
+      // 靠近容器顶部，向上滚动
+      if (clientY < containerRect.top + triggerDistance) {
+        scheduleContainer.scrollTop -= scrollSpeed;
+      }
+      // 靠近容器底部，向下滚动
+      else if (clientY > containerRect.bottom - triggerDistance) {
+        scheduleContainer.scrollTop += scrollSpeed;
+      }
+
+      // 同时支持window滚动（当鼠标在容器外时）
+      // 靠近页面顶部，向上滚动window
+      if (clientY < triggerDistance) {
+        window.scrollBy(0, -scrollSpeed);
+      }
+      // 靠近页面底部，向下滚动window
+      else if (clientY > window.innerHeight - triggerDistance) {
+        window.scrollBy(0, scrollSpeed);
+      }
+
+      // 水平方向自动滚动
+      // 靠近容器左侧，向左滚动
+      if (clientX < containerRect.left + triggerDistance) {
+        scheduleContainer.scrollLeft -= scrollSpeed;
+      }
+      // 靠近容器右侧，向右滚动
+      else if (clientX > containerRect.right - triggerDistance) {
+        scheduleContainer.scrollLeft += scrollSpeed;
+      }
     });
 
     // 处理 drop 事件（兼容传统拖拽）
@@ -3432,9 +3786,14 @@
           'projectPool',
           'videoSamplePool',
           'wireSamplePool',
+          'audioVideoWireSamplePool',
           'dataSamplePool',
           'bluetoothSamplePool',
-          'highFrequencySamplePool'
+          'highFrequencySamplePool',
+          'keyboardMouseSamplePool',
+          'headphoneSamplePool',
+          'locatorSamplePool',
+          'ipcSamplePool'
         ];
         for (const poolId of poolIds) {
           const pool = document.getElementById(poolId);
@@ -3557,9 +3916,14 @@
               const pendingSampleContainers = [
                 'videoSamplePool',
                 'wireSamplePool',
+                'audioVideoWireSamplePool',
                 'dataSamplePool',
                 'bluetoothSamplePool',
-                'highFrequencySamplePool'
+                'highFrequencySamplePool',
+                'keyboardMouseSamplePool',
+                'headphoneSamplePool',
+                'locatorSamplePool',
+                'ipcSamplePool'
               ];
               pendingSampleContainers.forEach(id => {
                 const container = document.getElementById(id);
@@ -4543,7 +4907,7 @@
 
     // 显示加载状态
     document.getElementById('changeRecordResultsPanel').style.display = 'block';
-    document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
+    document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
 
     // 优先使用新的搜索接口，如果失败则回退到旧接口
     fetch('/scheduleBoardController/searchByChangeRecordNew', {
@@ -4595,7 +4959,7 @@
             })
             .catch(error => {
               console.error('变更记录搜索失败:', error);
-              document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
+              document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
             });
   }
 
@@ -4612,7 +4976,7 @@
 
     // 没有结果时
     if (!changeRecordAllResults || changeRecordAllResults.length === 0) {
-      resultsTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
+      resultsTableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
       pagination.style.display = 'none';
       resultsCount.textContent = '搜索结果：0 条记录';
       return;
@@ -4635,8 +4999,9 @@
     resultsCount.textContent = `搜索结果：${totalResults} 条记录`;
 
     // 渲染表格 - 直接显示change_records表的数据
-    const tableHtml = changeRecordCurrentResults.map(item => `
+    const tableHtml = changeRecordCurrentResults.map((item, index) => `
             <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.id || (startIndex + index + 1)}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.electric_sample_id || item.sample_id || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_model || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.sample_leader || '-'}</td>
@@ -4644,6 +5009,15 @@
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.tester || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.start_date) || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.end_date) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.scheduleDays || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">
+                    <span style="display: inline-block; width: 20px; height: 20px; border-radius: 3px; background-color: ${getColorValue(item.schedule_color)}; border: 1px solid #ddd; margin-right: 5px;"></span>
+                    ${item.schedule_color || '-'}
+                </td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.update_time) || '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_used}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_cancel === 1 ? '是' : item.is_cancel === 0 ? '否' : '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.cancel_reason || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.remark || '-'}</td>
             </tr>
         `).join('');
@@ -4669,7 +5043,19 @@
   function formatChangeRecordDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleString('zh-CN');
+    return date.toISOString().split('T')[0]; // 返回 YYYY-MM-DD 格式
+  }
+
+  // 获取颜色值
+  function getColorValue(colorName) {
+    const colorMap = {
+      'red': '#ff6b6b',
+      'green': '#51cf66',
+      'yellow': '#ffd43b',
+      'gray': '#868e96',
+      'null': '#ffffff'
+    };
+    return colorMap[colorName] || '#ffffff';
   }
 
   // 清空变更记录表单
@@ -4863,7 +5249,97 @@
     `;
   document.head.appendChild(style);
 
+  // 自定义 Alert 组件 HTML 结构
+  const customAlertHTML = `
+        <div id="customAlertOverlay" class="custom-alert-overlay">
+            <div class="custom-alert">
+                <button class="custom-alert-close" onclick="closeCustomAlert()">&times;</button>
+                <div class="custom-alert-message" id="customAlertMessage"></div>
+                <button class="custom-alert-button" onclick="closeCustomAlert()">确定</button>
+                <div class="custom-alert-timer" id="customAlertTimer"></div>
+            </div>
+        </div>
+    `;
+  document.body.insertAdjacentHTML('beforeend', customAlertHTML);
 
+  // 自定义 Alert 函数
+  let customAlertTimeout = null;
+  let customAlertTimer = null;
+  let alertEventListenersAdded = false;
+
+  function customAlert(message, duration = 3000) {
+    // 清除之前的定时器
+    if (customAlertTimeout) {
+      clearTimeout(customAlertTimeout);
+    }
+    if (customAlertTimer) {
+      clearInterval(customAlertTimer);
+    }
+
+    const overlay = document.getElementById('customAlertOverlay');
+    const messageEl = document.getElementById('customAlertMessage');
+    const timerEl = document.getElementById('customAlertTimer');
+
+    messageEl.textContent = message;
+    overlay.style.display = 'flex';
+    timerEl.style.width = '100%';
+
+    // 设置自动关闭定时器
+    customAlertTimeout = setTimeout(() => {
+      closeCustomAlert();
+    }, duration);
+
+    // 设置进度条动画
+    const startTime = Date.now();
+    const endTime = startTime + duration;
+
+    customAlertTimer = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(0, endTime - now);
+      const progress = (remaining / duration) * 100;
+      timerEl.style.width = progress + '%';
+
+      if (remaining <= 0) {
+        clearInterval(customAlertTimer);
+      }
+    }, 10);
+
+    // 只在第一次添加事件监听器
+    if (!alertEventListenersAdded) {
+      // 点击遮罩层关闭
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          closeCustomAlert();
+        }
+      });
+
+      // ESC 键关闭
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeCustomAlert();
+        }
+      });
+
+      alertEventListenersAdded = true;
+    }
+  }
+
+  function closeCustomAlert() {
+    const overlay = document.getElementById('customAlertOverlay');
+    overlay.style.display = 'none';
+
+    if (customAlertTimeout) {
+      clearTimeout(customAlertTimeout);
+      customAlertTimeout = null;
+    }
+    if (customAlertTimer) {
+      clearInterval(customAlertTimer);
+      customAlertTimer = null;
+    }
+  }
+
+  // 替换原生 alert 函数
+  window.alert = customAlert;
 
 </script>
 
