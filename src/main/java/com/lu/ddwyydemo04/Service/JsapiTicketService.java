@@ -19,6 +19,7 @@ public class JsapiTicketService {
 
     public String getJsapiTicket() throws ApiException {
         String accessToken = accessTokenService.getAccessToken();
+//        System.out.println("accessToken"+accessToken);
         DefaultDingTalkClient client = new DefaultDingTalkClient(JSAPI_TICKET_URL);
         OapiGetJsapiTicketRequest request = new OapiGetJsapiTicketRequest();
         request.setTopHttpMethod("GET");

@@ -203,7 +203,7 @@ public class DingTalkH5Controller {
         config.put("timeStamp", timeStamp);
         config.put("nonceStr", nonceStr);
         config.put("signature", signature);
-        config.put("jsApiList", Arrays.asList("device.base.getUUID","biz.navigation.close","biz.contact.choose","biz.cspace.chooseSpaceDir","biz.ding.create","biz.cspace.saveFile","runtime.permission.requestAuthCode","biz.util.downloadFile")); // 只需要使用选择联系人的JSAPI
+        config.put("jsApiList", Arrays.asList("plugin.coolAppSdk.sendMessageToGroup","biz.chat.toConversationByOpenConversationId","biz.chat.chooseConversationByCorpId","device.base.getUUID","biz.navigation.close","biz.contact.choose","biz.cspace.chooseSpaceDir","biz.ding.create","biz.cspace.saveFile","runtime.permission.requestAuthCode","biz.util.downloadFile")); // 只需要使用选择联系人的JSAPI
 
         return config;
     }

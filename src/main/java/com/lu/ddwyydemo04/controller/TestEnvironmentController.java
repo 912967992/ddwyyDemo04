@@ -50,6 +50,12 @@ public class TestEnvironmentController {
     }
 
 
+    @GetMapping("/testPageUI")
+    public String testPageUI(){
+        return "testPageUI";
+    }
+
+
     @PostMapping("/passback/receiveData")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> receiveData(@RequestBody List<PassbackData> requestData) {

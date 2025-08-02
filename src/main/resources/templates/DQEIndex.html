@@ -194,8 +194,14 @@
 
     <script>
         function checkAndRedirect() {
+            if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏") {
+                location.href = "/loginTestEnvironment";
+            } else {
+                alert("您无权限进入该页面");
+            }
             // if (username === '卢健') {
-                window.location.href = '/loginTestEnvironment';
+            //     window.location.href = '/loginTestEnvironment';
+            //     window.location.href = '/testPageUI';
             // } else {
             //     alert('无权限访问该模块，仅限卢健操作');
             // }

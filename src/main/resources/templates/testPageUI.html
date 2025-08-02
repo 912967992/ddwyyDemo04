@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Login Excel Page</title>
+
+  <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
+
+  <!-- ✅ 引入 jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </head>
 <body>
 <h1>Welcome to the Excel Login Page!</h1>
@@ -11,6 +17,7 @@
 <button onclick="copyExcel()">Copy Excel</button>
 <button onclick="copyExcelMiddle()">插入中间行</button>
 <button onclick="deleteRows()">删除上一行</button>
+<button onclick="handleCustomAction()">自定义操作</button>
 <p id="message"></p>
 
 <!-- 模态框的 HTML 结构 -->
@@ -45,6 +52,9 @@
       // 调用原本的alert回调
     };
   };
+
+  const corp_id = sessionStorage.getItem('corp_id');
+
 
   // Function to send a request to create the Excel file
   function createExcel() {
@@ -100,6 +110,82 @@
             .catch(error => {
               document.getElementById('message').innerText = 'Error occurred while updating Excel file.';
             });
+  }
+
+  $(document).ready(function () {
+    // 调用后端接口获取配置信息
+    $.ajax({
+      url: '/getJsapiConfig',
+      type: 'GET',
+      data: {url: encodeURIComponent(location.href.split('#')[0])},
+      success: function (config) {
+        // 使用获取的配置信息初始化钉钉JSAPI
+        dd.config({
+          agentId: config.agentId,
+          corpId: config.corpId,
+          timeStamp: config.timeStamp,
+          nonceStr: config.nonceStr,
+          signature: config.signature,
+          jsApiList: config.jsApiList // 必填，需要使用的jsapi列表
+        });
+      },
+      error: function (xhr, status, error) {
+        console.error('Error:', error);
+      }
+    });
+  });
+
+  function handleCustomAction() {
+    dd.biz.chat.chooseConversationByCorpId({
+      corpId: corp_id, //企业id,必须是用户所属的企业的corpid
+      isAllowCreateGroup:false,
+      filterNotOwnerGroup:false,
+      onSuccess : function(data) {
+        // dd.biz.chat.toConversationByOpenConversationId({
+        //   openConversationId: data.openConversationId,
+        //   onSuccess:function (result) {
+        //     console.log(JSON.stringify(result))
+        //   },
+        //   onFail : function(err) {
+        //     console.log(JSON.stringify(err))
+        //   }
+        // })
+        dd.plugin.coolAppSdk.sendMessageToGroup({
+          context: {
+            clientId: 'dingdopwfacnq4jwxetg',
+            corpId: corp_id, // 根据对应场景获取 corpId
+               },
+          openConversationIdList: [data.openConversationId],
+          sendCardRequest: {
+            cardData: {
+              cardParamMap: {
+                title: "",
+                approval: "测试",
+                type:"测试",
+                amount:"1000元",
+                reason:"北京出差",
+                agree:"同意",
+                disagree:"拒绝"
+              }
+            },
+            cardTemplateId:"7040a424-b2dc-4ad6-a8ad-b991338ec03b.schema",
+            outTrackId: `test-out-track-id-${Date.now()}`
+          }
+        }).then(res =>{
+          if (res.errorCode === '0') {
+            console.log('获取成功：' + JSON.stringify(res.detail))
+          }
+        }).catch(e=>{
+          alert('失败' + JSON.stringify(e))
+        });
+
+
+
+      },
+      onFail : function() {}
+    })
+
+
   }
 </script>
 </body>
