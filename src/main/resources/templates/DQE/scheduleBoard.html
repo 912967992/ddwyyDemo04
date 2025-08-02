@@ -820,48 +820,48 @@
         // 调试信息 - 每10次移动输出一次
         if (!window.debugCounter) window.debugCounter = 0;
         window.debugCounter++;
-        if (window.debugCounter % 10 === 0) {
-            console.log('鼠标位置:', clientX, clientY, '容器位置:', containerRect);
-            console.log('右侧触发条件:', clientX, '>', containerRect.right - triggerDistance, '=', clientX > containerRect.right - triggerDistance);
-            console.log('顶部触发条件:', clientY, '<', containerRect.top + triggerDistance, '=', clientY < containerRect.top + triggerDistance);
-            console.log('底部触发条件:', clientY, '>', containerRect.bottom - triggerDistance, '=', clientY > containerRect.bottom - triggerDistance);
-            console.log('容器滚动位置:', scheduleContainer.scrollTop, scheduleContainer.scrollLeft);
-        }
+        // if (window.debugCounter % 10 === 0) {
+        //     console.log('鼠标位置:', clientX, clientY, '容器位置:', containerRect);
+        //     console.log('右侧触发条件:', clientX, '>', containerRect.right - triggerDistance, '=', clientX > containerRect.right - triggerDistance);
+        //     console.log('顶部触发条件:', clientY, '<', containerRect.top + triggerDistance, '=', clientY < containerRect.top + triggerDistance);
+        //     console.log('底部触发条件:', clientY, '>', containerRect.bottom - triggerDistance, '=', clientY > containerRect.bottom - triggerDistance);
+        //     console.log('容器滚动位置:', scheduleContainer.scrollTop, scheduleContainer.scrollLeft);
+        // }
 
         // 垂直方向自动滚动
         // 靠近容器顶部，向上滚动
         if (clientY < containerRect.top + triggerDistance) {
             scheduleContainer.scrollTop -= scrollSpeed;
-            console.log('向上滚动', clientY, containerRect.top + triggerDistance);
+            // console.log('向上滚动', clientY, containerRect.top + triggerDistance);
         }
         // 靠近容器底部，向下滚动
         else if (clientY > containerRect.bottom - triggerDistance) {
             scheduleContainer.scrollTop += scrollSpeed;
-            console.log('向下滚动', clientY, containerRect.bottom - triggerDistance);
+            // console.log('向下滚动', clientY, containerRect.bottom - triggerDistance);
         }
         
         // 同时支持window滚动（当鼠标在容器外时）
         // 靠近页面顶部，向上滚动window
         if (clientY < triggerDistance) {
             window.scrollBy(0, -scrollSpeed);
-            console.log('window向上滚动', clientY, triggerDistance);
+            // console.log('window向上滚动', clientY, triggerDistance);
         }
         // 靠近页面底部，向下滚动window
         else if (clientY > window.innerHeight - triggerDistance) {
             window.scrollBy(0, scrollSpeed);
-            console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
+            // console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
         }
 
         // 水平方向自动滚动
         // 靠近容器左侧，向左滚动
         if (clientX < containerRect.left + triggerDistance) {
             scheduleContainer.scrollLeft -= scrollSpeed;
-            console.log('向左滚动', clientX, containerRect.left + triggerDistance);
+            // console.log('向左滚动', clientX, containerRect.left + triggerDistance);
         }
         // 靠近容器右侧，向右滚动
         else if (clientX > containerRect.right - triggerDistance) {
             scheduleContainer.scrollLeft += scrollSpeed;
-            console.log('向右滚动', clientX, containerRect.right - triggerDistance);
+            // console.log('向右滚动', clientX, containerRect.right - triggerDistance);
         }
     }
 
@@ -1206,34 +1206,34 @@
             }
 
             // 如果有 data1- 属性，也需要记录第二个项目的删除操作
-            if (hasData1Attr) {
-                const data1_sample_id = draggedElement.getAttribute('data-sample_id');
-                const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
-                const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
-                
-                const data1Change = {
-                    change: "delete",
-                    sample_id: data1_sample_id,
-                    tester: tester,
-                    start_date: start_date,
-                    end_date: end_date,
-                    scheduleDays: data1_schedule_days,
-                    schedule_color: data1_schedule_color,
-                    job_number: job_number,
-                    container: poolDom.id
-                };
+            // if (hasData1Attr) {
+            //     const data1_sample_id = draggedElement.getAttribute('data-sample_id');
+            //     const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
+            //     const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
+            //
+            //     const data1Change = {
+            //         change: "delete",
+            //         sample_id: data1_sample_id,
+            //         tester: tester,
+            //         start_date: start_date,
+            //         end_date: end_date,
+            //         scheduleDays: data1_schedule_days,
+            //         schedule_color: data1_schedule_color,
+            //         job_number: job_number,
+            //         container: poolDom.id
+            //     };
+            //
+            //     const data1ExistingIndex = localScheduleChanges.findIndex(item =>
+            //         item.sample_id === data1_sample_id
+            //     );
+            //     if (data1ExistingIndex !== -1) {
+            //         localScheduleChanges[data1ExistingIndex] = data1Change;
+            //     } else {
+            //         localScheduleChanges.push(data1Change);
+            //     }
+            // }
 
-                const data1ExistingIndex = localScheduleChanges.findIndex(item =>
-                    item.sample_id === data1_sample_id
-                );
-                if (data1ExistingIndex !== -1) {
-                    localScheduleChanges[data1ExistingIndex] = data1Change;
-                } else {
-                    localScheduleChanges.push(data1Change);
-                }
-            }
-
-            console.log("项目已还原到池子，变更已记录:", newChange);
+            console.log("项目已还原到池子，变更已记录:", localScheduleChanges);
         } else if (draggedElement && draggedElement.classList.contains('project-card')) {
             // 处理池子间卡片移动的变更记录
             const sample_id = dragData['project-sample_id'];
