@@ -725,6 +725,9 @@
   let dragData = {};
   let dragPreview = null;
 
+  // 全局变量用于跟踪高亮状态
+  let currentHighlightedTester = null;
+
   // 设置拖拽
   function setDraggable(projectEl, isProject) {
     // 双击开始拖拽
@@ -1044,18 +1047,118 @@
       const originalStartIndex = originalRowCells.indexOf(draggedElement);
       const originalScheduleDays = Math.ceil(parseFloat(draggedElement.getAttribute('data-schedule_days')) || 1);
 
+      // 检查是否存在 data1- 开头的属性
+      let hasData1Attr = false;
+      [...draggedElement.attributes].forEach(attr => {
+        if (attr.name.startsWith('data1-')) {
+          hasData1Attr = true;
+        }
+      });
+
+      // 先保存原单元格的 innerText（如果有 data1- 属性）
+      let originalInnerText = "";
+      if (hasData1Attr) {
+        const text = draggedElement.innerText;
+        const parts = text.split('|');
+        // 确保分割后有后半部分内容
+        if (parts.length > 1) {
+          // 从第二个元素开始，使用 join 方法处理可能有多个 | 的情况
+          originalInnerText = parts.slice(1).join('天)|').trim();
+        } else {
+          originalInnerText = text.trim();
+        }
+      }
+
       // 清除原单元格内容和属性
       draggedElement.innerText = '';
       draggedElement.removeAttribute('colspan');
       draggedElement.classList.remove('assigned');
       draggedElement.style.backgroundColor = '';
-      // 只保留 class、data-tester、data-date、data-job_number
+
+      // 允许保留的属性，添加判断 data1- 开头的属性
       const allowed = ['class', 'data-tester', 'data-date', 'data-job_number'];
       [...draggedElement.attributes].forEach(attr => {
-        if (!allowed.includes(attr.name)) {
-          draggedElement.removeAttribute(attr.name);
+        const name = attr.name;
+
+        if (name.startsWith('data1-')) {
+          const newName = name.replace('data1-', 'data-');
+
+          // 如果要替换的属性是受保护的，不动它！
+          if (!allowed.includes(newName)) {
+            if (attr.value !== null && attr.value !== 'null') {
+              draggedElement.setAttribute(newName, attr.value);
+            }
+            draggedElement.removeAttribute(name);
+          } else {
+            // 是受保护属性，不替换也不删除
+            draggedElement.removeAttribute(name);
+          }
+        } else if (!allowed.includes(name)) {
+          // 普通非受保护属性，删除
+          draggedElement.removeAttribute(name);
         }
       });
+
+      // 恢复原单元格的 innerText（如果有 data1- 属性）
+      if (hasData1Attr) {
+        draggedElement.innerText = originalInnerText;
+
+        // 重新设置可拖拽属性
+        draggedElement.setAttribute('draggable', 'false'); // 禁用默认拖拽，使用双击拖拽
+
+        // 绑定双击拖拽事件
+        draggedElement.addEventListener('dblclick', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // 收集拖拽数据
+          const taskData = {};
+          const attributes = [
+            'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
+            'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
+            'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
+            'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+          ];
+          attributes.forEach(attr => {
+            taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
+          });
+
+          dragData = taskData;
+          draggedElement = this;
+          isDragging = true;
+
+          // 创建拖拽预览元素
+          createDragPreview(this);
+
+          // 添加全局鼠标事件监听器
+          document.addEventListener('mousemove', handleMouseMove);
+          document.addEventListener('click', handleMouseClick);
+        });
+
+        // 绑定右键菜单事件
+        draggedElement.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          if (draggedElement.innerText.trim() === '') return;
+          currentRightClickCell = draggedElement;
+          const contextMenu = document.getElementById('contextMenu');
+          contextMenu.style.top = e.pageY + 'px';
+          contextMenu.style.left = e.pageX + 'px';
+          contextMenu.style.display = 'block';
+        });
+      }
+
+      // 获取颜色值并渲染单元格颜色
+      const scheduleColor = draggedElement.getAttribute('data-schedule_color');
+      if (scheduleColor && scheduleColor !== 'null') {
+        draggedElement.style.backgroundColor = scheduleColor;
+        // 设置CSS变量，供CSS规则使用
+        draggedElement.style.setProperty('--project-color', scheduleColor);
+        // 如果是周末单元格，强制设置颜色优先级
+        if (draggedElement.classList.contains('weekend-border')) {
+          draggedElement.style.setProperty('background-color', scheduleColor, 'important');
+        }
+      }
 
       // 恢复被隐藏的格子
       for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
@@ -1100,6 +1203,34 @@
         localScheduleChanges[existingIndex] = newChange;
       } else {
         localScheduleChanges.push(newChange);
+      }
+
+      // 如果有 data1- 属性，也需要记录第二个项目的删除操作
+      if (hasData1Attr) {
+        const data1_sample_id = draggedElement.getAttribute('data-sample_id');
+        const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
+        const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
+
+        const data1Change = {
+          change: "delete",
+          sample_id: data1_sample_id,
+          tester: tester,
+          start_date: start_date,
+          end_date: end_date,
+          scheduleDays: data1_schedule_days,
+          schedule_color: data1_schedule_color,
+          job_number: job_number,
+          container: poolDom.id
+        };
+
+        const data1ExistingIndex = localScheduleChanges.findIndex(item =>
+                item.sample_id === data1_sample_id
+        );
+        if (data1ExistingIndex !== -1) {
+          localScheduleChanges[data1ExistingIndex] = data1Change;
+        } else {
+          localScheduleChanges.push(data1Change);
+        }
       }
 
       console.log("项目已还原到池子，变更已记录:", newChange);
@@ -1909,7 +2040,8 @@
 
     // 添加全局点击事件，点击表格外区域取消高亮
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('#scheduleBoardTable') && !e.target.classList.contains('tester-name')) {
+      // 使用新的函数检查是否应该保持高亮
+      if (!shouldKeepHighlight(e.target)) {
         highlightTesterRow(null);
       }
     });
@@ -3968,6 +4100,10 @@
 
   // 新增函数：高亮指定测试人员的行
   function highlightTesterRow(testerName) {
+    // 更新全局高亮状态
+    const previousTester = currentHighlightedTester;
+    currentHighlightedTester = testerName;
+
     // 先清除所有行的高亮
     const allRows = document.querySelectorAll('#scheduleBoardTable tbody tr');
     allRows.forEach(row => {
@@ -4001,7 +4137,33 @@
           }
         });
       }
+
+      console.log(`✅ 高亮测试人员: ${testerName}`);
+    } else {
+      console.log(`❌ 取消高亮，之前高亮的测试人员: ${previousTester}`);
     }
+  }
+
+  // 新增函数：检查是否应该保持高亮状态
+  function shouldKeepHighlight(element) {
+    // 检查元素是否在应该保持高亮的区域内
+    const isInScheduleTable = element.closest('#scheduleBoardTable');
+    const isTesterName = element.classList.contains('tester-name');
+    const isInProjectPool = element.closest('#projectPool');
+    const isInPendingSampleContainer = element.closest('.pending-sample-container');
+    const isInPoolContainer = element.closest('.pool-container');
+    const isProjectCard = element.classList.contains('project-card') || element.classList.contains('pending-sample-card');
+    const isInModal = element.closest('#modal') || element.closest('#addProjectModal') || element.closest('#searchModal') || element.closest('#changeRecordSearchModal');
+    const isInButtonArea = element.closest('.schedule-controls') || element.closest('.schedule-board-header');
+
+    const shouldKeep = isInScheduleTable || isTesterName || isInProjectPool || isInPendingSampleContainer || isInPoolContainer || isProjectCard || isInModal || isInButtonArea;
+
+    // 调试信息
+    if (currentHighlightedTester && !shouldKeep) {
+      console.log(`🔍 点击元素: ${element.tagName}.${element.className} - 保持高亮: ${shouldKeep}`);
+    }
+
+    return shouldKeep;
   }
 
   // 页面加载完成后绑定事件
@@ -5017,7 +5179,6 @@
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.update_time) || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_used}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_cancel === 1 ? '是' : item.is_cancel === 0 ? '否' : '-'}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.cancel_reason || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.remark || '-'}</td>
             </tr>
         `).join('');
