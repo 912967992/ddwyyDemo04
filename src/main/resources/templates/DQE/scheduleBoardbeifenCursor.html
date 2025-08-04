@@ -820,48 +820,48 @@
     // 调试信息 - 每10次移动输出一次
     if (!window.debugCounter) window.debugCounter = 0;
     window.debugCounter++;
-    if (window.debugCounter % 10 === 0) {
-      console.log('鼠标位置:', clientX, clientY, '容器位置:', containerRect);
-      console.log('右侧触发条件:', clientX, '>', containerRect.right - triggerDistance, '=', clientX > containerRect.right - triggerDistance);
-      console.log('顶部触发条件:', clientY, '<', containerRect.top + triggerDistance, '=', clientY < containerRect.top + triggerDistance);
-      console.log('底部触发条件:', clientY, '>', containerRect.bottom - triggerDistance, '=', clientY > containerRect.bottom - triggerDistance);
-      console.log('容器滚动位置:', scheduleContainer.scrollTop, scheduleContainer.scrollLeft);
-    }
+    // if (window.debugCounter % 10 === 0) {
+    //     console.log('鼠标位置:', clientX, clientY, '容器位置:', containerRect);
+    //     console.log('右侧触发条件:', clientX, '>', containerRect.right - triggerDistance, '=', clientX > containerRect.right - triggerDistance);
+    //     console.log('顶部触发条件:', clientY, '<', containerRect.top + triggerDistance, '=', clientY < containerRect.top + triggerDistance);
+    //     console.log('底部触发条件:', clientY, '>', containerRect.bottom - triggerDistance, '=', clientY > containerRect.bottom - triggerDistance);
+    //     console.log('容器滚动位置:', scheduleContainer.scrollTop, scheduleContainer.scrollLeft);
+    // }
 
     // 垂直方向自动滚动
     // 靠近容器顶部，向上滚动
     if (clientY < containerRect.top + triggerDistance) {
       scheduleContainer.scrollTop -= scrollSpeed;
-      console.log('向上滚动', clientY, containerRect.top + triggerDistance);
+      // console.log('向上滚动', clientY, containerRect.top + triggerDistance);
     }
     // 靠近容器底部，向下滚动
     else if (clientY > containerRect.bottom - triggerDistance) {
       scheduleContainer.scrollTop += scrollSpeed;
-      console.log('向下滚动', clientY, containerRect.bottom - triggerDistance);
+      // console.log('向下滚动', clientY, containerRect.bottom - triggerDistance);
     }
 
     // 同时支持window滚动（当鼠标在容器外时）
     // 靠近页面顶部，向上滚动window
     if (clientY < triggerDistance) {
       window.scrollBy(0, -scrollSpeed);
-      console.log('window向上滚动', clientY, triggerDistance);
+      // console.log('window向上滚动', clientY, triggerDistance);
     }
     // 靠近页面底部，向下滚动window
     else if (clientY > window.innerHeight - triggerDistance) {
       window.scrollBy(0, scrollSpeed);
-      console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
+      // console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
     }
 
     // 水平方向自动滚动
     // 靠近容器左侧，向左滚动
     if (clientX < containerRect.left + triggerDistance) {
       scheduleContainer.scrollLeft -= scrollSpeed;
-      console.log('向左滚动', clientX, containerRect.left + triggerDistance);
+      // console.log('向左滚动', clientX, containerRect.left + triggerDistance);
     }
     // 靠近容器右侧，向右滚动
     else if (clientX > containerRect.right - triggerDistance) {
       scheduleContainer.scrollLeft += scrollSpeed;
-      console.log('向右滚动', clientX, containerRect.right - triggerDistance);
+      // console.log('向右滚动', clientX, containerRect.right - triggerDistance);
     }
   }
 
@@ -1047,17 +1047,25 @@
       const originalStartIndex = originalRowCells.indexOf(draggedElement);
       const originalScheduleDays = Math.ceil(parseFloat(draggedElement.getAttribute('data-schedule_days')) || 1);
 
-      // 检查是否存在 data1- 开头的属性
-      let hasData1Attr = false;
+      // 检查是否存在 dataX- 开头的属性
+      let hasDataXAttr = false;
+      let maxDataIndex = 0;
       [...draggedElement.attributes].forEach(attr => {
-        if (attr.name.startsWith('data1-')) {
-          hasData1Attr = true;
+        if (attr.name.match(/^data\d+-/)) {
+          hasDataXAttr = true;
+          const match = attr.name.match(/^data(\d+)-/);
+          if (match) {
+            const index = parseInt(match[1]);
+            if (index > maxDataIndex) {
+              maxDataIndex = index;
+            }
+          }
         }
       });
 
-      // 先保存原单元格的 innerText（如果有 data1- 属性）
+      // 先保存原单元格的 innerText（如果有 dataX- 属性）
       let originalInnerText = "";
-      if (hasData1Attr) {
+      if (hasDataXAttr) {
         const text = draggedElement.innerText;
         const parts = text.split('|');
         // 确保分割后有后半部分内容
@@ -1072,26 +1080,30 @@
       // 清除原单元格内容和属性
       draggedElement.innerText = '';
       draggedElement.removeAttribute('colspan');
-      draggedElement.classList.remove('assigned');
+      // draggedElement.classList.remove('assigned');
       draggedElement.style.backgroundColor = '';
 
-      // 允许保留的属性，添加判断 data1- 开头的属性
+      // 允许保留的属性，添加判断 dataX- 开头的属性
       const allowed = ['class', 'data-tester', 'data-date', 'data-job_number'];
       [...draggedElement.attributes].forEach(attr => {
         const name = attr.name;
 
-        if (name.startsWith('data1-')) {
-          const newName = name.replace('data1-', 'data-');
+        if (name.match(/^data\d+-/)) {
+          const match = name.match(/^data(\d+)-/);
+          if (match) {
+            const index = match[1];
+            const newName = name.replace(`data${index}-`, 'data-');
 
-          // 如果要替换的属性是受保护的，不动它！
-          if (!allowed.includes(newName)) {
-            if (attr.value !== null && attr.value !== 'null') {
-              draggedElement.setAttribute(newName, attr.value);
+            // 如果要替换的属性是受保护的，不动它！
+            if (!allowed.includes(newName)) {
+              if (attr.value !== null && attr.value !== 'null') {
+                draggedElement.setAttribute(newName, attr.value);
+              }
+              draggedElement.removeAttribute(name);
+            } else {
+              // 是受保护属性，不替换也不删除
+              draggedElement.removeAttribute(name);
             }
-            draggedElement.removeAttribute(name);
-          } else {
-            // 是受保护属性，不替换也不删除
-            draggedElement.removeAttribute(name);
           }
         } else if (!allowed.includes(name)) {
           // 普通非受保护属性，删除
@@ -1099,8 +1111,8 @@
         }
       });
 
-      // 恢复原单元格的 innerText（如果有 data1- 属性）
-      if (hasData1Attr) {
+      // 恢复原单元格的 innerText（如果有 dataX- 属性）
+      if (hasDataXAttr) {
         draggedElement.innerText = originalInnerText;
 
         // 重新设置可拖拽属性
@@ -1206,34 +1218,34 @@
       }
 
       // 如果有 data1- 属性，也需要记录第二个项目的删除操作
-      if (hasData1Attr) {
-        const data1_sample_id = draggedElement.getAttribute('data-sample_id');
-        const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
-        const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
+      // if (hasData1Attr) {
+      //     const data1_sample_id = draggedElement.getAttribute('data-sample_id');
+      //     const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
+      //     const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
+      //
+      //     const data1Change = {
+      //         change: "delete",
+      //         sample_id: data1_sample_id,
+      //         tester: tester,
+      //         start_date: start_date,
+      //         end_date: end_date,
+      //         scheduleDays: data1_schedule_days,
+      //         schedule_color: data1_schedule_color,
+      //         job_number: job_number,
+      //         container: poolDom.id
+      //     };
+      //
+      //     const data1ExistingIndex = localScheduleChanges.findIndex(item =>
+      //         item.sample_id === data1_sample_id
+      //     );
+      //     if (data1ExistingIndex !== -1) {
+      //         localScheduleChanges[data1ExistingIndex] = data1Change;
+      //     } else {
+      //         localScheduleChanges.push(data1Change);
+      //     }
+      // }
 
-        const data1Change = {
-          change: "delete",
-          sample_id: data1_sample_id,
-          tester: tester,
-          start_date: start_date,
-          end_date: end_date,
-          scheduleDays: data1_schedule_days,
-          schedule_color: data1_schedule_color,
-          job_number: job_number,
-          container: poolDom.id
-        };
-
-        const data1ExistingIndex = localScheduleChanges.findIndex(item =>
-                item.sample_id === data1_sample_id
-        );
-        if (data1ExistingIndex !== -1) {
-          localScheduleChanges[data1ExistingIndex] = data1Change;
-        } else {
-          localScheduleChanges.push(data1Change);
-        }
-      }
-
-      console.log("项目已还原到池子，变更已记录:", newChange);
+      console.log("项目已还原到池子，变更已记录:", localScheduleChanges);
     } else if (draggedElement && draggedElement.classList.contains('project-card')) {
       // 处理池子间卡片移动的变更记录
       const sample_id = dragData['project-sample_id'];
@@ -1949,7 +1961,6 @@
 
           if (halfDayTasks.length >= 2) {
             const firstTask = halfDayTasks[0];
-            const secondTask = halfDayTasks[1];
             let cellHtml = `<td class="drop-cell assigned ${weekendClass}"
                         data-tester="${testerName}"
                         data-date="${currentDate}"
@@ -1978,15 +1989,20 @@
                         data-sample_quantity="${firstTask.sample_quantity || ''}"
                         data-high_frequency="${firstTask.high_frequency || ''}"`;
 
-            // 设置第二个任务的 data1- 属性
-            Object.keys(secondTask).forEach(key => {
-              if (key !== 'days') {
-                cellHtml += ` data1-${key}="${secondTask[key] || ''}"`;
-              }
-            });
+            // 设置其他任务的 dataX- 属性
+            let displayText = `${firstTask.sizecoding} (${firstTask.schedule_days}天)`;
+            for (let i = 1; i < halfDayTasks.length; i++) {
+              const task = halfDayTasks[i];
+              Object.keys(task).forEach(key => {
+                if (key !== 'days') {
+                  cellHtml += ` data${i}-${key}="${task[key] || ''}"`;
+                }
+              });
+              displayText += `|${task.sizecoding} (${task.schedule_days}天)`;
+            }
 
-            // 使用 | 分隔两个项目信息
-            cellHtml += `>${firstTask.sizecoding} (${firstTask.schedule_days}天)|${secondTask.sizecoding} (${secondTask.schedule_days}天)</td>`;
+            // 使用 | 分隔多个项目信息
+            cellHtml += `>${displayText}</td>`;
             html += cellHtml;
             colIndex += 1;
           } else {
@@ -2250,11 +2266,25 @@
                       return;
                     }
 
+                    // 检查已存在的 dataX- 属性，找到下一个可用的索引
+                    let nextIndex = 1;
+                    const existingAttributes = [...targetCell.attributes];
+                    for (const attr of existingAttributes) {
+                      if (attr.name.startsWith('data') && attr.name.match(/^data(\d+)-/)) {
+                        const match = attr.name.match(/^data(\d+)-/);
+                        if (match) {
+                          const currentIndex = parseInt(match[1]);
+                          if (currentIndex >= nextIndex) {
+                            nextIndex = currentIndex + 1;
+                          }
+                        }
+                      }
+                    }
 
-                    // 将拖拽项目的属性添加到目标单元格，第二个项目属性以 data1- 为前缀
+                    // 将拖拽项目的属性添加到目标单元格，使用动态的 dataX- 前缀
                     Object.keys(taskData).forEach(key => {
                       if (key !== 'days') {
-                        targetCell.setAttribute(`data1-${key}`, taskData[key]);
+                        targetCell.setAttribute(`data${nextIndex}-${key}`, taskData[key]);
                       }
                     });
 
@@ -2287,18 +2317,18 @@
                     // 记录合并变更到 localScheduleChanges
                     const newChange = {
                       change: "add",
-                      sample_id: targetCell.getAttribute('data1-sample_id'),
-                      tester: targetCell.getAttribute('data1-tester'),
-                      start_date: targetCell.getAttribute('data1-schedule_start_date'),
+                      sample_id: targetCell.getAttribute(`data${nextIndex}-sample_id`),
+                      tester: targetCell.getAttribute(`data${nextIndex}-tester`),
+                      start_date: targetCell.getAttribute(`data${nextIndex}-schedule_start_date`),
                       // 假设合并后结束日期不变
-                      end_date: targetCell.getAttribute('data1-schedule_end_date'),
+                      end_date: targetCell.getAttribute(`data${nextIndex}-schedule_end_date`),
                       scheduleDays: newScheduleDays,
-                      schedule_color: targetCell.getAttribute('data1-schedule_color'),
-                      job_number: targetCell.getAttribute('data1-job_number')
+                      schedule_color: targetCell.getAttribute(`data${nextIndex}-schedule_color`),
+                      job_number: targetCell.getAttribute(`data${nextIndex}-job_number`)
                     };
 
                     const existingIndex = localScheduleChanges.findIndex(item =>
-                            item.sample_id === targetCell.getAttribute('data1-sample_id')
+                            item.sample_id === targetCell.getAttribute(`data${nextIndex}-sample_id`)
                     );
 
                     if (existingIndex !== -1) {
@@ -2379,16 +2409,18 @@
 
                   attributes.forEach(attr => {
                     const normalKey = attr;
-                    const data1Key = `data1-${attr}`;
                     const dataKey = `data-${attr}`;
 
-                    // 获取 data-xxx 和 data1-xxx 的值
+                    // 获取 data-xxx 的值
                     const dataValue = currentCell.getAttribute(dataKey);
-                    const data1Value = currentCell.getAttribute(data1Key);
-
-                    // 存入 projectData 中
                     projectData[normalKey] = dataValue;
-                    projectData[data1Key] = data1Value;
+
+                    // 获取所有 dataX-xxx 的值
+                    [...currentCell.attributes].forEach(cellAttr => {
+                      if (cellAttr.name.match(/^data\d+-/)) {
+                        projectData[cellAttr.name] = cellAttr.value;
+                      }
+                    });
                   });
 
                   projectsToMove.push({
@@ -2518,7 +2550,7 @@
             // 清除原单元格内容和属性
             originalCell.innerText = '';
             originalCell.removeAttribute('colspan');
-            originalCell.classList.remove('assigned');
+            // originalCell.classList.remove('assigned');
             originalCell.style.backgroundColor = '';
 
 
@@ -2747,12 +2779,25 @@
         // 创建新项目
         const newStartCell = rowCells[newStartIndex];
         // newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
-        // 判断是否有 data1-sample_id
-        if (data["data1-sample_id"]) {
-          newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)|${data["data1-sizecoding"] || ''} (${data["data1-schedule_days"] || ''}天)`;
-        } else {
-          newStartCell.innerText = `${data.sizecoding} (${data.schedule_days}天)`;
-        }
+        // 判断是否有多个项目（dataX-sample_id）
+        let displayText = `${data.sizecoding} (${data.schedule_days}天)`;
+        let hasMultipleProjects = false;
+
+        // 检查所有 dataX- 属性
+        Object.keys(data).forEach(key => {
+          if (key.match(/^data\d+-sample_id$/)) {
+            hasMultipleProjects = true;
+            const match = key.match(/^data(\d+)-/);
+            if (match) {
+              const index = match[1];
+              const sizecoding = data[`data${index}-sizecoding`] || '';
+              const scheduleDays = data[`data${index}-schedule_days`] || '';
+              displayText += `|${sizecoding} (${scheduleDays}天)`;
+            }
+          }
+        });
+
+        newStartCell.innerText = displayText;
 
         newStartCell.classList.add('assigned');
 
@@ -2777,8 +2822,8 @@
 
         Object.keys(data).forEach(key => {
           if (key !== 'days') {
-            if (key.startsWith('data1-')) {
-              // 直接写入 data1-xxx 属性（保持原样）
+            if (key.match(/^data\d+-/)) {
+              // 直接写入 dataX-xxx 属性（保持原样）
               newStartCell.setAttribute(key, data[key]);
             } else {
               // 正常 data-xxx 属性
@@ -2813,27 +2858,34 @@
           localScheduleChanges.push(newChange);
         }
 
-        if (data["data1-sample_id"]) {
-          const newChangeData1 = {
-            change: "add",
-            sample_id: data["data1-sample_id"],
-            tester: data.tester,  // 如果你也有 data1-tester，可以改成 data["data1-tester"]
-            start_date: rowCells[newStartIndex].getAttribute('data-date'),
-            end_date: newEndDate,
-            scheduleDays: data["data1-schedule_days"],
-            schedule_color: data["data1-schedule_color"],
-            job_number: data.job_number  // 如果你也有 data1-job_number，可以改成 data["data1-job_number"]
-          };
+        // 处理所有 dataX- 项目的变更记录
+        Object.keys(data).forEach(key => {
+          if (key.match(/^data\d+-sample_id$/)) {
+            const match = key.match(/^data(\d+)-/);
+            if (match) {
+              const index = match[1];
+              const newChangeDataX = {
+                change: "add",
+                sample_id: data[`data${index}-sample_id`],
+                tester: data.tester,
+                start_date: rowCells[newStartIndex].getAttribute('data-date'),
+                end_date: newEndDate,
+                scheduleDays: data[`data${index}-schedule_days`],
+                schedule_color: data[`data${index}-schedule_color`],
+                job_number: data.job_number
+              };
 
-          const existingIndexData1 = localScheduleChanges.findIndex(item =>
-                  item.sample_id === data["data1-sample_id"]
-          );
-          if (existingIndexData1 !== -1) {
-            localScheduleChanges[existingIndexData1] = newChangeData1;
-          } else {
-            localScheduleChanges.push(newChangeData1);
+              const existingIndexDataX = localScheduleChanges.findIndex(item =>
+                      item.sample_id === data[`data${index}-sample_id`]
+              );
+              if (existingIndexDataX !== -1) {
+                localScheduleChanges[existingIndexDataX] = newChangeDataX;
+              } else {
+                localScheduleChanges.push(newChangeDataX);
+              }
+            }
           }
-        }
+        });
         console.log("标记6",localScheduleChanges)
 
         // 添加允许拖拽的方法
@@ -2998,22 +3050,32 @@
 
     const allowedAttributes = ['class', 'data-tester', 'data-date','data-job_number'];
 
-    // 这里是负责把合并项目拖回去，恢复排期面板原来data1数据
-    // 判断是否含有 data1- 开头标签的参数
-    let hasData1Attr = false;
+    // 这里是负责把合并项目拖回去，恢复排期面板原来dataX数据
+    // 判断是否含有 dataX- 开头标签的参数
+    let hasDataXAttr = false;
+    let maxDataIndex = 0;
 
     // 先保存原单元格的 innerText
     let originalInnerText = "";
-    // 检查是否存在 data1- 开头的属性
+    // 检查是否存在 dataX- 开头的属性
     if(originalCell){
       [...originalCell.attributes].forEach(attr => {
-        if (attr.name.startsWith('data1-')) {
-          hasData1Attr = true;
+        if (attr.name.match(/^data\d+-/)) {
+          hasDataXAttr = true;
+          const match = attr.name.match(/^data(\d+)-/);
+          if (match) {
+            const index = parseInt(match[1]);
+            if (index > maxDataIndex) {
+              maxDataIndex = index;
+            }
+          }
         }
       });
-      if (hasData1Attr) {
-        const text = originalCell.getAttribute("data1-sizecoding") + "(" + originalCell.getAttribute("data1-schedule_days") + "天)";
-        originalInnerText = text.trim();
+      if (hasDataXAttr) {
+        // 找到最大的索引，恢复对应的项目
+        const sizecoding = originalCell.getAttribute(`data${maxDataIndex}-sizecoding`);
+        const scheduleDays = originalCell.getAttribute(`data${maxDataIndex}-schedule_days`);
+        originalInnerText = `${sizecoding} (${scheduleDays}天)`;
       }
       // 清除原单元格内容和属性
       originalCell.innerText = '';
@@ -3027,18 +3089,22 @@
       [...originalCell.attributes].forEach(attr => {
         const name = attr.name;
 
-        if (name.startsWith('data1-')) {
-          const newName = name.replace('data1-', 'data-');
+        if (name.match(/^data\d+-/)) {
+          const match = name.match(/^data(\d+)-/);
+          if (match) {
+            const index = match[1];
+            const newName = name.replace(`data${index}-`, 'data-');
 
-          // 如果要替换的属性是受保护的，不动它！
-          if (!allowedAttributes.includes(newName)) {
-            if (attr.value !== null && attr.value !== 'null') {
-              originalCell.setAttribute(newName, attr.value);
+            // 如果要替换的属性是受保护的，不动它！
+            if (!allowedAttributes.includes(newName)) {
+              if (attr.value !== null && attr.value !== 'null') {
+                originalCell.setAttribute(newName, attr.value);
+              }
+              originalCell.removeAttribute(name);
+            } else {
+              // 是受保护属性，不替换也不删除
+              originalCell.removeAttribute(name);
             }
-            originalCell.removeAttribute(name);
-          } else {
-            // 是受保护属性，不替换也不删除
-            originalCell.removeAttribute(name); // 可选：也可以保留 data1-tester 以便调试
           }
         } else if (!allowedAttributes.includes(name)) {
           // 普通非受保护属性，删除
@@ -3046,7 +3112,7 @@
         }
       });
 
-      if (hasData1Attr) {
+      if (hasDataXAttr) {
         // 重新设置可拖拽属性
         originalCell.setAttribute('draggable', 'false'); // 禁用默认拖拽，使用双击拖拽
 
@@ -3281,30 +3347,48 @@
     document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
 
     document.getElementById('saveScheduleBtn').onclick = function () {
-      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+      // 检查是否有多个项目合并
+      let hasMultipleProjects = false;
+      [...currentRightClickCell.attributes].forEach(attr => {
+        if (attr.name.match(/^data\d+-sample_id$/)) {
+          hasMultipleProjects = true;
+        }
+      });
 
-      if (sampleId) {
-        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+      if (hasMultipleProjects) {
+        alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
         return; // 阻止后续操作
       }
       saveScheduleAndColor(null, taskData);
     };
 
     document.getElementById('confirmColorBtn').onclick = function () {
-      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+      // 检查是否有多个项目合并
+      let hasMultipleProjects = false;
+      [...currentRightClickCell.attributes].forEach(attr => {
+        if (attr.name.match(/^data\d+-sample_id$/)) {
+          hasMultipleProjects = true;
+        }
+      });
 
-      if (sampleId) {
-        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+      if (hasMultipleProjects) {
+        alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
         return; // 阻止后续操作
       }
       saveScheduleAndColor(null, taskData);
     };
 
     document.getElementById('saveRemarkBtn').onclick = function () {
-      const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
+      // 检查是否有多个项目合并
+      let hasMultipleProjects = false;
+      [...currentRightClickCell.attributes].forEach(attr => {
+        if (attr.name.match(/^data\d+-sample_id$/)) {
+          hasMultipleProjects = true;
+        }
+      });
 
-      if (sampleId) {
-        alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+      if (hasMultipleProjects) {
+        alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
         return; // 阻止后续操作
       }
       saveScheduleAndColor(null, taskData);
