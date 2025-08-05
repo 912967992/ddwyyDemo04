@@ -1085,31 +1085,38 @@
 
       // 允许保留的属性，添加判断 dataX- 开头的属性
       const allowed = ['class', 'data-tester', 'data-date', 'data-job_number'];
+
       [...draggedElement.attributes].forEach(attr => {
         const name = attr.name;
 
-        if (name.match(/^data\d+-/)) {
-          const match = name.match(/^data(\d+)-/);
-          if (match) {
-            const index = match[1];
-            const newName = name.replace(`data${index}-`, 'data-');
+        // 处理形如 dataX- 的属性（X为数字）
+        const match = name.match(/^data(\d+)-(.+)$/);
+        if (match) {
+          const index = parseInt(match[1], 10);
+          const key = match[2];
 
-            // 如果要替换的属性是受保护的，不动它！
-            if (!allowed.includes(newName)) {
-              if (attr.value !== null && attr.value !== 'null') {
-                draggedElement.setAttribute(newName, attr.value);
-              }
-              draggedElement.removeAttribute(name);
-            } else {
-              // 是受保护属性，不替换也不删除
-              draggedElement.removeAttribute(name);
+          let newName;
+          if (index === 1) {
+            newName = `data-${key}`; // X=1 时 → data-key
+          } else if (index > 1) {
+            newName = `data${index - 1}-${key}`; // X>1 时 → data(X-1)-key
+          }
+
+          if (newName && !allowed.includes(newName)) {
+            if (attr.value !== null && attr.value !== 'null') {
+              draggedElement.setAttribute(newName, attr.value);
             }
           }
+
+          // 无论如何都删除原始属性
+          draggedElement.removeAttribute(name);
+
         } else if (!allowed.includes(name)) {
           // 普通非受保护属性，删除
           draggedElement.removeAttribute(name);
         }
       });
+
 
       // 恢复原单元格的 innerText（如果有 dataX- 属性）
       if (hasDataXAttr) {
@@ -1216,34 +1223,6 @@
       } else {
         localScheduleChanges.push(newChange);
       }
-
-      // 如果有 data1- 属性，也需要记录第二个项目的删除操作
-      // if (hasData1Attr) {
-      //     const data1_sample_id = draggedElement.getAttribute('data-sample_id');
-      //     const data1_schedule_days = draggedElement.getAttribute('data-schedule_days') || '1';
-      //     const data1_schedule_color = draggedElement.getAttribute('data-schedule_color');
-      //
-      //     const data1Change = {
-      //         change: "delete",
-      //         sample_id: data1_sample_id,
-      //         tester: tester,
-      //         start_date: start_date,
-      //         end_date: end_date,
-      //         scheduleDays: data1_schedule_days,
-      //         schedule_color: data1_schedule_color,
-      //         job_number: job_number,
-      //         container: poolDom.id
-      //     };
-      //
-      //     const data1ExistingIndex = localScheduleChanges.findIndex(item =>
-      //         item.sample_id === data1_sample_id
-      //     );
-      //     if (data1ExistingIndex !== -1) {
-      //         localScheduleChanges[data1ExistingIndex] = data1Change;
-      //     } else {
-      //         localScheduleChanges.push(data1Change);
-      //     }
-      // }
 
       console.log("项目已还原到池子，变更已记录:", localScheduleChanges);
     } else if (draggedElement && draggedElement.classList.contains('project-card')) {
@@ -2553,30 +2532,41 @@
             // originalCell.classList.remove('assigned');
             originalCell.style.backgroundColor = '';
 
-
-            // 允许保留的属性，添加判断 data1- 开头的属性
+            // 允许保留的属性
             const allowedAttributes = ['class', 'data-tester', 'data-date', 'data-job_number'];
+
             [...originalCell.attributes].forEach(attr => {
               const name = attr.name;
 
-              if (name.startsWith('data1-')) {
-                const newName = name.replace('data1-', 'data-');
+              // 匹配形如 dataX- 开头的属性，X 为数字
+              const match = name.match(/^data(\d+)-(.+)$/);
+              if (match) {
+                const number = parseInt(match[1], 10);
+                const key = match[2];
 
-                // 如果要替换的属性是受保护的，不动它！
-                if (!allowedAttributes.includes(newName)) {
+                let newName;
+                if (number === 1) {
+                  newName = `data-${key}`; // X为1，变成data-key
+                } else if (number > 1) {
+                  newName = `data${number - 1}-${key}`; // X>1，减1
+                }
+
+                if (newName && !allowedAttributes.includes(newName)) {
                   if (attr.value !== null && attr.value !== 'null') {
                     originalCell.setAttribute(newName, attr.value);
                   }
-                  originalCell.removeAttribute(name);
-                } else {
-                  // 是受保护属性，不替换也不删除
-                  originalCell.removeAttribute(name); // 可选：也可以保留 data1-tester 以便调试
                 }
+                // 删除原始 dataX- 属性
+                originalCell.removeAttribute(name);
+
               } else if (!allowedAttributes.includes(name)) {
-                // 普通非受保护属性，删除
+                // 非 dataX- 且非受保护属性，直接删除
                 originalCell.removeAttribute(name);
               }
             });
+
+
+
 
             // 恢复被隐藏的格子
             for (let j = originalStartIndex; j < originalStartIndex + originalScheduleDays; j++) {

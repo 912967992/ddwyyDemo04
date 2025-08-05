@@ -282,7 +282,15 @@ public class testManIndexController {
             file.transferTo(targetFile);
 
             String fileName = targetFile.getName();
-            String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+//            String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            int dotIndex = fileName.lastIndexOf('.');
+            String baseName;
+            if (dotIndex > 0) { // 有扩展名
+                baseName = fileName.substring(0, dotIndex);
+            } else { // 没有扩展名
+                baseName = fileName;
+            }
+
             String jsonFilePath = jsonpath+ File.separator + baseName + ".json";
             System.out.println("json文件是："+jsonFilePath);
 
@@ -1107,6 +1115,10 @@ public class testManIndexController {
     @ResponseBody
     public String clearJson(@RequestBody Map<String, String> data) {
         String oldFilePath = data.get("oldFilePath");
+        if (oldFilePath == null || oldFilePath.trim().isEmpty()) {
+            logger.error("oldFilePath is null or empty, cannot delete JSON file.");
+            return "oldFilePath 为空，无法删除JSON文件";
+        }
 
         // 获取文件名并去除扩展名
         File file = new File(oldFilePath);
