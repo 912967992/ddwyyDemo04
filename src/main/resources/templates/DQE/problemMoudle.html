@@ -240,8 +240,22 @@
             <button id="closeModal" style="float:right;">&times;</button>
         </div>
         <div class="confirmModal-body">
+            <!-- 签样须知复选框 -->
+            <div class="signature-notice">
+                <label>
+                    <input type="checkbox" id="signatureNoticeCheck">
+                    <span>我已阅读签样须知</span>
+                </label>
+                <div id="noticeContent">
+                    <p>签样须知：</p>
+                    <p>1. 勾选后代表您接下来的签样结果生效且负责！</p>
+                    <p>2. 签样后不可修改签样结果！</p>
+                </div>
+            </div>
+            
             <p>请选择一个选项作为您的审核结果：</p>
             <select id="finalResult" class="form-control">
+                <option value="">请点击选择...</option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
                 <option value="2">限收</option>
@@ -251,7 +265,7 @@
         </div>
         <div class="confirmModal-footer">
             <button id="cancelSelection">取消</button>
-            <button id="confirmSelection">确认</button>
+            <button id="confirmSelection" disabled>确认</button>
         </div>
     </div>
 </div>
@@ -2398,7 +2412,8 @@
                                 alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE确认或修改您的承认结果");
                             }
 
-                            // 直接显示自定义模态框
+                            // 初始化模态框状态并显示
+                            initializeModalState();
                             $('#customModal').show();
                         }else if(job === "rd"){
                             if(result_judge===undefined){
@@ -2406,7 +2421,8 @@
                             }else{
                                 alert("此项目DQE给予的判定结果是："+returnResult(result_judge)+"，请您作为研发确认或修改您的承认结果");
                             }
-                            // 直接显示自定义模态框
+                            // 初始化模态框状态并显示
+                            initializeModalState();
                             $('#customModal').show();
                         }
 
@@ -2444,6 +2460,49 @@
 
 
 
+        // 签样须知复选框交互逻辑
+        $('#signatureNoticeCheck').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            const noticeContent = $('#noticeContent');
+            const confirmBtn = $('#confirmSelection');
+            const finalResult = $('#finalResult');
+            
+            if (isChecked) {
+                noticeContent.show();
+            } else {
+                noticeContent.hide();
+            }
+            
+            // 检查是否可以启用确认按钮
+            checkConfirmButtonState();
+        });
+        
+        // 最终结果选择框变化事件
+        $('#finalResult').on('change', function() {
+            checkConfirmButtonState();
+        });
+        
+        // 检查确认按钮状态的函数
+        function checkConfirmButtonState() {
+            const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
+            const selectedValue = $('#finalResult').val();
+            const confirmBtn = $('#confirmSelection');
+            
+            if (isNoticeChecked && selectedValue !== '') {
+                confirmBtn.prop('disabled', false);
+            } else {
+                confirmBtn.prop('disabled', true);
+            }
+        }
+        
+        // 初始化模态框状态的函数
+        function initializeModalState() {
+            $('#signatureNoticeCheck').prop('checked', false);
+            $('#noticeContent').hide();
+            $('#finalResult').val('');
+            $('#confirmSelection').prop('disabled', true);
+        }
+        
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
             // const selectedOption = $('#finalResult').val();
@@ -2469,8 +2528,21 @@
             // }
             // $('#customModal').hide();
 
-            //20250226简化审核流程
+            // 再次验证
+            const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
             const selectedOption = $('#finalResult').val();
+            
+            if (!isNoticeChecked) {
+                alert('请先阅读并勾选签样须知！');
+                return;
+            }
+            
+            if (selectedOption === '') {
+                alert('请选择审核结果！');
+                return;
+            }
+            
+            //20250226简化审核流程
             const statusBarBgColor = "0xFF5E97F6";
             if(job==="DQE"){
                 updateResult(currentSampleId,job,selectedOption, statusBarBgColor)

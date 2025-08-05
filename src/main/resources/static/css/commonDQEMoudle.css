@@ -625,6 +625,73 @@
     background-color: #0056b3; /* 悬停时的背景色 */
 }
 
+/* 签样须知样式 */
+.signature-notice {
+    margin-bottom: 15px;
+}
+
+.signature-notice label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: #d9534f;
+    margin-bottom: 10px;
+}
+
+.signature-notice input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+#noticeContent {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #d9534f;
+    border-radius: 4px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+#noticeContent p {
+    margin: 0 0 8px 0;
+    color: #333;
+    line-height: 1.5;
+}
+
+#noticeContent p:first-child {
+    color: #d9534f;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#noticeContent p:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 禁用状态的确认按钮样式 */
+.confirmModal-footer button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.confirmModal-footer button:disabled:hover {
+    background-color: #6c757d;
+}
+
 
 .loading-message {
     position: fixed;

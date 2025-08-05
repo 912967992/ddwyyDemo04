@@ -603,9 +603,9 @@ public class TestManIndexService {
             File file = new File(filePath);
 
             // 日志输出文件信息
-            System.out.println("准备上传文件路径：" + filePath);
-            System.out.println("文件是否存在：" + file.exists());
-            System.out.println("文件大小：" + file.length());
+//            System.out.println("准备上传文件路径：" + filePath);
+//            System.out.println("文件是否存在：" + file.exists());
+//            System.out.println("文件大小：" + file.length());
 
             if (!file.exists()) {
                 result.put("staus", 404);
@@ -621,7 +621,7 @@ public class TestManIndexService {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(jsonMap);
 
-            System.out.println("发送 JSON 参数：" + jsonString);
+//            System.out.println("发送 JSON 参数：" + jsonString);
 
             // 构造 multipart/form-data 请求体
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -644,8 +644,8 @@ public class TestManIndexService {
             result.put("remoteStatus", response.getStatusCodeValue());
             result.put("remoteBody", response.getBody());
 
-            System.out.println("远程接口响应状态码：" + response.getStatusCode());
-            System.out.println("远程接口响应体：" + response.getBody());
+//            System.out.println("远程接口响应状态码：" + response.getStatusCode());
+//            System.out.println("远程接口响应体：" + response.getBody());
 
 
 

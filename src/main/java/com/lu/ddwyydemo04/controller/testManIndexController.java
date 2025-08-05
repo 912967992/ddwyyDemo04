@@ -1761,7 +1761,12 @@ public class testManIndexController {
                         Samples sample = new Samples();
                         // 创建空 Excel 文件，使用清理后的 model 和 materialCode
 //                        String fileName = electric_sample_id + "_" + materialCode + "_" + sampleFrequency+ ".xlsx";
-                        String fileName = cleanElectricSampleId + "_" + (model != null ? model : "") + "_" + cleanMaterialCode + "_" + sampleFrequency + ".xlsx";
+//                        String fileName = cleanElectricSampleId + "_" + (model != null ? model : "") + "_" + cleanMaterialCode + "_" + sampleFrequency + ".xlsx";
+                        String cleanMaterialCodeEntry = sanitizeFileName(materialCode);
+                        String fileName = cleanElectricSampleId + "_"
+                                + (model != null ? model : "") + "_"
+                                + cleanMaterialCodeEntry + "_"
+                                + sampleFrequency + ".xlsx";
 
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
