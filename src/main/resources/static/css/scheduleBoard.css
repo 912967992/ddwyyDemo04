@@ -503,7 +503,8 @@
     transform: translateX(2px);
 }
 
-#videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
+#videoSamplePool, #wireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool,
+#highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool{
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -535,7 +536,7 @@
 
 /* 待送样池子的滚动条样式 */
 #videoSamplePool::-webkit-scrollbar,
-#dataWireSamplePool::-webkit-scrollbar,
+#wireSamplePool::-webkit-scrollbar,
 #audioVideoWireSamplePool::-webkit-scrollbar,
 #dataSamplePool::-webkit-scrollbar,
 #bluetoothSamplePool::-webkit-scrollbar,
@@ -548,7 +549,7 @@
 }
 
 #videoSamplePool::-webkit-scrollbar-track,
-#dataWireSamplePool::-webkit-scrollbar-track,
+#wireSamplePool::-webkit-scrollbar-track,
 #audioVideoWireSamplePool::-webkit-scrollbar-track,
 #dataSamplePool::-webkit-scrollbar-track,
 #bluetoothSamplePool::-webkit-scrollbar-track,
@@ -562,7 +563,7 @@
 }
 
 #videoSamplePool::-webkit-scrollbar-thumb,
-#dataWireSamplePool::-webkit-scrollbar-thumb,
+#wireSamplePool::-webkit-scrollbar-thumb,
 #audioVideoWireSamplePool::-webkit-scrollbar-thumb,
 #dataSamplePool::-webkit-scrollbar-thumb,
 #bluetoothSamplePool::-webkit-scrollbar-thumb,
@@ -576,7 +577,7 @@
 }
 
 #videoSamplePool::-webkit-scrollbar-thumb:hover,
-#dataWireSamplePool::-webkit-scrollbar-thumb:hover,
+#wireSamplePool::-webkit-scrollbar-thumb:hover,
 #audioVideoWireSamplePool::-webkit-scrollbar-thumb:hover,
 #dataSamplePool::-webkit-scrollbar-thumb:hover,
 #bluetoothSamplePool::-webkit-scrollbar-thumb:hover,
@@ -1045,7 +1046,7 @@
         font-size: 13px;
     }
     
-    #videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
+    #videoSamplePool, #wireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
         gap: 6px;
         padding: 6px;
         height: 70px;
@@ -1073,7 +1074,7 @@
         font-size: 12px;
     }
     
-    #videoSamplePool, #dataWireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
+    #videoSamplePool, #wireSamplePool, #audioVideoWireSamplePool, #dataSamplePool, #bluetoothSamplePool, #highFrequencySamplePool, #keyboardMouseSamplePool, #headphoneSamplePool, #locatorSamplePool, #ipcSamplePool {
         gap: 5px;
         padding: 5px;
         height: 60px;

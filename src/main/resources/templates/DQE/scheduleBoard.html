@@ -1921,11 +1921,31 @@
                 let colIndex = 0;
                 while (colIndex < allDates.length) {
                     const currentDate = allDates[colIndex];
-                    // 筛选出当天所有 0.5 天的项目
-                    const halfDayTasks = dateMap[testerName]?.filter(t =>
-                        t.startDate === currentDate &&
-                        parseFloat(t.schedule_days) === 0.5
+                    // 筛选出当天所有相同天数的项目
+                    const sameDayTasks = dateMap[testerName]?.filter(t =>
+                        t.startDate === currentDate
                     ) || [];
+                    
+                    // 按天数分组
+                    const tasksByDays = {};
+                    sameDayTasks.forEach(task => {
+                        const days = parseFloat(task.schedule_days);
+                        if (!tasksByDays[days]) {
+                            tasksByDays[days] = [];
+                        }
+                        tasksByDays[days].push(task);
+                    });
+                    
+                    // 找到可以合并的天数组（至少2个相同天数的项目）
+                    const mergeableDays = Object.keys(tasksByDays).filter(days => 
+                        tasksByDays[parseFloat(days)].length >= 2
+                    );
+                    
+                    // 优先选择最小的天数进行合并
+                    const mergeableDay = mergeableDays.length > 0 ? 
+                        Math.min(...mergeableDays.map(d => parseFloat(d))) : null;
+                    
+                    const mergeableTasks = mergeableDay ? tasksByDays[mergeableDay] : [];
 
                     const dateObj = new Date(currentDate);
                     const dayOfWeek = dateObj.getDay();
@@ -1938,8 +1958,8 @@
                         weekendClass = 'weekend-border';
                     }
 
-                    if (halfDayTasks.length >= 2) {
-                        const firstTask = halfDayTasks[0];
+                    if (mergeableTasks.length >= 2) {
+                        const firstTask = mergeableTasks[0];
                         let cellHtml = `<td class="drop-cell assigned ${weekendClass}"
                         data-tester="${testerName}"
                         data-date="${currentDate}"
@@ -1970,8 +1990,8 @@
 
                         // 设置其他任务的 dataX- 属性
                         let displayText = `${firstTask.sizecoding} (${firstTask.schedule_days}天)`;
-                        for (let i = 1; i < halfDayTasks.length; i++) {
-                            const task = halfDayTasks[i];
+                        for (let i = 1; i < mergeableTasks.length; i++) {
+                            const task = mergeableTasks[i];
                             Object.keys(task).forEach(key => {
                                 if (key !== 'days') {
                                     cellHtml += ` data${i}-${key}="${task[key] || ''}"`;
@@ -2227,18 +2247,18 @@
                 if (conflictFound) {
                     const confirmInsert = confirm('插入位置已被占用，是否将后续项目往后挪？');
                     if (!confirmInsert) {
-                        // 判断是否都是 0.5 天的项目
+                        // 判断是否都是相同天数的项目
                         const draggedScheduleDays = parseFloat(taskData.schedule_days);
                         for (let i = startIndex; i < startIndex + roundedDays; i++) {
                             if (rowCells[i].innerText.trim() !== '') {
                                 const conflictingScheduleDays = parseFloat(rowCells[i].getAttribute('data-schedule_days'));
-                                if (draggedScheduleDays === 0.5 && conflictingScheduleDays === 0.5) {
-                                    const confirmMerge = confirm('两个项目排期天数均为 0.5 天，是否合并单元格？');
+                                if (draggedScheduleDays === conflictingScheduleDays) {
+                                    const confirmMerge = confirm(`两个项目排期天数均为 ${draggedScheduleDays} 天，是否合并单元格？`);
                                     if (confirmMerge) {
                                         // 获取当前单元格（拖拽项目将放入的单元格）
                                         const targetCell = rowCells[i];
 
-                                        // 判断是否0.5天项目自己拖自己
+                                        // 判断是否相同天数项目自己拖自己
                                         const maxSample_id = targetCell.getAttribute('data-sample_id')
                                         if (maxSample_id === sample_id) {
                                             alert("不允许项目自己合并自己");
@@ -2290,7 +2310,7 @@
                                         targetCell.innerText = newText;
 
                                         // 更新排期天数
-                                        const newScheduleDays = 0.5;
+                                        const newScheduleDays = draggedScheduleDays;
                                         targetCell.setAttribute('data-schedule_days', newScheduleDays);
 
                                         // 记录合并变更到 localScheduleChanges
@@ -3346,7 +3366,7 @@
             });
 
             if (hasMultipleProjects) {
-                alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
                 return; // 阻止后续操作
             }
             saveScheduleAndColor(null, taskData);
@@ -3362,7 +3382,7 @@
             });
 
             if (hasMultipleProjects) {
-                alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
                 return; // 阻止后续操作
             }
             saveScheduleAndColor(null, taskData);
@@ -3378,7 +3398,7 @@
             });
 
             if (hasMultipleProjects) {
-                alert("这是多个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
                 return; // 阻止后续操作
             }
             saveScheduleAndColor(null, taskData);
@@ -3395,7 +3415,7 @@
             const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
 
             if (sampleId) {
-                alert("这是两个 0.5 天项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
                 return; // 阻止后续操作
             }
 
