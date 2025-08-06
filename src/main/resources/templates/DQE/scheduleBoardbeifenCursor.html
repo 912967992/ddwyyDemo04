@@ -2000,10 +2000,22 @@
               displayText += `|${task.sizecoding} (${task.schedule_days}天)`;
             }
 
-            // 使用 | 分隔多个项目信息
-            cellHtml += `>${displayText}</td>`;
+            // 设置 colspan 属性
+            const colspan = Math.ceil(parseFloat(firstTask.schedule_days));
+            cellHtml += ` colspan="${colspan}">${displayText}</td>`;
             html += cellHtml;
-            colIndex += 1;
+
+            // 隐藏被合并的单元格
+            for (let i = 1; i < colspan; i++) {
+              if (colIndex + i < allDates.length) {
+                let styleAttr = 'style="display: none;"';
+                if (weekendClass) {
+                  styleAttr += ` class="${weekendClass}"`;
+                }
+                html += `<td class="drop-cell" ${styleAttr} data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${allDates[colIndex + i]}"></td>`;
+              }
+            }
+            colIndex += colspan;
           } else {
             const task = dateMap[testerName]?.find(t => t.startDate === currentDate);
             if (task) {
@@ -2371,6 +2383,18 @@
                           setWeekendBorder(originalRowCells[j], date);
                         }
                       }
+
+                      // 重新设置 colspan 属性（如果原单元格还有项目数据）
+                      const remainingScheduleDays = originalCell.getAttribute('data-schedule_days');
+                      if (remainingScheduleDays && remainingScheduleDays !== 'null') {
+                        originalCell.setAttribute('colspan', Math.ceil(parseFloat(remainingScheduleDays)));
+                        // 重新隐藏被合并的单元格
+                        for (let j = originalStartIndex + 1; j < originalStartIndex + Math.ceil(parseFloat(remainingScheduleDays)); j++) {
+                          if (originalRowCells[j]) {
+                            originalRowCells[j].style.display = 'none';
+                          }
+                        }
+                      }
                     }
                     return;
                   } else {
@@ -2506,6 +2530,18 @@
                   setWeekendBorder(originalRowCells[i], date);
                 }
               }
+
+              // 重新设置 colspan 属性（如果原单元格还有项目数据）
+              const remainingScheduleDays = originalCell.getAttribute('data-schedule_days');
+              if (remainingScheduleDays && remainingScheduleDays !== 'null') {
+                originalCell.setAttribute('colspan', Math.ceil(parseFloat(remainingScheduleDays)));
+                // 重新隐藏被合并的单元格
+                for (let i = originalStartIndex + 1; i < originalStartIndex + Math.ceil(parseFloat(remainingScheduleDays)); i++) {
+                  if (originalRowCells[i]) {
+                    originalRowCells[i].style.display = 'none';
+                  }
+                }
+              }
             }
             console.log("111")
 
@@ -2597,8 +2633,34 @@
                 setWeekendBorder(originalRowCells[j], date);
               }
             }
+
+            // 重新设置 colspan 属性（如果原单元格还有项目数据）
+            const remainingScheduleDays = draggedElement.getAttribute('data-schedule_days');
+            if (remainingScheduleDays && remainingScheduleDays !== 'null') {
+              draggedElement.setAttribute('colspan', Math.ceil(parseFloat(remainingScheduleDays)));
+              // 重新隐藏被合并的单元格
+              for (let j = originalStartIndex + 1; j < originalStartIndex + Math.ceil(parseFloat(remainingScheduleDays)); j++) {
+                if (originalRowCells[j]) {
+                  originalRowCells[j].style.display = 'none';
+                }
+              }
+            }
+
+            // 重新隐藏被合并的单元格（除了第一个）
+            const newScheduleDays = Math.ceil(parseFloat(originalCell.getAttribute('data-schedule_days')));
+            for (let j = originalStartIndex + 1; j < originalStartIndex + newScheduleDays; j++) {
+              if (originalRowCells[j]) {
+                originalRowCells[j].style.display = 'none';
+              }
+            }
             // 恢复原单元格的 innerText
             originalCell.innerText = originalInnerText;
+
+            // 重新设置 colspan 属性
+            const scheduleDays = originalCell.getAttribute('data-schedule_days');
+            if (scheduleDays && scheduleDays !== 'null') {
+              originalCell.setAttribute('colspan', Math.ceil(parseFloat(scheduleDays)));
+            }
 
             if (hasData1Attr) {
               // 重新设置可拖拽属性
@@ -2954,6 +3016,18 @@
           setWeekendBorder(rowCells[i], date);
         }
       }
+
+      // 检查是否有其他项目需要重新设置 colspan
+      const remainingScheduleDays = rowCells[oldIndex].getAttribute('data-schedule_days');
+      if (remainingScheduleDays && remainingScheduleDays !== 'null') {
+        rowCells[oldIndex].setAttribute('colspan', Math.ceil(parseFloat(remainingScheduleDays)));
+        // 重新隐藏被合并的单元格
+        for (let i = oldIndex + 1; i < oldIndex + Math.ceil(parseFloat(remainingScheduleDays)); i++) {
+          if (rowCells[i]) {
+            rowCells[i].style.display = 'none';
+          }
+        }
+      }
     }
 
 
@@ -3096,6 +3170,12 @@
       // 恢复原单元格的 innerText
       originalCell.innerText = originalInnerText;
 
+      // 重新设置 colspan 属性
+      const scheduleDays = originalCell.getAttribute('data-schedule_days');
+      if (scheduleDays && scheduleDays !== 'null') {
+        originalCell.setAttribute('colspan', Math.ceil(parseFloat(scheduleDays)));
+      }
+
       [...originalCell.attributes].forEach(attr => {
         const name = attr.name;
 
@@ -3186,6 +3266,17 @@
 
         const date = rowCells[i].getAttribute('data-date');
         setWeekendBorder(rowCells[i], date);
+      }
+    }
+
+    // 重新隐藏被合并的单元格（如果原单元格还有项目数据）
+    const remainingScheduleDays = originalCell ? originalCell.getAttribute('data-schedule_days') : null;
+    if (remainingScheduleDays && remainingScheduleDays !== 'null') {
+      const newScheduleDays = Math.ceil(parseFloat(remainingScheduleDays));
+      for (let i = startIndex + 1; i < startIndex + newScheduleDays; i++) {
+        if (rowCells[i]) {
+          rowCells[i].style.display = 'none';
+        }
       }
     }
 
