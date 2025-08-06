@@ -2365,6 +2365,23 @@
                                             let hasOtherMergedProjects = false;
                                             let remainingProjects = [];
                                             let maxDataIndex = 0;
+                                            let draggedProjectIndex = -1;
+                                            
+                                            // 先找到被拖拽项目的索引
+                                            [...originalCell.attributes].forEach(attr => {
+                                                if (attr.name.match(/^data\d+-sample_id$/)) {
+                                                    const match = attr.name.match(/^data(\d+)-/);
+                                                    if (match) {
+                                                        const index = parseInt(match[1]);
+                                                        const projectSampleId = attr.value;
+                                                        
+                                                        // 找到被拖拽项目的索引
+                                                        if (projectSampleId === taskData.sample_id) {
+                                                            draggedProjectIndex = index;
+                                                        }
+                                                    }
+                                                }
+                                            });
                                             
                                             // 检查所有 dataX- 属性，找出除了当前拖拽项目之外的其他项目
                                             [...originalCell.attributes].forEach(attr => {
@@ -2395,6 +2412,9 @@
                                                     }
                                                 }
                                             });
+                                            
+                                            console.log("被拖拽项目索引:", draggedProjectIndex);
+                                            console.log("剩余项目数量:", remainingProjects.length);
 
                                             if (hasOtherMergedProjects) {
                                                 // 如果还有其他合并的项目，需要重新整理显示
@@ -2420,6 +2440,15 @@
                                                 if (remainingProjects.length > 0) {
                                                     const firstProject = remainingProjects[0];
                                                     
+                                                    // 先清除所有 dataX- 属性，包括被拆分项目的属性
+                                                    [...originalCell.attributes].forEach(attr => {
+                                                        if (attr.name.match(/^data\d+-/)) {
+                                                            originalCell.removeAttribute(attr.name);
+                                                        }
+                                                    });
+                                                    
+                                                    console.log("已清除所有 dataX- 属性");
+                                                    
                                                     // 将第一个项目的属性设为 data- 属性
                                                     Object.keys(firstProject.data).forEach(key => {
                                                         originalCell.setAttribute(`data-${key}`, firstProject.data[key]);
@@ -2430,10 +2459,6 @@
                                                         const project = remainingProjects[i];
                                                         Object.keys(project.data).forEach(key => {
                                                             originalCell.setAttribute(`data${i}-${key}`, project.data[key]);
-                                                        });
-                                                        // 删除旧的属性
-                                                        Object.keys(project.data).forEach(key => {
-                                                            originalCell.removeAttribute(`data${project.index}-${key}`);
                                                         });
                                                     }
                                                     
@@ -2449,6 +2474,7 @@
                                                     }
                                                     
                                                     originalCell.innerText = displayText;
+                                                    console.log("重新整理后的显示文本:", displayText);
                                                     originalCell.classList.add('assigned');
                                                     
                                                     // 设置颜色（使用第一个项目的颜色）
