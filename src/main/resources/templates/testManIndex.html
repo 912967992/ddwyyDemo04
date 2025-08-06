@@ -137,7 +137,7 @@
                 4. 解析文件限制最大的列数100，行数则如果连续10行为空则停止往下解析。(防止文件右方和下方出现太多空格加载冗余)<br>
                 5. 新增字段测试时长和预计测试时长，在UI展示。<br>
                 6. 解决bug: xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，已解决，现在对浮点数类型不进行小数点限制。--龙运发现<br>
-                7. 提交报告的时候新增对缺少”测试问题点汇总“工作表的提示，方便找到提交失败的问题。<br>
+                7. 提交报告的时候新增对缺少"测试问题点汇总"工作表的提示，方便找到提交失败的问题。<br>
                 8. 设置逾期判断，从2024.9.23号0点创建的文件开始计算。<br>
                 9. 可以查看各组员报告用时情况，可以导出为一份xlsx文件。<br>
 
@@ -468,14 +468,14 @@
             overlay.style.display = 'block';
             modal.style.display = 'block';
 
-            // 点击“确认”按钮时，关闭模态框并返回 true
+            // 点击"确认"按钮时，关闭模态框并返回 true
             yesButton.onclick = () => {
                 overlay.style.display = 'none';
                 modal.style.display = 'none';
                 resolve(true); // 返回 true 表示用户点击了确认
             };
 
-            // 点击“取消”按钮时，关闭模态框并返回 false
+            // 点击"取消"按钮时，关闭模态框并返回 false
             noButton.onclick = () => {
                 overlay.style.display = 'none';
                 modal.style.display = 'none';
@@ -1144,7 +1144,7 @@
             this.value = this.value.replace(/[\/\\:*?"<>|\t]/g, "_");
         });
 
-        // 因为手机端需要有“T”才可以在前端展示这个数据，不然会显示空
+        // 因为手机端需要有"T"才可以在前端展示这个数据，不然会显示空
         // const formattedPlanFinishTime = product.planfinish_time.replace(' ', 'T');
         // document.getElementById('edit_planfinish_time').value = formattedPlanFinishTime;
         // 检查并更新 scheduleStartTime
@@ -2386,7 +2386,7 @@
                             value = item[attr.field];
                         }
 
-                        // 获取“提出人”列的值
+                        // 获取"提出人"列的值
                         const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
 
 
@@ -2415,7 +2415,7 @@
                                     valueDiv.appendChild(img);  // 添加图片到 valueDiv 中
                                 }else{
                                     const uploadText = document.createElement('div');
-                                    uploadText.textContent = '上传图片';  // 显示“上传图片”
+                                    uploadText.textContent = '上传图片';  // 显示"上传图片"
                                     uploadText.style.cursor = 'pointer';  // 设置点击样式
                                     uploadText.style.color = '#8a4e07';  // 设置文本颜色
 
@@ -2438,11 +2438,11 @@
                                         });
                                     }
 
-                                    valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
+                                    valueDiv.appendChild(uploadText);  // 添加"上传图片"到 valueDiv 中
                                 }
                             }else if(index === 7){
                                 // 定义需要转换为下拉框的选项
-                                const validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
+                                let validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
 
                                 // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                 let normalizedValue = String(value).toUpperCase();
@@ -2451,8 +2451,10 @@
                                     normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
                                 }
 
-                                // 如果值不在有效选项内，则将值设置为“待确定”
-                                if (!validOptions.includes(normalizedValue)) {
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
                                     normalizedValue = '待确定';
                                 }
 
@@ -2502,13 +2504,15 @@
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                             }else if(index === 8){
                                 // 定义需要转换为下拉框的选项
-                                const validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
+                                let validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
 
                                 // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                 let normalizedValue = String(value);
 
-                                // 如果值不在有效选项内，则将值设置为“待确定”
-                                if (!validOptions.includes(normalizedValue)) {
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
                                     normalizedValue = '待确定';
                                 }
 
@@ -2558,16 +2562,15 @@
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                             } else if(index === 6){
                                 // 定义需要转换为下拉框的等级选项
-                                const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+                                let validOptions = ['S', 'A', 'B', 'C', '待确定'];
 
                                 // 将传递过来的值转换为统一格式（大写）
                                 let normalizedValue = String(value).toUpperCase();
 
-                                // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
-                                if (validOptions.includes(normalizedValue)) {
-                                    // 使用输入的值创建下拉框
-                                } else {
-                                    // 如果值不在有效选项范围内，将值设为“待确定”
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
                                     normalizedValue = '待确定';
                                 }
 
@@ -2617,16 +2620,15 @@
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                             }else if(index === 1){
                                 // 定义需要转换为下拉框的等级选项
-                                const validOptions = ['产品', '项目', '结构', 'ID', '研发' ,'DQE' ,'SQE' ,'CQE','待确定'];
+                                let validOptions = ['产品', '项目', '结构', 'ID', '研发' ,'DQE' ,'SQE' ,'CQE','待确定'];
 
                                 // 将传递过来的值转换为统一格式（大写）
                                 let normalizedValue = String(value).toUpperCase();
 
-                                // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
-                                if (validOptions.includes(normalizedValue)) {
-                                    // 使用输入的值创建下拉框
-                                } else {
-                                    // 如果值不在有效选项范围内，将值设为“待确定”
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
                                     normalizedValue = '待确定';
                                 }
 
@@ -3262,7 +3264,7 @@
                                 optionElement.value = option;
                                 optionElement.textContent = option;
 
-                                // 设置默认选中的选项为“待确定”
+                                // 设置默认选中的选项为"待确定"
                                 if (option === '待确定') {
                                     optionElement.selected = true;
                                 }
@@ -3283,7 +3285,7 @@
                             });
 
                             newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
-                            newItem[attr.field] = '待确定'; // 初始化该字段的值为“待确定”
+                            newItem[attr.field] = '待确定'; // 初始化该字段的值为"待确定"
                             newDiv.style.color = '#8a4e07'; // 设置字体颜色
                             value = '待确定';
 
@@ -3300,7 +3302,7 @@
                                 optionElement.value = option;
                                 optionElement.textContent = option;
 
-                                // 设置默认选中的选项为“OPEN”
+                                // 设置默认选中的选项为"OPEN"
                                 if (option === 'OPEN') {
                                     optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                 }
@@ -3322,8 +3324,8 @@
 
                             newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                            // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                            newItem[attr.field] = 'OPEN'; // 初始化该字段的值为“OPEN”
+                            // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                            newItem[attr.field] = 'OPEN'; // 初始化该字段的值为"OPEN"
                             value = 'OPEN';
 
                             // 设置字体颜色
@@ -3341,7 +3343,7 @@
                                 optionElement.value = option;
                                 optionElement.textContent = option;
 
-                                // 设置默认选中的选项为“OPEN”
+                                // 设置默认选中的选项为"OPEN"
                                 if (option === '待确定') {
                                     optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                 }
@@ -3363,8 +3365,8 @@
 
                             newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                            // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                            newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                            // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                            newItem[attr.field] = '待确定'; // 初始化该字段的值为"OPEN"
                             value = '待确定';
 
                             // 设置字体颜色
@@ -3382,7 +3384,7 @@
                                 optionElement.value = option;
                                 optionElement.textContent = option;
 
-                                // 设置默认选中的选项为“OPEN”
+                                // 设置默认选中的选项为"OPEN"
                                 if (option === '待确定') {
                                     optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                 }
@@ -3404,8 +3406,8 @@
 
                             newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                            // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                            newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                            // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                            newItem[attr.field] = '待确定'; // 初始化该字段的值为"OPEN"
                             value = '待确定';
 
                             // 设置字体颜色
@@ -3822,7 +3824,7 @@
             })
             .then(data => {
                 if (data.message && data.message.includes("上传成功")) {
-                    alert(data.message); // 只在消息中包含“上传成功”时弹出]
+                    alert(data.message); // 只在消息中包含"上传成功"时弹出]
                     // 检查 modifiedData 是否不为空数组
                     if (Array.isArray(modifiedData) && modifiedData.length > 0) {
                         saveChanges(modifiedData, sampleId,true);

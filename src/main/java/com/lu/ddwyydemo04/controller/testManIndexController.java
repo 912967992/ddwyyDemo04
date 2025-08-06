@@ -1970,8 +1970,8 @@ public class testManIndexController {
         fieldMapping.put("当前状态", "current_status");
         fieldMapping.put("对比上一版或竞品", "comparison_with_previous");
         fieldMapping.put("测试人员", "tester");
-        fieldMapping.put("DQE确认（每个版本的回复请勿删除）", "green_union_dqe");
-        fieldMapping.put("研发确认（每个版本的回复请勿删除）", "green_union_rd");
+        fieldMapping.put("DQE确认回复(每个版本的回复请勿删除）", "green_union_dqe");
+        fieldMapping.put("研发确认回复（每个版本的回复请勿删除）", "green_union_rd");
         fieldMapping.put("DQE责任人", "dqe");
         fieldMapping.put("分析责任人", "responsible_person");
         fieldMapping.put("责任单位", "responsibleDepartment");
