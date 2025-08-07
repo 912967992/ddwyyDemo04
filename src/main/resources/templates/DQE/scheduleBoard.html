@@ -737,7 +737,7 @@
 
             // 收集拖拽数据
             dragData = {
-                'project-sizecoding': `${projectEl.getAttribute('data-sample_model')} ${projectEl.getAttribute('data-materialCode')} ${projectEl.getAttribute('data-sample_leader').charAt(0)} ${formatRemark(projectEl.getAttribute('data-remark'))}`,
+                'project-sizecoding': `${projectEl.getAttribute('data-sample_model')} ${formatRemark(projectEl.getAttribute('data-materialCode'))} ${projectEl.getAttribute('data-sample_leader').charAt(0)} ${formatRemark(projectEl.getAttribute('data-remark'))}`,
                 'project-days': projectEl.getAttribute('data-schedule_days'),
                 'project-sample_id': projectEl.getAttribute('data-sample_id'),
                 'project-sample_name': projectEl.getAttribute('data-sample_name'),
@@ -1334,7 +1334,9 @@
 
             card.textContent =
                 item.sample_model + " " +
-                item.materialCode + " " +
+                (item.materialCode && item.materialCode.length > 10
+                    ? item.materialCode.substring(0, 10) + "..."
+                    : item.materialCode || "") + " " +
                 item.sample_leader.charAt(0) + " " +
                 (item.remark && item.remark.length > 10
                     ? item.remark.substring(0, 10) + "..."
@@ -1342,7 +1344,7 @@
                 "(" + item.scheduleDays + "天)";
 
 
-            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " "+ formatRemark(item.remark) );
+            card.setAttribute('data-sizecoding', item.sample_model + " " + formatRemark(item.materialCode) + " "+ item.sample_leader.charAt(0) + " "+ formatRemark(item.remark) );
             card.setAttribute('data-sample_id', item.sample_id || '');
             card.setAttribute('data-sample_name', item.sample_name || '');
             card.setAttribute('data-sample_model', item.sample_model || '');
@@ -1651,7 +1653,7 @@
                 // 更新卡片
                 if (card) {
                     // card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
-                    card.textContent = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${item.remark?.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark ?? ""} (${item.scheduleDays}天)`;
+                    card.textContent = `${item.sample_model} ${item.materialCode?.length > 10 ? item.materialCode.substring(0, 10) + "..." : item.materialCode ?? ""} ${item.sample_leader?.charAt(0)} ${item.remark?.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark ?? ""} (${item.scheduleDays}天)`;
 
                     card.setAttribute('data-schedule_days', days || '1');
 
@@ -1678,7 +1680,7 @@
                     cell.setAttribute('data-remark', remark);
 
                     // cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${remark} (${days}天)`;
-                    cell.innerText = `${item.sample_model} ${item.materialCode} ${item.sample_leader?.charAt(0)} ${(item.remark ? (item.remark.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark) : "")} (${days}天)`;
+                    cell.innerText = `${item.sample_model} ${(item.materialCode ? (item.materialCode.length > 10 ? item.materialCode.substring(0, 10) + "..." : item.materialCode) : "")} ${item.sample_leader?.charAt(0)} ${(item.remark ? (item.remark.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark) : "")} (${days}天)`;
 
                     if (selectedColor === null || selectedColor === "null") {
                         selectedColor = "white"
@@ -1786,7 +1788,7 @@
                         startDate: item.schedule_start_date,
                         endDate: item.schedule_end_date,
                         sample_id: item.sample_id,
-                        sizecoding: item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0) + " " + formatRemark(item.remark),
+                        sizecoding: item.sample_model + " " + formatRemark(item.materialCode) + " " + item.sample_leader.charAt(0) + " " + formatRemark(item.remark),
                         sample_category: item.sample_category,
                         sample_model: item.sample_model,
                         sample_name: item.sample_name,
@@ -2316,7 +2318,7 @@
                                         // 构造新的显示文本，合并两个项目信息
                                         const originalText = targetCell.innerText;
                                         // const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark} (${taskData.schedule_days}天)`;
-                                        const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode} ${taskData.sample_leader?.charAt(0)} ${taskData.remark?.length > 10 ? taskData.remark.substring(0, 10) + "..." : taskData.remark ?? ""} (${taskData.schedule_days}天)`;
+                                        const newText = `${originalText}|${taskData.sample_model} ${taskData.materialCode?.length > 10 ? taskData.materialCode.substring(0, 10) + "..." : taskData.materialCode ?? ""} ${taskData.sample_leader?.charAt(0)} ${taskData.remark?.length > 10 ? taskData.remark.substring(0, 10) + "..." : taskData.remark ?? ""} (${taskData.schedule_days}天)`;
 
 
                                         targetCell.innerText = newText;
@@ -3882,13 +3884,13 @@
             // card.textContent = item.sample_model + " " + item.materialCode + " " + item.sample_leader.charAt(0)  + " " + item.remark+ " " +"(" + item.scheduleDays + "天)";
             card.textContent =
                 item.sample_model + " " +
-                item.materialCode + " " +
+                (item.materialCode?.length > 10 ? item.materialCode.substring(0, 10) + "..." : item.materialCode ?? "") + " " +
                 item.sample_leader.charAt(0) + " " +
                 (item.remark?.length > 10 ? item.remark.substring(0, 10) + "..." : item.remark ?? "") + " " +
                 "(" + item.scheduleDays + "天)";
 
 
-            card.setAttribute('data-sizecoding', item.sample_model + " " + item.materialCode + " "+ item.sample_leader.charAt(0) + " " + formatRemark(item.remark) );
+            card.setAttribute('data-sizecoding', item.sample_model + " " + formatRemark(item.materialCode) + " "+ item.sample_leader.charAt(0) + " " + formatRemark(item.remark) );
             card.setAttribute('data-sample_id', item.sample_id || '');
             card.setAttribute('data-sample_name', item.sample_name || '');
             card.setAttribute('data-sample_model', item.sample_model || '');

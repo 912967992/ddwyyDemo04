@@ -522,6 +522,8 @@
                 OR (ei.schedule_end_date >= #{schedule_start_date} AND ei.schedule_end_date IS NOT NULL)
             )
           AND ei.isUsed = 1
+        ORDER BY
+            ei.update_time ASC
     </select>
 
 
@@ -577,6 +579,8 @@
                 AND (ei.schedule_end_date &gt;= #{schedule_end_date} OR ei.schedule_end_date IS NULL))
             )
           AND ei.isUsed = 1
+        ORDER BY
+            ei.update_time ASC
     </select>
 
 
