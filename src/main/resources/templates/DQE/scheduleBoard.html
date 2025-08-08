@@ -111,6 +111,7 @@
             <button id="searchBtn" style="margin-left: 10px;">搜索查询</button>
             <!-- 新增变更记录搜索看板按钮 -->
             <button id="changeRecordSearchBtn" style="margin-left: 10px;">变更记录搜索看板</button>
+            <button id="refreshColorBtn" style="margin-left: 10px;">刷新颜色</button>
             <!-- 新增垃圾站区域 -->
             <div id="trashStation">
                 <h3>回收站(右键看作废列表)</h3>
@@ -1647,7 +1648,7 @@
         })
             .then(resp => resp.json())
             .then(result => {
-                alert("排期天数和颜色设置成功！");
+                // alert("排期天数和颜色设置成功！");
                 document.getElementById('modal').style.display = 'none';
 
                 // 更新卡片
@@ -4101,6 +4102,35 @@
         const addProjectModal = document.getElementById('addProjectModal');
         const closeAddProjectModalBtn = document.getElementById('closeAddProjectModalBtn');
         const saveNewProjectBtn = document.getElementById('saveNewProjectBtn');
+        const refreshColorBtn = document.getElementById('refreshColorBtn');
+
+        refreshColorBtn.addEventListener('click', function () {
+            if (!confirm('确定要刷新颜色吗？')) {
+                return;
+            }
+
+            fetch('/scheduleBoardController/refreshColor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({}) // 这里不用传 finalChanges
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
+                        loadTestersData(); // 刷新表格数据
+                    } else {
+                        alert(result.message || '刷新颜色失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('刷新颜色出错:', error);
+                    alert('刷新颜色出错，请稍后重试');
+                });
+        });
+
 
         // 点击新增项目按钮显示模态框
         addProjectBtn.addEventListener('click', function () {

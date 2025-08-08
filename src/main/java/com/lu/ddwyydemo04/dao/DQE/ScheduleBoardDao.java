@@ -89,6 +89,9 @@ public interface ScheduleBoardDao {
     Map<String, Object> getChangeRecordStatsNew(@Param("startDate") String startDate,
                                                @Param("endDate") String endDate);
 
+    int updateScheduleColorGray();
+    int updateScheduleColorGreen();
+
 
 
 

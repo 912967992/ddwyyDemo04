@@ -440,7 +440,7 @@
                    #{schedule},
                    NOW(),
                    #{scheduleDays},
-                   #{schedule_color},
+                   'yellow',
                    #{remark},
                    #{waitSample_classify},
                    #{sample_sender},

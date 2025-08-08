@@ -324,4 +324,25 @@
         DELETE FROM `groups` WHERE id = #{id}
     </delete>
 
+
+    <update id="updateScheduleColorGray">
+        UPDATE electric_info
+        SET schedule_color = 'gray'
+        WHERE (schedule_color IS NULL OR schedule_color != 'gray')
+          AND actual_finish_time IS NOT NULL
+          AND actual_finish_time &lt;= CURDATE();
+    </update>
+
+    <update id="updateScheduleColorGreen">
+        UPDATE electric_info
+        SET schedule_color = 'green'
+        WHERE schedule_color != 'gray'
+        AND actual_start_time IS NOT NULL
+        AND (
+        actual_finish_time IS NULL
+        OR actual_finish_time &lt;= CURDATE()
+        );
+    </update>
+
+
 </mapper>

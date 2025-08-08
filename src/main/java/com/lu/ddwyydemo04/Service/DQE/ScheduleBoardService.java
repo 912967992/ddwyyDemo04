@@ -125,4 +125,14 @@ public class ScheduleBoardService {
         return scheduleBoardDao.getChangeRecordStatsNew(startDate, endDate);
     }
 
+    public int updateScheduleColorGray(){
+        return scheduleBoardDao.updateScheduleColorGray();
+    }
+
+    public int updateScheduleColorGreen(){
+        return scheduleBoardDao.updateScheduleColorGreen();
+    }
+
+
+
 }
