@@ -110,7 +110,7 @@ public class DQEIndexController {
     @ResponseBody
     public List<CombinedTaskNode> getOverdueSample() {
         List<TaskNode> overdueTaskNodeOnce = dqeIndexService.findFirstOverdueSamplesOnce();
-        System.out.println(overdueTaskNodeOnce);
+//        System.out.println(overdueTaskNodeOnce);
 
         // 创建一个新的列表来存储组合后的结果
         List<CombinedTaskNode> combinedTaskNodes = new ArrayList<>();
@@ -136,7 +136,7 @@ public class DQEIndexController {
             }
         }
 
-        System.out.println("combinedTaskNodes:"+combinedTaskNodes);
+//        System.out.println("combinedTaskNodes:"+combinedTaskNodes);
         return combinedTaskNodes; // 返回新的组合数组
 
     }

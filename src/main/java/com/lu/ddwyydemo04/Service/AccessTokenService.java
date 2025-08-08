@@ -532,14 +532,14 @@ public class AccessTokenService {
                 Samples sample = sampleList.isEmpty() ? null : sampleList.get(0);
 
                 if(nodeNumber.equals("1")){
-                    senderOnce = "系统检测到此项目"+notify_days_dqe+"天进度没动，第一次超期发送此警示信息给DQE主管级别,节点负责人为："+sample.getSample_DQE();
+                    senderOnce = "检测到此项目"+notify_days_dqe+"天进度没动，属于第一次超期";
 //                    receiver = "张华";
                     receiver = "李良健";
 //                    receiver = "卢健";
                     personCharge = sample.getSample_DQE();
 
                 }else if(nodeNumber.equals("2")){
-                    senderOnce = "系统检测到此项目"+notify_days_rd+"天进度没动，第一次超期发送此警示信息给研发主管级别,节点负责人为:"+sample.getSample_Developer();
+                    senderOnce = "检测到此项目"+notify_days_rd+"天进度没动，属于第一次超期";
                     receiver = "钟海龙";
 //                    receiver = "卢健";
                     personCharge = sample.getSample_Developer();
@@ -597,15 +597,17 @@ public class AccessTokenService {
                 Samples sample = sampleList.isEmpty() ? null : sampleList.get(0);
 
                 if(nodeNumber.equals("1")){
-                    senderSecond = "系统检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为:"+sample.getSample_DQE();
-                    receiver = "黄家灿";
+                    senderSecond = "检测到此项目"+doubledDays_dqe+"天进度没动，属于第二次超期";
+//                    receiver = "黄家灿";
 //                    receiver = "卢健";
+                    receiver = "";
 
                     personCharge = sample.getSample_DQE();
                 }else if(nodeNumber.equals("2")){
-                    senderSecond = "系统检测到此项目"+doubledDays_rd+"天进度没动，属于第二次超期，发送此警示信息给对应的经理级别，节点负责人为："+sample.getSample_Developer();
-                    receiver = "肖政文";
+                    senderSecond = "检测到此项目"+doubledDays_rd+"天进度没动，属于第二次超期";
+//                    receiver = "肖政文";
 //                    receiver = "卢健";
+                    receiver = "";
 
                     personCharge = sample.getSample_Developer();
                 }
