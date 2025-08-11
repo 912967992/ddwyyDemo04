@@ -595,5 +595,28 @@
           AND sample_schedule = '0'  -- 只包含测试中的样品，排除已提交的样品
     </select>
 
+    <select id="queryAgents" resultType="Integer">
+        select COUNT(*) FROM agents WHERE username = #{username}
+    </select>
+
+    <insert id="insertAgents">
+        INSERT INTO agents(username, agent_name, created_at, updated_at)
+        VALUES (#{username}, #{agent_name} , NOW(), NOW())
+    </insert>
+
+    <update id="updateAgents">
+        UPDATE agents
+        SET
+            agent_name = #{agent_name},
+            updated_at = NOW()
+        WHERE
+            username = #{username}
+    </update>
+
+    <select id="getAgents" parameterType="String" resultType="String">
+        SELECT agent_name from agents
+        WHERE username = #{username}
+    </select>
+
 
 </mapper>

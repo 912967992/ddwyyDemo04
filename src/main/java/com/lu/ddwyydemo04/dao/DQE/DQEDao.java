@@ -149,4 +149,14 @@ public interface DQEDao {
      * 查询所有有效的samples记录（用于Java端过滤）
      */
     List<Samples> findAllValidSamples();
+
+    void insertAgents(@Param("agent_name")String agent_name,@Param("username")String username);
+    void updateAgents(@Param("agent_name")String agent_name,@Param("username")String username);
+
+    int queryAgents(@Param("username")String username);
+    String getAgents(@Param("username")String username);
+
+
+
+
 }

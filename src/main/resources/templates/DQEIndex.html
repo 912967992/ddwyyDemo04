@@ -14,6 +14,123 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <style>
+        /* 代理人设置模态框样式 */
+        .agent-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+        
+        .agentInput {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .agentInput:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .remove-agent-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: background-color 0.3s ease;
+        }
+        
+        .remove-agent-btn:hover {
+            background: #ff3742;
+        }
+        
+        .agent-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .add-agent-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .add-agent-btn:hover:not(:disabled) {
+            background: #218838;
+        }
+        
+        .add-agent-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .save-agents-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .save-agents-btn:hover:not(:disabled) {
+            background: #0056b3;
+        }
+        
+        .save-agents-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        #agentTips {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+        }
+        
+        #agentTips p {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+        
+        /* 设置代理人按钮样式 */
+        #setupAgentBtn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        #setupAgentBtn:hover {
+            background: #138496;
+        }
+    </style>
 
 
 </head>
@@ -96,6 +213,30 @@
 
     <!-- 查看近期通知项目按钮 -->
     <button id="viewRecentNotificationsButton">查看近期通知项目</button>
+    <button id="setupAgentBtn">设置代理人</button>
+    <!-- 代理人设置模态框 -->
+    <div id="agentModal" class="modal">
+        <div class="modal-content">
+            <span class="close agent-close">&times;</span>
+            <h2>设置授权代理人</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">设置代理人在您不在时可以帮助处理相关事务</p>
+            <div id="agentList">
+                <div class="agent-input-group">
+                    <input type="text" class="agentInput" placeholder="输入代理人姓名" maxlength="20">
+                    <button type="button" class="remove-agent-btn" style="display: none;">×</button>
+                </div>
+            </div>
+            <div class="agent-buttons">
+                <button id="addAgentBtn" class="add-agent-btn">+ 添加代理人</button>
+                <button id="saveAgentsBtn" class="save-agents-btn">保存设置</button>
+            </div>
+            <div id="agentTips" style="margin-top: 10px; font-size: 12px; color: #999;">
+                <p>• 最多可设置5个代理人</p>
+                <p>• 代理人姓名不能为空</p>
+                <p>• 点击×按钮可删除对应代理人</p>
+            </div>
+        </div>
+    </div>
     <!-- 近期通知项目模态框 -->
     <div id="recentNotificationsModal" class="modal">
         <div class="modal-content">
@@ -741,6 +882,8 @@
     const recentNotificationsButton = document.getElementById("viewRecentNotificationsButton");
     const recentNotificationsClose = document.getElementsByClassName("recent-notifications-close")[0];
     const recentNotificationsProjectList = document.getElementById("recentNotificationsProjectList");
+
+
     // 查看近期通知项目按钮点击事件
         recentNotificationsButton.onclick = function () {
             fetch(`/DQEIndex/getRecentNotifications?username=${encodeURIComponent(username)}`)
@@ -814,7 +957,215 @@
         recentNotificationsModal.style.display = "none";
     };
 
+    // 代理人设置模态框相关逻辑
+    const agentModal = document.getElementById("agentModal");
+    const setupAgentBtn = document.getElementById("setupAgentBtn");
+    const agentClose = document.getElementsByClassName("agent-close")[0];
+    const addAgentBtn = document.getElementById("addAgentBtn");
+    const saveAgentsBtn = document.getElementById("saveAgentsBtn");
+    const MAX_AGENTS = 5; // 最大代理人数量
+
+    setupAgentBtn.onclick = function() {
+        agentModal.style.display = "block";
+        fetchAgents(); // 点击时获取数据库中的代理人数据
+    }
+
+    agentClose.onclick = function() {
+        agentModal.style.display = "none";
+    }
+
+    function fetchAgents() {
+        // 显示加载状态
+        saveAgentsBtn.disabled = true;
+        saveAgentsBtn.textContent = '加载中...';
+        
+        fetch(`/DQEIndex/getAgents?username=${encodeURIComponent(username)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('网络响应错误');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const agentList = document.getElementById('agentList');
+            agentList.innerHTML = '';
+            
+            if (data.agents && data.agents.length > 0) {
+                data.agents.forEach(agent => {
+                    addAgentInput(agent);
+                });
+            } else {
+                addAgentInput(''); // 添加一个空的输入框
+            }
+            
+            updateAddButtonState();
+        })
+        .catch(error => {
+            console.error('Error fetching agents:', error);
+            alert('获取代理人数据失败，请稍后重试');
+            // 添加一个空的输入框作为备选
+            const agentList = document.getElementById('agentList');
+            agentList.innerHTML = '';
+            addAgentInput('');
+        })
+        .finally(() => {
+            saveAgentsBtn.disabled = false;
+            saveAgentsBtn.textContent = '保存设置';
+        });
+    }
+
+    function addAgentInput(value = '') {
+        const agentList = document.getElementById('agentList');
+        const agentCount = agentList.children.length;
+        
+        if (agentCount >= MAX_AGENTS) {
+            alert(`最多只能设置${MAX_AGENTS}个代理人`);
+            return;
+        }
+        
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'agent-input-group';
+        inputGroup.style.cssText = 'display: flex; align-items: center; margin-bottom: 10px; gap: 8px;';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'agentInput';
+        input.placeholder = '输入代理人姓名';
+        input.value = value;
+        input.maxLength = 20;
+        input.style.cssText = 'flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-agent-btn';
+        removeBtn.textContent = '×';
+        removeBtn.style.cssText = 'background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;';
+        
+        // 只有当有多个输入框时才显示删除按钮
+        if (agentCount > 0) {
+            removeBtn.style.display = 'block';
+        }
+        
+        removeBtn.onclick = function() {
+            if (agentList.children.length > 1) {
+                agentList.removeChild(inputGroup);
+                updateAddButtonState();
+                updateRemoveButtons();
+            }
+        };
+        
+        inputGroup.appendChild(input);
+        inputGroup.appendChild(removeBtn);
+        agentList.appendChild(inputGroup);
+        
+        updateAddButtonState();
+        updateRemoveButtons();
+    }
+
+    function updateAddButtonState() {
+        const agentList = document.getElementById('agentList');
+        const agentCount = agentList.children.length;
+        addAgentBtn.disabled = agentCount >= MAX_AGENTS;
+        
+        if (agentCount >= MAX_AGENTS) {
+            addAgentBtn.textContent = '已达到最大数量';
+            addAgentBtn.style.opacity = '0.5';
+        } else {
+            addAgentBtn.textContent = '+ 添加代理人';
+            addAgentBtn.style.opacity = '1';
+        }
+    }
+
+    function updateRemoveButtons() {
+        const agentList = document.getElementById('agentList');
+        const removeButtons = agentList.querySelectorAll('.remove-agent-btn');
+        const agentCount = agentList.children.length;
+        
+        removeButtons.forEach(btn => {
+            btn.style.display = agentCount > 1 ? 'block' : 'none';
+        });
+    }
+
+    document.getElementById('addAgentBtn').addEventListener('click', function() {
+        addAgentInput();
+    });
+
+    document.getElementById('saveAgentsBtn').addEventListener('click', function() {
+        const inputs = document.querySelectorAll('.agentInput');
+        const agents = Array.from(inputs)
+            .map(input => input.value.trim())
+            .filter(value => value !== '');
+        
+        // 验证输入
+        if (agents.length === 0) {
+            alert("请至少输入一个代理人姓名");
+            return;
+        }
+        
+        // 检查是否有重复的代理人
+        const uniqueAgents = [...new Set(agents)];
+        if (uniqueAgents.length !== agents.length) {
+            alert("代理人姓名不能重复");
+            return;
+        }
+        
+        // 检查代理人姓名长度
+        for (let agent of agents) {
+            if (agent.length < 2) {
+                alert("代理人姓名至少需要2个字符");
+                return;
+            }
+            if (agent.length > 20) {
+                alert("代理人姓名不能超过20个字符");
+                return;
+            }
+        }
+        
+        // 显示保存状态
+        saveAgentsBtn.disabled = true;
+        saveAgentsBtn.textContent = '保存中...';
+        
+        fetch('/DQEIndex/saveAgents', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ agents, username })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('保存失败');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('保存响应:', data);
+            if (data.success) {
+                alert(data.message || "代理人设置保存成功！");
+                fetchAgents(); // 刷新模态框
+            } else {
+                alert(data.message || "保存失败，请稍后重试！");
+            }
+        })
+        .catch(error => {
+            console.error('Error saving agents:', error);
+            alert("保存失败，请稍后重试！");
+        })
+        .finally(() => {
+            saveAgentsBtn.disabled = false;
+            saveAgentsBtn.textContent = '保存设置';
+        });
+    });
+
     window.onclick = function(event) {
+        if (event.target == agentModal) {
+            agentModal.style.display = "none";
+        }
         if (event.target == overdueModal) {
             overdueModal.style.display = "none";
         }

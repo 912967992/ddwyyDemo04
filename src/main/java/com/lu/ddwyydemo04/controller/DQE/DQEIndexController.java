@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -226,6 +227,89 @@ public class DQEIndexController {
         }
     }
 
+    @PostMapping("/DQEIndex/saveAgents")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveAgents(@RequestBody Map<String, Object> requestData) {
+        try {
+            List<String> agents = (List<String>) requestData.get("agents");
+            String username = (String) requestData.get("username");
+            String agent_name = String.join(", ", agents);
+
+            
+            int queryAgent = dqeIndexService.queryAgents(username);
+            if(queryAgent > 0){
+                dqeIndexService.updateAgents(agent_name, username);
+            } else {
+                dqeIndexService.insertAgents(agent_name, username);
+            }
+
+            // 返回JSON格式的成功响应
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "代理人设置保存成功");
+            response.put("data", agents);
+
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            
+            // 返回JSON格式的错误响应
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "保存失败: " + e.getMessage());
+            errorResponse.put("error", e.toString());
+            
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/DQEIndex/getAgents")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAgents(@RequestParam String username) {
+        try {
+
+            // 检查用户名是否为空
+            if (username == null || username.trim().isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "用户名不能为空");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            // 调用service层方法
+            String agentsStr = dqeIndexService.getAgents(username);
+
+            
+            List<String> agents = new ArrayList<>();
+            
+            if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                // 将字符串按逗号分割成数组
+                String[] agentArray = agentsStr.split(",");
+                for (String agent : agentArray) {
+                    String trimmedAgent = agent.trim();
+                    if (!trimmedAgent.isEmpty()) {
+                        agents.add(trimmedAgent);
+                    }
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("agents", agents);
+
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to fetch agents: " + e.getMessage());
+            errorResponse.put("exceptionType", e.getClass().getName());
+            errorResponse.put("details", e.toString());
+            
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 
 
 
