@@ -1465,8 +1465,8 @@
             // 构建钉钉跳转链接
             const messageUrl = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+`dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectMidPageUrl)}`;
             
-            // 调用showCustomAlertWithCopy函数显示链接
-            showCustomAlertWithCopy(messageUrl);
+            // 直接复制链接到剪贴板
+            copyTextToClipboard(messageUrl);
         });
 
 
@@ -3698,6 +3698,22 @@
 
 
     function copyTextToClipboard(text) {
+        // 优先使用现代的 Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('链接已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                // 如果 Clipboard API 失败，回退到传统方法
+                fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            // 回退到传统方法
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text) {
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';  // 避免页面滚动
@@ -3709,7 +3725,7 @@
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                alert('已复制到剪贴板！');
+                alert('链接已复制到剪贴板！');
             } else {
                 alert('复制失败，请手动复制');
             }
