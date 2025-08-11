@@ -1046,7 +1046,7 @@
             const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
 
             // 发送 AJAX 请求以获取数据，将 sampleId 作为查询参数
-            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}`, {
+            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}&username=${encodeURIComponent(username)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1425,6 +1425,33 @@
             }
 
             isEditing = true; // 设置为正在编辑状态
+
+            // **先检查用户是否有权限访问该项目**
+            try {
+                const permissionResponse = await fetch(`/problemMoudle/checkAccessPermission?sampleId=${sampleId}&username=${encodeURIComponent(username)}`);
+                const permissionData = await permissionResponse.json();
+                
+                if (!permissionData.success) {
+                    alert("权限检查失败：" + permissionData.message);
+                    isEditing = false;
+                    return;
+                }
+                
+                if (!permissionData.hasPermission) {
+                    alert(permissionData.message + "\n\n项目信息：\nDQE: " + permissionData.projectDQE + "\n研发: " + permissionData.projectRD + "\n项目负责人: " + permissionData.projectLeader);
+                    isEditing = false;
+                    return;
+                }
+                
+                // 权限检查通过，继续执行
+                console.log("权限检查通过：" + permissionData.message);
+                
+            } catch (error) {
+                console.error("权限检查出错:", error);
+                alert("权限检查出错，请稍后重试");
+                isEditing = false;
+                return;
+            }
 
             // **先调用通用方法获取参数**
             const checkJudge = await checkSampleResult(sampleId);
@@ -2650,6 +2677,7 @@
             formData.append('file', file);  // 添加文件
             formData.append('sampleId', sampleId);  // 添加 sampleId
             formData.append('id', id);  // 添加 sampleId
+            formData.append('username', username);  // 添加用户名
 
             fetch('/problemMoudle/uploadImage', {
                 method: 'POST',

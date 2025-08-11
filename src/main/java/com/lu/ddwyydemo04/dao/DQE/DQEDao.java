@@ -49,6 +49,8 @@ public interface DQEDao {
     public void insertTestIssues(TestIssues testIssues);
 
     public int deleteProblemById(Long id);
+    
+    public Long getSampleIdByProblemId(Long problemId);
 
     int uploadImage(@Param("id") Long id, @Param("problem_image_or_video") String problem_image_or_video);
 

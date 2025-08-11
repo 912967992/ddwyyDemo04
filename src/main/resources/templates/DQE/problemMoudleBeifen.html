@@ -240,8 +240,22 @@
             <button id="closeModal" style="float:right;">&times;</button>
         </div>
         <div class="confirmModal-body">
+            <!-- 签样须知复选框 -->
+            <div class="signature-notice">
+                <label>
+                    <input type="checkbox" id="signatureNoticeCheck">
+                    <span>我已阅读签样须知</span>
+                </label>
+                <div id="noticeContent">
+                    <p>签样须知：</p>
+                    <p>1. 勾选后代表您接下来的签样结果生效且负责！</p>
+                    <p>2. 签样后不可修改签样结果！</p>
+                </div>
+            </div>
+
             <p>请选择一个选项作为您的审核结果：</p>
             <select id="finalResult" class="form-control">
+                <option value="">请点击选择...</option>
                 <option value="0">签样</option>
                 <option value="1">退样</option>
                 <option value="2">限收</option>
@@ -251,7 +265,7 @@
         </div>
         <div class="confirmModal-footer">
             <button id="cancelSelection">取消</button>
-            <button id="confirmSelection">确认</button>
+            <button id="confirmSelection" disabled>确认</button>
         </div>
     </div>
 </div>
@@ -936,7 +950,7 @@
         // }
 
         // 20250103 修改一下可编辑的列
-        function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter) {
+        function createEditableSpan(value, item, attr, modifiedData, valueDiv, presenter, isEditDisabled) {
             const div = document.createElement('div');
             div.textContent = value || '无'; // 如果没有数据，展示为 '无'
 
@@ -956,7 +970,8 @@
                 attr.field === 'reproduction_probability' || attr.field === 'defect_level' || attr.field === 'next_version_regression_test';
             const canEdit = isRestrictedField ? presenter === username : true;
 
-            if (canEdit) {
+            // 如果禁用编辑或没有编辑权限，不允许编辑
+            if (canEdit && !isEditDisabled) {
                 div.addEventListener('click', function () {
                     // 创建 textarea
                     const textarea = document.createElement('textarea');
@@ -1031,7 +1046,7 @@
             const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
 
             // 发送 AJAX 请求以获取数据，将 sampleId 作为查询参数
-            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}`, {
+            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}&username=${encodeURIComponent(username)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1352,7 +1367,7 @@
 
                             }else{
                                 // 创建可编辑的内容
-                                createEditableSpan(value, newItem, attr, modifiedData, newDiv,username); // 使用获取的值
+                                createEditableSpan(value, newItem, attr, modifiedData, newDiv, username, false); // 使用获取的值，新增行默认允许编辑
                             }
 
                         }
@@ -1402,7 +1417,7 @@
 
 
 
-        function editClickBtn(sampleId) {
+        async function editClickBtn(sampleId) {
             // 如果正在编辑，直接返回，避免重复请求
             if (isEditing){
                 alert("请不要频繁点击，正在搜索上一个点击的问题点,如果一直出现这个提示，可以关闭应用重新进来")
@@ -1410,6 +1425,39 @@
             }
 
             isEditing = true; // 设置为正在编辑状态
+
+            // **先检查用户是否有权限访问该项目**
+            try {
+                const permissionResponse = await fetch(`/problemMoudle/checkAccessPermission?sampleId=${sampleId}&username=${encodeURIComponent(username)}`);
+                const permissionData = await permissionResponse.json();
+
+                if (!permissionData.success) {
+                    alert("权限检查失败：" + permissionData.message);
+                    isEditing = false;
+                    return;
+                }
+
+                if (!permissionData.hasPermission) {
+                    alert(permissionData.message + "\n\n项目信息：\nDQE: " + permissionData.projectDQE + "\n研发: " + permissionData.projectRD + "\n项目负责人: " + permissionData.projectLeader);
+                    isEditing = false;
+                    return;
+                }
+
+                // 权限检查通过，继续执行
+                console.log("权限检查通过：" + permissionData.message);
+
+            } catch (error) {
+                console.error("权限检查出错:", error);
+                alert("权限检查出错，请稍后重试");
+                isEditing = false;
+                return;
+            }
+
+            // **先调用通用方法获取参数**
+            const checkJudge = await checkSampleResult(sampleId);
+
+            // 如果 checkJudge 为 true，禁用编辑功能
+            const isEditDisabled = checkJudge === true;
 
             currentSampleId = sampleId;
             fetch(`/problemMoudle/editClickBtn?sampleId=${sampleId}`, {
@@ -1645,8 +1693,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+
                                         const selectedValue = select.value;
                                         console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1689,8 +1749,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+
                                         const selectedValue = select.value;
                                         console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1736,8 +1808,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+
                                         const selectedValue = select.value;
                                         console.log('等级已更新为:', selectedValue);  // 处理下拉框值的变化
 
@@ -1783,8 +1867,20 @@
                                         select.appendChild(optionElement);
                                     });
 
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
+                                    }
+
                                     // 监听下拉框的变化事件
                                     select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+
                                         const selectedValue = select.value;
 
                                         // 如果新值和旧值不同，标记为已修改
@@ -1828,11 +1924,17 @@
                                     valueText.style.color = '#2954e3'; // 设置不允许修改的列的字体颜色
 
                                     valueText.addEventListener('click', () => {
+                                        // 如果禁用状态，不允许删除
+                                        if (isEditDisabled) {
+                                            alert('DQE已审核完成，不允许修改');
+                                            return;
+                                        }
+
                                         confirm(`确定删除ID为${value}的问题点吗？删除后不可恢复！`)
                                             .then((confirmation) => {
                                                 if (confirmation) {
                                                     // 检查测试人是否为"/"，如果是则允许删除
-                                                    if (item.tester === "/" || (username && username === item.tester)) {
+                                                    if (item.tester === "/" || item.tester === null || item.tester === "" || (username && username === item.tester)) {
                                                         // 发送删除请求到控制层
                                                         fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
                                                             .then(response => {
@@ -1883,27 +1985,36 @@
                                         }
                                     }
 
-                                    // 监听复选框变化事件
-                                    if ((attr.field === 'dqe_confirm' && checkbox.getAttribute('data-dqe') === 'true') ||
-                                        (attr.field === 'rd_confirm' && checkbox.getAttribute('data-rd') === 'true')) {
-                                        // 监听复选框变化事件
-                                        checkbox.addEventListener('change', function () {
-                                            const newValue = checkbox.checked ? '确认' : '未确认'; // 更新状态
-                                            if (newValue !== item[attr.field]) {
-                                                item[attr.field] = newValue; // 更新数据对象
-
-                                                // 确保 modifiedData 中没有重复项
-                                                if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
-                                                    modifiedData.push(item); // 标记修改过的数据
-                                                }
-                                            }
-                                        });
+                                    // 如果禁用编辑，禁用复选框
+                                    if (isEditDisabled) {
+                                        checkbox.disabled = true;
+                                        checkbox.style.opacity = '0.5';
+                                        checkbox.style.cursor = 'not-allowed';
+                                        checkbox.style.backgroundColor = '#f0f0f0';
+                                        checkbox.style.border = '1px solid #ccc';
                                     } else {
-                                        checkbox.disabled = true; // 禁用复选框
-                                        checkbox.style.opacity = '1'; // 设为不透明
-                                        checkbox.style.cursor = 'not-allowed'; // 更改鼠标指针样式
-                                        checkbox.style.backgroundColor = '#f0f0f0'; // 设置背景颜色
-                                        checkbox.style.border = '1px solid #ccc'; // 设置边框
+                                        // 监听复选框变化事件
+                                        if ((attr.field === 'dqe_confirm' && checkbox.getAttribute('data-dqe') === 'true') ||
+                                            (attr.field === 'rd_confirm' && checkbox.getAttribute('data-rd') === 'true')) {
+                                            // 监听复选框变化事件
+                                            checkbox.addEventListener('change', function () {
+                                                const newValue = checkbox.checked ? '确认' : '未确认'; // 更新状态
+                                                if (newValue !== item[attr.field]) {
+                                                    item[attr.field] = newValue; // 更新数据对象
+
+                                                    // 确保 modifiedData 中没有重复项
+                                                    if (!modifiedData.some(existingItem => existingItem.id === item.id)) {
+                                                        modifiedData.push(item); // 标记修改过的数据
+                                                    }
+                                                }
+                                            });
+                                        } else {
+                                            checkbox.disabled = true; // 禁用复选框
+                                            checkbox.style.opacity = '1'; // 设为不透明
+                                            checkbox.style.cursor = 'not-allowed'; // 更改鼠标指针样式
+                                            checkbox.style.backgroundColor = '#f0f0f0'; // 设置背景颜色
+                                            checkbox.style.border = '1px solid #ccc'; // 设置边框
+                                        }
                                     }
 
                                     valueDiv.appendChild(checkbox);
@@ -1945,7 +2056,7 @@
 
                             } else {
 
-                                createEditableSpan(value, item, attr, modifiedData, valueDiv ,responsiblePersonValue);
+                                createEditableSpan(value, item, attr, modifiedData, valueDiv, responsiblePersonValue, isEditDisabled);
                             }
 
                             enableDragScroll(valueDiv);
@@ -1984,9 +2095,22 @@
                     saveButton.textContent = '保存\n修改'; // 使用换行符分两行显示文本
                     saveButton.className = 'save-button'; // 添加类名
 
+                    // 如果 checkJudge 为 true，禁用保存按钮
+                    if (isEditDisabled) {
+                        // saveButton.disabled = true;
+                        saveButton.style.opacity = '0.5';
+                        saveButton.style.cursor = 'not-allowed';
+                        saveButton.title = '当前状态不允许编辑';
+                    }
+
                     contentDiv.appendChild(saveButton);
 
                     saveButton.addEventListener('click', function () {
+                        // 如果禁用状态，不允许保存
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         saveChanges(modifiedData,sampleId,true); // 只发送修改的数据
                     });
 
@@ -1994,10 +2118,24 @@
                     const addButton = document.createElement('button');
                     addButton.textContent = '新增\n问题';
                     addButton.className = 'add-button'; // 给新增问题按钮添加类名
+
+                    // 如果 checkJudge 为 true，禁用新增问题按钮
+                    if (isEditDisabled) {
+                        // addButton.disabled = true;
+                        addButton.style.opacity = '0.5';
+                        addButton.style.cursor = 'not-allowed';
+                        addButton.title = '当前状态不允许编辑';
+                    }
+
                     contentDiv.appendChild(addButton);
 
                     // 新增问题按钮点击事件
                     addButton.addEventListener('click', function () {
+                        // 如果禁用状态，不允许新增
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         addNewRow(sampleId,attributes,modifiedData,table);
                     });
 
@@ -2073,7 +2211,7 @@
 
                     //新增一个流程确认的按钮
                     const processConfirmButton = document.createElement('button');
-                    processConfirmButton.textContent = '流程\n确认'; // 按钮名称
+                    processConfirmButton.textContent = '点我\n签样'; // 按钮名称
                     processConfirmButton.className = 'process-confirm-button'; // 给按钮添加类名
                     contentDiv.appendChild(processConfirmButton);
 
@@ -2151,11 +2289,24 @@
                     const passbackProblemBtn = document.createElement('button');
                     passbackProblemBtn.textContent = '回传\n问题点'; // 按钮名称
                     passbackProblemBtn.className = 'passbackProblem-button'; // 给按钮添加类名
+
+                    // 如果 checkJudge 为 true，禁用回传问题点按钮
+                    if (isEditDisabled) {
+                        // passbackProblemBtn.disabled = true;
+                        passbackProblemBtn.style.opacity = '0.5';
+                        passbackProblemBtn.style.cursor = 'not-allowed';
+                        passbackProblemBtn.title = '当前状态不允许编辑';
+                    }
+
                     contentDiv.appendChild(passbackProblemBtn);
 
                     passbackProblemBtn.addEventListener('click', () => {
+                        // 如果禁用状态，不允许回传
+                        if (isEditDisabled) {
+                            alert('DQE已审核完成，不允许修改');
+                            return;
+                        }
                         passbackProblemBtnClick(sampleId);
-
                     });
 
 
@@ -2288,7 +2439,8 @@
                                 alert("此项目研发给予的判定结果是："+returnResult(rd_result_judge)+"，请您作为DQE确认或修改您的承认结果");
                             }
 
-                            // 直接显示自定义模态框
+                            // 初始化模态框状态并显示
+                            initializeModalState();
                             $('#customModal').show();
                         }else if(job === "rd"){
                             if(result_judge===undefined){
@@ -2296,7 +2448,8 @@
                             }else{
                                 alert("此项目DQE给予的判定结果是："+returnResult(result_judge)+"，请您作为研发确认或修改您的承认结果");
                             }
-                            // 直接显示自定义模态框
+                            // 初始化模态框状态并显示
+                            initializeModalState();
                             $('#customModal').show();
                         }
 
@@ -2334,6 +2487,49 @@
 
 
 
+        // 签样须知复选框交互逻辑
+        $('#signatureNoticeCheck').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            const noticeContent = $('#noticeContent');
+            const confirmBtn = $('#confirmSelection');
+            const finalResult = $('#finalResult');
+
+            if (isChecked) {
+                noticeContent.show();
+            } else {
+                noticeContent.hide();
+            }
+
+            // 检查是否可以启用确认按钮
+            checkConfirmButtonState();
+        });
+
+        // 最终结果选择框变化事件
+        $('#finalResult').on('change', function() {
+            checkConfirmButtonState();
+        });
+
+        // 检查确认按钮状态的函数
+        function checkConfirmButtonState() {
+            const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
+            const selectedValue = $('#finalResult').val();
+            const confirmBtn = $('#confirmSelection');
+
+            if (isNoticeChecked && selectedValue !== '') {
+                confirmBtn.prop('disabled', false);
+            } else {
+                confirmBtn.prop('disabled', true);
+            }
+        }
+
+        // 初始化模态框状态的函数
+        function initializeModalState() {
+            $('#signatureNoticeCheck').prop('checked', false);
+            $('#noticeContent').hide();
+            $('#finalResult').val('');
+            $('#confirmSelection').prop('disabled', true);
+        }
+
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
             // const selectedOption = $('#finalResult').val();
@@ -2359,8 +2555,21 @@
             // }
             // $('#customModal').hide();
 
-            //20250226简化审核流程
+            // 再次验证
+            const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
             const selectedOption = $('#finalResult').val();
+
+            if (!isNoticeChecked) {
+                alert('请先阅读并勾选签样须知！');
+                return;
+            }
+
+            if (selectedOption === '') {
+                alert('请选择审核结果！');
+                return;
+            }
+
+            //20250226简化审核流程
             const statusBarBgColor = "0xFF5E97F6";
             if(job==="DQE"){
                 updateResult(currentSampleId,job,selectedOption, statusBarBgColor)
@@ -2468,6 +2677,7 @@
             formData.append('file', file);  // 添加文件
             formData.append('sampleId', sampleId);  // 添加 sampleId
             formData.append('id', id);  // 添加 sampleId
+            formData.append('username', username);  // 添加用户名
 
             fetch('/problemMoudle/uploadImage', {
                 method: 'POST',
@@ -2877,6 +3087,28 @@
                 console.error('导出失败:', error);
             }
         });
+    }
+
+    // 通用方法：根据 sampleId 查询数据库信息并返回数据
+    async function checkSampleResult(sampleId) {
+        try {
+            const response = await fetch(`/problemMoudle/queryResultJudge?sample_id=${sampleId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`查询数据库失败，状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;  // 返回查询结果
+        } catch (error) {
+            console.error("fetchSampleInfo 出错：", error);
+            return null;  // 出错时返回 null
+        }
     }
 
 

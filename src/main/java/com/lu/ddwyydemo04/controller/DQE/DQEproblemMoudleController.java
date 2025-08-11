@@ -6,6 +6,7 @@ import com.dingtalk.api.request.OapiCspaceAddRequest;
 import com.dingtalk.api.response.OapiCspaceAddResponse;
 import com.dingtalk.api.response.OapiV2DepartmentListsubResponse;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
+import com.lu.ddwyydemo04.Service.DQE.DQEIndexService;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.controller.testManIndexController;
@@ -55,6 +56,9 @@ import java.util.Map;
 public class DQEproblemMoudleController {
     @Autowired
     private DQEproblemMoudleService dqeproblemMoudleService;
+
+    @Autowired
+    private DQEIndexService dqeIndexService;
 
     @Autowired
     private TestManIndexService testManIndexService;
@@ -151,7 +155,56 @@ public class DQEproblemMoudleController {
 
     @GetMapping("/problemMoudle/addNewRow") // 处理页面跳转请求
     @ResponseBody
-    public Map<String, Object> addNewRow(@RequestParam int sampleId) {
+    public Map<String, Object> addNewRow(@RequestParam int sampleId, @RequestParam(required = false) String username) {
+        // 如果提供了用户名，进行权限检查
+        if (username != null && !username.trim().isEmpty()) {
+            try {
+                // 获取项目信息
+                List<Samples> samples = dqeproblemMoudleService.querySamples(String.valueOf(sampleId));
+                if (samples == null || samples.isEmpty()) {
+                    throw new RuntimeException("项目不存在");
+                }
+
+                Samples sample = samples.get(0);
+                String projectDQE = sample.getSample_DQE();
+                String projectRD = sample.getSample_Developer();
+                String projectLeader = sample.getSample_leader();
+
+                // 检查用户是否是项目的直接负责人
+                boolean isDirectResponsible = username.equals(projectDQE) || 
+                                            username.equals(projectRD) || 
+                                            username.equals(projectLeader);
+
+                if (!isDirectResponsible) {
+                    // 检查用户是否是代理人
+                    String agentsStr = dqeIndexService.getAgents(username);
+                    boolean isAgent = false;
+
+                    if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                        String[] agentArray = agentsStr.split(",");
+                        for (String agent : agentArray) {
+                            String trimmedAgent = agent.trim();
+                            if (!trimmedAgent.isEmpty()) {
+                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
+                                if (trimmedAgent.equals(projectDQE) || 
+                                    trimmedAgent.equals(projectRD) || 
+                                    trimmedAgent.equals(projectLeader)) {
+                                    isAgent = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isAgent) {
+                        throw new RuntimeException("非您的项目，请叫对应负责人设置您为代理人");
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("权限检查失败: " + e.getMessage());
+            }
+        }
+
         System.out.println("addNewRow的sampleId:"+sampleId);
         int max_history_id = dqeproblemMoudleService.searchTestIssuesHistroyidFromId(sampleId);
         System.out.println("max_history_id:"+max_history_id);
@@ -178,8 +231,8 @@ public class DQEproblemMoudleController {
 //        for (Map<String, Object> sample : samples) {
 //            System.out.println("full_model: " + sample.get("full_model"));
 //            System.out.println("sample_category: " + sample.get("sample_category"));
-//            System.out.println("version: " + sample.get("version"));
-//            System.out.println("max_history_id: " + sample.get("max_history_id"));
+//            console.log("version: " + sample.get("version"));
+//            console.log("max_history_id: " + sample.get("max_history_id"));
 //        }
 
 
@@ -194,6 +247,53 @@ public class DQEproblemMoudleController {
     public ResponseEntity<String> saveChanges(@RequestBody List<Map<String, Object>> allData,@RequestParam("sampleId") String sampleId,
                                               @RequestParam("username") String username,@RequestParam("job") String job) {
         try {
+            // 权限检查
+            try {
+                // 获取项目信息
+                List<Samples> samples = dqeproblemMoudleService.querySamples(sampleId);
+                if (samples == null || samples.isEmpty()) {
+                    return ResponseEntity.badRequest().body("项目不存在");
+                }
+
+                Samples sample = samples.get(0);
+                String projectDQE = sample.getSample_DQE();
+                String projectRD = sample.getSample_Developer();
+                String projectLeader = sample.getSample_leader();
+
+                // 检查用户是否是项目的直接负责人
+                boolean isDirectResponsible = username.equals(projectDQE) || 
+                                            username.equals(projectRD) || 
+                                            username.equals(projectLeader);
+
+                if (!isDirectResponsible) {
+                    // 检查用户是否是代理人
+                    String agentsStr = dqeIndexService.getAgents(username);
+                    boolean isAgent = false;
+
+                    if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                        String[] agentArray = agentsStr.split(",");
+                        for (String agent : agentArray) {
+                            String trimmedAgent = agent.trim();
+                            if (!trimmedAgent.isEmpty()) {
+                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
+                                if (trimmedAgent.equals(projectDQE) || 
+                                    trimmedAgent.equals(projectRD) || 
+                                    trimmedAgent.equals(projectLeader)) {
+                                    isAgent = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isAgent) {
+                        return ResponseEntity.badRequest().body("非您的项目，请叫对应负责人设置您为代理人");
+                    }
+                }
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("权限检查失败: " + e.getMessage());
+            }
+
 //            System.out.println("接收到的数据量: " + allData.size()); // 打印接收到的数据量
 
             for (Map<String, Object> row : allData) {
@@ -343,12 +443,65 @@ public class DQEproblemMoudleController {
     @GetMapping("/problemMoudle/deleteProblemById/{id}/{username}")
     @ResponseBody
     public ResponseEntity<String> deleteProblemById(@PathVariable Long id, @PathVariable String username) {
-        boolean deleted = dqeproblemMoudleService.deleteProblemById(id);
-        if (deleted) {
-            logger.info("用户 " + username + " 删除 id 为 " + id + " 的问题点成功");
-            return ResponseEntity.ok("问题点删除成功");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("问题点未找到");
+        try {
+            // 权限检查 - 需要先获取问题点所属的项目ID
+            Long sampleId = dqeproblemMoudleService.getSampleIdByProblemId(id);
+            if (sampleId == null) {
+                return ResponseEntity.badRequest().body("问题点不存在");
+            }
+
+            // 获取项目信息
+            List<Samples> samples = dqeproblemMoudleService.querySamples(String.valueOf(sampleId));
+            if (samples == null || samples.isEmpty()) {
+                return ResponseEntity.badRequest().body("项目不存在");
+            }
+
+            Samples sample = samples.get(0);
+            String projectDQE = sample.getSample_DQE();
+            String projectRD = sample.getSample_Developer();
+            String projectLeader = sample.getSample_leader();
+
+            // 检查用户是否是项目的直接负责人
+            boolean isDirectResponsible = username.equals(projectDQE) || 
+                                        username.equals(projectRD) || 
+                                        username.equals(projectLeader);
+
+            if (!isDirectResponsible) {
+                // 检查用户是否是代理人
+                String agentsStr = dqeIndexService.getAgents(username);
+                boolean isAgent = false;
+
+                if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                    String[] agentArray = agentsStr.split(",");
+                    for (String agent : agentArray) {
+                        String trimmedAgent = agent.trim();
+                        if (!trimmedAgent.isEmpty()) {
+                            // 检查代理人是否被授权给项目的DQE、RD或项目负责人
+                            if (trimmedAgent.equals(projectDQE) || 
+                                trimmedAgent.equals(projectRD) || 
+                                trimmedAgent.equals(projectLeader)) {
+                                isAgent = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!isAgent) {
+                    return ResponseEntity.badRequest().body("非您的项目，请叫对应负责人设置您为代理人");
+                }
+            }
+
+            boolean deleted = dqeproblemMoudleService.deleteProblemById(id);
+            if (deleted) {
+                logger.info("用户 " + username + " 删除 id 为 " + id + " 的问题点成功");
+                return ResponseEntity.ok("问题点删除成功");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("问题点未找到");
+            }
+        } catch (Exception e) {
+            logger.error("删除问题点时发生错误: " + e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除失败: " + e.getMessage());
         }
     }
 
@@ -404,12 +557,69 @@ public class DQEproblemMoudleController {
     public ResponseEntity<Map<String, String>> uploadImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam("sampleId") String sampleId,
-            @RequestParam("id") Long issueid
+            @RequestParam("id") Long issueid,
+            @RequestParam(required = false) String username
     ) {
         System.out.println("进入 uploadImage");
         System.out.println("sampleId：" + sampleId);
         System.out.println("file：" + file);
         System.out.println("id：" + issueid);
+        
+        // 权限检查
+        if (username != null && !username.trim().isEmpty()) {
+            try {
+                // 获取项目信息
+                List<Samples> samples = dqeproblemMoudleService.querySamples(sampleId);
+                if (samples == null || samples.isEmpty()) {
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "项目不存在");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+
+                Samples sample = samples.get(0);
+                String projectDQE = sample.getSample_DQE();
+                String projectRD = sample.getSample_Developer();
+                String projectLeader = sample.getSample_leader();
+
+                // 检查用户是否是项目的直接负责人
+                boolean isDirectResponsible = username.equals(projectDQE) || 
+                                            username.equals(projectRD) || 
+                                            username.equals(projectLeader);
+
+                if (!isDirectResponsible) {
+                    // 检查用户是否是代理人
+                    String agentsStr = dqeIndexService.getAgents(username);
+                    boolean isAgent = false;
+
+                    if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                        String[] agentArray = agentsStr.split(",");
+                        for (String agent : agentArray) {
+                            String trimmedAgent = agent.trim();
+                            if (!trimmedAgent.isEmpty()) {
+                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
+                                if (trimmedAgent.equals(projectDQE) || 
+                                    trimmedAgent.equals(projectRD) || 
+                                    trimmedAgent.equals(projectLeader)) {
+                                    isAgent = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isAgent) {
+                        Map<String, String> response = new HashMap<>();
+                        response.put("message", "非您的项目，请叫对应负责人设置您为代理人");
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                    }
+                }
+            } catch (Exception e) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "权限检查失败: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        }
+        
         try {
             // 检查文件是否为空
             if (file.isEmpty()) {
@@ -1025,6 +1235,87 @@ public class DQEproblemMoudleController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    @GetMapping("/problemMoudle/checkAccessPermission")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkAccessPermission(@RequestParam String sampleId, @RequestParam String username) {
+        try {
+            // 获取项目信息
+            List<Samples> samples = dqeproblemMoudleService.querySamples(sampleId);
+            if (samples == null || samples.isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "项目不存在");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            Samples sample = samples.get(0);
+            String projectDQE = sample.getSample_DQE();
+            String projectRD = sample.getSample_Developer();
+            String projectLeader = sample.getSample_leader();
+
+            // 检查用户是否是项目的直接负责人
+            boolean isDirectResponsible = username.equals(projectDQE) || 
+                                        username.equals(projectRD) || 
+                                        username.equals(projectLeader);
+
+            if (isDirectResponsible) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("hasPermission", true);
+                response.put("message", "您是该项目的直接负责人，可以访问");
+                return ResponseEntity.ok(response);
+            }
+
+            // 检查用户是否是代理人
+            String agentsStr = dqeIndexService.getAgents(username);
+            boolean isAgent = false;
+            String agentFor = "";
+
+            if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                String[] agentArray = agentsStr.split(",");
+                for (String agent : agentArray) {
+                    String trimmedAgent = agent.trim();
+                    if (!trimmedAgent.isEmpty()) {
+                        // 检查代理人是否被授权给项目的DQE、RD或项目负责人
+                        if (trimmedAgent.equals(projectDQE) || 
+                            trimmedAgent.equals(projectRD) || 
+                            trimmedAgent.equals(projectLeader)) {
+                            isAgent = true;
+                            agentFor = trimmedAgent;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isAgent) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("hasPermission", true);
+                response.put("message", "您是该项目的代理人，可以访问");
+                response.put("agentFor", agentFor);
+                return ResponseEntity.ok(response);
+            }
+
+            // 用户没有权限
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("hasPermission", false);
+            response.put("message", "非您的项目，请叫对应负责人设置您为代理人");
+            response.put("projectDQE", projectDQE);
+            response.put("projectRD", projectRD);
+            response.put("projectLeader", projectLeader);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "检查权限时发生错误: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 

@@ -618,5 +618,10 @@
         WHERE username = #{username}
     </select>
 
+    <select id="getSampleIdByProblemId" parameterType="Long" resultType="Long">
+        SELECT sample_id from test_issues
+        WHERE id = #{problemId}
+    </select>
+
 
 </mapper>

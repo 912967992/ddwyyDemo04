@@ -70,6 +70,10 @@ public class DQEproblemMoudleService {
         return rowsAffected > 0; // 如果删除成功，返回 true
     }
 
+    public Long getSampleIdByProblemId(Long problemId) {
+        return dqeDao.getSampleIdByProblemId(problemId);
+    }
+
 
     public int uploadImage(Long id,String problem_image ){
         return dqeDao.uploadImage(id,problem_image);
