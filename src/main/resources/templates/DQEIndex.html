@@ -146,26 +146,31 @@
                 <div class="summary-content">
                     <div class="summary-item">
                         <span class="summary-label">提单待测试的：</span>
-                        <span class="summary-value" id="ladingBillWaitTest">0</span>
+                        <span class="summary-value clickable" id="ladingBillWaitTest" onclick="showProjectModal('ladingBillWaitTest')">0</span>
                     </div>
 
                     <div class="summary-item">
                         <span class="summary-label">测试进行中的：</span>
-                        <span class="summary-value" id="testing">0</span>
+                        <span class="summary-value clickable" id="testing" onclick="showProjectModal('testing')">0</span>
                     </div>
 
                     <div class="summary-item">
-                        <span class="summary-label">待审核的项目：</span>
-                        <span class="summary-value" id="recentCount">0</span>
+                        <span class="summary-label">完成待审核的：</span>
+                        <span class="summary-value clickable" id="recentCount" onclick="showProjectModal('recentCount')">0</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">节点超期项目：</span>
-                        <span class="summary-value" id="overdueCount" style="color: red;">0</span>
+                        <span class="summary-value clickable" id="overdueCount" onclick="showProjectModal('overdueCount')" style="color: red;">0</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">报告完成确认了的：</span>
+                        <span class="summary-value clickable" id="closedCount" onclick="showProjectModal('closedCount')" style="color: green;">0</span>
                     </div>
 
                     <div class="summary-item">
                         <span class="summary-label">总数：</span>
-                        <span class="summary-value" id="projectCount">0</span>
+                        <span class="summary-value clickable" id="projectCount" onclick="showProjectModal('projectCount')">0</span>
                     </div>
                 </div>
             </div>
@@ -301,6 +306,32 @@
                 </tr>
                 </thead>
                 <tbody id="recentNotificationsProjectList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 项目详情模态框 -->
+    <div id="projectDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close project-detail-close">&times;</span>
+            <h2 id="projectDetailTitle">项目详情列表</h2>
+            <table id="projectDetailTable">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>样品ID</th>
+                    <th>当前节点</th>
+                    <th>当前进度</th>
+                    <th>创建时间</th>
+                    <th>大小编码</th>
+                    <th>大类</th>
+                    <th>大货/功能</th>
+                    <th>类别</th>
+                    <th>版本</th>
+                    <th>节点负责人</th>
+                </tr>
+                </thead>
+                <tbody id="projectDetailList"></tbody>
             </table>
         </div>
     </div>
@@ -486,6 +517,10 @@
                     
                     // 更新测试进行中的数量
                     document.getElementById('testing').textContent = data.testing || 0;
+                    
+                    // 更新闭环完成的数量
+                    document.getElementById('closedCount').textContent = data.closedCount || 0;
+                    
                     document.getElementById('projectCount').textContent = data.projectCount || 0;
                 } else {
                     console.error("获取项目统计信息失败:", data.error);
@@ -889,7 +924,12 @@
                     overdueProjectList.innerHTML = '';
 
                     // 帮助函数：处理 null 值
-                    const displayValue = (value) => value === null ? "" : value;
+                    const displayValue = (value) => {
+                        if (value === null || value === undefined || value === 'undefined') {
+                            return "";
+                        }
+                        return value;
+                    };
 
                     // 根据用户名判断是否需要过滤，他们只能看到第二次超期的数据
                     const isSpecialUser = username === "黄家灿" || username === "肖政文"  || username === "荣成彧" ||
@@ -1020,7 +1060,12 @@
                 .then(response => response.json())
                 .then(data => {
                     recentNotificationsProjectList.innerHTML = '';
-                    const displayValue = (value) => value === null ? "" : value;
+                    const displayValue = (value) => {
+                        if (value === null || value === undefined || value === 'undefined') {
+                            return "";
+                        }
+                        return value;
+                    };
 
                     data.forEach(combinedTaskNode => {
                         // 确定负责人
@@ -1089,6 +1134,106 @@
     recentNotificationsClose.onclick = function() {
         recentNotificationsModal.style.display = "none";
     };
+
+    // 项目详情模态框相关逻辑
+    const projectDetailModal = document.getElementById("projectDetailModal");
+    const projectDetailClose = document.getElementsByClassName("project-detail-close")[0];
+    const projectDetailList = document.getElementById("projectDetailList");
+
+    // 显示项目详情模态框的函数
+    function showProjectModal(statType) {
+        console.log('showProjectModal called with:', statType); // 添加调试日志
+        const modalTitle = document.getElementById('projectDetailTitle');
+        let projectType = "";
+        let title = "";
+        
+        switch(statType) {
+            case 'ladingBillWaitTest':
+                projectType = "ladingBillWaitTest";
+                title = "提单待测试项目详情";
+                break;
+            case 'testing':
+                projectType = "testing";
+                title = "测试进行中项目详情";
+                break;
+            case 'recentCount':
+                // 对于待审核项目，直接调用原有的查看近期通知项目功能
+                console.log('Calling viewRecentNotificationsButton.click()');
+                document.getElementById('viewRecentNotificationsButton').click();
+                return;
+            case 'overdueCount':
+                // 对于超期项目，直接调用原有的查看超时项目功能
+                console.log('Calling viewOverdueButton.click()');
+                document.getElementById('viewOverdueButton').click();
+                return;
+            case 'closedCount':
+                projectType = "closedCount";
+                title = "闭环完成项目详情";
+                break;
+            case 'projectCount':
+                projectType = "projectCount";
+                title = "项目总数详情";
+                break;
+            default:
+                console.log('Unknown statType:', statType);
+                return;
+        }
+        
+        console.log('Fetching data for projectType:', projectType);
+        modalTitle.textContent = title;
+        
+        // 根据项目类型获取数据
+        fetch(`/DQEIndex/getProjectDetail?username=${encodeURIComponent(username)}&projectType=${encodeURIComponent(projectType)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Received data:', data);
+                projectDetailList.innerHTML = '';
+                const displayValue = (value) => {
+                    if (value === null || value === undefined || value === 'undefined') {
+                        return "";
+                    }
+                    return value;
+                };
+
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        
+                        // 让样品ID成为可点击的链接
+                        // 对于electric_info表的数据，使用sample_id作为电气编号进行跳转
+                        const sampleIdLink = `<a href="/problemMoudle?dd_orientation=landscape&sample_id=${encodeURIComponent(item.sample_id)}&username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}&isElectricId=true">${displayValue(item.sample_id)}</a>`;
+                        
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${sampleIdLink}</td>
+                            <td>${displayValue(item.node_number)}</td>
+                            <td>${displayValue(item.status_value)}</td>
+                            <td>${displayValue(item.create_time)}</td>
+                            <td>${displayValue(item.fullModel)}</td>
+                            <td>${displayValue(item.bigSpecial)}</td>
+                            <td>${displayValue(item.smallSpecial)}</td>
+                            <td>${displayValue(item.sampleCategory)}</td>
+                            <td>${displayValue(item.version)}</td>
+                            <td>${displayValue(item.personInCharge)}</td>
+                        `;
+                        projectDetailList.appendChild(row);
+                    });
+                } else {
+                    projectDetailList.innerHTML = '<tr><td colspan="11">暂无详细项目信息</td></tr>';
+                }
+                projectDetailModal.style.display = "block";
+            })
+            .catch(error => {
+                console.error("获取项目详情时出错:", error);
+                projectDetailList.innerHTML = '<tr><td colspan="12">获取数据失败，请稍后重试</td></tr>';
+                projectDetailModal.style.display = "block";
+            });
+    }
+
+    projectDetailClose.onclick = function() {
+        projectDetailModal.style.display = "none";
+    };
+
 
     // 代理人设置模态框相关逻辑
     const agentModal = document.getElementById("agentModal");
@@ -1307,6 +1452,9 @@
         }
         if (event.target == recentNotificationsModal) {
             recentNotificationsModal.style.display = "none";
+        }
+        if (event.target == projectDetailModal) {
+            projectDetailModal.style.display = "none";
         }
     };
 

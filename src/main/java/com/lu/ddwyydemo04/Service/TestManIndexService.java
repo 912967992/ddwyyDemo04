@@ -766,4 +766,29 @@ public class TestManIndexService {
     public int queryCountElectricinfo(String sample_sender){
         return  testManDao.queryCountElectricinfo(sample_sender);
     }
+
+    // 获取提单待测试的项目详情
+    public List<Map<String, Object>> getLadingBillWaitTestDetails(String username) {
+        return testManDao.getLadingBillWaitTestDetails(username);
+    }
+
+    // 获取测试进行中的项目详情
+    public List<Map<String, Object>> getTestingDetails(String username) {
+        return testManDao.getTestingDetails(username);
+    }
+
+    // 获取所有项目详情
+    public List<Map<String, Object>> getAllProjectDetails(String username) {
+        return testManDao.getAllProjectDetails(username);
+    }
+
+    // 获取闭环完成的数量
+    public int getClosedCount(String username) {
+        return testManDao.getClosedCount(username);
+    }
+
+    // 获取闭环完成的项目详情
+    public List<Map<String, Object>> getClosedDetails(String username) {
+        return testManDao.getClosedDetails(username);
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DQEIndexService {
@@ -68,6 +69,16 @@ public class DQEIndexService {
             e.printStackTrace();
             throw e; // 重新抛出异常，让Controller层处理
         }
+    }
+
+    // 获取待审核的项目详情
+    public List<Map<String, Object>> getRecentNotificationsDetails(String username) {
+        return dqeDao.getRecentNotificationsDetails(username);
+    }
+
+    // 获取超期项目详情
+    public List<Map<String, Object>> getOverdueDetails(String username) {
+        return dqeDao.getOverdueDetails(username);
     }
 
 

@@ -1395,4 +1395,113 @@
         WHERE sample_sender = #{sample_sender}
     </select>
 
+    <!-- 获取提单待测试的项目详情 -->
+    <select id="getLadingBillWaitTestDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_model,
+            ei.sample_model as fullModel,
+            ei.sample_category as bigSpecial,
+            ei.sample_type as smallSpecial,
+            ei.sample_category as sampleCategory,
+            ei.version,
+            ei.sample_sender as personInCharge,
+            ei.create_time as create_time,
+            '1' as node_number,
+            '待测试' as status_value
+        FROM electric_info ei
+        WHERE ei.sample_sender = #{username}
+          AND ei.actual_start_time IS NULL
+          AND ei.isCancel = 0
+        ORDER BY ei.create_time DESC
+    </select>
+
+    <!-- 获取测试进行中的项目详情 -->
+    <select id="getTestingDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_model,
+            ei.sample_model as fullModel,
+            ei.sample_category as bigSpecial,
+            ei.sample_type as smallSpecial,
+            ei.sample_category as sampleCategory,
+            ei.version,
+            ei.sample_sender as personInCharge,
+            ei.create_time as create_time,
+            '2' as node_number,
+            '测试进行中' as status_value
+        FROM electric_info ei
+        WHERE ei.sample_sender = #{username}
+          AND ei.actual_start_time IS NOT NULL
+          AND ei.actual_finish_time IS NULL
+          AND ei.isCancel = 0
+        ORDER BY ei.create_time DESC
+    </select>
+
+    <!-- 获取所有项目详情 -->
+    <select id="getAllProjectDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_model,
+            ei.sample_model as fullModel,
+            ei.sample_category as bigSpecial,
+            ei.sample_type as smallSpecial,
+            ei.sample_category as sampleCategory,
+            ei.version,
+            ei.sample_sender as personInCharge,
+            ei.create_time as create_time,
+            CASE 
+                WHEN ei.actual_start_time IS NULL THEN '1'
+                WHEN ei.actual_finish_time IS NULL THEN '2'
+                ELSE '3'
+            END as node_number,
+            CASE 
+                WHEN ei.actual_start_time IS NULL THEN '待测试'
+                WHEN ei.actual_finish_time IS NULL THEN '测试进行中'
+                ELSE '已完成'
+            END as status_value
+        FROM electric_info ei
+        WHERE ei.sample_sender = #{username}
+          AND ei.isCancel = 0
+        ORDER BY ei.create_time DESC
+    </select>
+
+    <!-- 获取闭环完成的数量 -->
+    <select id="getClosedCount" resultType="int" parameterType="String">
+        SELECT COUNT(*)
+        FROM electric_info
+        WHERE sample_sender = #{username}
+          AND sampleRecognizeResult IS NOT NULL
+          AND sampleRecognizeResult != ''
+          AND sampleRecognizeResult != 'null'
+          AND isCancel = 0
+    </select>
+
+    <!-- 获取闭环完成的项目详情 -->
+    <select id="getClosedDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_model,
+            ei.sample_model as fullModel,
+            ei.sample_category as bigSpecial,
+            ei.sample_type as smallSpecial,
+            ei.sample_category as sampleCategory,
+            ei.version,
+            ei.sample_sender as personInCharge,
+            ei.create_time as create_time,
+            '3' as node_number,
+            '闭环完成' as status_value
+        FROM electric_info ei
+        WHERE ei.sample_sender = #{username}
+          AND ei.sampleRecognizeResult IS NOT NULL
+          AND ei.sampleRecognizeResult != ''
+          AND ei.sampleRecognizeResult != 'null'
+          AND ei.isCancel = 0
+        ORDER BY ei.create_time DESC
+    </select>
+
 </mapper>

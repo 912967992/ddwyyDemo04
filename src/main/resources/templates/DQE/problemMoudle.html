@@ -204,7 +204,7 @@
         <div class="input-group date-range">
             <label>提交<br>日期:</label>
             <input type="date" id="problemTimeStart" name="problemTimeStart" placeholder="开始日期"> <!-- 添加 name 属性 -->
-            <span class="date-separator">至</span> <!-- 添加“至”标签 -->
+            <span class="date-separator">至</span> <!-- 添加"至"标签 -->
             <input type="date" id="problemTimeEnd" name="problemTimeEnd" placeholder="结束日期"> <!-- 添加 name 属性 -->
         </div>
 
@@ -352,21 +352,21 @@
                     overlay.style.display = 'none';
                     modal.style.display = 'none';
                     document.removeEventListener('keydown', handleEscapeKey);
-                    reject(false); // 模拟“取消”行为
+                    reject(false); // 模拟"取消"行为
                 }
             };
 
             // 添加 ESC 键事件监听器
             document.addEventListener('keydown', handleEscapeKey);
 
-            // 点击“确认”按钮时，关闭模态框并返回 true
+            // 点击"确认"按钮时，关闭模态框并返回 true
             yesButton.onclick = () => {
                 overlay.style.display = 'none';
                 modal.style.display = 'none';
                 resolve(true); // 返回 true 表示用户点击了确认
             };
 
-            // 点击“取消”按钮时，关闭模态框并返回 false
+            // 点击"取消"按钮时，关闭模态框并返回 false
             noButton.onclick = () => {
                 overlay.style.display = 'none';
                 modal.style.display = 'none';
@@ -726,6 +726,7 @@
         }
 
         const sampleId = getQueryParam("sample_id");
+        const isElectricId = getQueryParam("isElectricId");
 
         if (sampleId) {
 
@@ -740,13 +741,37 @@
                 window.location.href = "http://219.134.191.195:64000";
             }
 
+            // 检查是否是电气编号
+            if (isElectricId === "true") {
+                // 这是电气编号，需要在模糊搜索中查询
+                console.log("检测到电气编号:", sampleId);
+                
+                // 将电气编号填入模糊搜索框（full_model字段）
+                document.getElementById('key').value = sampleId;
+                
+                // 构造 globalFormData，使用电气编号进行模糊搜索
+                globalFormData = `full_model=${sampleId}`;
+                
+                // 显示提示信息
+                setTimeout(() => {
+                    alert(`已自动填入电气编号: ${sampleId} 到模糊搜索框，正在搜索相关项目...`);
+                }, 100);
+                
+                // 自动点击搜索按钮来触发搜索
+                setTimeout(() => {
+                    document.querySelector('.search-form button[type="submit"]').click();
+                }, 200);
+            } else {
+                // 这是原来的样品ID，按原来的逻辑处理
+                console.log("检测到样品ID:", sampleId);
+                
+                // 构造 globalFormData
+                globalFormData = `sample_id=${sampleId}`;
 
-            // 构造 globalFormData
-            globalFormData = `sample_id=${sampleId}`;
-
-            // 触发 performSearch 方法
-            performSearch(globalFormData);
-            editClickBtn(sampleId)
+                // 触发 performSearch 方法
+                performSearch(globalFormData);
+                editClickBtn(sampleId);
+            }
         }
 
         function updatePagination(container, data) {
@@ -1199,7 +1224,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“待确定”
+                                    // 设置默认选中的选项为"待确定"
                                     if (option === '待确定') {
                                         optionElement.selected = true;
                                     }
@@ -1220,7 +1245,7 @@
                                 });
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
-                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“待确定”
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为"待确定"
                                 newDiv.style.color = '#8a4e07'; // 设置字体颜色
                                 value = '待确定';
 
@@ -1237,7 +1262,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === 'OPEN') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -1259,8 +1284,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = 'OPEN'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = 'OPEN'; // 初始化该字段的值为"OPEN"
                                 value = 'OPEN';
 
                                 // 设置字体颜色
@@ -1278,7 +1303,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === '待确定') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -1300,8 +1325,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为"OPEN"
                                 value = '待确定';
 
                                 // 设置字体颜色
@@ -1319,7 +1344,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === '研发') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -1341,8 +1366,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = '研发'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = '研发'; // 初始化该字段的值为"OPEN"
                                 value = '研发';
 
                                 // 设置字体颜色
@@ -1605,7 +1630,7 @@
                                 value = item[attr.field];
                             }
 
-                            // 获取“提出人”列的值
+                            // 获取"提出人"列的值
                             const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
 
 
@@ -1634,7 +1659,7 @@
                                         valueDiv.appendChild(img);  // 添加图片到 valueDiv 中
                                     }else{
                                         const uploadText = document.createElement('div');
-                                        uploadText.textContent = '上传图片';  // 显示“上传图片”
+                                        uploadText.textContent = '上传图片';  // 显示"上传图片"
                                         uploadText.style.cursor = 'pointer';  // 设置点击样式
                                         uploadText.style.color = '#8a4e07';  // 设置文本颜色
 
@@ -1658,7 +1683,7 @@
                                         }
 
 
-                                        valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
+                                        valueDiv.appendChild(uploadText);  // 添加"上传图片"到 valueDiv 中
                                     }
                                 }else if(index === 7){
                                     // 定义需要转换为下拉框的选项
@@ -1671,7 +1696,7 @@
                                         normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
                                     }
 
-                                    // 如果值不在有效选项内，则将值设置为“待确定”
+                                    // 如果值不在有效选项内，则将值设置为"待确定"
                                     if (!validOptions.includes(normalizedValue)) {
                                         normalizedValue = '待确定';
                                     }
@@ -1727,7 +1752,7 @@
                                     // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                     let normalizedValue = String(value);
 
-                                    // 如果值不在有效选项内，则将值设置为“待确定”
+                                    // 如果值不在有效选项内，则将值设置为"待确定"
                                     if (!validOptions.includes(normalizedValue)) {
                                         normalizedValue = '待确定';
                                     }
@@ -1783,11 +1808,11 @@
                                     // 将传递过来的值转换为统一格式（大写）
                                     let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
+                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为"待确定"
                                     if (validOptions.includes(normalizedValue)) {
                                         // 使用输入的值创建下拉框
                                     } else {
-                                        // 如果值不在有效选项范围内，将值设为“待确定”
+                                        // 如果值不在有效选项范围内，将值设为"待确定"
                                         normalizedValue = '待确定';
                                     }
 
@@ -1842,9 +1867,9 @@
                                     // 将传递过来的值转换为统一格式（大写）
                                     let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值为空或不在有效选项内，默认设为“研发”
+                                    // 如果输入的值为空或不在有效选项内，默认设为"研发"
                                     if (!normalizedValue || !validOptions.includes(normalizedValue)) {
-                                        normalizedValue = '研发';  // 默认设置为“研发”
+                                        normalizedValue = '研发';  // 默认设置为"研发"
                                     }
 
                                     // 创建下拉框
@@ -1894,17 +1919,17 @@
                                         }
                                     });
 
-                                    // 如果初始值为空或等于默认值（即“研发”），强制认为这是修改过的
+                                    // 如果初始值为空或等于默认值（即"研发"），强制认为这是修改过的
                                     // if (normalizedValue === '研发' && !modifiedData.includes(item)) {
                                     //     item[attr.field] = '研发'; // 确保将字段值设为 "研发"
                                     //     modifiedData.push(item); // 标记修改过的数据
                                     // }
-                                    // 如果初始值为空或输入的值不在有效选项内，设置默认值为“研发”
+                                    // 如果初始值为空或输入的值不在有效选项内，设置默认值为"研发"
                                     if ((!value || !validOptions.includes(String(value).toUpperCase())) && !modifiedData.includes(item)) {
                                         item[attr.field] = '研发'; // 仅在初始值为空时，将字段值设为 "研发"
                                         modifiedData.push(item);  // 标记为修改过的数据
                                     } else if (value && value === '研发') {
-                                        // 如果值已经是“研发”，不标记为修改
+                                        // 如果值已经是"研发"，不标记为修改
                                         item[attr.field] = '研发'; // 确保字段值正确
                                     }
 
@@ -2232,7 +2257,7 @@
                         // 根据 data-depart 属性筛选 select 元素
                         const selects = document.querySelectorAll('.value-row select[data-depart="true"]');
 
-                        let allValid = true; // 用于检查是否所有选项都非“待确定”
+                        let allValid = true; // 用于检查是否所有选项都非"待确定"
                         // 检查所有下拉框的值
                         selects.forEach(select => {
                             if (select.value === '待确定') {
@@ -2336,17 +2361,17 @@
                     const closeModal = () => {
                         if (modifiedData && modifiedData.length > 0) {
                             // 使用 confirm 返回 Promise
-                            confirm('是否保存并关闭？选择“确定”保存，选择“取消”直接关闭.')
+                            confirm('是否保存并关闭？选择"确定"保存，选择"取消"直接关闭.')
                                 .then((confirmation) => {
                                     if (confirmation) {
-                                        // 用户选择“确定”，执行保存操作
+                                        // 用户选择"确定"，执行保存操作
                                         saveChanges(modifiedData, sampleId, false);
                                         performSearch(globalFormData); // 调用保存逻辑
                                     }
                                     closeTheModal(); // 无论如何都要关闭模态框
                                 })
                                 .catch((error) => {
-                                    // 用户选择“取消”，执行取消逻辑
+                                    // 用户选择"取消"，执行取消逻辑
                                     closeTheModal(); // 直接关闭模态框
                                 });
                         } else {
@@ -2535,7 +2560,7 @@
             // const selectedOption = $('#finalResult').val();
             // const statusBarBgColor = "0xFF5E97F6";
             // if(job==="DQE"){
-            //     //执行进度更新至“已完成”，并发送消息给rd和tester
+            //     //执行进度更新至"已完成"，并发送消息给rd和tester
             //     const schedule = "4"; //4为已完成
             //     const isReceiverTester = true;
             //     updateSchedule(schedule,currentSampleId,currentRD,statusBarBgColor,username ,job, selectedOption);
@@ -2549,7 +2574,7 @@
             //         updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job, selectedOption);
             //     }, 2000); // 2000 毫秒 = 2 秒
             // }else if(job === "rd"){
-            //     //执行进度更新至“待DQE判定”，并发送消息给DQE
+            //     //执行进度更新至"待DQE判定"，并发送消息给DQE
             //     const schedule = "3"; //3为待DQE判定
             //     updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job, selectedOption);
             // }
@@ -2691,7 +2716,7 @@
                 })
                 .then(data => {
                     if (data.message && data.message.includes("上传成功")) {
-                        alert(data.message); // 只在消息中包含“上传成功”时弹出]
+                        alert(data.message); // 只在消息中包含"上传成功"时弹出]
                         // 检查 modifiedData 是否不为空数组
                         if (Array.isArray(modifiedData) && modifiedData.length > 0) {
                             saveChanges(modifiedData, sampleId,true);

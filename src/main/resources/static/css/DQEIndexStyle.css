@@ -279,6 +279,47 @@ input[type="number"] {
     text-align: center;
 }
 
+/* 可点击的统计数字样式 */
+.summary-value.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.summary-value.clickable:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.summary-value.clickable:active {
+    transform: scale(0.98);
+}
+
+/* 为可点击的统计数字添加提示 */
+.summary-value.clickable::after {
+    content: "点击查看详情";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.summary-value.clickable:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
 /* 大模块样式 */
 .dashboard {
     display: flex;

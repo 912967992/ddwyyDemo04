@@ -214,4 +214,19 @@ public interface TestManDao {
 
     int queryCountElectricinfo(@Param("sample_sender")String sample_sender);
 
+    // 获取提单待测试的项目详情
+    List<Map<String, Object>> getLadingBillWaitTestDetails(@Param("username") String username);
+
+    // 获取测试进行中的项目详情
+    List<Map<String, Object>> getTestingDetails(@Param("username") String username);
+
+    // 获取所有项目详情
+    List<Map<String, Object>> getAllProjectDetails(@Param("username") String username);
+
+    // 获取闭环完成的数量
+    int getClosedCount(@Param("username") String username);
+
+    // 获取闭环完成的项目详情
+    List<Map<String, Object>> getClosedDetails(@Param("username") String username);
+
 }

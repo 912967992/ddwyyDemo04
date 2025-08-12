@@ -158,7 +158,11 @@ public interface DQEDao {
     int queryAgents(@Param("username")String username);
     String getAgents(@Param("username")String username);
 
+    // 获取待审核的项目详情
+    List<Map<String, Object>> getRecentNotificationsDetails(@Param("username") String username);
 
+    // 获取超期项目详情
+    List<Map<String, Object>> getOverdueDetails(@Param("username") String username);
 
 
 }

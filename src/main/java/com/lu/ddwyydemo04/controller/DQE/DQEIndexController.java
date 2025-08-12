@@ -324,10 +324,15 @@ public class DQEIndexController {
             
             // 获取测试进行中的数量：sample_sender=username 且 actual_start_time 有值但 actual_finish_time 为空
             int testing = testManIndexService.getTestingCount(username);
+            
+            // 获取闭环完成的数量：sample_sender=username 且 sampleRecognizeResult 有值
+            int closedCount = testManIndexService.getClosedCount(username);
+            
             int projectCount = testManIndexService.queryCountElectricinfo(username);
             
             result.put("ladingBillWaitTest", ladingBillWaitTest);
             result.put("testing", testing);
+            result.put("closedCount", closedCount);
             result.put("projectCount", projectCount);
             result.put("success", true);
             
@@ -335,6 +340,57 @@ public class DQEIndexController {
             e.printStackTrace();
             result.put("success", false);
             result.put("error", "获取项目统计信息时出错: " + e.getMessage());
+        }
+        
+        return result;
+    }
+
+    @GetMapping("/DQEIndex/getProjectDetail")
+    @ResponseBody
+    public Map<String, Object> getProjectDetail(@RequestParam String username, @RequestParam String projectType) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            List<Map<String, Object>> projectDetails = new ArrayList<>();
+            
+            switch (projectType) {
+                case "ladingBillWaitTest":
+                    // 获取提单待测试的项目详情
+                    projectDetails = testManIndexService.getLadingBillWaitTestDetails(username);
+                    break;
+                case "testing":
+                    // 获取测试进行中的项目详情
+                    projectDetails = testManIndexService.getTestingDetails(username);
+                    break;
+                case "recentCount":
+                    // 获取待审核的项目详情
+                    projectDetails = dqeIndexService.getRecentNotificationsDetails(username);
+                    break;
+                case "overdueCount":
+                    // 获取超期项目详情
+                    projectDetails = dqeIndexService.getOverdueDetails(username);
+                    break;
+                case "closedCount":
+                    // 获取闭环完成项目详情
+                    projectDetails = testManIndexService.getClosedDetails(username);
+                    break;
+                case "projectCount":
+                    // 获取所有项目详情
+                    projectDetails = testManIndexService.getAllProjectDetails(username);
+                    break;
+                default:
+                    result.put("success", false);
+                    result.put("error", "无效的项目类型");
+                    return result;
+            }
+            
+            result.put("success", true);
+            result.put("data", projectDetails);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取项目详情时出错: " + e.getMessage());
         }
         
         return result;

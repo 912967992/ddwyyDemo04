@@ -623,5 +623,66 @@
         WHERE id = #{problemId}
     </select>
 
+    <!-- 获取待审核的项目详情 -->
+    <select id="getRecentNotificationsDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            tn.id,
+            tn.sample_id,
+            tn.node_number,
+            tn.status_value,
+            tn.create_time,
+            s.full_model as fullModel,
+            s.big_species as bigSpecial,
+            s.small_species as smallSpecial,
+            s.sample_category as sampleCategory,
+            s.version,
+            s.questStats,
+            CASE 
+                WHEN tn.node_number = '1' THEN s.sample_DQE
+                WHEN tn.node_number = '2' THEN s.sample_Developer
+                WHEN tn.node_number = '4' THEN s.sample_leader
+                ELSE ''
+            END as personInCharge
+        FROM task_nodes tn
+        LEFT JOIN samples s ON tn.sample_id = s.sample_id
+        WHERE (
+            (tn.node_number = '1' AND s.sample_DQE = #{username})
+            OR (tn.node_number = '2' AND s.sample_Developer = #{username})
+            OR (tn.node_number = '4' AND s.sample_leader = #{username})
+        )
+        AND tn.isOverdue = false
+        ORDER BY tn.create_time DESC
+    </select>
+
+    <!-- 获取超期项目详情 -->
+    <select id="getOverdueDetails" resultType="java.util.Map" parameterType="String">
+        SELECT 
+            tn.id,
+            tn.sample_id,
+            tn.node_number,
+            tn.status_value,
+            tn.create_time,
+            s.full_model as fullModel,
+            s.big_species as bigSpecial,
+            s.small_species as smallSpecial,
+            s.sample_category as sampleCategory,
+            s.version,
+            s.questStats,
+            CASE 
+                WHEN tn.node_number = '1' THEN s.sample_DQE
+                WHEN tn.node_number = '2' THEN s.sample_Developer
+                WHEN tn.node_number = '4' THEN s.sample_leader
+                ELSE ''
+            END as personInCharge
+        FROM task_nodes tn
+        LEFT JOIN samples s ON tn.sample_id = s.sample_id
+        WHERE (
+            (tn.node_number = '1' AND s.sample_DQE = #{username})
+            OR (tn.node_number = '2' AND s.sample_Developer = #{username})
+            OR (tn.node_number = '4' AND s.sample_leader = #{username})
+        )
+        AND tn.isOverdue = true
+        ORDER BY tn.create_time DESC
+    </select>
 
 </mapper>
