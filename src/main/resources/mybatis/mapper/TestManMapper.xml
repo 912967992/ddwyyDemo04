@@ -1494,7 +1494,7 @@
             ei.sample_sender as personInCharge,
             ei.create_time as create_time,
             '3' as node_number,
-            '闭环完成' as status_value
+            '报告确认闭环' as status_value
         FROM electric_info ei
         WHERE ei.sample_sender = #{username}
           AND ei.sampleRecognizeResult IS NOT NULL
