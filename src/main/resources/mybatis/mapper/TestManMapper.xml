@@ -29,7 +29,7 @@
         (SELECT COUNT(*) FROM samples s WHERE (s.sample_schedule = '2' OR s.sample_schedule = '9' OR s.sample_schedule = '10') AND s.tester = #{name})
         ),
         t.overdue = (SELECT COUNT(*) FROM samples s WHERE s.tester = #{name}
-        AND s.create_time >= '2024-11-18 00:00:00'
+        AND s.create_time >= '2025-08-01 00:00:00'
         AND (
         (s.finish_time IS NULL AND NOW() > s.scheduleEndTime) OR
         (s.finish_time IS NOT NULL AND s.scheduleEndTime &lt; s.finish_time) OR
@@ -1074,7 +1074,7 @@
                                        THEN #{sample_actual_id}
                                    ELSE CONCAT(sample_actual_id, ',', #{sample_actual_id})
                 END,
-            actual_start_time = NOW()
+            actual_start_time = #{actual_start_time}
         WHERE sample_id = #{sample_id}
     </update>
 
@@ -1135,6 +1135,25 @@
         select remark
         FROM electric_info
         WHERE sample_id = #{sample_id}
+    </select>
+
+    <!-- 获取提单待测试的数量：sample_sender=username 且 actual_start_time 为空 -->
+    <select id="getLadingBillWaitTestCount" resultType="int" parameterType="String">
+        SELECT COUNT(*)
+        FROM electric_info
+        WHERE sample_sender = #{username}
+          AND actual_start_time IS NULL
+          AND isCancel = 0
+    </select>
+
+    <!-- 获取测试进行中的数量：sample_sender=username 且 actual_start_time 有值但 actual_finish_time 为空 -->
+    <select id="getTestingCount" resultType="int" parameterType="String">
+        SELECT COUNT(*)
+        FROM electric_info
+        WHERE sample_sender = #{username}
+          AND actual_start_time IS NOT NULL
+          AND actual_finish_time IS NULL
+          AND isCancel = 0
     </select>
 
     <select id="getTrashedProjects" resultType="TrashProject">
@@ -1369,6 +1388,11 @@
         FROM change_records
         WHERE electric_sample_id = #{sample_id}
         ORDER BY update_time DESC
+    </select>
+
+    <select id="queryCountElectricinfo" parameterType="String" resultType="Integer">
+        SELECT COUNT(*) FROM electric_info
+        WHERE sample_sender = #{sample_sender}
     </select>
 
 </mapper>

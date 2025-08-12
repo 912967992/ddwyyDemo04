@@ -218,6 +218,67 @@ input[type="number"] {
     margin-top: -20px;
 }
 
+/* 项目统计汇总框样式 */
+.summary-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+}
+
+.summary-box {
+    background: linear-gradient(135deg, #2ba245, #228b3f);
+    color: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 15px rgba(43, 162, 69, 0.25);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: inline-block;
+}
+
+.summary-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 162, 69, 0.35);
+}
+
+.summary-box h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.summary-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.summary-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 15px;
+    min-width: 35px;
+    text-align: center;
+}
+
 /* 大模块样式 */
 .dashboard {
     display: flex;
@@ -350,6 +411,7 @@ input[type="number"] {
 /* 父容器样式 */
 .title-container {
     text-align: center;
+    margin-bottom: 20px;
 }
 
 /* 标题样式 */
@@ -358,6 +420,7 @@ input[type="number"] {
     color: #2ba245;
     padding-top: 20px;
     font-size: 25px; /* 添加字体大小属性 */
+    margin-bottom: 15px;
 }
 
 
@@ -522,3 +585,198 @@ input[type="number"] {
 /*    transform: scale(1.05); !* 鼠标悬停时放大 *!*/
 /*    background-color: #228b3f;*/
 /*}*/
+
+/* 左上角控制面板样式 */
+.control-panel {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(43, 162, 69, 0.2);
+    z-index: 1000;
+    max-width: 300px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+/* 控制面板标题样式 */
+.control-panel-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(43, 162, 69, 0.3);
+}
+
+.control-panel-header h3 {
+    margin: 0;
+    color: #2ba245;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.control-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.control-panel::-webkit-scrollbar-track {
+    background: rgba(43, 162, 69, 0.1);
+    border-radius: 3px;
+}
+
+.control-panel::-webkit-scrollbar-thumb {
+    background: rgba(43, 162, 69, 0.3);
+    border-radius: 3px;
+}
+
+.control-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(43, 162, 69, 0.5);
+}
+
+/* 控制面板内的按钮组样式 */
+.control-panel #buttonsDiv {
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.control-panel #buttonsDiv button {
+    background: #2ba245;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.control-panel #buttonsDiv button:hover {
+    background: #228b3f;
+}
+
+/* 用户名输入区域样式 */
+.control-panel #usernameDiv {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-panel #usernameInput {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.control-panel #usernameInput:focus {
+    outline: none;
+    border-color: #2ba245;
+    box-shadow: 0 0 0 2px rgba(43, 162, 69, 0.25);
+}
+
+.control-panel #saveUsernameBtn {
+    background: #2ba245;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.control-panel #saveUsernameBtn:hover {
+    background: #228b3f;
+}
+
+/* 项目按钮组样式 */
+.control-panel .project-buttons {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-panel .project-buttons button {
+    background: #2ba245;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    text-align: left;
+}
+
+.control-panel .project-buttons button:hover {
+    background: #228b3f;
+}
+
+/* 特殊按钮样式调整 */
+.control-panel #viewOverdueButton {
+    background: #dc3545;
+}
+
+.control-panel #viewOverdueButton:hover {
+    background: #c82333;
+}
+
+.control-panel #setupAgentBtn {
+    background: #17a2b8;
+}
+
+.control-panel #setupAgentBtn:hover {
+    background: #138496;
+}
+
+/* 下载按钮样式调整 */
+.control-panel .download-btn {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100%;
+    margin-bottom: 15px;
+    background: #28a745 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    z-index: auto;
+}
+
+.control-panel .download-btn:hover {
+    background: #218838;
+}
+
+/* 按钮容器样式调整 */
+.control-panel #buttonContainer {
+    margin: 15px 0;
+}
+
+.control-panel #buttonContainer button {
+    width: 100%;
+    margin: 5px 0;
+    background: #2ba245;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.control-panel #buttonContainer button:hover {
+    background: #228b3f;
+}

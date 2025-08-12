@@ -127,7 +127,7 @@ public class testManIndexController {
         }
         //获取用户的total信息并返回到前端展示
         Map<String, Integer> data1 = testManIndexService.getindexPanel(username);
-        System.out.println(data1);
+//        System.out.println(data1);
 
         data.put("testing", data1.get("testing")); // 测试中数量
         data.put("pending", data1.get("pending")); // 待审核1数量
@@ -380,7 +380,14 @@ public class testManIndexController {
                         int delete = testManIndexService.removeTargetIdFromAllSampleActualIds(Integer.parseInt(sample_id));
                         if(delete>0){
                             logger.info("删除成功:"+sample_id);
-                            int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id);
+
+                            // 假设 createTime 是 LocalDateTime
+                            LocalDateTime createTime = testManIndexService.queryCreateTime(sample_id);
+
+                            // 转成字符串
+                            String createTimeStr = createTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                            int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id,createTimeStr);
                             if(insert >0){
 
                                 logger.info("先删后插入成功："+ edit_electric_id);
@@ -392,7 +399,15 @@ public class testManIndexController {
                 }else{
                     //为空则直接插入
                     if (edit_electric_id != null && !edit_electric_id.trim().isEmpty()) {
-                        int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id);
+
+                        // 假设 createTime 是 LocalDateTime
+                        LocalDateTime createTime = testManIndexService.queryCreateTime(sample_id);
+
+                        // 转成字符串
+                        String createTimeStr = createTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+
+                        int insert = testManIndexService.updateActualSampleId(edit_electric_id, sample_id,createTimeStr);
                         if(insert >0){
                             sample.setElectric_sample_id(edit_electric_id);
                             logger.info("修改信息这里的插入电气测试编号成功："+ edit_electric_id);
@@ -502,9 +517,9 @@ public class testManIndexController {
             String oldFilePath = testManIndexService.queryFilepath(sample_id);
             String oldtester = testManIndexService.queryTester(sample_id); //已经添加questStats,20240709
 
-            System.out.println("old_name："+old_name);
-            System.out.println("oldtester："+oldtester);
-            System.out.println("oldFilePath："+oldFilePath);
+//            System.out.println("old_name："+old_name);
+//            System.out.println("oldtester："+oldtester);
+//            System.out.println("oldFilePath："+oldFilePath);
 
             if(!Objects.equals(oldtester, tester)){
                 response.put("message", "更换当前测试人");
@@ -1806,7 +1821,11 @@ public class testManIndexController {
                                     }else{
                                         String sampleId = sample.getSample_id(); // ✅ 这里能拿到自动生成的 samples表的sample_id
 //                                        System.out.println("sampleId:"+sampleId);
-                                        int insertActual = testManIndexService.updateActualSampleId(electric_sample_id,sampleId);
+                                        // 获取当前北京时间（Asia/Shanghai 时区就是北京时间）
+                                        String actual_start_time = LocalDateTime.now(ZoneId.of("Asia/Shanghai"))
+                                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                                        int insertActual = testManIndexService.updateActualSampleId(electric_sample_id,sampleId,actual_start_time);
                                         if(insertActual>0){
                                             logger.info("排期面板的id插入真实id成功："+sampleId+"成功插入到对应的electric_info表的"+electric_sample_id);
 

@@ -176,7 +176,7 @@ public class DQEIndexController {
             }
         }
 
-        System.out.println("combinedTaskNodes:" + combinedTaskNodes);
+//        System.out.println("combinedTaskNodes:" + combinedTaskNodes);
         return combinedTaskNodes; // 返回过滤后的组合数组
     }
 
@@ -311,6 +311,34 @@ public class DQEIndexController {
         }
     }
 
+    @GetMapping("/DQEIndex/getProjectTotal")
+    @ResponseBody
+    public Map<String, Object> getProjectTotal(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+
+//        System.out.println("username:"+username);
+        
+        try {
+            // 获取提单待测试的数量：sample_sender=username 且 actual_start_time 为空
+            int ladingBillWaitTest = testManIndexService.getLadingBillWaitTestCount(username);
+            
+            // 获取测试进行中的数量：sample_sender=username 且 actual_start_time 有值但 actual_finish_time 为空
+            int testing = testManIndexService.getTestingCount(username);
+            int projectCount = testManIndexService.queryCountElectricinfo(username);
+            
+            result.put("ladingBillWaitTest", ladingBillWaitTest);
+            result.put("testing", testing);
+            result.put("projectCount", projectCount);
+            result.put("success", true);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取项目统计信息时出错: " + e.getMessage());
+        }
+        
+        return result;
+    }
 
 
 

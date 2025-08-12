@@ -41,6 +41,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -1297,7 +1298,7 @@ public class ExcelShowService {
             throw new IllegalArgumentException("Invalid scheduleTestCycle value: " + scheduleTestCycle, e);
         }
 
-        System.out.println("adjustedWorkDays:" + adjustedWorkDays);
+//        System.out.println("adjustedWorkDays:" + adjustedWorkDays);
 
         Samples sample = new Samples();
         LocalDateTime now = LocalDateTime.now();
@@ -1325,9 +1326,11 @@ public class ExcelShowService {
 
         int insertSample = samplesDao.insertSample(sample);
 
-        System.out.println("sample.getSample_id():"+sample.getSample_id());
+//        System.out.println("sample.getSample_id():"+sample.getSample_id());
         if(insertSample>0){
-            int updateActualSampleId = testManIndexService.updateActualSampleId(electric_sample_id, sample.getSample_id());
+            String actual_start_time = LocalDateTime.now(ZoneId.of("Asia/Shanghai"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            int updateActualSampleId = testManIndexService.updateActualSampleId(electric_sample_id, sample.getSample_id(),actual_start_time);
             System.out.println("updateActualSampleId:"+updateActualSampleId);
         }
 

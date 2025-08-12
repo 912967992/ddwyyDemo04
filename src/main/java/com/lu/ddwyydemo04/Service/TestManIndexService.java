@@ -533,8 +533,26 @@ public class TestManIndexService {
         return testManDao.insertSampleFromElectric(sample);
     }
 
-    public int updateActualSampleId(String sample_id,String sample_actual_id){
-        return testManDao.updateActualSampleId(sample_id,sample_actual_id);
+    /**
+     * 获取提单待测试的数量
+     * @param username 用户名
+     * @return 提单待测试的数量
+     */
+    public int getLadingBillWaitTestCount(String username) {
+        return testManDao.getLadingBillWaitTestCount(username);
+    }
+
+    /**
+     * 获取测试进行中的数量
+     * @param username 用户名
+     * @return 测试进行中的数量
+     */
+    public int getTestingCount(String username) {
+        return testManDao.getTestingCount(username);
+    }
+
+    public int updateActualSampleId(String sample_id,String sample_actual_id,String actual_start_time){
+        return testManDao.updateActualSampleId(sample_id,sample_actual_id,actual_start_time);
     }
 
     public int removeTargetIdFromAllSampleActualIds(int targetId){
@@ -745,4 +763,7 @@ public class TestManIndexService {
         return testManDao.getTestItemsBySampleId(sample_id);
     }
 
+    public int queryCountElectricinfo(String sample_sender){
+        return  testManDao.queryCountElectricinfo(sample_sender);
+    }
 }

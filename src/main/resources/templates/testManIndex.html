@@ -1600,10 +1600,23 @@
                 // 创建表格和按钮的容器
                 var tableAndButtons = '<div class="table-and-buttons">';
 
-                var isDanger = (product.danger && product.danger.trim() !== "") ||
-                    (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
-                    (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
-                    (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+                // var isDanger = (product.danger && product.danger.trim() !== "") ||
+                //     (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                //     (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                //     (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+
+                var isDanger = false;
+// 定义一个基准日期：2025年8月11日
+                var thresholdDate = new Date('2025-08-05T00:00:00');
+// 只有当 product.create 存在且大于 2025-08-11 时，才进行危险判断
+                if (product.create_time && new Date(product.create_time) > thresholdDate) {
+                    isDanger = (product.danger && product.danger.trim() !== "") ||
+                        (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                        (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                        (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+                }
+
+
 
                 // 如果 scheduleEndTime 为 null，则 isDanger 一定为 false
                 if (product.scheduleEndTime === null) {
@@ -2026,9 +2039,9 @@
                     }, 2000); // 2000 毫秒 = 2 秒
 
                     // 等待 2 秒后发送给绮敏
-                    // setTimeout(() => {
-                    //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    // }, 2000); // 2000 毫秒 = 2 秒
+                    setTimeout(() => {
+                        updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                    }, 2000); // 2000 毫秒 = 2 秒
 
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);

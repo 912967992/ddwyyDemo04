@@ -138,12 +138,71 @@
 
     <div class="title-container">
         <div class="title" id="indexTitle">主页</div>
+        
+        <!-- 项目统计汇总框 -->
+        <div class="summary-container">
+            <div class="summary-box">
+                <h3>项目统计汇总</h3>
+                <div class="summary-content">
+                    <div class="summary-item">
+                        <span class="summary-label">提单待测试的：</span>
+                        <span class="summary-value" id="ladingBillWaitTest">0</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">测试进行中的：</span>
+                        <span class="summary-value" id="testing">0</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">待审核的项目：</span>
+                        <span class="summary-value" id="recentCount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">节点超期项目：</span>
+                        <span class="summary-value" id="overdueCount" style="color: red;">0</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">总数：</span>
+                        <span class="summary-value" id="projectCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <button id="downloadGuidelineBtn" class="download-btn">操作指导书下载</button>
+    <!-- 左上角控制面板 -->
+    <div class="control-panel">
+<!--        <div class="control-panel-header">-->
+<!--            <h3>控制面板</h3>-->
+<!--        </div>-->
+        
+        <button id="downloadGuidelineBtn" class="download-btn">操作指导书下载</button>
+        
+        <div id="buttonContainer"></div>
 
+        <!-- 角色切换按钮 -->
+        <div id="buttonsDiv">
+            <button id="dqeBtn">DQE</button>
+            <button id="rdBtn">rd</button>
+            <button id="projectBtn">项目</button>
+            <button id="managerBtn">经理级别以上</button>
+        </div>
 
-    <div id="buttonContainer"></div>
+        <!-- 用户名输入 -->
+        <div id="usernameDiv">
+            <input type="text" id="usernameInput" placeholder="输入你的名字" />
+            <button id="saveUsernameBtn">保存名字</button>
+        </div>
+
+        <!-- 项目查看按钮 -->
+        <div class="project-buttons">
+            <button id="viewOverdueButton">查看超时项目</button>
+            <button id="viewRecentNotificationsButton">查看近期通知项目</button>
+            <button id="setupAgentBtn">设置代理人</button>
+        </div>
+    </div>
 
     <!-- 管理配置模态框 -->
     <div id="configModal" class="modal">
@@ -157,23 +216,6 @@
             <button id="saveButton">保存</button>
         </div>
     </div>
-
-    <!--新增三个切换角色职位的按钮便于调试-->
-    <!--新增三个切换角色职位的按钮-->
-    <div id="buttonsDiv">
-        <button id="dqeBtn">DQE</button>
-        <button id="rdBtn">rd</button>
-        <button id="projectBtn">项目</button>
-        <button id="managerBtn">经理级别以上</button>
-    </div>
-
-    <!-- 输入用户名 -->
-    <div id="usernameDiv">
-        <input type="text" id="usernameInput" placeholder="输入你的名字" />
-        <button id="saveUsernameBtn">保存名字</button>
-    </div>
-
-    <button id="viewOverdueButton">查看超时项目</button>
 
     <!-- 超时项目模态框 -->
     <div id="overdueModal" class="modal">
@@ -211,9 +253,6 @@
         </div>
     </div>
 
-    <!-- 查看近期通知项目按钮 -->
-    <button id="viewRecentNotificationsButton">查看近期通知项目</button>
-    <button id="setupAgentBtn">设置代理人</button>
     <!-- 代理人设置模态框 -->
     <div id="agentModal" class="modal">
         <div class="modal-content">
@@ -233,6 +272,7 @@
             <div id="agentTips" style="margin-top: 10px; font-size: 12px; color: #999;">
                 <p>• 最多可设置5个代理人</p>
                 <p>• 代理人姓名不能为空</p>
+                <p>• 代理人名字请跟钉钉名字统一，有数字记得也要带上</p>
                 <p>• 点击×按钮可删除对应代理人</p>
             </div>
         </div>
@@ -418,13 +458,94 @@
     let username = localStorage.getItem('username');
     let job = localStorage.getItem('job');
 
-
     // 更新用户名和职位的函数
     const buttonsDiv = document.getElementById('buttonsDiv');
     const usernameDiv = document.getElementById('usernameDiv')
 
     const corp_id = localStorage.getItem('corp_id');
     readyConfig();
+
+    // 页面加载完成后获取项目统计数据
+    document.addEventListener('DOMContentLoaded', function() {
+        if (username) {
+            updateProjectSummary();
+        }
+    });
+
+    // 更新项目统计汇总的函数
+    function updateProjectSummary() {
+        if (!username) return;
+
+        // 获取项目统计信息（包括提单待测试和测试进行中的数量）
+        fetch(`/DQEIndex/getProjectTotal?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新提单待测试的数量
+                    document.getElementById('ladingBillWaitTest').textContent = data.ladingBillWaitTest || 0;
+                    
+                    // 更新测试进行中的数量
+                    document.getElementById('testing').textContent = data.testing || 0;
+                    document.getElementById('projectCount').textContent = data.projectCount || 0;
+                } else {
+                    console.error("获取项目统计信息失败:", data.error);
+                }
+            })
+            .catch(error => console.error("获取项目统计信息时出错:", error));
+
+        // 获取近期通知项目数量
+        fetch(`/DQEIndex/getRecentNotifications?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                let recentCount = 0;
+                data.forEach(combinedTaskNode => {
+                    let personInCharge = "";
+                    if (combinedTaskNode.taskNode.node_number === "1") {
+                        personInCharge = combinedTaskNode.dqe;
+                    } else if (combinedTaskNode.taskNode.node_number === "2") {
+                        personInCharge = combinedTaskNode.rd;
+                    } else if (combinedTaskNode.taskNode.node_number === "4") {
+                        personInCharge = combinedTaskNode.projectLeader;
+                    }
+                    
+                    if (personInCharge === username) {
+                        recentCount++;
+                    }
+                });
+                
+                document.getElementById('recentCount').textContent = recentCount;
+            })
+            .catch(error => console.error("获取近期通知项目数量时出错:", error));
+        
+        // 获取超期项目数量
+        fetch('/DQEIndex/getOverdueSample')
+            .then(response => response.json())
+            .then(data => {
+                let overdueCount = 0;
+                data.forEach(combinedTaskNode => {
+                    const personInCharge = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number))
+                        ? combinedTaskNode.dqe
+                        : String(combinedTaskNode.taskNode.node_number) === "2"
+                            ? combinedTaskNode.rd ? combinedTaskNode.rd : ""
+                            : "";
+                    
+                    // 根据 Job 过滤数据
+                    let shouldDisplay = false;
+                    if (job === "DQE" || job === "manager") {
+                        shouldDisplay = ["1", "3"].includes(String(combinedTaskNode.taskNode.node_number));
+                    } else if (job === "rd") {
+                        shouldDisplay = String(combinedTaskNode.taskNode.node_number) === "2";
+                    }
+                    
+                    if (shouldDisplay && personInCharge === username) {
+                        overdueCount++;
+                    }
+                });
+                
+                document.getElementById('overdueCount').textContent = overdueCount;
+            })
+            .catch(error => console.error("获取超期项目数量时出错:", error));
+    }
 
 
     function readyConfig(){
@@ -576,15 +697,19 @@
     // 为按钮添加点击事件，切换职位并更新 localStorage
     document.getElementById('dqeBtn').addEventListener('click', function() {
         updateUserInfo('DQE');
+        updateProjectSummary();
     });
     document.getElementById('rdBtn').addEventListener('click', function() {
         updateUserInfo('rd');
+        updateProjectSummary();
     });
     document.getElementById('projectBtn').addEventListener('click', function() {
         updateUserInfo('projectLeader');
+        updateProjectSummary();
     });
     document.getElementById('managerBtn').addEventListener('click', function() {
         updateUserInfo('manager');
+        updateProjectSummary();
     });
 
     document.getElementById('saveUsernameBtn').addEventListener('click',function (){
@@ -593,6 +718,8 @@
         if (username) {
             localStorage.setItem('username', username); // 更新 localStorage 中的用户名
             alert("用户名已更新为: " + username);
+            // 更新项目统计
+            updateProjectSummary();
         } else {
             alert("请输入有效的名字！");
         }
@@ -647,7 +774,7 @@
     const warningDaysInput = document.getElementById("warningDays"); // 定义 warningDaysInput
 
 
-    if (username ==="张华" || username === "卢健" || username === "黄家灿" || username ==="荣成彧") {
+    if (username ==="李良健" || username === "卢健" || username === "黄家灿" || username ==="荣成彧") {
         buttonContainer.innerHTML = `
             <button id="configButton" data-type="DQE">DQE管理配置</button>`;
 
@@ -837,6 +964,9 @@
                         }
                     });
                     overdueModal.style.display = "block"; // 显示模态框
+                    
+                    // 更新项目统计
+                    updateProjectSummary();
                 })
                 .catch(error => console.error("获取超时项目列表时出错:", error));
         };
@@ -949,6 +1079,9 @@
                     });
 
                     recentNotificationsModal.style.display = "block";
+                    
+                    // 更新项目统计
+                    updateProjectSummary();
                 })
                 .catch(error => console.error("获取近期通知项目列表时出错:", error));
         };

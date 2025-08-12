@@ -157,7 +157,8 @@ public interface TestManDao {
     List<MaterialItem> getDistinctMaterialCodes(@Param("sample_id")String sample_id);
 
     int insertSampleFromElectric(Samples sample);
-    int updateActualSampleId(@Param("sample_id")String sample_id,@Param("sample_actual_id")String sample_actual_id);
+    int updateActualSampleId(@Param("sample_id")String sample_id,@Param("sample_actual_id")String sample_actual_id,
+                             @Param("actual_start_time")String actual_start_time);
 
     int removeTargetIdFromAllSampleActualIds(@Param("targetId")int targetId);
 
@@ -171,6 +172,20 @@ public interface TestManDao {
 
     int updateRemark(@Param("sample_id") String sample_id,@Param("remark")String remark);
     String queryRemark(@Param("sample_id") String sample_id);
+
+    /**
+     * 获取提单待测试的数量：sample_sender=username 且 actual_start_time 为空
+     * @param username 用户名
+     * @return 提单待测试的数量
+     */
+    public int getLadingBillWaitTestCount(@Param("username") String username);
+
+    /**
+     * 获取测试进行中的数量：sample_sender=username 且 actual_start_time 有值但 actual_finish_time 为空
+     * @param username 用户名
+     * @return 测试进行中的数量
+     */
+    public int getTestingCount(@Param("username") String username);
 
     // 查询测试项数据
     List<ElectricalTestItem> getTestItemsBySampleId(@Param("sample_id") String sample_id);
@@ -196,5 +211,7 @@ public interface TestManDao {
 
     // 从 change_records 表获取变更记录
     List<ChangeRecord> getChangeRecordsBySampleId(@Param("sample_id") String sample_id);
+
+    int queryCountElectricinfo(@Param("sample_sender")String sample_sender);
 
 }
