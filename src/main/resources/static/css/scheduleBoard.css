@@ -130,14 +130,125 @@
 .schedule-table-container {
     position: relative;
     max-height: 70vh; /* 限制最大高度，避免页面过长 */
-    overflow: auto;
     border: 1px solid #ccc;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 添加阴影效果 */
-    /* 确保水平滚动正常工作 */
-    overflow-x: auto;
-    overflow-y: auto;
+    display: flex;
+    overflow: hidden;
 }
+
+/* 冻结列样式 */
+.frozen-columns {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background-color: #ffffff;
+    border-right: 2px solid #ccc;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+    overflow-y: auto; /* 允许垂直滚动 */
+    overflow-x: hidden; /* 隐藏水平滚动条 */
+    min-width: 180px; /* 冻结列的最小宽度 */
+    width: 180px; /* 固定宽度 */
+    max-height: 70vh; /* 与主容器保持一致的最大高度 */
+}
+
+.frozen-columns table {
+    border-collapse: collapse;
+    background-color: #ffffff;
+}
+
+.frozen-columns th.frozen-header {
+    background-color: #d9edf7 !important;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    width: 80px; /* 固定宽度 */
+    height: 60px; /* 固定高度 */
+    min-width: 80px !important;
+    min-height: 60px !important;
+    max-width: 80px !important;
+    max-height: 60px !important;
+    box-sizing: border-box;
+}
+
+/* 第二个冻结列表头（测试人员列） */
+.frozen-columns th.frozen-header:last-child {
+    width: 100px; /* 测试人员列宽度 */
+    min-width: 100px !important;
+    max-width: 100px !important;
+}
+
+.frozen-columns td.frozen-cell {
+    border: 1px solid #ccc;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #ffffff;
+    height: 60px; /* 固定高度 */
+    min-height: 60px !important;
+    max-height: 60px !important;
+    box-sizing: border-box;
+}
+
+/* 第一个冻结列单元格（组别列） */
+.frozen-columns tr td:first-child {
+    width: 80px; /* 组别列宽度 */
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+/* 第二个冻结列单元格（测试人员列） */
+.frozen-columns tr td:last-child {
+    width: 100px; /* 测试人员列宽度 */
+    min-width: 100px !important;
+    max-width: 100px !important;
+}
+
+/* 主表格容器样式 */
+.main-table-container {
+    flex: 1;
+    overflow: auto;
+    border-left: 1px solid #ccc;
+    overflow-y: auto; /* 确保垂直滚动 */
+    overflow-x: auto; /* 确保水平滚动 */
+    max-height: 70vh; /* 与冻结列保持一致的最大高度 */
+}
+
+/* 确保冻结列和主表格的行高一致 */
+.frozen-columns table,
+.main-table-container table {
+    table-layout: fixed;
+}
+
+.frozen-columns th,
+.frozen-columns td,
+.main-table-container th,
+.main-table-container td {
+    height: 60px; /* 设置统一的行高 */
+    min-height: 60px !important;
+    max-height: 60px !important;
+    box-sizing: border-box;
+}
+
+/* 冻结列宽度设置 */
+.frozen-columns th:first-child {
+    width: 80px; /* 组别列宽度 */
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+.frozen-columns th:last-child {
+    width: 100px; /* 测试人员列宽度 */
+    min-width: 100px !important;
+    max-width: 100px !important;
+}
+
+
 
 /* 冻结表头样式 */
 .schedule-table-container thead {
@@ -146,6 +257,30 @@
     z-index: 10;
     background-color: #d9edf7;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 表头阴影 */
+}
+
+.main-table-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #d9edf7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 表头阴影 */
+}
+
+/* 确保表头行有固定高度 */
+.frozen-columns thead tr,
+.main-table-container thead tr {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+}
+
+/* 确保冻结列表头在滚动时有正确的背景 */
+.frozen-columns thead {
+    position: sticky;
+    top: 0;
+    z-index: 25;
+    background-color: #d9edf7;
 }
 
 /* 确保表头单元格样式正确 */
@@ -159,8 +294,29 @@
     position: relative; /* 确保定位正确 */
 }
 
+.main-table-container thead th {
+    background-color: #d9edf7 !important;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative; /* 确保定位正确 */
+    width: 120px; /* 固定宽度 */
+    height: 60px; /* 固定高度 */
+    min-width: 120px !important;
+    min-height: 60px !important;
+    max-width: 120px !important;
+    max-height: 60px !important;
+    box-sizing: border-box;
+}
+
 /* 确保表格内容区域样式正确 */
 .schedule-table-container tbody {
+    background-color: #ffffff;
+}
+
+.main-table-container tbody {
     background-color: #ffffff;
 }
 
@@ -175,6 +331,21 @@
     .schedule-table-container tbody td {
         padding: 6px 4px; /* 减小内边距 */
     }
+
+    .frozen-columns th.frozen-header,
+    .frozen-columns td.frozen-cell {
+        padding: 6px 4px; /* 减小内边距 */
+    }
+
+    /* 小屏幕下保持表头固定高度 */
+    .frozen-columns th,
+    .frozen-columns td,
+    .main-table-container th,
+    .main-table-container td {
+        height: 50px !important;
+        min-height: 50px !important;
+        max-height: 50px !important;
+    }
 }
 
 /* 响应式设计 - 大屏幕优化 */
@@ -185,22 +356,30 @@
 }
 
 /* 自定义滚动条样式 */
-.schedule-table-container::-webkit-scrollbar {
+.schedule-table-container::-webkit-scrollbar,
+.frozen-columns::-webkit-scrollbar,
+.main-table-container::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-.schedule-table-container::-webkit-scrollbar-track {
+.schedule-table-container::-webkit-scrollbar-track,
+.frozen-columns::-webkit-scrollbar-track,
+.main-table-container::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
 }
 
-.schedule-table-container::-webkit-scrollbar-thumb {
+.schedule-table-container::-webkit-scrollbar-thumb,
+.frozen-columns::-webkit-scrollbar-thumb,
+.main-table-container::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
 }
 
-.schedule-table-container::-webkit-scrollbar-thumb:hover {
+.schedule-table-container::-webkit-scrollbar-thumb:hover,
+.frozen-columns::-webkit-scrollbar-thumb:hover,
+.main-table-container::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
 
@@ -814,11 +993,16 @@
 
 /* 节假日表头特殊样式 */
 #scheduleBoardTable th.weekend-border,
-.schedule-table-container thead th.weekend-border {
+.schedule-table-container thead th.weekend-border,
+.main-table-container thead th.weekend-border {
     background-color: #e3f2fd !important;
     color: #1976d2;
     font-weight: bold;
     border: 2px solid #007bff !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    box-sizing: border-box;
 }
 
 /* 测试人员姓名样式 */
@@ -852,7 +1036,8 @@
 }
 
 /* 高亮的行 - 使用outline添加边框，不影响布局 */
-#scheduleBoardTable tbody tr.highlighted-row {
+#scheduleBoardTable tbody tr.highlighted-row,
+#frozenTable tbody tr.highlighted-row {
     position: relative;
     z-index: 1;
     outline: 3px solid #dc3545;
@@ -860,7 +1045,8 @@
 }
 
 /* 高亮行中的单元格 - 只设置边框颜色 */
-#scheduleBoardTable tbody tr.highlighted-row td {
+#scheduleBoardTable tbody tr.highlighted-row td,
+#frozenTable tbody tr.highlighted-row td {
     border-color: #dc3545 !important;
     position: relative;
 }
@@ -883,13 +1069,31 @@
 }
 
 /* 高亮行的动画效果 */
-#scheduleBoardTable tbody tr {
+#scheduleBoardTable tbody tr,
+#frozenTable tbody tr {
     transition: all 0.3s ease;
 }
 
 /* 高亮行中的单元格动画 */
-#scheduleBoardTable tbody tr.highlighted-row td {
+#scheduleBoardTable tbody tr.highlighted-row td,
+#frozenTable tbody tr.highlighted-row td {
     transition: all 0.3s ease;
+}
+
+/* 确保表格内容不会改变行高 */
+.frozen-columns td,
+.main-table-container td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 允许表头换行显示 */
+.frozen-columns th,
+.main-table-container th {
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.2;
 }
 
 .nice-btn {
