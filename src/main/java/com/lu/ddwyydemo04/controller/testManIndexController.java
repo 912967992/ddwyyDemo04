@@ -997,10 +997,10 @@ public class testManIndexController {
                 filteredRows.add(rowMap);
             }
         }
-        System.out.println("filteredRows如下:");
-        for (Map<String, String> row : filteredRows) {
-            System.out.println(row);
-        }
+//        System.out.println("filteredRows如下:");
+//        for (Map<String, String> row : filteredRows) {
+//            System.out.println(row);
+//        }
         return filteredRows;
     }
 

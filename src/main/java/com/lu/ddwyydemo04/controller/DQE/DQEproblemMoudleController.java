@@ -910,10 +910,10 @@ public class DQEproblemMoudleController {
 
 
             String getSchedule = accessTokenService.getOASchedule(task_id);
-            System.out.println("222222:"+sampleSchedule);
+//            System.out.println("222222:"+sampleSchedule);
             // 修改一下这里，我希望
             if (sampleSchedule.equals("1") && getSchedule.equals("ok")) {
-                System.out.println("dddd");
+//                System.out.println("dddd");
                 String content = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+ messageUrl;
                 return ResponseEntity.ok("copyable|" + content);
             }
