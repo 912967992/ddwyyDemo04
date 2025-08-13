@@ -4592,13 +4592,14 @@
             });
 
             // 找到主表格中对应的行并高亮
-            const targetRow = document.querySelector(`.main-table-container #scheduleBoardTable tbody tr:has(.tester-name[data-tester="${testerName}"])`);
+            // 主表格中的行通过 data-tester 属性标识，而不是通过 .tester-name 元素
+            const targetRow = document.querySelector(`.main-table-container #scheduleBoardTable tbody tr:has(td[data-tester="${testerName}"])`);
             if (targetRow) {
                 targetRow.classList.add('highlighted-row');
             } else {
-                // 备用方法：通过查找包含该测试人员姓名的行
+                // 备用方法：通过查找包含该测试人员 data-tester 属性的行
                 allRows.forEach(row => {
-                    const testerCell = row.querySelector(`.tester-name[data-tester="${testerName}"]`);
+                    const testerCell = row.querySelector(`td[data-tester="${testerName}"]`);
                     if (testerCell) {
                         row.classList.add('highlighted-row');
                     }

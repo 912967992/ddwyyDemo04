@@ -262,8 +262,8 @@
     <strong>颜色：</strong> <span style="color: {{color}}">{{color}}</span><br>
     <strong>是否使用：</strong> {{used}}<br>
     <strong>备注：</strong> {{remark}}<br>
-  <hr>
   </p>
+  <hr>
 </template>
 
 <!-- 新增项目模态框 -->
@@ -1532,7 +1532,7 @@
   function checkSimilarCodes(clickedCard) {
     const clickedLargeCode = clickedCard.getAttribute('data-sample_model');
     const allProjectCards = document.querySelectorAll('.project-card');
-    const allScheduleCells = document.querySelectorAll('#scheduleBoardTable td[data-sample_model]');
+    const allScheduleCells = document.querySelectorAll('.main-table-container #scheduleBoardTable td[data-sample_model]');
     const similarElements = [];
 
     // 检查项目卡片
@@ -1860,12 +1860,45 @@
   // 绘制排期面板
   function drawScheduleBoard(board, testers, allDates, dateMap) {
     let html = '<div class="schedule-table-container">';
+
+    // 创建冻结列容器
+    html += '<div class="frozen-columns">';
+    html += '<table id="frozenTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
+
+    // 冻结列表头
+    html += '<thead><tr>';
+    html += '<th class="frozen-header">组别</th>';
+    html += '<th class="frozen-header" style="min-width: 100px;">测试人员</th>';
+    html += '</tr></thead><tbody>';
+
+    // 冻结列内容
+    const groupedTesters = groupTestersByCategory(testers);
+    groupOrder.forEach(groupName => {
+      const groupTesters = groupedTesters[groupName];
+      if (!groupTesters) return;
+
+      const groupRowSpan = groupTesters.length;
+      groupTesters.forEach((tester, testerIndex) => {
+        const testerName = tester.test_engineer_name;
+        const jobNumber = tester.engineer_id;
+
+        html += '<tr>';
+        if (testerIndex === 0) {
+          html += `<td class="frozen-cell" rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
+        }
+        html += `<td class="frozen-cell"><strong class="tester-name" data-tester="${testerName}" style="cursor: pointer; color: #007bff;">${testerName}</strong></td>`;
+        html += '</tr>';
+      });
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+
+    // 创建主表格容器
+    html += '<div class="main-table-container">';
     html += '<table id="scheduleBoardTable" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">';
 
-    // 表头
+    // 主表格表头
     html += '<thead><tr>';
-    html += '<th>组别</th>';
-    html += '<th style="min-width: 100px;">测试人员</th>';
     allDates.forEach(date => {
       const dateObj = new Date(date);
       const dayOfWeek = dateObj.getDay();
@@ -1899,8 +1932,6 @@
     });
     html += '</tr></thead><tbody>';
 
-    const groupedTesters = groupTestersByCategory(testers);
-
 
     // ⭐⭐ 新增：先按照 groupOrder 遍历
     groupOrder.forEach(groupName => {
@@ -1914,12 +1945,6 @@
         const jobNumber = tester.engineer_id;
 
         html += '<tr>';
-
-        if (testerIndex === 0) {
-          html += `<td rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
-        }
-
-        html += `<td><strong class="tester-name" data-tester="${testerName}" style="cursor: pointer; color: #007bff;">${testerName}</strong></td>`;
 
         let colIndex = 0;
         while (colIndex < allDates.length) {
@@ -2048,10 +2073,12 @@
       });
     });
 
-    html += '</tbody></table></div>';
+    html += '</tbody></table>';
+    html += '</div>'; // 关闭 main-table-container
+    html += '</div>'; // 关闭 schedule-table-container
     board.innerHTML = html;
 
-    // 为测试人员姓名添加点击事件
+    // 为测试人员姓名添加点击事件（包括冻结列和主表格）
     const testerNames = document.querySelectorAll('.tester-name');
     testerNames.forEach(testerName => {
       testerName.addEventListener('click', function() {
@@ -2083,8 +2110,35 @@
       }
     });
 
+    // 同步冻结列和主表格的垂直滚动
+    const mainTableContainer = document.querySelector('.main-table-container');
+    const frozenColumns = document.querySelector('.frozen-columns');
+
+    if (mainTableContainer && frozenColumns) {
+      // 主表格滚动时，同步冻结列
+      mainTableContainer.addEventListener('scroll', function() {
+        if (frozenColumns.scrollTop !== this.scrollTop) {
+          frozenColumns.scrollTop = this.scrollTop;
+        }
+      });
+
+      // 冻结列滚动时，同步主表格
+      frozenColumns.addEventListener('scroll', function() {
+        if (mainTableContainer.scrollTop !== this.scrollTop) {
+          mainTableContainer.scrollTop = this.scrollTop;
+        }
+      });
+
+      // 初始化时确保两个容器的高度一致
+      setTimeout(() => {
+        const mainHeight = mainTableContainer.scrollHeight;
+        const frozenHeight = frozenColumns.scrollHeight;
+        console.log('主表格高度:', mainHeight, '冻结列高度:', frozenHeight);
+      }, 1000);
+    }
+
     // 为任务单元格添加拖拽事件
-    const assignedCells = document.querySelectorAll('#scheduleBoardTable td.assigned');
+    const assignedCells = document.querySelectorAll('.main-table-container #scheduleBoardTable td.assigned');
     assignedCells.forEach(cell => {
       cell.setAttribute('draggable', 'false'); // 禁用默认拖拽
       cell.addEventListener('dblclick', e => {
@@ -2933,7 +2987,7 @@
     contextMenu.addEventListener('click', handleContextMenuClick);
 
     // 设置项目颜色
-    document.querySelectorAll('#scheduleBoardTable td[data-schedule_color]').forEach(cell => {
+    document.querySelectorAll('.main-table-container #scheduleBoardTable td[data-schedule_color]').forEach(cell => {
       const color = cell.getAttribute('data-schedule_color');
       if (color && color !== 'null') {
         cell.style.backgroundColor = color;
@@ -2945,6 +2999,9 @@
         }
       }
     });
+
+
+
   }
 
   // 创建排期面板的单元格
@@ -4509,8 +4566,14 @@
     currentHighlightedTester = testerName;
 
     // 先清除所有行的高亮
-    const allRows = document.querySelectorAll('#scheduleBoardTable tbody tr');
+    const allRows = document.querySelectorAll('.main-table-container #scheduleBoardTable tbody tr');
     allRows.forEach(row => {
+      row.classList.remove('highlighted-row');
+    });
+
+    // 清除冻结列中所有行的高亮
+    const allFrozenRows = document.querySelectorAll('#frozenTable tbody tr');
+    allFrozenRows.forEach(row => {
       row.classList.remove('highlighted-row');
     });
 
@@ -4523,18 +4586,33 @@
     // 如果传入了测试人员姓名，则高亮对应行
     if (testerName) {
       // 找到对应的测试人员姓名元素并高亮
-      const targetTesterName = document.querySelector(`.tester-name[data-tester="${testerName}"]`);
-      if (targetTesterName) {
-        targetTesterName.classList.add('highlighted-tester');
-      }
+      const targetTesterNames = document.querySelectorAll(`.tester-name[data-tester="${testerName}"]`);
+      targetTesterNames.forEach(name => {
+        name.classList.add('highlighted-tester');
+      });
 
-      // 找到对应的行并高亮
-      const targetRow = document.querySelector(`#scheduleBoardTable tbody tr:has(.tester-name[data-tester="${testerName}"])`);
+      // 找到主表格中对应的行并高亮
+      // 主表格中的行通过 data-tester 属性标识，而不是通过 .tester-name 元素
+      const targetRow = document.querySelector(`.main-table-container #scheduleBoardTable tbody tr:has(td[data-tester="${testerName}"])`);
       if (targetRow) {
         targetRow.classList.add('highlighted-row');
       } else {
-        // 备用方法：通过查找包含该测试人员姓名的行
+        // 备用方法：通过查找包含该测试人员 data-tester 属性的行
         allRows.forEach(row => {
+          const testerCell = row.querySelector(`td[data-tester="${testerName}"]`);
+          if (testerCell) {
+            row.classList.add('highlighted-row');
+          }
+        });
+      }
+
+      // 找到冻结列中对应的行并高亮
+      const targetFrozenRow = document.querySelector(`#frozenTable tbody tr:has(.tester-name[data-tester="${testerName}"])`);
+      if (targetFrozenRow) {
+        targetFrozenRow.classList.add('highlighted-row');
+      } else {
+        // 备用方法：通过查找包含该测试人员姓名的行
+        allFrozenRows.forEach(row => {
           const testerCell = row.querySelector(`.tester-name[data-tester="${testerName}"]`);
           if (testerCell) {
             row.classList.add('highlighted-row');
@@ -4551,7 +4629,7 @@
   // 新增函数：检查是否应该保持高亮状态
   function shouldKeepHighlight(element) {
     // 检查元素是否在应该保持高亮的区域内
-    const isInScheduleTable = element.closest('#scheduleBoardTable');
+    const isInScheduleTable = element.closest('#scheduleBoardTable') || element.closest('#frozenTable');
     const isTesterName = element.classList.contains('tester-name');
     const isInProjectPool = element.closest('#projectPool');
     const isInPendingSampleContainer = element.closest('.pending-sample-container');
