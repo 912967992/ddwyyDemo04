@@ -810,7 +810,8 @@
 
     // 获取排期表格容器
     const scheduleContainer = document.querySelector('.schedule-table-container');
-    if (!scheduleContainer) return;
+    const mainTableContainer = document.querySelector('.main-table-container');
+    if (!scheduleContainer || !mainTableContainer) return;
 
     // 自动滚动逻辑 - 垂直和水平方向
     const scrollSpeed = 10; // 滚动速度
@@ -853,15 +854,15 @@
       // console.log('window向下滚动', clientY, window.innerHeight - triggerDistance);
     }
 
-    // 水平方向自动滚动
+    // 水平方向自动滚动 - 使用主表格容器
     // 靠近容器左侧，向左滚动
     if (clientX < containerRect.left + triggerDistance) {
-      scheduleContainer.scrollLeft -= scrollSpeed;
+      mainTableContainer.scrollLeft -= scrollSpeed;
       // console.log('向左滚动', clientX, containerRect.left + triggerDistance);
     }
     // 靠近容器右侧，向右滚动
     else if (clientX > containerRect.right - triggerDistance) {
-      scheduleContainer.scrollLeft += scrollSpeed;
+      mainTableContainer.scrollLeft += scrollSpeed;
       // console.log('向右滚动', clientX, containerRect.right - triggerDistance);
     }
   }
@@ -1123,6 +1124,12 @@
       if (hasDataXAttr) {
         draggedElement.innerText = originalInnerText;
 
+        // 如果有 dataX- 的值，那肯定要继续设置 colspan 的值为 data-schedule_days 的值
+        const scheduleDays = draggedElement.getAttribute('data-schedule_days');
+        if (scheduleDays && scheduleDays !== 'null') {
+          draggedElement.setAttribute('colspan', Math.ceil(parseFloat(scheduleDays)));
+        }
+
         // 重新设置可拖拽属性
         draggedElement.setAttribute('draggable', 'false'); // 禁用默认拖拽，使用双击拖拽
 
@@ -1180,15 +1187,18 @@
         }
       }
 
-      // 恢复被隐藏的格子
-      for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
-        if (originalRowCells[i]) {
-          originalRowCells[i].style.display = '';
-          // 恢复周末样式
-          const date = originalRowCells[i].getAttribute('data-date');
-          setWeekendBorder(originalRowCells[i], date);
+      if(!hasDataXAttr){
+        // 恢复被隐藏的格子
+        for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
+          if (originalRowCells[i]) {
+            originalRowCells[i].style.display = '';
+            // 恢复周末样式
+            const date = originalRowCells[i].getAttribute('data-date');
+            setWeekendBorder(originalRowCells[i], date);
+          }
         }
       }
+
 
       // 记录删除操作到 localScheduleChanges
       const sample_id = dragData['project-sample_id'];
@@ -2201,7 +2211,8 @@
 
         // 获取排期表格容器
         const scheduleContainer = document.querySelector('.schedule-table-container');
-        if (!scheduleContainer) return;
+        const mainTableContainer = document.querySelector('.main-table-container');
+        if (!scheduleContainer || !mainTableContainer) return;
 
         // 自动滚动逻辑 - 垂直和水平方向
         const scrollSpeed = 10; // 滚动速度
@@ -2229,15 +2240,15 @@
           window.scrollBy(0, scrollSpeed);
         }
 
-        // 水平方向自动滚动
+        // 水平方向自动滚动 - 使用主表格容器
         // 靠近容器左侧，向左滚动
         if (clientX < containerRect.left + triggerDistance) {
-          scheduleContainer.scrollLeft -= scrollSpeed;
+          mainTableContainer.scrollLeft -= scrollSpeed;
           console.log('单元格向左滚动', clientX, containerRect.left + triggerDistance);
         }
         // 靠近容器右侧，向右滚动
         else if (clientX > containerRect.right - triggerDistance) {
-          scheduleContainer.scrollLeft += scrollSpeed;
+          mainTableContainer.scrollLeft += scrollSpeed;
           console.log('单元格向右滚动', clientX, containerRect.right - triggerDistance);
         }
       });
@@ -3994,7 +4005,8 @@
 
           // 获取排期表格容器
           const scheduleContainer = document.querySelector('.schedule-table-container');
-          if (!scheduleContainer) return;
+          const mainTableContainer = document.querySelector('.main-table-container');
+          if (!scheduleContainer || !mainTableContainer) return;
 
           // 自动滚动逻辑 - 垂直和水平方向
           const scrollSpeed = 10; // 滚动速度
@@ -4022,14 +4034,14 @@
             window.scrollBy(0, scrollSpeed);
           }
 
-          // 水平方向自动滚动
+          // 水平方向自动滚动 - 使用主表格容器
           // 靠近容器左侧，向左滚动
           if (clientX < containerRect.left + triggerDistance) {
-            scheduleContainer.scrollLeft -= scrollSpeed;
+            mainTableContainer.scrollLeft -= scrollSpeed;
           }
           // 靠近容器右侧，向右滚动
           else if (clientX > containerRect.right - triggerDistance) {
-            scheduleContainer.scrollLeft += scrollSpeed;
+            mainTableContainer.scrollLeft += scrollSpeed;
           }
         });
 
@@ -4302,7 +4314,8 @@
 
       // 获取排期表格容器
       const scheduleContainer = document.querySelector('.schedule-table-container');
-      if (!scheduleContainer) return;
+      const mainTableContainer = document.querySelector('.main-table-container');
+      if (!scheduleContainer || !mainTableContainer) return;
 
       // 自动滚动逻辑 - 垂直和水平方向
       const scrollSpeed = 10; // 滚动速度
@@ -4330,14 +4343,14 @@
         window.scrollBy(0, scrollSpeed);
       }
 
-      // 水平方向自动滚动
+      // 水平方向自动滚动 - 使用主表格容器
       // 靠近容器左侧，向左滚动
       if (clientX < containerRect.left + triggerDistance) {
-        scheduleContainer.scrollLeft -= scrollSpeed;
+        mainTableContainer.scrollLeft -= scrollSpeed;
       }
       // 靠近容器右侧，向右滚动
       else if (clientX > containerRect.right - triggerDistance) {
-        scheduleContainer.scrollLeft += scrollSpeed;
+        mainTableContainer.scrollLeft += scrollSpeed;
       }
     });
 

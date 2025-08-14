@@ -1124,6 +1124,12 @@
             if (hasDataXAttr) {
                 draggedElement.innerText = originalInnerText;
                 
+                // 如果有 dataX- 的值，那肯定要继续设置 colspan 的值为 data-schedule_days 的值
+                const scheduleDays = draggedElement.getAttribute('data-schedule_days');
+                if (scheduleDays && scheduleDays !== 'null') {
+                    draggedElement.setAttribute('colspan', Math.ceil(parseFloat(scheduleDays)));
+                }
+                
                 // 重新设置可拖拽属性
                 draggedElement.setAttribute('draggable', 'false'); // 禁用默认拖拽，使用双击拖拽
                 
@@ -1181,15 +1187,18 @@
                 }
             }
 
-            // 恢复被隐藏的格子
-            for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
-                if (originalRowCells[i]) {
-                    originalRowCells[i].style.display = '';
-                    // 恢复周末样式
-                    const date = originalRowCells[i].getAttribute('data-date');
-                    setWeekendBorder(originalRowCells[i], date);
+            if(!hasDataXAttr){
+                // 恢复被隐藏的格子
+                for (let i = originalStartIndex; i < originalStartIndex + originalScheduleDays; i++) {
+                    if (originalRowCells[i]) {
+                        originalRowCells[i].style.display = '';
+                        // 恢复周末样式
+                        const date = originalRowCells[i].getAttribute('data-date');
+                        setWeekendBorder(originalRowCells[i], date);
+                    }
                 }
             }
+
 
             // 记录删除操作到 localScheduleChanges
             const sample_id = dragData['project-sample_id'];
