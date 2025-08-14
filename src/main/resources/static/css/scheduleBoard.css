@@ -161,7 +161,7 @@
     background-color: #d9edf7 !important;
     border: 1px solid #ccc;
     font-weight: bold;
-    padding: 10px 8px;
+    padding: 5px 4px;
     text-align: center;
     vertical-align: middle;
     position: sticky;
@@ -185,7 +185,7 @@
 
 .frozen-columns td.frozen-cell {
     border: 1px solid #ccc;
-    padding: 10px 8px;
+    padding: 5px 4px;
     text-align: center;
     vertical-align: middle;
     background-color: #ffffff;
@@ -298,7 +298,7 @@
     background-color: #d9edf7 !important;
     border: 1px solid #ccc;
     font-weight: bold;
-    padding: 10px 8px;
+    padding: 5px 4px;
     text-align: center;
     vertical-align: middle;
     position: relative; /* 确保定位正确 */
@@ -1086,6 +1086,89 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* 强制表格行高度完全一致 - 最高优先级 */
+.schedule-table-container table tbody tr,
+.frozen-columns table tbody tr,
+.main-table-container table tbody tr {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    line-height: 60px !important;
+}
+
+/* 强制所有表格单元格完全一致的高度和padding */
+.schedule-table-container table tbody td,
+.frozen-columns table tbody td,
+.main-table-container table tbody td {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    padding: 5px 4px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+    line-height: 1.2 !important;
+}
+
+/* 强制所有表格行保持固定高度 */
+.frozen-columns tbody tr,
+.main-table-container tbody tr {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+}
+
+/* 强制所有表格单元格保持固定高度 */
+.frozen-columns tbody td,
+.main-table-container tbody td {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    vertical-align: middle;
+}
+
+/* 确保合并的单元格也保持固定高度 */
+.main-table-container tbody td[colspan] {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    vertical-align: middle;
+}
+
+/* 强制所有表格单元格使用一致的padding和高度 */
+.frozen-columns th,
+.frozen-columns td,
+.main-table-container th,
+.main-table-container td {
+    padding: 5px 4px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+}
+
+/* 特别处理合并的单元格，确保内容不会撑开高度 */
+.main-table-container tbody td.assigned {
+    padding: 5px 4px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    line-height: 1.2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* 确保表格行高度严格一致 */
+.frozen-columns tbody tr,
+.main-table-container tbody tr {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
 }
 
 /* 允许表头换行显示 */

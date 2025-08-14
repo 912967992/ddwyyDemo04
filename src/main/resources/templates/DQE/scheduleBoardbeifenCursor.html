@@ -259,7 +259,7 @@
     <strong>排期开始：</strong> {{startDate}}<br>
     <strong>排期结束：</strong> {{endDate}}<br>
     <strong>更新时间：</strong> {{updateTime}}<br>
-    <strong>颜色：</strong> <span style="color: {{color}}">{{color}}</span><br>
+    <strong>颜色：</strong> <span style="color: {{color}};">{{color}}</span><br>
     <strong>是否使用：</strong> {{used}}<br>
     <strong>备注：</strong> {{remark}}<br>
   </p>
@@ -1882,7 +1882,7 @@
         const testerName = tester.test_engineer_name;
         const jobNumber = tester.engineer_id;
 
-        html += '<tr>';
+        html += '<tr style="height: 60px;">';
         if (testerIndex === 0) {
           html += `<td class="frozen-cell" rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
         }
@@ -1944,7 +1944,7 @@
         const testerName = tester.test_engineer_name;
         const jobNumber = tester.engineer_id;
 
-        html += '<tr>';
+        html += '<tr style="height: 60px;">';
 
         let colIndex = 0;
         while (colIndex < allDates.length) {
@@ -2025,18 +2025,21 @@
                   cellHtml += ` data${i}-${key}="${task[key] || ''}"`;
                 }
               });
-              displayText += `|${task.sizecoding} (${task.schedule_days}天)`;
+              // 限制显示文本长度，避免内容过多撑开单元格
+              const shortSizecoding = task.sizecoding.length > 15 ?
+                      task.sizecoding.substring(0, 15) + '...' : task.sizecoding;
+              displayText += `|${shortSizecoding} (${task.schedule_days}天)`;
             }
 
             // 设置 colspan 属性
             const colspan = Math.ceil(parseFloat(firstTask.schedule_days));
-            cellHtml += ` colspan="${colspan}">${displayText}</td>`;
+            cellHtml += ` colspan="${colspan}" style="height: 60px !important; min-height: 60px !important; max-height: 60px !important; padding: 5px 4px !important; overflow: hidden !important; line-height: 1.2 !important;">${displayText}</td>`;
             html += cellHtml;
 
             // 隐藏被合并的单元格
             for (let i = 1; i < colspan; i++) {
               if (colIndex + i < allDates.length) {
-                let styleAttr = 'style="display: none;"';
+                let styleAttr = 'style="display: none; height: 60px !important; min-height: 60px !important; max-height: 60px !important; padding: 5px 4px !important;"';
                 if (weekendClass) {
                   styleAttr += ` class="${weekendClass}"`;
                 }
@@ -2050,7 +2053,7 @@
               const colspan = Math.ceil(task.schedule_days);
               html += createTaskCell(task, testerName, currentDate, colspan, weekendClass);
               for (let i = 1; i < colspan; i++) {
-                let styleAttr = 'style="display: none;"';
+                let styleAttr = 'style="display: none; height: 60px !important; min-height: 60px !important; max-height: 60px !important; padding: 5px 4px !important;"';
                 if (weekendClass) {
                   styleAttr += ` class="${weekendClass}"`;
                 }
@@ -2061,7 +2064,7 @@
               const isCovered = dateMap[testerName]?.some(t => t.startDate < currentDate && t.endDate >= currentDate);
               if (!isCovered) {
                 // 修改：添加 weekendClass 类名
-                let cellHtml = `<td class="drop-cell ${weekendClass}" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}">`;
+                let cellHtml = `<td class="drop-cell ${weekendClass}" style="height: 60px !important; min-height: 60px !important; max-height: 60px !important; padding: 5px 4px !important; overflow: hidden !important;" data-tester="${testerName}" data-job_number="${jobNumber}" data-date="${currentDate}">`;
                 html += cellHtml + `</td>`;
               }
               colIndex += 1;
@@ -3016,6 +3019,7 @@
           data-date="${currentDate}"
           data-job_number="${task.job_number}"
           colspan="${colspan}"
+          style="height: 60px !important; min-height: 60px !important; max-height: 60px !important; padding: 5px 4px !important; overflow: hidden !important; line-height: 1.2 !important;"
           data-sample_id="${task.sample_id || ''}"
           data-sample_name="${task.sample_name || ''}"
           data-sample_model="${task.sample_model || ''}"
