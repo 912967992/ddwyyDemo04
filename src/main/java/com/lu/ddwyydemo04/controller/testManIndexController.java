@@ -1651,6 +1651,7 @@ public class testManIndexController {
         if (electricInfoList != null && !electricInfoList.isEmpty()) {
             PassbackData data = electricInfoList.get(0);
             data.setMaterialCode(materialItemsStr); // 设置物料编码
+//            System.out.println("data:"+data);
             return ResponseEntity.ok(data);
         } else {
             return ResponseEntity.notFound().build(); // 返回404

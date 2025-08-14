@@ -3952,8 +3952,8 @@
                 <p><strong>当前进度：</strong> ${data.schedule || ''}</p>
                 <p><strong>创建时间：</strong> ${data.create_time || ''}</p>
                 <p><strong>排期天数：</strong> ${data.scheduleDays || ''}</p>
-                <p><strong>排期开始时间：</strong> ${data.schedule_start_date || ''}</p>
-                <p><strong>排期结束时间：</strong> ${data.schedule_end_date || ''}</p>
+                <p><strong>排期开始时间：</strong> ${data.schedule_start_date ? data.schedule_start_date.substring(0, 10) + ' 10:00:00' : ''}</p>
+                <p><strong>排期结束时间：</strong> ${data.schedule_end_date ? data.schedule_end_date.substring(0, 10) + ' 18:30:00' : ''}</p>
                 <p><strong>是否作废：</strong> ${data.isCancel === 1 ? '已作废' : '正常'}</p>
                 <p><strong>作废原因：</strong> ${data.cancel_reason || ''}</p>
                 <p><strong>作废人：</strong> ${data.cancel_by || ''}</p>
