@@ -826,11 +826,11 @@ public class testManIndexController {
                     "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
                     "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品",
                     "分析责任人", "改善后风险", "下一版回归测试", "备注", "DQE&研发确认",
-                    "SKU","责任单位","DQE确认回复","研发确认回复","方案商","供应商","评审结论"
+                    "SKU","责任单位","DQE确认回复（每个版本的回复请勿删除）","研发确认回复（每个版本的回复请勿删除）","方案商","供应商","评审结论"
             );
 
             // 定义不需要判断的字段名
-            Set<String> skipColumns = new HashSet<>(Arrays.asList("DQE&研发确认", "DQE确认回复", "研发确认回复","方案商","供应商"));
+            Set<String> skipColumns = new HashSet<>(Arrays.asList("DQE&研发确认","方案商","供应商"));
 
             // 检查缺少的列名
             Set<String> missingColumns = new HashSet<>();
@@ -895,8 +895,8 @@ public class testManIndexController {
 
                 String sku = rowMap.get("SKU");
                 String responsibleDepartment = rowMap.get("责任单位");
-                String green_union_dqe = rowMap.get("绿联DQE");
-                String green_union_rd = rowMap.get("绿联电子");
+                String green_union_dqe = rowMap.get("DQE确认回复（每个版本的回复请勿删除）");
+                String green_union_rd = rowMap.get("研发确认回复（每个版本的回复请勿删除）");
                 String solution_provider = rowMap.get("方案商");
                 String supplier = rowMap.get("供应商");
                 String review_conclusion = rowMap.get("评审结论");
@@ -1990,7 +1990,7 @@ public class testManIndexController {
         fieldMapping.put("当前状态", "current_status");
         fieldMapping.put("对比上一版或竞品", "comparison_with_previous");
         fieldMapping.put("测试人员", "tester");
-        fieldMapping.put("DQE确认回复(每个版本的回复请勿删除）", "green_union_dqe");
+        fieldMapping.put("DQE确认回复（每个版本的回复请勿删除）", "green_union_dqe");
         fieldMapping.put("研发确认回复（每个版本的回复请勿删除）", "green_union_rd");
         fieldMapping.put("DQE责任人", "dqe");
         fieldMapping.put("分析责任人", "responsible_person");
@@ -2011,9 +2011,18 @@ public class testManIndexController {
         Map<String, Object> result = new HashMap<>();
 
         try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
-            Sheet sheet = workbook.getSheet("测试问题点汇总");
+            // 查找包含"测试问题点汇总"的工作表（支持前后空格）
+            Sheet sheet = null;
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                String sheetName = workbook.getSheetName(i);
+                if (sheetName != null && sheetName.trim().equals("测试问题点汇总")) {
+                    sheet = workbook.getSheetAt(i);
+                    break;
+                }
+            }
+            
             if (sheet == null) {
-                result.put("message", "未找到名称为 '测试问题点汇总' 的工作表");
+                result.put("message", "未找到名称为 '测试问题点汇总' 的工作表（支持前后空格）");
                 return result;
             }
 
@@ -2028,6 +2037,35 @@ public class testManIndexController {
                 for (Cell cell : headerRow) {
                     headers.add(cell.toString().replaceAll("\\s+", "").replaceAll("\n", ""));
                 }
+            }
+            System.out.println("headers:"+headers);
+            
+            // 验证headers是否包含fieldMapping中的所有必需字段（排除"日期"和"报告日期"）
+            Set<String> missingFields = new HashSet<>();
+            Set<String> excludedFields = new HashSet<>(Arrays.asList("日期", "报告日期"));
+            
+            for (String requiredField : fieldMapping.keySet()) {
+                // 跳过被排除的字段
+                if (excludedFields.contains(requiredField)) {
+                    continue;
+                }
+                
+                boolean found = false;
+                for (String header : headers) {
+                    if (header.equals(requiredField)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    missingFields.add(requiredField);
+                }
+            }
+            
+            // 如果有缺少的字段，返回错误信息
+            if (!missingFields.isEmpty()) {
+                result.put("message", "Excel文件缺少以下必需列：" + String.join("、", missingFields) + "，请检查文件格式是否正确。");
+                return result;
             }
 
             int history_id = testManIndexService.queryHistoryid(sampleId);
@@ -2123,6 +2161,11 @@ public class testManIndexController {
             } else {
                 result.put("message", "上传并解析成功，共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
             }
+
+            // 回传成功后，这里默认帮electric_info的项目都打上勾，这样子DQE后续就可以直接签样
+//            int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleId);
+
+
         } catch (Exception e) {
             e.printStackTrace();
             result.put("message", "处理文件失败: " + e.getMessage());

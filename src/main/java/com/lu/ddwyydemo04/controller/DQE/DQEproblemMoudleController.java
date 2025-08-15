@@ -1004,8 +1004,8 @@ public class DQEproblemMoudleController {
                 "供应商", "版本", "芯片方案", "日期", "测试人员",
                 "测试平台", "显示设备", "其他设备", "问题点", "问题类别",
                 "责任单位", "问题视频或图片", "复现概率", "复现手法", "恢复方法",
-                "缺陷等级", "当前状态", "对比上一版或竞品", "DQE确认（每个版本的回复请勿删除）",
-                "研发确认（每个版本的回复请勿删除）" , "DQE责任人", "分析责任人", "改善后风险", "评审结论",
+                "缺陷等级", "当前状态", "对比上一版或竞品", "DQE确认回复（每个版本的回复请勿删除）",
+                "研发确认回复（每个版本的回复请勿删除）" , "DQE责任人", "分析责任人", "改善后风险", "评审结论",
                 "下一版回归测试", "备注"
         };
 
@@ -1131,6 +1131,7 @@ public class DQEproblemMoudleController {
 
         // 保存到临时文件
         String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + fileName;
+        System.out.println("fileName:"+fileName);
         try (FileOutputStream fileOut = new FileOutputStream(tempFilePath)) {
             workbook.write(fileOut);
         } finally {
@@ -1251,14 +1252,22 @@ public class DQEproblemMoudleController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
+            if ("卢健".equals(username)) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("hasPermission", true);
+                response.put("message", "您是系统默认管理员，拥有访问权限");
+                return ResponseEntity.ok(response);
+            }
+
             Samples sample = samples.get(0);
             String projectDQE = sample.getSample_DQE();
             String projectRD = sample.getSample_Developer();
             String projectLeader = sample.getSample_leader();
 
             // 检查用户是否是项目的直接负责人
-            boolean isDirectResponsible = username.equals(projectDQE) || 
-                                        username.equals(projectRD) || 
+            boolean isDirectResponsible = username.equals(projectDQE) ||
+                                        username.equals(projectRD) ||
                                         username.equals(projectLeader);
 
             if (isDirectResponsible) {
@@ -1268,6 +1277,7 @@ public class DQEproblemMoudleController {
                 response.put("message", "您是该项目的直接负责人，可以访问");
                 return ResponseEntity.ok(response);
             }
+
 
             // 检查用户是否是代理人
             String agentsStr = dqeIndexService.getAgents(username);
@@ -1280,8 +1290,8 @@ public class DQEproblemMoudleController {
                     String trimmedAgent = agent.trim();
                     if (!trimmedAgent.isEmpty()) {
                         // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                        if (trimmedAgent.equals(projectDQE) || 
-                            trimmedAgent.equals(projectRD) || 
+                        if (trimmedAgent.equals(projectDQE) ||
+                            trimmedAgent.equals(projectRD) ||
                             trimmedAgent.equals(projectLeader)) {
                             isAgent = true;
                             agentFor = trimmedAgent;
