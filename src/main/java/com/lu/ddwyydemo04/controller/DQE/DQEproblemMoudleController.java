@@ -1239,6 +1239,28 @@ public class DQEproblemMoudleController {
         }
     }
 
+    @GetMapping("/problemMoudle/checkPassbackConfirm")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPassbackConfirm(@RequestParam String sampleId) {
+        try {
+            // 获取项目的回传确认状态
+            String passbackConfirm = dqeproblemMoudleService.queryPassbakConfirm(sampleId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("passbackConfirm", passbackConfirm);
+            
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "检查回传状态时发生错误: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
     @GetMapping("/problemMoudle/checkAccessPermission")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkAccessPermission(@RequestParam String sampleId, @RequestParam String username) {
@@ -1328,6 +1350,8 @@ public class DQEproblemMoudleController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    
 
 
 }

@@ -791,4 +791,10 @@ public class TestManIndexService {
     public List<Map<String, Object>> getClosedDetails(String username) {
         return testManDao.getClosedDetails(username);
     }
+
+    public int updateSamplePassbackConfirm(int sample_id,String passbackConfirm){
+        return testManDao.updateSamplePassbackConfirm(sample_id,passbackConfirm);
+    }
+
+
 }

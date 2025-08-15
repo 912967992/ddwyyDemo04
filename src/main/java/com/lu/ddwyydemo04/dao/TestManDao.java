@@ -229,4 +229,6 @@ public interface TestManDao {
     // 获取闭环完成的项目详情
     List<Map<String, Object>> getClosedDetails(@Param("username") String username);
 
+    int updateSamplePassbackConfirm(@Param("sample_id")int sample_id,@Param("passbackConfirm")String passbackConfirm);
+
 }

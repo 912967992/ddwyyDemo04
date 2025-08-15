@@ -685,4 +685,9 @@
         ORDER BY tn.create_time DESC
     </select>
 
+    <select id="queryPassbakConfirm" resultType="String">
+        SELECT passbackConfirm FROM samples
+        WHERE sample_id =#{sample_id}
+    </select>
+
 </mapper>

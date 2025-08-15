@@ -153,4 +153,8 @@ public class DQEproblemMoudleService {
         return dqeDao.queryResultJudge(sample_id);
     }
 
+    public String queryPassbakConfirm(String sample_id){
+        return dqeDao.queryPassbakConfirm(sample_id);
+    }
+
 }

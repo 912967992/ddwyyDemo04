@@ -61,6 +61,8 @@ public class Samples {
 
     private String electric_sample_id;
 
+    private String passbackConfirm; // 回传确认状态
+
     public String getSample_id() {
         return sample_id;
     }
@@ -402,6 +404,14 @@ public class Samples {
         this.electric_sample_id = electric_sample_id;
     }
 
+    public String getPassbackConfirm() {
+        return passbackConfirm;
+    }
+
+    public void setPassbackConfirm(String passbackConfirm) {
+        this.passbackConfirm = passbackConfirm;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -446,6 +456,7 @@ public class Samples {
                 ", scheduleEndTime='" + scheduleEndTime + '\'' +
                 ", scheduleTestCycle='" + scheduleTestCycle + '\'' +
                 ", electric_sample_id='" + electric_sample_id + '\'' +
+                ", passbackConfirm='" + passbackConfirm + '\'' +
                 '}';
     }
 }

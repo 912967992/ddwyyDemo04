@@ -969,6 +969,13 @@
                         <div class="edith2-container">
                             <h2>请输入产品信息</h2>
                             <div class="button-group">
+                                <!-- 问题点确认状态复选框 -->
+                                <div class="confirm-checkbox-container">
+                                    <label for="passbackConfirmCheckbox" class="confirm-checkbox-label">
+                                        <input type="checkbox" id="passbackConfirmCheckbox" name="passbackConfirm">
+                                        已回传问题点
+                                    </label>
+                                </div>
                                 <button type="button" id="passbackProblemBtn">回传<br>问题点页面</button>
                                 <button type="button" id="copyLinkBtn">复制<br>链接</button>
                                 <button type="button" id="viewTestItemsBtn">查看<br>测试项</button>
@@ -1137,6 +1144,64 @@
         document.getElementById('tester').value = product.tester;
         document.getElementById('edit_electric_id').value = product.electric_sample_id;
 
+        // 设置问题点确认状态复选框的初始值
+        console.log('product对象:', product); // 调试信息
+        console.log('passbackConfirm值:', product.passbackConfirm); // 调试信息
+        
+        // 延迟设置复选框值，确保DOM完全渲染
+        setTimeout(() => {
+            const checkbox = document.getElementById('passbackConfirmCheckbox');
+            if (checkbox) {
+                console.log('找到复选框元素，ID:', checkbox.id); // 调试信息
+                
+                // 优先使用 localStorage 中保存的状态，如果没有则使用 product.passbackConfirm
+                const storageKey = `passbackConfirm_${product.sample_id}`;
+                const savedStatus = localStorage.getItem(storageKey);
+                let isChecked = false;
+                
+                if (savedStatus) {
+                    // 如果有保存的状态，使用保存的状态
+                    isChecked = savedStatus === '已回传';
+                    console.log('使用 localStorage 中保存的状态:', savedStatus, '复选框设置为:', isChecked);
+                } else if (product.passbackConfirm !== undefined && product.passbackConfirm !== null) {
+                    // 如果没有保存的状态，使用 product.passbackConfirm
+                    isChecked = product.passbackConfirm === '已回传';
+                    console.log('使用 product.passbackConfirm 的值:', product.passbackConfirm, '复选框设置为:', isChecked);
+                } else {
+                    // 默认值
+                    isChecked = false;
+                    console.log('使用默认值，复选框设置为:', isChecked);
+                }
+                
+                // 使用多种方式设置复选框
+                checkbox.checked = isChecked;
+                checkbox.setAttribute('checked', isChecked);
+                
+                // 强制触发change事件
+                if (isChecked) {
+                    checkbox.setAttribute('checked', 'checked');
+                } else {
+                    checkbox.removeAttribute('checked');
+                }
+                
+                console.log('复选框最终设置为:', isChecked); // 调试信息
+                console.log('复选框checked属性:', checkbox.checked); // 调试信息
+                console.log('复选框checked属性（getAttribute）:', checkbox.getAttribute('checked')); // 调试信息
+            } else {
+                console.error('未找到复选框元素，请检查ID是否正确'); // 调试信息
+            }
+        }, 200); // 增加延迟时间
+
+                // 为复选框添加change事件监听器，当状态改变时自动保存到数据库
+        document.getElementById('passbackConfirmCheckbox').addEventListener('change', function() {
+            const isChecked = this.checked;
+            const sample_id = $('#edit_sample_id').val();
+
+            // 立即保存到数据库
+            updatePassbackConfirmInDatabase(sample_id, isChecked, product);
+         
+        });
+
         document.getElementById('edit_sample_name').addEventListener('input', function(e) {
             // this.value = this.value.replace(/[\\\/]/g, '_');
             // this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
@@ -1179,6 +1244,20 @@
 
         // 点击关闭按钮时关闭模态框
         document.querySelector('#editModal .close').onclick = function() {
+            // 在关闭模态框前，将更新后的状态同步到页面的数据中
+            const checkbox = document.getElementById('passbackConfirmCheckbox');
+            if (checkbox) {
+                const sample_id = $('#edit_sample_id').val();
+                const storageKey = `passbackConfirm_${sample_id}`;
+                const currentStatus = localStorage.getItem(storageKey);
+                
+                if (currentStatus) {
+                    // 更新 product 对象中的 passbackConfirm 值
+                    product.passbackConfirm = currentStatus;
+                    console.log('模态框关闭时，已同步 product.passbackConfirm 为:', currentStatus);
+                }
+            }
+            
             document.getElementById('editModal').remove();
             //保存之后会更新数据库，此时需要重新从后端获取到新的数据才准，所以需要再走一遍获取数据的方法
             // window.location.href = '/testManIndex';
@@ -1393,6 +1472,9 @@
 
             var sample_id = $('#edit_sample_id').val();
 
+            // 获取问题点确认状态复选框的值
+            const passbackConfirm = document.getElementById('passbackConfirmCheckbox').checked;
+
             // 检查 checkJudge 状态
             const checkJudge = await checkSampleResult(sample_id);
             
@@ -1429,6 +1511,7 @@
                 formData.append('excelFile', file);
                 formData.append('sample_id', sample_id);
                 formData.append('job', job);
+                formData.append('passbackConfirm', passbackConfirm);
 
                 try {
                     // 显示上传提示
@@ -1481,7 +1564,9 @@
             // 更新sample_name的值
             $('#edit_sample_name').val(edit_sample_name);
 
-            var formData = $(this).serialize();
+            // 获取复选框的值并添加到表单数据中
+            var passbackConfirm = document.getElementById('passbackConfirmCheckbox').checked;
+            var formData = $(this).serialize() + '&passbackConfirm=' + passbackConfirm;
 
             $.ajax({
                 url: '/testManIndex/updateSamples',
@@ -4203,6 +4288,93 @@
         } catch (error) {
             console.error("fetchSampleInfo 出错：", error);
             return null;  // 出错时返回 null
+        }
+    }
+
+    // 更新问题点确认状态到数据库
+    async function updatePassbackConfirmInDatabase(sampleId, passbackConfirm, product) {
+        try {
+            const response = await fetch('/testManIndex/updatePassbackConfirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sample_id: sampleId,
+                    passbackConfirm: passbackConfirm
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`更新失败，状态码: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log('问题点确认状态更新成功');
+                
+                // 更新复选框的显示状态
+                const checkbox = document.getElementById('passbackConfirmCheckbox');
+                if (checkbox) {
+                    // 根据数据库更新结果，确保复选框状态与数据库一致
+                    if (passbackConfirm) {
+                        // 如果用户勾选了复选框，确保显示为勾选状态
+                        checkbox.checked = true;
+                        checkbox.setAttribute('checked', 'checked');
+                        product.passbackConfirm = "已回传";
+                    } else {
+                        // 如果用户取消了勾选，确保显示为未勾选状态
+                        checkbox.checked = false;
+                        checkbox.removeAttribute('checked');
+                        product.passbackConfirm = "未回传";
+                    }
+                    
+                    console.log('复选框状态已同步更新，当前状态:', checkbox.checked);
+                    console.log('product.passbackConfirm 已更新为:', product.passbackConfirm);
+                }
+                
+                // 将更新后的状态保存到 localStorage，这样下次打开模态框时就能保持状态
+                const storageKey = `passbackConfirm_${sampleId}`;
+                localStorage.setItem(storageKey, product.passbackConfirm);
+                console.log('状态已保存到 localStorage:', storageKey, product.passbackConfirm);
+                
+                // 可选：显示成功提示
+                // alert('问题点确认状态已更新');
+            } else {
+                console.error('更新失败:', result.message);
+                
+                // 如果更新失败，恢复复选框的原始状态
+                const checkbox = document.getElementById('passbackConfirmCheckbox');
+                if (checkbox) {
+                    checkbox.checked = !passbackConfirm; // 恢复到之前的状态
+                    if (checkbox.checked) {
+                        checkbox.setAttribute('checked', 'checked');
+                    } else {
+                        checkbox.removeAttribute('checked');
+                    }
+                    console.log('更新失败，复选框状态已恢复到:', checkbox.checked);
+                }
+                
+                // 可选：显示错误提示
+                // alert('更新失败: ' + result.message);
+            }
+        } catch (error) {
+            console.error('更新问题点确认状态时出错:', error);
+            
+            // 如果发生异常，恢复复选框的原始状态
+            const checkbox = document.getElementById('passbackConfirmCheckbox');
+            if (checkbox) {
+                checkbox.checked = !passbackConfirm; // 恢复到之前的状态
+                if (checkbox.checked) {
+                    checkbox.setAttribute('checked', 'checked');
+                } else {
+                    checkbox.removeAttribute('checked');
+                }
+                console.log('发生异常，复选框状态已恢复到:', checkbox.checked);
+            }
+            
+            // 可选：显示错误提示
+            // alert('更新失败: ' + error.message);
         }
     }
 

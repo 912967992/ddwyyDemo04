@@ -2242,6 +2242,24 @@
 
                     // 流程确认按钮点击事件
                     processConfirmButton.addEventListener('click', async function () {
+                        // 首先检查项目的 passbackConfirm 字段是否为"已回传"
+                        try {
+                            const passbackResponse = await fetch(`/problemMoudle/checkPassbackConfirm?sampleId=${sampleId}`);
+                            if (!passbackResponse.ok) {
+                                throw new Error('检查回传状态失败');
+                            }
+                            const passbackData = await passbackResponse.json();
+                            
+                            if (passbackData.passbackConfirm !== "已回传") {
+                                alert('该项目尚未回传，不允许签样。请等测试人员回传问题点后才可以进行签样操作。');
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('检查回传状态出错:', error);
+                            alert('检查回传状态失败，请稍后重试');
+                            return;
+                        }
+
                         const checkboxes = job==='DQE'
                             ? document.querySelectorAll('.value-row input[type="checkbox"][data-dqe="true"]')
                             : document.querySelectorAll('.value-row input[type="checkbox"][data-rd="true"]');

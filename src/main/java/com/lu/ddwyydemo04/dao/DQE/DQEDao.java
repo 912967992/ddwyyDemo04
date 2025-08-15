@@ -164,5 +164,7 @@ public interface DQEDao {
     // 获取超期项目详情
     List<Map<String, Object>> getOverdueDetails(@Param("username") String username);
 
+    String queryPassbakConfirm(@Param("sample_id")String sample_id);
+
 
 }

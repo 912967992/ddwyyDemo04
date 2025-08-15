@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.*;
+
 @Controller
 public class testManIndexController {
     @Autowired
@@ -354,7 +356,8 @@ public class testManIndexController {
             @RequestParam("edit_sample_Developer") String editSampleDeveloper,
             @RequestParam("edit_sample_leader") String editSampleleader,
             @RequestParam("tester") String tester,
-            @RequestParam("edit_electric_id") String edit_electric_id
+            @RequestParam("edit_electric_id") String edit_electric_id,
+            @RequestParam(value = "passbackConfirm", required = false) String passbackConfirm
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -487,6 +490,14 @@ public class testManIndexController {
             sample.setHigh_frequency(high_frequency);
 
             sample.setQuestStats(questStats);
+            
+            // 处理问题点确认状态
+            if (passbackConfirm != null && !passbackConfirm.trim().isEmpty()) {
+                // 将字符串转换为布尔值
+                boolean isConfirmed = "true".equalsIgnoreCase(passbackConfirm.trim());
+                sample.setPassbackConfirm(isConfirmed ? "已回传" : "未回传");
+                logger.info("设置问题点确认状态: 样品ID={}, 状态={}", sample_id, sample.getPassbackConfirm());
+            }
 
 //            LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
 
@@ -578,6 +589,57 @@ public class testManIndexController {
         return response;
     }
 
+
+    @PostMapping("/testManIndex/updatePassbackConfirm")
+    @ResponseBody
+    public Map<String, Object> updatePassbackConfirm(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String sampleId = (String) request.get("sample_id");
+            Boolean passbackConfirm = (Boolean) request.get("passbackConfirm");
+            if (sampleId == null || passbackConfirm == null) {
+                response.put("status", "error");
+                response.put("message", "参数不完整");
+                return response;
+            }
+
+            String passbackConfirmStr = "未回传";
+            if(passbackConfirm){
+                passbackConfirmStr = "已回传";
+            }
+            
+            // 验证sampleId是否为有效数字
+            int sampleIdInt;
+            try {
+                sampleIdInt = Integer.parseInt(sampleId);
+            } catch (NumberFormatException e) {
+                response.put("status", "error");
+                response.put("message", "样品ID格式无效: " + sampleId);
+                logger.error("样品ID格式无效: {}", sampleId, e);
+                return response;
+            }
+            
+            // 调用服务层方法更新数据库
+            int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleIdInt,passbackConfirmStr);
+            
+            if (updateSamplePassbackConfirm > 0) {
+                response.put("status", "success");
+                response.put("message", "问题点确认状态更新成功");
+//                logger.info("问题点确认状态更新成功，样品ID: {}, 状态: {}", sampleIdInt, passbackConfirm);
+            } else {
+                response.put("status", "error");
+                response.put("message", "问题点确认状态更新失败");
+                logger.warn("问题点确认状态更新失败，样品ID: {}", sampleIdInt);
+            }
+            
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "更新失败: " + e.getMessage());
+            logger.error("更新问题点确认状态时出错: {}", e.getMessage(), e);
+        }
+        
+        return response;
+    }
 
     @PostMapping("/testManIndex/finishTest")
     @ResponseBody
@@ -2038,7 +2100,7 @@ public class testManIndexController {
                     headers.add(cell.toString().replaceAll("\\s+", "").replaceAll("\n", ""));
                 }
             }
-            System.out.println("headers:"+headers);
+//            System.out.println("headers:"+headers);
             
             // 验证headers是否包含fieldMapping中的所有必需字段（排除"日期"和"报告日期"）
             Set<String> missingFields = new HashSet<>();
@@ -2161,9 +2223,10 @@ public class testManIndexController {
             } else {
                 result.put("message", "上传并解析成功，共处理 " + (successCount + failCount) + " 条，成功插入 " + successCount + " 条，失败 " + failCount + " 条");
             }
+            String passbackConfirm = "已回传";
 
             // 回传成功后，这里默认帮electric_info的项目都打上勾，这样子DQE后续就可以直接签样
-//            int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleId);
+            int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleId,passbackConfirm);
 
 
         } catch (Exception e) {
@@ -2326,5 +2389,7 @@ public class testManIndexController {
             return ResponseEntity.status(500).body("测试失败: " + e.getMessage());
         }
     }
+
+
 
 }
