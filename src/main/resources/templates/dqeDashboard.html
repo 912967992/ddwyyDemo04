@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQE数据看板</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Microsoft YaHei', Arial, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px; 
+            background: #f5f5f5; 
+        }
+        .BackBtn { 
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            z-index: 1000; 
+        }
+        .BackBtn:hover { background: #0056b3; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; color: #333; }
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 40px; 
+        }
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 25px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2); 
+        }
+        .card-value { 
+            font-size: 3rem; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            text-align: center;
+        }
+        .card-title { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            text-align: center; 
+            color: #333; 
+        }
+        .card-description { 
+            text-align: center; 
+            color: #666; 
+            margin-top: 10px; 
+        }
+        .chart-container { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 25px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+            margin-bottom: 25px; 
+        }
+        .chart-title { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #333; 
+            text-align: center; 
+        }
+        
+        /* 状态颜色 */
+        .status-not-started { color: #ffc107; }
+        .status-in-progress { color: #17a2b8; }
+        .status-completed { color: #a72828; }
+        .status-overdue { color: #28a745; }
+        .status-total { color: #6c757d; }
+        
+        /* 项目详情表格样式 */
+        .project-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .project-table th, .project-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .project-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        .project-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .project-table tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        
+        /* 搜索和筛选样式 */
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .filter-btn:hover {
+            background: #0056b3;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .card {
+                padding: 20px;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        /* 放大缩小按钮样式 */
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .zoom-btn:hover {
+            background: #f0f0f0;
+            border-color: #999;
+            color: #333;
+        }
+        .zoom-btn:active {
+            background: #e0e0e0;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <button class="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>DQE数据看板</h1>
+            <p>研发质量管理系统 - 电气测试项目数据展示</p>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card" onclick="showProjectDetails('total')">
+                <div class="card-value status-total" id="totalCount">0</div>
+                <div class="card-title">项目总数</div>
+                <div class="card-description">所有电气测试项目</div>
+            </div>
+            <div class="card" onclick="showProjectDetails('not-started')">
+                <div class="card-value status-not-started" id="notStartedCount">0</div>
+                <div class="card-title">未开始项目</div>
+                <div class="card-description">等待开始测试的项目</div>
+            </div>
+            <div class="card" onclick="showProjectDetails('in-progress')">
+                <div class="card-value status-in-progress" id="inProgressCount">0</div>
+                <div class="card-title">进行中项目</div>
+                <div class="card-description">正在测试中的项目</div>
+            </div>
+            <div class="card" onclick="showProjectDetails('completed')">
+                <div class="card-value status-completed" id="completedCount">0</div>
+                <div class="card-title">已完成未确认项目</div>
+                <div class="card-description">测试完成但未签样</div>
+            </div>
+            <div class="card" onclick="showProjectDetails('overdue')">
+                <div class="card-value status-overdue" id="closedCount">0</div>
+                <div class="card-title">已确认项目</div>
+                <div class="card-description">报告完成已确认结果的项目</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title">项目进度概览</div>
+            <div class="filter-section">
+                <input type="text" class="filter-input" id="searchInput" placeholder="搜索样品编号或产品名称...">
+                <select class="filter-input" id="categoryFilter">
+                    <option value="">所有类别</option>
+                </select>
+                <select class="filter-input" id="statusFilter">
+                    <option value="">所有状态</option>
+                    <option value="未开始">未开始</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成未确认">已完成未确认</option>
+                    <option value="已确认">已确认</option>
+                </select>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 14px; color: #333;">创建时间:</label>
+                    <input type="date" class="filter-input" id="startDate" placeholder="开始日期">
+                    <span style="color: #666;">至</span>
+                    <input type="date" class="filter-input" id="endDate" placeholder="结束日期">
+                </div>
+                <button class="filter-btn" onclick="applyFilters()">筛选</button>
+                <button class="filter-btn" onclick="resetFilters()">重置</button>
+            </div>
+            <div id="projectTableContainer">
+                <!-- 项目表格将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目详情模态框 -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProjectModal()">&times;</span>
+            <h2 id="modalTitle">项目详情</h2>
+            <div id="modalContent">
+                <!-- 模态框内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let projectData = [];
+        let filteredData = [];
+        
+        // 页面加载完成后获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjectData();
+        });
+        
+        // 加载项目数据
+        function loadProjectData() {
+            // 模拟从后端API获取数据
+            // 实际使用时应该调用真实的API
+            fetch('/DQEIndex/getElectricProjectData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        projectData = data.data;
+                        filteredData = [...projectData];
+                        updateDashboard();
+                        updateProjectTable();
+                        updateCategoryFilter();
+                    } else {
+                        console.error('获取数据失败:', data.error);
+                        // 使用模拟数据
+                        loadMockData();
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用失败:', error);
+                    // 使用模拟数据
+                    loadMockData();
+                });
+        }
+        
+        // 加载模拟数据（当API不可用时）
+        function loadMockData() {
+            filteredData = [...projectData];
+            updateDashboard();
+            updateProjectTable();
+            updateCategoryFilter();
+        }
+        
+        // 更新看板数据
+        function updateDashboard() {
+            // 根据electric_info表的数据结构来判断项目状态
+            const notStarted = projectData.filter(p => 
+                !p.actual_start_time && p.schedule !== '已完成'
+            ).length;
+            
+            const inProgress = projectData.filter(p => 
+                p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+            ).length;
+            
+            const completed = projectData.filter(p => 
+                p.actual_finish_time && !p.sampleRecognizeResult
+            ).length;
+            
+            const confirmed = projectData.filter(p => 
+                p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+            ).length;
+            
+            document.getElementById('totalCount').textContent = projectData.length;
+            document.getElementById('notStartedCount').textContent = notStarted;
+            document.getElementById('inProgressCount').textContent = inProgress;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('closedCount').textContent = confirmed;
+        }
+        
+        // 更新项目表格
+        function updateProjectTable() {
+            const container = document.getElementById('projectTableContainer');
+            
+            if (filteredData.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">暂无数据</p>';
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="project-table">
+                    <thead>
+                        <tr>
+                            <th>样品编号</th>
+                            <th>产品名称</th>
+                            <th>产品类别</th>
+                            <th>大编码</th>
+                            <th>版本</th>
+                            <th>项目负责人</th>
+                            <th>当前进度</th>
+                            <th>测试负责人</th>
+                            <th>送样人</th>
+                            <th>送样类别</th>
+                            <th>创建时间</th>
+                            <th>排期天数</th>
+                            <th>排期开始</th>
+                            <th>排期结束</th>
+                            <th>实际开始时间</th>
+                            <th>实际完成时间</th>
+                            <th>承认结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filteredData.forEach(project => {
+                const isOverdue = project.schedule_end_date && project.schedule !== '已完成' && 
+                                 new Date(project.schedule_end_date) < new Date();
+                
+                // 根据实际时间判断项目状态
+                let statusText = '未开始';
+                let statusColor = '#ffc107';
+                
+                if (project.actual_start_time && !project.actual_finish_time) {
+                    statusText = '进行中';
+                    statusColor = '#17a2b8';
+                } else if (project.actual_finish_time && !project.sampleRecognizeResult) {
+                    statusText = '已完成未确认';
+                    statusColor = '#a72828';
+                }else if (project.actual_finish_time && project.sampleRecognizeResult){
+                    statusText = '报告确认闭环'
+                    statusColor = '#28a745';
+                }
+                
+                tableHTML += `
+                    <tr style="${isOverdue ? 'background-color: #ffe6e6;' : ''}">
+                        <td><strong>${project.sample_id || '-'}</strong></td>
+                        <td>${project.sample_name || '-'}</td>
+                        <td>${project.sample_category || '-'}</td>
+                        <td>${project.sample_model || '-'}</td>
+                        <td>${project.version || '-'}</td>
+                        <td>${project.sample_leader || '-'}</td>
+                        <td>
+                            <span style="color: ${statusColor}; font-weight: bold;">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td>${project.tester || '-'}</td>
+                        <td>${project.sample_sender || '-'}</td>
+                        <td>${project.sample_type || '-'}</td>
+                        <td>${formatDateTime(project.create_time) || '-'}</td>
+                        <td>${project.scheduleDays || '-'}</td>
+                        <td>${formatDate(project.schedule_start_date) || '-'}</td>
+                        <td style="${isOverdue ? 'color: red; font-weight: bold;' : ''}">
+                            ${formatDate(project.schedule_end_date) || '-'}
+                        </td>
+                        <td>${formatDateTime(project.actual_start_time) || '-'}</td>
+                        <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
+                        <td>${project.sampleRecognizeResult || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+        
+        // 更新类别筛选器
+        function updateCategoryFilter() {
+            const categories = [...new Set(projectData.map(p => p.sample_category).filter(Boolean))];
+            const filter = document.getElementById('categoryFilter');
+            
+            filter.innerHTML = '<option value="">所有类别</option>';
+            categories.forEach(category => {
+                filter.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+        }
+        
+        // 应用筛选
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            filteredData = projectData.filter(project => {
+                const matchesSearch = !searchTerm || 
+                    (project.sample_id && project.sample_id.toLowerCase().includes(searchTerm)) ||
+                    (project.sample_name && project.sample_name.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = !category || project.sample_category === category;
+                
+                // 根据实际时间判断项目状态进行筛选
+                let projectStatus = '未开始';
+                if (project.actual_start_time && !project.actual_finish_time) {
+                    projectStatus = '进行中';
+                } else if (project.actual_finish_time) {
+                    if (project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '') {
+                        projectStatus = '已确认';
+                    } else {
+                        projectStatus = '已完成未确认';
+                    }
+                }
+                
+                const matchesStatus = !status || projectStatus === status;
+                
+                // 根据创建时间筛选
+                let matchesCreateDate = true; // 默认匹配所有
+                if (startDate && endDate) {
+                    const createDate = new Date(project.create_time);
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
+                    matchesCreateDate = createDate >= start && createDate <= end;
+                } else if (startDate) {
+                    const createDate = new Date(project.create_time);
+                    const start = new Date(startDate);
+                    matchesCreateDate = createDate >= start;
+                } else if (endDate) {
+                    const createDate = new Date(project.create_time);
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
+                    matchesCreateDate = createDate <= end;
+                }
+                
+                return matchesSearch && matchesCategory && matchesStatus && matchesCreateDate;
+            });
+            
+            updateProjectTable();
+        }
+        
+        // 重置筛选
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            filteredData = [...projectData];
+            updateProjectTable();
+        }
+        
+        // 显示项目详情
+        function showProjectDetails(status) {
+            let title = '';
+            let projects = [];
+
+            switch(status) {
+                case 'total':
+                    title = '项目总数';
+                    projects = projectData;
+                    break;
+                case 'not-started':
+                    title = '未开始项目详情';
+                    projects = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case 'in-progress':
+                    title = '进行中项目详情';
+                    projects = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case 'completed':
+                    title = '已完成未确认项目详情';
+                    projects = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case 'overdue':
+                    title = '已确认项目详情';
+                    projects = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+            }
+            
+            // 传递状态信息到模态框，用于后续的过滤器设置
+            showProjectModal(title, projects, status);
+        }
+        
+        // 显示项目模态框
+        function showProjectModal(title, projects, status) {
+            document.getElementById('modalTitle').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>${title}</span>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <button class="filter-btn" onclick="showModalCharts('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
+                            查看图表
+                        </button>
+                        <button class="filter-btn" onclick="showModalDataList('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
+                            查看数据列表
+                        </button>
+                        <button class="filter-btn" onclick="exportModalExcel('${title}')">
+                            导出Excel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // 默认显示图表，传递状态信息
+            showModalCharts(title, projects, status);
+            
+            document.getElementById('projectModal').style.display = 'block';
+        }
+        
+        // 显示模态框图表
+        function showModalCharts(title, projects, status) {
+            let contentHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #333; margin-bottom: 15px;">数据统计概览</h3>
+                    <p>共找到 <strong>${projects.length}</strong> 个项目</p>
+                </div>
+            `;
+            
+            if (projects.length > 0) {
+                // 产品类别统计
+                const categoryStats = {};
+                projects.forEach(project => {
+                    const category = project.sample_category || '未分类';
+                    categoryStats[category] = (categoryStats[category] || 0) + 1;
+                });
+                
+                // 项目负责人统计
+                const leaderStats = {};
+                projects.forEach(project => {
+                    const leader = project.sample_leader || '未指定';
+                    leaderStats[leader] = (leaderStats[leader] || 0) + 1;
+                });
+                
+                // 测试负责人统计
+                const testerStats = {};
+                projects.forEach(project => {
+                    const tester = project.tester || '未指定';
+                    testerStats[tester] = (testerStats[tester] || 0) + 1;
+                });
+                
+                // 排期天数分布统计
+                const scheduleDaysStats = {};
+                projects.forEach(project => {
+                    const days = project.scheduleDays;
+                    if (days && !isNaN(days)) {
+                        // 直接使用具体天数作为键
+                        scheduleDaysStats[days] = (scheduleDaysStats[days] || 0) + 1;
+                    } else {
+                        scheduleDaysStats['未设置'] = (scheduleDaysStats['未设置'] || 0) + 1;
+                    }
+                });
+                
+                // 对天数进行排序，确保图表显示有序
+                const sortedScheduleDays = Object.keys(scheduleDaysStats)
+                    .filter(key => key !== '未设置')
+                    .sort((a, b) => parseInt(a) - parseInt(b));
+                
+                // 重新构建有序的统计数据
+                const orderedScheduleDaysStats = {};
+                sortedScheduleDays.forEach(days => {
+                    orderedScheduleDaysStats[days + '天'] = scheduleDaysStats[days];
+                });
+                // 将"未设置"放在最后
+                if (scheduleDaysStats['未设置']) {
+                    orderedScheduleDaysStats['未设置'] = scheduleDaysStats['未设置'];
+                }
+                
+                // 创建图表容器
+                contentHTML += `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">产品类别分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('categoryChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('categoryChart', 1)" title="放大">+</button>
+                                </div>
+                            </div>
+                            <div id="categoryChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createPieChart(categoryStats, 'categoryChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">项目负责人分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('leaderChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('leaderChart', 1)" title="放大">+</button>
+                                </div>
+                            </div>
+                            <div id="leaderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createPieChart(leaderStats, 'leaderChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">测试负责人分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('testerChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('testerChart', 1)" title="放大">+</button>
+                                </div>
+                            </div>
+                            <div id="testerChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createPieChart(testerStats, 'testerChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">排期天数分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('scheduleChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('scheduleChart', 1)" title="放大">+</button>
+                                </div>
+                            </div>
+                            <div id="scheduleChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createBarChart(orderedScheduleDaysStats, 'scheduleChart')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentHTML += '<p style="text-align: center; color: #666;">暂无数据</p>';
+            }
+            
+            document.getElementById('modalContent').innerHTML = contentHTML;
+        }
+        
+        // 显示模态框数据列表
+        function showModalDataList(title, projects, status, preserveValues = false) {
+            // 保存当前过滤器的值
+            let currentFilters = {};
+            if (preserveValues) {
+                const categoryFilter = document.getElementById('modalCategoryFilter');
+                const testerFilter = document.getElementById('modalTesterFilter');
+                const leaderFilter = document.getElementById('modalLeaderFilter');
+                const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
+                const startDateInput = document.getElementById('modalStartDate');
+                const endDateInput = document.getElementById('modalEndDate');
+                
+                if (categoryFilter) currentFilters.category = categoryFilter.value;
+                if (testerFilter) currentFilters.tester = testerFilter.value;
+                if (leaderFilter) currentFilters.leader = leaderFilter.value;
+                if (scheduleDaysFilter) currentFilters.scheduleDays = scheduleDaysFilter.value;
+                if (startDateInput) currentFilters.startDate = startDateInput.value;
+                if (endDateInput) currentFilters.endDate = endDateInput.value;
+            }
+            
+            let contentHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #333; margin-bottom: 15px;">详细数据列表</h3>
+                    <p>共找到 <strong>${projects.length}</strong> 个项目</p>
+                    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">类别:</label>
+                            <select class="filter-input" id="modalCategoryFilter">
+                                <option value="">所有类别</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">测试负责人:</label>
+                            <select class="filter-input" id="modalTesterFilter">
+                                <option value="">所有测试负责人</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">项目负责人:</label>
+                            <select class="filter-input" id="modalLeaderFilter">
+                                <option value="">所有项目负责人</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">排期天数:</label>
+                            <select class="filter-input" id="modalScheduleDaysFilter">
+                                <option value="">所有排期天数</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">创建时间:</label>
+                            <input type="date" class="filter-input" id="modalStartDate" placeholder="开始日期">
+                            <span style="color: #666;">至</span>
+                            <input type="date" class="filter-input" id="modalEndDate" placeholder="结束日期">
+                        </div>
+                        <button class="filter-btn" onclick="applyModalFilters()">筛选</button>
+                        <button class="filter-btn" onclick="resetModalFilters()">重置</button>
+                        <button class="filter-btn" onclick="exportCurrentModalData('${title}')">导出Excel</button>
+                    </div>
+                </div>
+            `;
+            
+            if (projects.length > 0) {
+                contentHTML += `
+                    <table class="project-table">
+                        <thead>
+                            <tr>
+                                <th>样品编号</th>
+                                <th>产品名称</th>
+                                <th>产品类别</th>
+                                <th>项目负责人</th>
+                                <th>测试负责人</th>
+                                <th>送样人</th>
+                                <th>排期天数</th>
+                                <th>排期开始</th>
+                                <th>排期结束</th>
+                                <th>实际开始时间</th>
+                                <th>实际结束时间</th>
+                                <th>创建时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                projects.forEach(project => {
+                    const isOverdue = project.schedule_end_date && project.schedule !== '已完成' && 
+                                     new Date(project.schedule_end_date) < new Date();
+                    
+                    contentHTML += `
+                        <tr style="${(isOverdue && !project.sampleRecognizeResult) ? 'background-color: #ffe6e6;' : ''}">
+                            <td><strong>${project.sample_id || '-'}</strong></td>
+                            <td>${project.sample_name || '-'}</td>
+                            <td>${project.sample_category || '-'}</td>
+                            <td>${project.sample_leader || '-'}</td>
+                            <td>${project.tester || '-'}</td>
+                            <td>${project.sample_sender || '-'}</td>
+                            <td>${project.scheduleDays || '-'}</td>
+                            <td>${formatDate(project.schedule_start_date) || '-'}</td>
+                            <td style="${(isOverdue && !project.sampleRecognizeResult) ? 'color: red; font-weight: bold;' : ''}">
+                                ${formatDate(project.schedule_end_date) || '-'}
+                            </td>
+                            <td>${formatDateTime(project.actual_start_time) || '-'}</td>
+                            <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
+                            <td>${formatDateTime(project.create_time) || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                contentHTML += '</tbody></table>';
+            }
+            
+            document.getElementById('modalContent').innerHTML = contentHTML;
+            
+            // 填充过滤器选项
+            populateModalFilters(projects);
+            
+            // 恢复过滤器的值
+            if (preserveValues && Object.keys(currentFilters).length > 0) {
+                setTimeout(() => {
+                    const categoryFilter = document.getElementById('modalCategoryFilter');
+                    const testerFilter = document.getElementById('modalTesterFilter');
+                    const leaderFilter = document.getElementById('modalLeaderFilter');
+                    const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
+                    const startDateInput = document.getElementById('modalStartDate');
+                    const endDateInput = document.getElementById('modalEndDate');
+                    
+                    if (categoryFilter && currentFilters.category) categoryFilter.value = currentFilters.category;
+                    if (testerFilter && currentFilters.tester) testerFilter.value = currentFilters.tester;
+                    if (leaderFilter && currentFilters.leader) leaderFilter.value = currentFilters.leader;
+                    if (scheduleDaysFilter && currentFilters.scheduleDays) scheduleDaysFilter.value = currentFilters.scheduleDays;
+                    if (startDateInput && currentFilters.startDate) startDateInput.value = currentFilters.startDate;
+                    if (endDateInput && currentFilters.endDate) endDateInput.value = currentFilters.endDate;
+                }, 100);
+            }
+        }
+        
+        // 填充模态框过滤器选项
+        function populateModalFilters(projects) {
+            // 填充类别过滤器
+            const categories = [...new Set(projects.map(p => p.sample_category).filter(Boolean))];
+            const categoryFilter = document.getElementById('modalCategoryFilter');
+            if (categoryFilter) {
+                categoryFilter.innerHTML = '<option value="">所有类别</option>';
+                categories.forEach(category => {
+                    categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                });
+            }
+            
+            // 填充测试负责人过滤器
+            const testers = [...new Set(projects.map(p => p.tester).filter(Boolean))];
+            const testerFilter = document.getElementById('modalTesterFilter');
+            if (testerFilter) {
+                testerFilter.innerHTML = '<option value="">所有测试负责人</option>';
+                testers.forEach(tester => {
+                    testerFilter.innerHTML += `<option value="${tester}">${tester}</option>`;
+                });
+            }
+            
+            // 填充项目负责人过滤器
+            const leaders = [...new Set(projects.map(p => p.sample_leader).filter(Boolean))];
+            const leaderFilter = document.getElementById('modalLeaderFilter');
+            if (leaderFilter) {
+                leaderFilter.innerHTML = '<option value="">所有项目负责人</option>';
+                leaders.forEach(leader => {
+                    leaderFilter.innerHTML += `<option value="${leader}">${leader}</option>`;
+                });
+            }
+            
+            // 填充排期天数过滤器
+            const scheduleDays = [...new Set(projects.map(p => p.scheduleDays).filter(days => days && !isNaN(days)))];
+            const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
+            if (scheduleDaysFilter) {
+                scheduleDaysFilter.innerHTML = '<option value="">所有排期天数</option>';
+                scheduleDays.sort((a, b) => parseInt(a) - parseInt(b));
+                scheduleDays.forEach(days => {
+                    scheduleDaysFilter.innerHTML += `<option value="${days}">${days}天</option>`;
+                });
+                // 添加"未设置"选项
+                if (projects.some(p => !p.scheduleDays || isNaN(p.scheduleDays))) {
+                    scheduleDaysFilter.innerHTML += '<option value="未设置">未设置</option>';
+                }
+            }
+        }
+        
+        // 创建饼图
+        function createPieChart(data, containerId) {
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'];
+            
+            if (labels.length === 0) return '<p style="text-align: center; color: #666;">暂无数据</p>';
+            
+            const total = values.reduce((a, b) => a + b, 0);
+            if (total === 0) return '<p style="text-align: center; color: #666;">暂无数据</p>';
+            
+                            // 创建SVG饼图
+                const radius = 100;
+                const centerX = 125;
+                const centerY = 125;
+                
+                let chartHTML = `
+                    <div style="position: relative; width: 250px; height: 250px; margin: 0 auto;">
+                        <svg width="250" height="250" viewBox="0 0 250 250">
+                `;
+            
+            let currentAngle = 0;
+            labels.forEach((label, index) => {
+                const value = values[index];
+                const percentage = (value / total) * 100;
+                const angle = (value / total) * 360;
+                
+                if (angle > 0) {
+                    const startAngle = currentAngle;
+                    const endAngle = currentAngle + angle;
+                    
+                    // 计算弧线路径
+                    const startX = centerX + radius * Math.cos(startAngle * Math.PI / 180);
+                    const startY = centerY + radius * Math.sin(startAngle * Math.PI / 180);
+                    const endX = centerX + radius * Math.cos(endAngle * Math.PI / 180);
+                    const endY = centerY + radius * Math.sin(endAngle * Math.PI / 180);
+                    
+                    // 判断是否需要绘制大弧线
+                    const largeArcFlag = angle > 180 ? 1 : 0;
+                    
+                    const pathData = `M ${centerX} ${centerY} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+                    
+                    // 为每个扇形添加鼠标事件和tooltip
+                    const segmentId = `segment_${containerId}_${index}`;
+                    chartHTML += `
+                        <path id="${segmentId}" d="${pathData}" fill="${colors[index % colors.length]}" stroke="white" stroke-width="2"
+                              style="cursor: pointer;"
+                              onmouseover="showSegmentTooltip(event, '${label}', ${value}, ${percentage.toFixed(1)})"
+                              onmouseout="hideSegmentTooltip()"
+                              onclick="filterByChartSegment('${containerId}', '${label}', ${value})"/>
+                    `;
+                    
+                    // 只有当扇形足够大时才显示标签（角度大于15度）
+                    if (angle > 15) {
+                                            // 在扇形中心位置添加标签
+                    const midAngle = startAngle + angle / 2;
+                    const labelRadius = radius * 0.6; // 标签位置在扇形中心偏内
+                    const labelX = centerX + labelRadius * Math.cos(midAngle * Math.PI / 180);
+                    const labelY = centerY + labelRadius * Math.sin(midAngle * Math.PI / 180);
+                    
+                    // 计算文本锚点，确保文本在扇形中心
+                    let textAnchor = 'middle';
+                    let dominantBaseline = 'middle';
+                    
+                    // 根据角度调整文本位置，避免重叠
+                    if (midAngle > 45 && midAngle < 135) {
+                        dominantBaseline = 'hanging'; // 上半部分
+                    } else if (midAngle > 225 && midAngle < 315) {
+                        dominantBaseline = 'auto'; // 下半部分
+                    }
+                    
+                    if (midAngle > 90 && midAngle < 270) {
+                        textAnchor = 'end'; // 左半部分
+                    } else {
+                        textAnchor = 'start'; // 右半部分
+                    }
+                    
+                    // 添加标签文本
+                    chartHTML += `
+                        <text x="${labelX}" y="${labelY}" 
+                              text-anchor="${textAnchor}" 
+                              dominant-baseline="${dominantBaseline}"
+                              fill="white" 
+                              font-size="16" 
+                              font-weight="bold"
+                              stroke="black" 
+                              stroke-width="1"
+                              style="pointer-events: none; font-family: 'Microsoft YaHei', Arial, sans-serif;">
+                            ${label}
+                        </text>
+                    `;
+                    
+                    // 添加数值
+                    const valueRadius = radius * 0.35; // 数值位置在扇形中心更内
+                    const valueX = centerX + valueRadius * Math.cos(midAngle * Math.PI / 180);
+                    const valueY = centerY + valueRadius * Math.sin(midAngle * Math.PI / 180);
+                    
+                    chartHTML += `
+                        <text x="${valueX}" y="${valueY}" 
+                              text-anchor="middle" 
+                              dominant-baseline="middle"
+                              fill="white" 
+                              font-size="18" 
+                              font-weight="bold"
+                              stroke="black" 
+                              stroke-width="1"
+                              style="pointer-events: none; font-family: 'Microsoft YaHei', Arial, sans-serif;">
+                            ${value}
+                        </text>
+                    `;
+                    }
+                    
+                    currentAngle = endAngle;
+                }
+            });
+            
+            chartHTML += '</svg>';
+            
+            // 添加tooltip容器
+            chartHTML += `
+                <div id="tooltip_${containerId}" style="
+                    position: fixed; 
+                    display: none; 
+                    background: rgba(0,0,0,0.8); 
+                    color: white; 
+                    padding: 8px 12px; 
+                    border-radius: 6px; 
+                    font-size: 12px; 
+                    pointer-events: none; 
+                    z-index: 1000;
+                    white-space: nowrap;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                "></div>
+            `;
+            
+            chartHTML += '</div>';
+            
+            return chartHTML;
+        }
+        
+        // 创建柱状图
+        function createBarChart(data, containerId) {
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+            const maxValue = Math.max(...values);
+            const colors = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'];
+            
+            if (labels.length === 0) return '<p style="text-align: center; color: #666;">暂无数据</p>';
+            
+            // 根据柱子数量调整布局
+            const isManyBars = labels.length > 8;
+            const barWidth = isManyBars ? 35 : 50;
+            const barSpacing = isManyBars ? 8 : 15;
+            
+            let chartHTML = `<div style="display: flex; align-items: end; justify-content: ${isManyBars ? 'space-between' : 'space-around'}; height: 250px; padding: 20px; overflow-x: auto;">`;
+            
+            labels.forEach((label, index) => {
+                const height = maxValue > 0 ? (values[index] / maxValue) * 200 : 0;
+                const color = colors[index % colors.length];
+                
+                chartHTML += `
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: ${barWidth + barSpacing}px;">
+                        <div style="width: ${barWidth}px; height: ${height}px; background: ${color}; border-radius: 6px 6px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: ${isManyBars ? '14px' : '16px'}; cursor: pointer; transition: all 0.2s ease;" 
+                             onclick="filterByChartSegment('${containerId}', '${label}', ${values[index]})"
+                             onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'"
+                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+                            ${values[index]}
+                        </div>
+                        <div style="font-size: ${isManyBars ? '12px' : '14px'}; color: #666; max-width: ${barWidth + 10}px; word-wrap: break-word; transform: rotate(-45deg); transform-origin: top left;">
+                            ${label}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHTML += '</div>';
+            return chartHTML;
+        }
+        
+        // 关闭项目模态框
+        function closeProjectModal() {
+            document.getElementById('projectModal').style.display = 'none';
+        }
+        
+        // 获取状态颜色
+        function getStatusColor(status) {
+            switch(status) {
+                case '未开始': return '#ffc107';
+                case '进行中': return '#17a2b8';
+                case '已完成': return '#28a745';
+                default: return '#6c757d';
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('zh-CN');
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        // 格式化日期时间
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            try {
+                const date = new Date(dateTimeStr);
+                return date.toLocaleString('zh-CN');
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // 定时刷新数据（每5分钟）
+        setInterval(loadProjectData, 5 * 60 * 1000);
+        
+        // 显示扇形tooltip
+        function showSegmentTooltip(event, label, value, percentage) {
+            const tooltip = document.querySelector('[id^="tooltip_"]');
+            if (tooltip) {
+                tooltip.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 4px;">${label}</div>
+                    <div>数量: ${value}</div>
+                    <div>占比: ${percentage}%</div>
+                `;
+                tooltip.style.display = 'block';
+                
+                // 获取鼠标位置
+                const mouseX = event.clientX;
+                const mouseY = event.clientY;
+                
+                // 获取tooltip尺寸
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const tooltipWidth = tooltipRect.width;
+                const tooltipHeight = tooltipRect.height;
+                
+                // 获取视口尺寸
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // 计算tooltip位置，确保不超出视口边界
+                let left = mouseX + 15; // 鼠标右侧15px
+                let top = mouseY - tooltipHeight - 10; // 鼠标上方10px
+                
+                // 如果右侧空间不够，则显示在鼠标左侧
+                if (left + tooltipWidth > viewportWidth) {
+                    left = mouseX - tooltipWidth - 15;
+                }
+                
+                // 如果上方空间不够，则显示在鼠标下方
+                if (top < 0) {
+                    top = mouseY + 15;
+                }
+                
+                // 确保不超出左边界
+                if (left < 0) {
+                    left = 10;
+                }
+                
+                // 确保不超出下边界
+                if (top + tooltipHeight > viewportHeight) {
+                    top = viewportHeight - tooltipHeight - 10;
+                }
+                
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            }
+        }
+        
+        // 隐藏扇形tooltip
+        function hideSegmentTooltip() {
+            const tooltip = document.querySelector('[id^="tooltip_"]');
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        }
+        
+        // 点击图表元素跳转到对应数据列表
+        function filterByChartSegment(chartId, label, value) {
+            // 获取当前模态框显示的项目数据
+            const modalTitle = document.getElementById('modalTitle').querySelector('span').textContent;
+            let originalProjects = [];
+            
+            // 根据标题重新获取原始项目数据
+            switch(modalTitle) {
+                case '项目总数':
+                    originalProjects = projectData;
+                    break;
+                case '未开始项目详情':
+                    originalProjects = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '进行中项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '已完成未确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case '已确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+            }
+            
+            // 根据图表类型和标签进行筛选
+            let filteredProjects = [];
+            
+            if (chartId === 'categoryChart') {
+                // 产品类别筛选
+                filteredProjects = originalProjects.filter(project => 
+                    project.sample_category === label
+                );
+            } else if (chartId === 'leaderChart') {
+                // 项目负责人筛选
+                filteredProjects = originalProjects.filter(project => 
+                    project.sample_leader === label
+                );
+            } else if (chartId === 'testerChart') {
+                // 测试负责人筛选
+                filteredProjects = originalProjects.filter(project => 
+                    project.tester === label
+                );
+            } else if (chartId === 'scheduleChart') {
+                // 排期天数筛选
+                if (label === '未设置') {
+                    filteredProjects = originalProjects.filter(project => 
+                        !project.scheduleDays || isNaN(project.scheduleDays)
+                    );
+                } else {
+                    const days = parseInt(label.replace('天', ''));
+                    filteredProjects = originalProjects.filter(project => 
+                        project.scheduleDays === days
+                    );
+                }
+            }
+            
+            // 显示筛选后的数据列表，并设置对应的过滤器
+            showModalDataList(`${modalTitle} - ${label}`, filteredProjects, null, true);
+            
+            // 设置对应的过滤器值
+            setFilterValues(chartId, label);
+            
+            // 显示提示信息
+            showFilterNotification(`${label}: 共找到 ${filteredProjects.length} 个项目`);
+        }
+        
+        // 设置过滤器值
+        function setFilterValues(chartId, label) {
+            // 等待DOM更新完成后设置过滤器值
+            setTimeout(() => {
+                if (chartId === 'categoryChart') {
+                    const categoryFilter = document.getElementById('modalCategoryFilter');
+                    if (categoryFilter) {
+                        categoryFilter.value = label;
+                    }
+                } else if (chartId === 'leaderChart') {
+                    const leaderFilter = document.getElementById('modalLeaderFilter');
+                    if (leaderFilter) {
+                        leaderFilter.value = label;
+                    }
+                } else if (chartId === 'testerChart') {
+                    const testerFilter = document.getElementById('modalTesterFilter');
+                    if (testerFilter) {
+                        testerFilter.value = label;
+                    }
+                } else if (chartId === 'scheduleChart') {
+                    const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
+                    if (scheduleDaysFilter) {
+                        if (label === '未设置') {
+                            scheduleDaysFilter.value = '未设置';
+                        } else {
+                            const days = parseInt(label.replace('天', ''));
+                            scheduleDaysFilter.value = days;
+                        }
+                    }
+                }
+            }, 100);
+        }
+        
+        // 显示筛选通知
+        function showFilterNotification(message) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+            
+            // 添加滑出动画
+            const slideOutStyle = document.createElement('style');
+            slideOutStyle.textContent = `
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(slideOutStyle);
+        }
+        
+        // 图表放大缩小功能
+        function zoomChart(chartId, direction) {
+            const chartContainer = document.getElementById(chartId);
+            if (!chartContainer) return;
+            
+            // 获取当前尺寸
+            const currentHeight = parseInt(chartContainer.style.height) || 350;
+            const currentWidth = chartContainer.offsetWidth;
+            
+            // 计算新的尺寸（每次调整20px）
+            const newHeight = Math.max(250, Math.min(600, currentHeight + (direction * 20)));
+            
+            // 应用新尺寸
+            chartContainer.style.height = newHeight + 'px';
+            
+            // 如果高度变化较大，调整SVG尺寸
+            const svg = chartContainer.querySelector('svg');
+            if (svg) {
+                const scale = newHeight / 350; // 基于原始高度350px计算缩放比例
+                const newSvgSize = 250 * scale;
+                svg.style.width = newSvgSize + 'px';
+                svg.style.height = newSvgSize + 'px';
+                svg.style.transform = `scale(${scale})`;
+                svg.style.transformOrigin = 'center center';
+            }
+            
+            // 更新按钮状态
+            updateZoomButtons(chartId, newHeight);
+        }
+        
+        // 更新放大缩小按钮状态
+        function updateZoomButtons(chartId, currentHeight) {
+            const container = document.getElementById(chartId).closest('.chart-container, div[style*="background: #f8f9fa"]');
+            if (!container) return;
+            
+            const zoomOutBtn = container.querySelector('button[onclick*="-1"]');
+            const zoomInBtn = container.querySelector('button[onclick*="1"]');
+            
+            if (zoomOutBtn) {
+                zoomOutBtn.disabled = currentHeight <= 250;
+                zoomOutBtn.style.opacity = currentHeight <= 250 ? '0.5' : '1';
+                zoomOutBtn.style.cursor = currentHeight <= 250 ? 'not-allowed' : 'pointer';
+            }
+            
+            if (zoomInBtn) {
+                zoomInBtn.disabled = currentHeight >= 600;
+                zoomInBtn.style.opacity = currentHeight >= 600 ? '0.5' : '1';
+                zoomInBtn.style.cursor = currentHeight >= 600 ? 'not-allowed' : 'pointer';
+            }
+        }
+        
+        // 导出当前模态框显示的数据
+        function exportCurrentModalData(title) {
+            // 获取当前模态框显示的项目数据
+            const modalTitle = document.getElementById('modalTitle').querySelector('span').textContent;
+            let projectsToExport = [];
+            
+            // 根据标题重新获取原始项目数据
+            switch(modalTitle) {
+                case '项目总数':
+                    projectsToExport = projectData;
+                    break;
+                case '未开始项目详情':
+                    projectsToExport = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '进行中项目详情':
+                    projectsToExport = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '已完成未确认项目详情':
+                    projectsToExport = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case '已确认项目详情':
+                    projectsToExport = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+                default:
+                    // 如果标题包含筛选信息（如"项目总数 - 产品类别"）
+                    if (modalTitle.includes(' - ')) {
+                        const [baseTitle, filterValue] = modalTitle.split(' - ');
+                        
+                        // 根据基础标题获取原始数据
+                        let baseProjects = [];
+                        switch(baseTitle) {
+                            case '项目总数':
+                                baseProjects = projectData;
+                                break;
+                            case '未开始项目详情':
+                                baseProjects = projectData.filter(p => 
+                                    !p.actual_start_time && p.schedule !== '已完成'
+                                );
+                                break;
+                            case '进行中项目详情':
+                                baseProjects = projectData.filter(p => 
+                                    p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                                );
+                                break;
+                            case '已完成未确认项目详情':
+                                baseProjects = projectData.filter(p => 
+                                    p.actual_finish_time && !p.sampleRecognizeResult
+                                );
+                                break;
+                            case '已确认项目详情':
+                                baseProjects = projectData.filter(p => 
+                                    p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                                );
+                                break;
+                        }
+                        
+                        // 根据筛选值进一步筛选
+                        if (filterValue && baseProjects.length > 0) {
+                            if (filterValue.includes('天')) {
+                                // 排期天数筛选
+                                if (filterValue === '未设置') {
+                                    projectsToExport = baseProjects.filter(project => 
+                                        !project.scheduleDays || isNaN(project.scheduleDays)
+                                    );
+                                } else {
+                                    const days = parseInt(filterValue.replace('天', ''));
+                                    projectsToExport = baseProjects.filter(project => 
+                                        project.scheduleDays === days
+                                    );
+                                }
+                            } else {
+                                // 其他筛选（产品类别、负责人等）
+                                projectsToExport = baseProjects.filter(project => {
+                                    return project.sample_category === filterValue || 
+                                           project.sample_leader === filterValue || 
+                                           project.tester === filterValue;
+                                });
+                            }
+                        } else {
+                            projectsToExport = baseProjects;
+                        }
+                    } else {
+                        projectsToExport = projectData;
+                    }
+                    break;
+            }
+            
+            // 应用所有筛选条件（如果设置了筛选）
+            const startDate = document.getElementById('modalStartDate')?.value;
+            const endDate = document.getElementById('modalEndDate')?.value;
+            const category = document.getElementById('modalCategoryFilter')?.value;
+            const tester = document.getElementById('modalTesterFilter')?.value;
+            const leader = document.getElementById('modalLeaderFilter')?.value;
+            const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
+            
+            if (startDate || endDate || category || tester || leader || scheduleDays) {
+                projectsToExport = projectsToExport.filter(project => {
+                    // 类别筛选
+                    if (category && project.sample_category !== category) {
+                        return false;
+                    }
+                    
+                    // 测试负责人筛选
+                    if (tester && project.tester !== tester) {
+                        return false;
+                    }
+                    
+                    // 项目负责人筛选
+                    if (leader && project.sample_leader !== leader) {
+                        return false;
+                    }
+                    
+                    // 排期天数筛选
+                    if (scheduleDays) {
+                        if (scheduleDays === '未设置') {
+                            if (project.scheduleDays && !isNaN(project.scheduleDays)) {
+                                return false;
+                            }
+                        } else {
+                            if (project.scheduleDays !== parseInt(scheduleDays)) {
+                                return false;
+                            }
+                        }
+                    }
+                    
+                    // 时间筛选
+                    if (startDate || endDate) {
+                        if (!project.create_time) return false;
+                        
+                        const createDate = new Date(project.create_time);
+                        let matchesDate = true;
+                        
+                        if (startDate) {
+                            const start = new Date(startDate);
+                            matchesDate = matchesDate && createDate >= start;
+                        }
+                        
+                        if (endDate) {
+                            const end = new Date(endDate);
+                            end.setHours(23, 59, 59, 999);
+                            matchesDate = matchesDate && createDate <= end;
+                            }
+                        
+                        if (!matchesDate) return false;
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            if (projectsToExport.length === 0) {
+                alert('没有数据可以导出！');
+                return;
+            }
+            
+            console.log('导出筛选后的数据，数量:', projectsToExport.length);
+            console.log('筛选后的数据:', projectsToExport);
+            
+            // 调用原有的导出函数，传入筛选后的数据
+            exportToExcel(title, projectsToExport);
+        }
+        
+        // 导出Excel功能
+        function exportToExcel(title, projectsToExport) {
+            console.log('开始导出Excel，标题:', title);
+            console.log('SheetJS库是否可用:', typeof XLSX !== 'undefined');
+            console.log('要导出的数据长度:', projectsToExport.length);
+            
+            // 使用传入的projectsToExport，而不是重新筛选
+            const projects = projectsToExport;
+
+            if (projects.length === 0) {
+                alert('没有数据可以导出！');
+                return;
+            }
+
+            try {
+                // 准备表头
+                const headers = [
+                    '样品编号', '产品名称', '产品类别', '大编码', '版本', '项目负责人', 
+                    '当前进度', '测试负责人', '送样人', '送样类别', '创建时间', '排期天数', 
+                    '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果'
+                ];
+                
+                // 准备数据
+                const data = projects.map(project => [
+                    project.sample_id || '',
+                    project.sample_name || '',
+                    project.sample_category || '',
+                    project.sample_model || '',
+                    project.version || '',
+                    project.sample_leader || '',
+                    getProjectStatus(project),
+                    project.tester || '',
+                    project.sample_sender || '',
+                    project.sample_type || '',
+                    formatDateTime(project.create_time) || '',
+                    project.scheduleDays || '',
+                    formatDate(project.schedule_start_date) || '',
+                    formatDate(project.schedule_end_date) || '',
+                    formatDateTime(project.actual_start_time) || '',
+                    formatDateTime(project.actual_finish_time) || '',
+                    project.sampleRecognizeResult || ''
+                ]);
+                
+                // 创建工作簿
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+                
+                // 设置列宽
+                const colWidths = headers.map(() => ({ wch: 15 }));
+                ws['!cols'] = colWidths;
+                
+                // 添加工作表到工作簿
+                XLSX.utils.book_append_sheet(wb, ws, '项目数据');
+                
+                // 生成文件名
+                const fileName = `${title}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                
+                // 导出文件
+                XLSX.writeFile(wb, fileName);
+                
+                alert('导出成功！');
+            } catch (error) {
+                console.error('导出失败:', error);
+                alert('导出失败，请检查控制台错误信息！');
+            }
+        }
+        
+        // 获取项目状态的辅助函数
+        function getProjectStatus(project) {
+            if (!project.actual_start_time) {
+                return '未开始';
+            } else if (project.actual_start_time && !project.actual_finish_time) {
+                return '进行中';
+            } else if (project.actual_finish_time && !project.sampleRecognizeResult) {
+                return '已完成未确认';
+            } else if (project.actual_finish_time && project.sampleRecognizeResult) {
+                return '已确认';
+            }
+            return '未知状态';
+        }
+        
+        // 模态框筛选功能
+        function applyModalFilters() {
+            const startDate = document.getElementById('modalStartDate').value;
+            const endDate = document.getElementById('modalEndDate').value;
+            const category = document.getElementById('modalCategoryFilter')?.value;
+            const tester = document.getElementById('modalTesterFilter')?.value;
+            const leader = document.getElementById('modalLeaderFilter')?.value;
+            const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
+            
+            // 获取当前模态框显示的项目数据
+            const modalTitle = document.getElementById('modalTitle').querySelector('span').textContent;
+            let originalProjects = [];
+            
+            // 根据标题重新获取原始项目数据
+            switch(modalTitle) {
+                case '项目总数':
+                    originalProjects = projectData;
+                    break;
+                case '未开始项目详情':
+                    originalProjects = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '进行中项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '已完成未确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case '已确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+            }
+            
+            // 应用所有筛选条件
+            let filteredProjects = originalProjects.filter(project => {
+                // 类别筛选
+                if (category && project.sample_category !== category) {
+                    return false;
+                }
+                
+                // 测试负责人筛选
+                if (tester && project.tester !== tester) {
+                    return false;
+                }
+                
+                // 项目负责人筛选
+                if (leader && project.sample_leader !== leader) {
+                    return false;
+                }
+                
+                // 排期天数筛选
+                if (scheduleDays) {
+                    if (scheduleDays === '未设置') {
+                        if (project.scheduleDays && !isNaN(project.scheduleDays)) {
+                            return false;
+                        }
+                    } else {
+                        if (project.scheduleDays !== parseInt(scheduleDays)) {
+                            return false;
+                        }
+                    }
+                }
+                
+                // 时间筛选
+                if (startDate || endDate) {
+                    if (!project.create_time) return false;
+                    
+                    const createDate = new Date(project.create_time);
+                    let matchesDate = true;
+                    
+                    if (startDate) {
+                        const start = new Date(startDate);
+                        matchesDate = matchesDate && createDate >= start;
+                    }
+                    
+                    if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        matchesDate = matchesDate && createDate <= end;
+                    }
+                    
+                    if (!matchesDate) return false;
+                }
+                
+                return true;
+            });
+            
+            // 更新模态框内容 - 保持当前显示模式
+            const currentContent = document.getElementById('modalContent').innerHTML;
+            if (currentContent.includes('数据统计概览')) {
+                // 如果当前显示的是图表，则更新图表
+                showModalCharts(modalTitle, filteredProjects);
+            } else {
+                // 如果当前显示的是数据列表，则更新数据列表，保持过滤器值
+                showModalDataList(modalTitle, filteredProjects, null, true);
+            }
+        }
+        
+        // 重置模态框筛选
+        function resetModalFilters() {
+            // 重置所有过滤器
+            document.getElementById('modalStartDate').value = '';
+            document.getElementById('modalEndDate').value = '';
+            
+            const categoryFilter = document.getElementById('modalCategoryFilter');
+            if (categoryFilter) categoryFilter.value = '';
+            
+            const testerFilter = document.getElementById('modalTesterFilter');
+            if (testerFilter) testerFilter.value = '';
+            
+            const leaderFilter = document.getElementById('modalLeaderFilter');
+            if (leaderFilter) leaderFilter.value = '';
+            
+            const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
+            if (scheduleDaysFilter) scheduleDaysFilter.value = '';
+            
+            // 重新显示原始数据
+            const modalTitle = document.getElementById('modalTitle').querySelector('span').textContent;
+            let originalProjects = [];
+            
+            switch(modalTitle) {
+                case '项目总数':
+                    originalProjects = projectData;
+                    break;
+                case '未开始项目详情':
+                    originalProjects = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '进行中项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '已完成未确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case '已确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+            }
+            
+            // 保持当前显示模式
+            const currentContent = document.getElementById('modalContent').innerHTML;
+            if (currentContent.includes('数据统计概览')) {
+                // 如果当前显示的是图表，则更新图表
+                showModalCharts(modalTitle, originalProjects);
+            } else {
+                // 如果当前显示的是数据列表，则更新数据列表，保持过滤器值
+                showModalDataList(modalTitle, originalProjects, null, true);
+            }
+        }
+        
+        // 模态框导出Excel功能（导出筛选后的数据）
+        function exportModalExcel(title) {
+            // 获取当前筛选后的数据
+            const startDate = document.getElementById('modalStartDate').value;
+            const endDate = document.getElementById('modalEndDate').value;
+            const category = document.getElementById('modalCategoryFilter')?.value;
+            const tester = document.getElementById('modalTesterFilter')?.value;
+            const leader = document.getElementById('modalLeaderFilter')?.value;
+            const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
+            
+            // 根据标题重新获取原始项目数据
+            let originalProjects = [];
+            switch(title) {
+                case '项目总数':
+                    originalProjects = projectData;
+                    break;
+                case '未开始项目详情':
+                    originalProjects = projectData.filter(p => 
+                        !p.actual_start_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '进行中项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                    );
+                    break;
+                case '已完成未确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.actual_finish_time && !p.sampleRecognizeResult
+                    );
+                    break;
+                case '已确认项目详情':
+                    originalProjects = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+            }
+            
+            // 应用所有筛选条件
+            let projectsToExport = originalProjects.filter(project => {
+                // 类别筛选
+                if (category && project.sample_category !== category) {
+                    return false;
+                }
+                
+                // 测试负责人筛选
+                if (tester && project.tester !== tester) {
+                    return false;
+                }
+                
+                // 项目负责人筛选
+                if (leader && project.sample_leader !== leader) {
+                    return false;
+                }
+                
+                // 排期天数筛选
+                if (scheduleDays) {
+                    if (scheduleDays === '未设置') {
+                        if (project.scheduleDays && !isNaN(project.scheduleDays)) {
+                            return false;
+                        }
+                    } else {
+                        if (project.scheduleDays !== parseInt(scheduleDays)) {
+                            return false;
+                        }
+                    }
+                }
+                
+                // 时间筛选
+                if (startDate || endDate) {
+                    if (!project.create_time) return false;
+                    
+                    const createDate = new Date(project.create_time);
+                    let matchesDate = true;
+                    
+                    if (startDate) {
+                        const start = new Date(startDate);
+                        matchesDate = matchesDate && createDate >= start;
+                    }
+                    
+                    if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        matchesDate = matchesDate && createDate <= end;
+                    }
+                    
+                    if (!matchesDate) return false;
+                }
+                
+                return true;
+            });
+            
+            // 调用原有的导出函数，传入筛选后的数据
+            exportToExcel(title, projectsToExport);
+        }
+    </script>
+</body>
+</html>

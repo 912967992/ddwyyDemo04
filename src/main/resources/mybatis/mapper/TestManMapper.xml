@@ -67,6 +67,7 @@
                 OR full_model LIKE CONCAT('%', #{keyword}, '%')
                 OR supplier LIKE CONCAT('%', #{keyword}, '%')
                 OR questStats LIKE CONCAT('%',#{keyword},'%')
+                OR electric_sample_id LIKE CONCAT('%',#{keyword},'%')
             )
         ORDER BY create_time ASC
     </select>
@@ -82,6 +83,7 @@
                 OR full_model LIKE CONCAT('%', #{keyword}, '%')
                 OR supplier LIKE CONCAT('%', #{keyword}, '%')
                 OR questStats LIKE CONCAT('%',#{keyword},'%')
+                OR electric_sample_id LIKE CONCAT('%',#{keyword},'%')
             )
         ORDER BY create_time DESC
     </select>

@@ -690,4 +690,36 @@
         WHERE sample_id =#{sample_id}
     </select>
 
+    <!-- 获取电气项目数据 -->
+    <select id="getElectricProjectData" resultType="java.util.Map">
+        SELECT 
+            id,
+            sample_id,
+            sample_name,
+            sample_category,
+            sample_model,
+            version,
+            sample_leader,
+            schedule,
+            create_time,
+            scheduleDays,
+            actual_start_time,
+            actual_finish_time,
+            sampleRecognizeResult,
+            tester,
+            sample_sender,
+            sample_type,
+            schedule_start_date,
+            schedule_end_date,
+            testDuration,
+            remark,
+            waitSample_classify,
+            high_frequency,
+            productRequirement,
+            productApprovalDoc
+        FROM electric_info
+        WHERE isCancel = 0  -- 排除已作废的项目
+        ORDER BY create_time DESC
+    </select>
+
 </mapper>

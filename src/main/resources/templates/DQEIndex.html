@@ -339,7 +339,7 @@
 
     <div class="main-container">
 <!--        <div class="dashboard" onclick="location.href='/dataBoard'">-->
-        <div class="dashboard" onclick="alert('该功能暂未开发，敬请期待，谢谢！')">
+        <div class="dashboard" onclick="goToDashboard()">
 
         <div>
                 <div class="bar-chart">
@@ -347,7 +347,7 @@
                     <div class="bar bar2">50%</div>
                     <div class="bar bar3">90%</div>
                 </div>
-                <p>数据看板（待开发）</p>
+                <p>数据看板</p>
             </div>
         </div>
 
@@ -420,10 +420,41 @@
         }
 
         function goToScheduleBoard() {
-            if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏") {
+            if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏"
+            || username === "李良健") {
                 location.href = "/scheduleBoard";
             } else {
                 alert("您无权限进入该页面");
+            }
+        }
+
+        // 根据角色跳转到不同的数据看板页面
+        function goToDashboard() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+            
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+            
+            switch(job) {
+                case 'DQE':
+                    location.href = '/dqeDashboard';
+                    break;
+                case 'rd':
+                    location.href = '/rdDashboard';
+                    break;
+                case 'projectLeader':
+                    location.href = '/projectLeaderDashboard';
+                    break;
+                case 'manager':
+                    location.href = '/dqeDashboard'; // 经理级别也跳转到DQE看板
+                    break;
+                default:
+                    alert("未知角色，无法跳转！");
             }
         }
 

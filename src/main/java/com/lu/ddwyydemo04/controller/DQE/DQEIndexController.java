@@ -396,9 +396,42 @@ public class DQEIndexController {
         return result;
     }
 
+    // 新增数据看板路由
+    @GetMapping("/dqeDashboard")
+    public String dqeDashboard() {
+        return "dqeDashboard";
+    }
 
+    @GetMapping("/rdDashboard")
+    public String rdDashboard() {
+        return "rdDashboard";
+    }
 
+    @GetMapping("/projectLeaderDashboard")
+    public String projectLeaderDashboard() {
+        return "projectLeaderDashboard";
+    }
 
-
+    // 获取电气项目数据
+    @GetMapping("/DQEIndex/getElectricProjectData")
+    @ResponseBody
+    public Map<String, Object> getElectricProjectData() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 调用服务层获取electric_info表的数据
+            List<Map<String, Object>> projectData = dqeIndexService.getElectricProjectData();
+            
+            result.put("success", true);
+            result.put("data", projectData);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取电气项目数据时出错: " + e.getMessage());
+        }
+        
+        return result;
+    }
 
 }

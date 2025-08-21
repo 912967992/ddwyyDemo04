@@ -702,14 +702,18 @@ public class testManIndexController {
                 response.put("message", problem); // 返回缺少列的错误信息
                 logger.error("提交文件失败：" + filepath + "，" + problem);
                 return response;
+            }else if(problem.startsWith("问题类别的值请按标准库")){
+                response.put("status", "error");
+                response.put("message", problem); // 返回缺少列的错误信息
+                logger.error("提交文件失败：" + filepath + "，" + problem);
+                return response;
             }
-
 
             testManIndexService.finishTestWithoutTime(schedule,formattedDateTime,sample_id);
 
             LocalDateTime createTime =  testManIndexService.queryCreateTime(sample_id);
             String actual_time = String.valueOf(createTime);
-            System.out.println("createTime:"+actual_time);
+//            System.out.println("createTime:"+actual_time);
 //            LocalDateTime planFinishTime =  testManIndexService.queryPlanFinishTime(sample_id);
 
 //            double planWorkDays = calculateWorkDays(createTime,planFinishTime,restDays);
@@ -875,24 +879,17 @@ public class testManIndexController {
 
             List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
 
-//            // 定义需要的列名
-//            List<String> requiredColumns = Arrays.asList(
-//                    "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
-//                    "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
-//                    "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品", "DQE&研发确认",
-//                    "改善对策（研发回复）", "分析责任人", "改善后风险", "下一版回归测试", "备注"
-//            );
             // 定义需要的列名
             List<String> requiredColumns = Arrays.asList(
                     "样品型号", "样品阶段", "版本", "芯片方案", "日期", "测试人员", "测试平台",
                     "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
                     "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品",
-                    "分析责任人", "改善后风险", "下一版回归测试", "备注", "DQE&研发确认",
+                    "分析责任人", "改善后风险", "下一版回归测试", "备注",
                     "SKU","责任单位","DQE确认回复（每个版本的回复请勿删除）","研发确认回复（每个版本的回复请勿删除）","方案商","供应商","评审结论"
             );
 
             // 定义不需要判断的字段名
-            Set<String> skipColumns = new HashSet<>(Arrays.asList("DQE&研发确认","方案商","供应商"));
+            Set<String> skipColumns = new HashSet<>(Arrays.asList("方案商"));
 
             // 检查缺少的列名
             Set<String> missingColumns = new HashSet<>();
@@ -907,6 +904,15 @@ public class testManIndexController {
             // 如果有缺少的列名，返回错误信息
             if (!missingColumns.isEmpty()) {
                 return "缺少列: " + String.join(", ", missingColumns); // 返回缺少列的错误信息
+            }
+
+            // 检查问题类别的值是否包含"-"符号
+            for (Map<String, String> rowMap : filteredRows) {
+                String problemCategory = rowMap.get("问题类别");
+                if (problemCategory != null && !problemCategory.trim().isEmpty() && !problemCategory.contains("-")) {
+                    System.out.println("problemCategory:"+problemCategory);
+                    return "问题类别的值请按标准库有\"-\"来写";
+                }
             }
 
 

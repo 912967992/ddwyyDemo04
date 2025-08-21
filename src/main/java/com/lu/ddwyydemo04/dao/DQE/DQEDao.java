@@ -166,5 +166,7 @@ public interface DQEDao {
 
     String queryPassbakConfirm(@Param("sample_id")String sample_id);
 
+    // 获取电气项目数据
+    List<Map<String, Object>> getElectricProjectData();
 
 }

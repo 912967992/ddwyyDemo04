@@ -1124,10 +1124,11 @@ public class DQEproblemMoudleController {
         // 创建文件名
         TestIssues firstIssue = issues.get(0);
         String fileName = String.format("%s_%s_%s问题点.xlsx",
-                firstIssue.getFull_model(),
-                firstIssue.getSample_stage(),
-                firstIssue.getVersion()
+                sanitizeFileName(firstIssue.getFull_model()),
+                sanitizeFileName(firstIssue.getSample_stage()),
+                sanitizeFileName(firstIssue.getVersion())
         );
+
 
         // 保存到临时文件
         String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + fileName;
@@ -1174,6 +1175,20 @@ public class DQEproblemMoudleController {
         }
 
         return response;
+    }
+
+    /**
+     * 清理文件名：移除或替换操作系统不允许的字符
+     */
+    private String sanitizeFileName(String input) {
+        if (input == null) {
+            return "unknown";
+        }
+        // 替换 Windows/Linux 文件名中不允许的字符
+        return input.replaceAll("[\\\\/:*?\"<>\\|\\r\\n]", "_")
+                .replaceAll("\\s+", "_")  // 多个空白字符（包括空格、制表符）替换为单个下划线
+                .trim()
+                .replaceAll("_+", "_");  // 去除连续多个下划线
     }
 
 
@@ -1274,7 +1289,10 @@ public class DQEproblemMoudleController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            if ("卢健".equals(username)) {
+            if ("卢健".equals(username) || "李良健".equals(username) || "张华".equals(username)
+            || "黄家灿".equals(username) || "荣成彧".equals(username) || "钟海龙".equals(username)
+            || "肖政文".equals(username)) {
+
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
                 response.put("hasPermission", true);

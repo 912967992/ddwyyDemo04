@@ -81,5 +81,9 @@ public class DQEIndexService {
         return dqeDao.getOverdueDetails(username);
     }
 
+    // 获取电气项目数据
+    public List<Map<String, Object>> getElectricProjectData() {
+        return dqeDao.getElectricProjectData();
+    }
 
 }

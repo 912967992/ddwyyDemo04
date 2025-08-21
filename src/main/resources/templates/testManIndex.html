@@ -1065,6 +1065,10 @@
                             <label for="tester">当前测试者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
+                                <option value="夏祎">夏祎</option>
+                                <option value="缪宇欢">缪宇欢</option>
+                                <option value="胡铭">胡铭</option>
+                                <option value="劳钰雯">劳钰雯</option>
                                 <option value="翟世鸿">翟世鸿</option>
                                 <option value="骆书英">骆书英</option>
                                 <option value="梁秋宇">梁秋宇</option>
@@ -2124,9 +2128,9 @@
                     }, 2000); // 2000 毫秒 = 2 秒
 
                     // 等待 2 秒后发送给绮敏
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
+                    // setTimeout(() => {
+                    //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                    // }, 2000); // 2000 毫秒 = 2 秒
 
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);

@@ -1685,77 +1685,23 @@
 
                                         valueDiv.appendChild(uploadText);  // 添加"上传图片"到 valueDiv 中
                                     }
-                                }else if(index === 7){
-                                    // 定义需要转换为下拉框的选项
-                                    const validOptions = ['OPEN', 'CLOSED','FOLLOW UP', '待确定'];
+                                                            }else if(index === 7){
+                                // 定义需要转换为下拉框的选项
+                                let validOptions = ['OPEN', 'CLOSED','FOLLOW UP', '待确定'];
 
-                                    // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
-                                    let normalizedValue = String(value).toUpperCase();
+                                // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
+                                let normalizedValue = String(value).toUpperCase();
 
-                                    if (normalizedValue === 'CLOSE') {
-                                        normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
-                                    }
+                                if (normalizedValue === 'CLOSE') {
+                                    normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
+                                }
 
-                                    // 如果值不在有效选项内，则将值设置为"待确定"
-                                    if (!validOptions.includes(normalizedValue)) {
-                                        normalizedValue = '待确定';
-                                    }
-
-                                    // 创建下拉框
-                                    const select = document.createElement('select');
-
-                                    // 创建下拉选项
-                                    validOptions.forEach(option => {
-                                        const optionElement = document.createElement('option');
-                                        optionElement.value = option;
-                                        optionElement.textContent = option;
-
-                                        // 设置默认选中的选项
-                                        if (normalizedValue === option) {
-                                            optionElement.selected = true;
-                                        }
-
-                                        select.appendChild(optionElement);
-                                    });
-
-                                    // 如果禁用编辑，禁用下拉框
-                                    if (isEditDisabled) {
-                                        select.disabled = true;
-                                        select.style.opacity = '0.5';
-                                        select.style.cursor = 'not-allowed';
-                                    }
-
-                                    // 监听下拉框的变化事件
-                                    select.addEventListener('change', function () {
-                                        // 如果禁用状态，不允许修改
-                                        if (isEditDisabled) {
-                                            return;
-                                        }
-                                        
-                                        const selectedValue = select.value;
-                                        console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
-
-                                        // 如果新值和旧值不同，标记为已修改
-                                        if (selectedValue !== normalizedValue) {
-                                            item[attr.field] = selectedValue;
-                                            if (!modifiedData.includes(item)) {
-                                                modifiedData.push(item); // 标记修改过的数据
-                                            }
-                                        }
-                                    });
-
-                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                }else if(index === 8){
-                                    // 定义需要转换为下拉框的选项
-                                    const validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
-
-                                    // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
-                                    let normalizedValue = String(value);
-
-                                    // 如果值不在有效选项内，则将值设置为"待确定"
-                                    if (!validOptions.includes(normalizedValue)) {
-                                        normalizedValue = '待确定';
-                                    }
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
+                                    normalizedValue = '待确定';
+                                }
 
                                     // 创建下拉框
                                     const select = document.createElement('select');
@@ -1801,20 +1747,77 @@
                                     });
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                }else if(index === 6){
-                                    // 定义需要转换为下拉框的等级选项
-                                    const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+                                                            }else if(index === 8){
+                                // 定义需要转换为下拉框的选项
+                                let validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
 
-                                    // 将传递过来的值转换为统一格式（大写）
-                                    let normalizedValue = String(value).toUpperCase();
+                                // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
+                                let normalizedValue = String(value);
 
-                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为"待确定"
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 使用输入的值创建下拉框
-                                    } else {
-                                        // 如果值不在有效选项范围内，将值设为"待确定"
-                                        normalizedValue = '待确定';
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
+                                    normalizedValue = '待确定';
+                                }
+
+                                    // 创建下拉框
+                                    const select = document.createElement('select');
+
+                                    // 创建下拉选项
+                                    validOptions.forEach(option => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = option;
+                                        optionElement.textContent = option;
+
+                                        // 设置默认选中的选项
+                                        if (normalizedValue === option) {
+                                            optionElement.selected = true;
+                                        }
+
+                                        select.appendChild(optionElement);
+                                    });
+
+                                    // 如果禁用编辑，禁用下拉框
+                                    if (isEditDisabled) {
+                                        select.disabled = true;
+                                        select.style.opacity = '0.5';
+                                        select.style.cursor = 'not-allowed';
                                     }
+
+                                    // 监听下拉框的变化事件
+                                    select.addEventListener('change', function () {
+                                        // 如果禁用状态，不允许修改
+                                        if (isEditDisabled) {
+                                            return;
+                                        }
+                                        
+                                        const selectedValue = select.value;
+                                        console.log('状态已更新为:', selectedValue);  // 处理下拉框值的变化
+
+                                        // 如果新值和旧值不同，标记为已修改
+                                        if (selectedValue !== normalizedValue) {
+                                            item[attr.field] = selectedValue;
+                                            if (!modifiedData.includes(item)) {
+                                                modifiedData.push(item); // 标记修改过的数据
+                                            }
+                                        }
+                                    });
+
+                                    valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
+                                                            }else if(index === 6){
+                                // 定义需要转换为下拉框的等级选项
+                                let validOptions = ['S', 'A', 'B', 'C', '待确定'];
+
+                                // 将传递过来的值转换为统一格式（大写）
+                                let normalizedValue = String(value).toUpperCase();
+
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (normalizedValue.trim() === '') {
+                                    normalizedValue = '待确定';
+                                }
 
                                     // 创建下拉框
                                     const select = document.createElement('select');
@@ -1860,17 +1863,19 @@
                                     });
 
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
-                                }else if(index === 1){
-                                    // 定义需要转换为下拉框的等级选项
-                                    const validOptions = ['产品', '项目', '结构', 'ID', '研发', 'DQE', 'SQE', 'CQE', '实验室', '待确定'];
+                                                            }else if(index === 1){
+                                // 定义需要转换为下拉框的等级选项
+                                let validOptions = ['产品', '项目', '结构', 'ID', '研发', 'DQE', 'SQE', 'CQE', '实验室', '待确定'];
 
-                                    // 将传递过来的值转换为统一格式（大写）
-                                    let normalizedValue = String(value).toUpperCase();
+                                // 将传递过来的值转换为统一格式（大写）
+                                let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值为空或不在有效选项内，默认设为"研发"
-                                    if (!normalizedValue || !validOptions.includes(normalizedValue)) {
-                                        normalizedValue = '研发';  // 默认设置为"研发"
-                                    }
+                                // 如果值不在有效选项内，将其添加到选项中
+                                if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                    validOptions.push(normalizedValue);
+                                } else if (!normalizedValue || normalizedValue.trim() === '') {
+                                    normalizedValue = '研发';  // 默认设置为"研发"
+                                }
 
                                     // 创建下拉框
                                     const select = document.createElement('select');
