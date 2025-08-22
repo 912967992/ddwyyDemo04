@@ -738,8 +738,9 @@
                 ELSE NULL 
             END as rd_leader
         FROM electric_info ei
-        WHERE ei.isCancel = 0  -- 排除已作废的项目
+        WHERE ei.isCancel = 0
         ORDER BY ei.create_time DESC
+
     </select>
 
 </mapper>

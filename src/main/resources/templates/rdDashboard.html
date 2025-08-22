@@ -86,6 +86,66 @@
         .status-overdue { color: #28a745; }
         .status-total { color: #6c757d; }
 
+        /* 时间过滤器样式 */
+        .time-filter-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-group label {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .filter-group .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .filter-group .filter-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .filter-separator {
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .filter-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .filter-btn:hover {
+            background: #0056b3;
+        }
+        
+        .filter-btn:active {
+            transform: translateY(1px);
+        }
+
         /* 项目详情表格样式 */
         .project-table {
             width: 100%;
@@ -214,8 +274,21 @@
 
 <div class="container">
     <div class="header">
-        <h1>DQE数据看板</h1>
+        <h1>研发数据看板</h1>
         <p>研发质量管理系统 - 电气测试项目数据展示</p>
+        
+        <!-- 创建时间过滤器 -->
+        <div class="time-filter-container">
+            <div class="filter-group">
+                <label for="createTimeStart">创建时间开始：</label>
+                <input type="date" id="createTimeStart" class="filter-input">
+                <span class="filter-separator">至</span>
+                <label for="createTimeEnd">结束：</label>
+                <input type="date" id="createTimeEnd" class="filter-input">
+                <button class="filter-btn" onclick="applyTimeFilter()">应用筛选</button>
+                <button class="filter-btn" onclick="resetTimeFilter()">重置筛选</button>
+            </div>
+        </div>
     </div>
 
     <div class="dashboard-grid">
@@ -260,12 +333,7 @@
                 <option value="已完成未确认">已完成未确认</option>
                 <option value="已确认">已确认</option>
             </select>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <label style="font-size: 14px; color: #333;">创建时间:</label>
-                <input type="date" class="filter-input" id="startDate" placeholder="开始日期">
-                <span style="color: #666;">至</span>
-                <input type="date" class="filter-input" id="endDate" placeholder="结束日期">
-            </div>
+
             <button class="filter-btn" onclick="applyFilters()">筛选</button>
             <button class="filter-btn" onclick="resetFilters()">重置</button>
         </div>
@@ -289,6 +357,7 @@
 <script>
     let projectData = [];
     let filteredData = [];
+        let originalProjectData = []; // 保存原始数据
 
     // 页面加载完成后获取数据
     document.addEventListener('DOMContentLoaded', function() {
@@ -303,8 +372,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    projectData = data.data;
-                    filteredData = [...projectData];
+                    originalProjectData = data.data; // 保存原始数据
+                    projectData = [...originalProjectData];
+                    filteredData = [...originalProjectData];
                     updateDashboard();
                     updateProjectTable();
                     updateCategoryFilter();
@@ -385,6 +455,8 @@
                             <th>实际开始时间</th>
                             <th>实际完成时间</th>
                             <th>承认结果</th>
+                             <th>DQE承认结果</th>
+                             <th>研发承认结果</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -434,6 +506,8 @@
                         <td>${formatDateTime(project.actual_start_time) || '-'}</td>
                         <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
                         <td>${project.sampleRecognizeResult || '-'}</td>
+                         <td>${project.sampleRecognizeResult || '-'}</td>
+                         <td>${project.rd_sampleRecognizeResult || '-'}</td>
                     </tr>
                 `;
         });
@@ -458,8 +532,6 @@
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const category = document.getElementById('categoryFilter').value;
         const status = document.getElementById('statusFilter').value;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
 
         filteredData = projectData.filter(project => {
             const matchesSearch = !searchTerm ||
@@ -482,26 +554,7 @@
 
             const matchesStatus = !status || projectStatus === status;
 
-            // 根据创建时间筛选
-            let matchesCreateDate = true; // 默认匹配所有
-            if (startDate && endDate) {
-                const createDate = new Date(project.create_time);
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
-                matchesCreateDate = createDate >= start && createDate <= end;
-            } else if (startDate) {
-                const createDate = new Date(project.create_time);
-                const start = new Date(startDate);
-                matchesCreateDate = createDate >= start;
-            } else if (endDate) {
-                const createDate = new Date(project.create_time);
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
-                matchesCreateDate = createDate <= end;
-            }
-
-            return matchesSearch && matchesCategory && matchesStatus && matchesCreateDate;
+            return matchesSearch && matchesCategory && matchesStatus;
         });
 
         updateProjectTable();
@@ -512,10 +565,64 @@
         document.getElementById('searchInput').value = '';
         document.getElementById('categoryFilter').value = '';
         document.getElementById('statusFilter').value = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
         filteredData = [...projectData];
         updateProjectTable();
+    }
+    
+        // 应用时间筛选
+    function applyTimeFilter() {
+        const startDate = document.getElementById('createTimeStart').value;
+        const endDate = document.getElementById('createTimeEnd').value;
+        
+        if (!startDate && !endDate) {
+            // 如果没有选择日期，显示所有数据
+            // 恢复原始数据
+            projectData = [...originalProjectData];
+            filteredData = [...originalProjectData];
+        } else {
+            // 筛选数据
+            const filtered = originalProjectData.filter(project => {
+                if (!project.create_time) return false;
+                
+                const createDate = new Date(project.create_time);
+                let matchesStart = true;
+                let matchesEnd = true;
+                
+                if (startDate) {
+                    const start = new Date(startDate);
+                    matchesStart = createDate >= start;
+                }
+                
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
+                    matchesEnd = createDate <= end;
+                }
+                
+                return matchesStart && matchesEnd;
+            });
+            
+                            // 更新projectData为筛选后的数据
+                projectData = [...filtered];
+                filteredData = [...filtered];
+        }
+        
+        // 更新看板和表格
+        updateDashboard();
+        updateProjectTable();
+        updateCategoryFilter();
+    }
+    
+    // 重置时间筛选
+    function resetTimeFilter() {
+        document.getElementById('createTimeStart').value = '';
+        document.getElementById('createTimeEnd').value = '';
+        // 恢复原始数据
+        projectData = [...originalProjectData];
+        filteredData = [...originalProjectData];
+        updateDashboard();
+        updateProjectTable();
+        updateCategoryFilter();
     }
 
     // 显示项目详情
@@ -570,6 +677,9 @@
                         <button class="filter-btn" onclick="showModalDataList('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
                             查看数据列表
                         </button>
+                        <button class="filter-btn" onclick="showDynamicChartModal('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
+                            动态图表
+                        </button>
                         <button class="filter-btn" onclick="exportModalExcel('${title}')">
                             导出Excel
                         </button>
@@ -591,41 +701,93 @@
                     <p>共找到 <strong>${projects.length}</strong> 个项目</p>
                 </div>
             `;
+            
+            // 检查是否有保存的自定义图表
+            const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+            const chartKey = `${title}_${status}`;
+            let savedChartsList = savedCharts[chartKey];
+            
+            // 确保savedChartsList是数组
+            if (savedChartsList && !Array.isArray(savedChartsList)) {
+                // 如果是旧格式的单个图表，转换为数组格式
+                if (savedChartsList.fieldName) {
+                    savedChartsList = [savedChartsList];
+                    // 更新localStorage为新的数组格式
+                    savedCharts[chartKey] = savedChartsList;
+                    localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
+                } else {
+                    savedChartsList = null;
+                }
+            }
+            
+            if (savedChartsList && savedChartsList.length > 0) {
+                // 显示保存的自定义图表
+                contentHTML += `
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #333; margin-bottom: 15px;">自定义图表 (${savedChartsList.length}个)</h4>
+                `;
+                
+                savedChartsList.forEach((savedChart, index) => {
+                    contentHTML += `
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div>
+                                    <h5 style="color: #333; margin: 0; font-size: 16px;">${savedChart.title}</h5>
+                                    <span style="color: #666; font-size: 12px;">字段: ${savedChart.fieldLabel} | 类型: ${getChartTypeName(savedChart.chartType)} | 显示: 前${savedChart.topN}个 | 创建: ${savedChart.createTime}</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSavedChart('${chartKey}', ${savedChart.id})" title="删除此图表">🗑️</button>
+                            </div>
+                            <div id="savedChart_${chartKey}_${savedChart.id}" style="height: 350px; display: flex; align-items: center; justify-content: center;">
+                                ${generateSavedChart(savedChart, projects)}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentHTML += `</div>`;
+            }
 
         if (projects.length > 0) {
             // 产品类别统计
             const categoryStats = {};
             projects.forEach(project => {
-                const category = project.sample_category || '未分类';
+                const category = project.sample_category && project.sample_category.trim() !== '' ? project.sample_category : '未分类';
                 categoryStats[category] = (categoryStats[category] || 0) + 1;
             });
 
             // 项目负责人统计
             const leaderStats = {};
             projects.forEach(project => {
-                const leader = project.sample_leader || '未指定';
+                const leader = project.sample_leader && project.sample_leader.trim() !== '' ? project.sample_leader : '未指定';
                 leaderStats[leader] = (leaderStats[leader] || 0) + 1;
             });
 
             // 测试负责人统计
             const testerStats = {};
             projects.forEach(project => {
-                const tester = project.tester || '未指定';
+                const tester = project.tester && project.tester.trim() !== '' ? project.tester : '未指定';
                 testerStats[tester] = (testerStats[tester] || 0) + 1;
             });
 
             // DQE负责人统计
             const dqeLeaderStats = {};
             projects.forEach(project => {
-                const dqeLeader = project.dqe_leader || '未指定';
+                const dqeLeader = project.dqe_leader && project.dqe_leader.trim() !== '' ? project.dqe_leader : '未指定';
                 dqeLeaderStats[dqeLeader] = (dqeLeaderStats[dqeLeader] || 0) + 1;
             });
 
             // 研发负责人统计
             const rdLeaderStats = {};
             projects.forEach(project => {
-                const rdLeader = project.rd_leader || '未指定';
+                const rdLeader = project.rd_leader && project.rd_leader.trim() !== '' ? project.rd_leader : '未指定';
                 rdLeaderStats[rdLeader] = (rdLeaderStats[rdLeader] || 0) + 1;
+            });
+
+            // 送样人统计
+            const sampleSenderStats = {};
+            projects.forEach(project => {
+                const sampleSender = project.sample_sender && project.sample_sender.trim() !== '' ? project.sample_sender : '未指定';
+                sampleSenderStats[sampleSender] = (sampleSenderStats[sampleSender] || 0) + 1;
             });
 
             // 确认结果分布统计
@@ -739,7 +901,7 @@
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                 <h4 style="color: #333; margin: 0; font-size: 16px;">研发负责人分布</h4>
-                                <div style="display: flex; gap: 25px;">
+                                <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', 1)" title="放大">+</button>
                                     <button class="zoom-btn" onclick="toggleChartType('rdLeaderChart', '${JSON.stringify(rdLeaderStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
@@ -747,6 +909,19 @@
                             </div>
                             <div id="rdLeaderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
                                 ${createBarChart(rdLeaderStats, 'rdLeaderChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">送样人分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('sampleSenderChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('sampleSenderChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('sampleSenderChart', '${JSON.stringify(sampleSenderStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
+                                </div>
+                            </div>
+                            <div id="sampleSenderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createBarChart(sampleSenderStats, 'sampleSenderChart')}
                             </div>
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
@@ -790,6 +965,7 @@
             bindChartClickEvents('testerChart');
             bindChartClickEvents('dqeLeaderChart');
             bindChartClickEvents('rdLeaderChart');
+            bindChartClickEvents('sampleSenderChart');
             bindChartClickEvents('scheduleChart');
             bindChartClickEvents('confirmResultChart');
 
@@ -798,6 +974,7 @@
             bindTooltipEvents('testerChart');
             bindTooltipEvents('dqeLeaderChart');
             bindTooltipEvents('rdLeaderChart');
+            bindTooltipEvents('sampleSenderChart');
             bindTooltipEvents('scheduleChart');
             bindTooltipEvents('confirmResultChart');
 
@@ -807,6 +984,7 @@
             updateZoomButtons('testerChart', 350);
             updateZoomButtons('dqeLeaderChart', 350);
             updateZoomButtons('rdLeaderChart', 350);
+            updateZoomButtons('sampleSenderChart', 350);
             updateZoomButtons('scheduleChart', 350);
             updateZoomButtons('confirmResultChart', 350);
         }
@@ -867,6 +1045,12 @@
                                 <option value="">所有研发负责人</option>
                             </select>
                         </div>
+                         <div style="display: flex; gap: 10px; align-items: center;">
+                             <label style="font-size: 14px; color: #333;">送样人:</label>
+                             <select class="filter-input" id="modalSampleSenderFilter">
+                                 <option value="">所有送样人</option>
+                            </select>
+                        </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <label style="font-size: 14px; color: #333;">排期天数:</label>
                             <select class="filter-input" id="modalScheduleDaysFilter">
@@ -904,6 +1088,8 @@
                                 <th>实际开始时间</th>
                                 <th>实际结束时间</th>
                                 <th>创建时间</th>
+                                 <th>DQE承认结果</th>
+                                 <th>研发承认结果</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -931,6 +1117,8 @@
                             <td>${formatDateTime(project.actual_start_time) || '-'}</td>
                             <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
                             <td>${formatDateTime(project.create_time) || '-'}</td>
+                             <td>${project.sampleRecognizeResult || '-'}</td>
+                             <td>${project.rd_sampleRecognizeResult || '-'}</td>
                         </tr>
                     `;
             });
@@ -966,53 +1154,87 @@
     // 填充模态框过滤器选项
     function populateModalFilters(projects) {
         // 填充类别过滤器
-        const categories = [...new Set(projects.map(p => p.sample_category).filter(Boolean))];
+        const categories = [...new Set(projects.map(p => p.sample_category).filter(cat => cat && cat.trim() !== ''))];
         const categoryFilter = document.getElementById('modalCategoryFilter');
         if (categoryFilter) {
             categoryFilter.innerHTML = '<option value="">所有类别</option>';
             categories.forEach(category => {
                 categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
             });
+            // 如果有空值的数据，添加"未分类"选项
+            if (projects.some(p => !p.sample_category || p.sample_category.trim() === '')) {
+                categoryFilter.innerHTML += '<option value="">未分类</option>';
+            }
         }
 
         // 填充测试负责人过滤器
-        const testers = [...new Set(projects.map(p => p.tester).filter(Boolean))];
+        const testers = [...new Set(projects.map(p => p.tester).filter(tester => tester && tester.trim() !== ''))];
         const testerFilter = document.getElementById('modalTesterFilter');
         if (testerFilter) {
             testerFilter.innerHTML = '<option value="">所有测试负责人</option>';
             testers.forEach(tester => {
                 testerFilter.innerHTML += `<option value="${tester}">${tester}</option>`;
             });
+            // 如果有空值的数据，添加"未指定"选项
+            if (projects.some(p => !p.tester || p.tester.trim() === '')) {
+                testerFilter.innerHTML += '<option value="">未指定</option>';
+            }
         }
 
         // 填充项目负责人过滤器
-        const leaders = [...new Set(projects.map(p => p.sample_leader).filter(Boolean))];
+        const leaders = [...new Set(projects.map(p => p.sample_leader).filter(leader => leader && leader.trim() !== ''))];
         const leaderFilter = document.getElementById('modalLeaderFilter');
         if (leaderFilter) {
             leaderFilter.innerHTML = '<option value="">所有项目负责人</option>';
             leaders.forEach(leader => {
                 leaderFilter.innerHTML += `<option value="${leader}">${leader}</option>`;
             });
+            // 如果有空值的数据，添加"未指定"选项
+            if (projects.some(p => !p.sample_leader || p.sample_leader.trim() === '')) {
+                leaderFilter.innerHTML += '<option value="">未指定</option>';
+            }
         }
 
         // 填充DQE负责人过滤器
-        const dqeLeaders = [...new Set(projects.map(p => p.dqe_leader).filter(Boolean))];
+        const dqeLeaders = [...new Set(projects.map(p => p.dqe_leader).filter(dqeLeader => dqeLeader && dqeLeader.trim() !== ''))];
         const dqeLeaderFilter = document.getElementById('modalDqeLeaderFilter');
         if (dqeLeaderFilter) {
             dqeLeaderFilter.innerHTML = '<option value="">所有DQE负责人</option>';
             dqeLeaders.forEach(dqeLeader => {
                 dqeLeaderFilter.innerHTML += `<option value="${dqeLeader}">${dqeLeader}</option>`;
             });
+            // 如果有空值的数据，添加"未指定"选项
+            if (projects.some(p => !p.dqe_leader || p.dqe_leader.trim() === '')) {
+                dqeLeaderFilter.innerHTML += '<option value="">未指定</option>';
+            }
         }
 
         // 填充研发负责人过滤器
-        const rdLeaders = [...new Set(projects.map(p => p.rd_leader).filter(Boolean))];
+        const rdLeaders = [...new Set(projects.map(p => p.rd_leader).filter(rdLeader => rdLeader && rdLeader.trim() !== ''))];
         const rdLeaderFilter = document.getElementById('modalRdLeaderFilter');
         if (rdLeaderFilter) {
             rdLeaderFilter.innerHTML = '<option value="">所有研发负责人</option>';
             rdLeaders.forEach(rdLeader => {
                 rdLeaderFilter.innerHTML += `<option value="${rdLeader}">${rdLeader}</option>`;
             });
+            // 如果有空值的数据，添加"未指定"选项
+            if (projects.some(p => !p.rd_leader || p.rd_leader.trim() === '')) {
+                rdLeaderFilter.innerHTML += '<option value="">未指定</option>';
+            }
+        }
+
+        // 填充送样人过滤器
+        const sampleSenders = [...new Set(projects.map(p => p.sample_sender).filter(sender => sender && sender.trim() !== ''))];
+        const sampleSenderFilter = document.getElementById('modalSampleSenderFilter');
+        if (sampleSenderFilter) {
+            sampleSenderFilter.innerHTML = '<option value="">所有送样人</option>';
+            sampleSenders.forEach(sender => {
+                sampleSenderFilter.innerHTML += `<option value="${sender}">${sender}</option>`;
+            });
+            // 如果有空值的数据，添加"未指定"选项
+            if (projects.some(p => !p.sample_sender || p.sample_sender.trim() === '')) {
+                sampleSenderFilter.innerHTML += '<option value="">未指定</option>';
+            }
         }
 
         // 填充排期天数过滤器
@@ -1368,29 +1590,70 @@
 
         if (chartId === 'categoryChart') {
             // 产品类别筛选
+            if (label === '未分类') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.sample_category || project.sample_category.trim() === ''
+                );
+            } else {
             filteredProjects = originalProjects.filter(project =>
                 project.sample_category === label
             );
+            }
         } else if (chartId === 'leaderChart') {
             // 项目负责人筛选
+            if (label === '未指定') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.sample_leader || project.sample_leader.trim() === ''
+                );
+            } else {
             filteredProjects = originalProjects.filter(project =>
                 project.sample_leader === label
             );
+            }
         } else if (chartId === 'testerChart') {
             // 测试负责人筛选
+            if (label === '未指定') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.tester || project.tester.trim() === ''
+                );
+            } else {
             filteredProjects = originalProjects.filter(project =>
                 project.tester === label
             );
+            }
         } else if (chartId === 'dqeLeaderChart') {
             // DQE负责人筛选
+            if (label === '未指定') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.dqe_leader || project.dqe_leader.trim() === ''
+                );
+            } else {
             filteredProjects = originalProjects.filter(project =>
                 project.dqe_leader === label
             );
+            }
         } else if (chartId === 'rdLeaderChart') {
             // 研发负责人筛选
+            if (label === '未指定') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.rd_leader || project.rd_leader.trim() === ''
+                );
+            } else {
             filteredProjects = originalProjects.filter(project =>
                 project.rd_leader === label
             );
+            }
+        } else if (chartId === 'sampleSenderChart') {
+            // 送样人筛选
+            if (label === '未指定') {
+                filteredProjects = originalProjects.filter(project =>
+                    !project.sample_sender || project.sample_sender.trim() === ''
+                );
+            } else {
+                filteredProjects = originalProjects.filter(project =>
+                    project.sample_sender === label
+                );
+            }
         } else if (chartId === 'scheduleChart') {
             // 排期天数筛选
             if (label === '未设置') {
@@ -1440,29 +1703,59 @@
             if (chartId === 'categoryChart') {
                 const categoryFilter = document.getElementById('modalCategoryFilter');
                 if (categoryFilter) {
+                    if (label === '未分类') {
+                        categoryFilter.value = ''; // 未分类对应空值
+                    } else {
                     categoryFilter.value = label;
+                    }
                 }
             } else if (chartId === 'leaderChart') {
                 const leaderFilter = document.getElementById('modalLeaderFilter');
                 if (leaderFilter) {
+                    if (label === '未指定') {
+                        leaderFilter.value = ''; // 未指定对应空值
+                    } else {
                     leaderFilter.value = label;
+                    }
                 }
             } else if (chartId === 'testerChart') {
                 const testerFilter = document.getElementById('modalTesterFilter');
                 if (testerFilter) {
+                    if (label === '未指定') {
+                        testerFilter.value = ''; // 未指定对应空值
+                    } else {
                     testerFilter.value = label;
+                    }
                 }
             } else if (chartId === 'dqeLeaderChart') {
                 // DQE负责人筛选器（如果有的话）
                 const dqeLeaderFilter = document.getElementById('modalDqeLeaderFilter');
                 if (dqeLeaderFilter) {
+                    if (label === '未指定') {
+                        dqeLeaderFilter.value = ''; // 未指定对应空值
+                    } else {
                     dqeLeaderFilter.value = label;
+                    }
                 }
             } else if (chartId === 'rdLeaderChart') {
                 // 研发负责人筛选器（如果有的话）
                 const rdLeaderFilter = document.getElementById('modalRdLeaderFilter');
                 if (rdLeaderFilter) {
+                    if (label === '未指定') {
+                        rdLeaderFilter.value = ''; // 未指定对应空值
+                    } else {
                     rdLeaderFilter.value = label;
+                    }
+                }
+            } else if (chartId === 'sampleSenderChart') {
+                // 送样人筛选器
+                const sampleSenderFilter = document.getElementById('modalSampleSenderFilter');
+                if (sampleSenderFilter) {
+                    if (label === '未指定') {
+                        sampleSenderFilter.value = ''; // 未指定对应空值
+                    } else {
+                        sampleSenderFilter.value = label;
+                    }
                 }
             } else if (chartId === 'scheduleChart') {
                 const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
@@ -1817,7 +2110,7 @@
             const headers = [
                 '样品编号', '产品名称', '产品类别', '大编码', '版本', '项目负责人',
                 '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '创建时间', '排期天数',
-                '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果'
+                 '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果', 'DQE承认结果', '研发承认结果'
             ];
 
             // 准备数据
@@ -1840,7 +2133,9 @@
                 formatDate(project.schedule_end_date) || '',
                 formatDateTime(project.actual_start_time) || '',
                 formatDateTime(project.actual_finish_time) || '',
-                project.sampleRecognizeResult || ''
+                 project.sampleRecognizeResult || '',
+                 project.sampleRecognizeResult || '',
+                 project.rd_sampleRecognizeResult || ''
             ]);
 
             // 创建工作簿
@@ -2165,111 +2460,643 @@
 
     // 模态框导出Excel功能（导出筛选后的数据）
     function exportModalExcel(title) {
-        // 获取当前筛选后的数据
-        const startDate = document.getElementById('modalStartDate').value;
-        const endDate = document.getElementById('modalEndDate').value;
-        const category = document.getElementById('modalCategoryFilter')?.value;
-        const tester = document.getElementById('modalTesterFilter')?.value;
-        const leader = document.getElementById('modalLeaderFilter')?.value;
-        const dqeLeader = document.getElementById('modalDqeLeaderFilter')?.value;
-        const rdLeader = document.getElementById('modalRdLeaderFilter')?.value;
-        const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
-
-        // 根据标题重新获取原始项目数据
-        let originalProjects = [];
+        // 获取当前模态框中实际显示的数据
+        let projectsToExport = [];
+        
+        // 检查当前模态框是否显示的是数据列表
+        const modalContent = document.getElementById('modalContent');
+        if (modalContent && modalContent.innerHTML.includes('详细数据列表')) {
+            // 如果当前显示的是数据列表，获取表格中的实际数据
+            const tableRows = modalContent.querySelectorAll('table tbody tr');
+            if (tableRows.length > 0) {
+                // 从表格行中提取数据
+                projectsToExport = Array.from(tableRows).map(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 15) { // 确保有足够的列
+                        return {
+                            sample_id: cells[0].textContent.trim(),
+                            sample_name: cells[1].textContent.trim(),
+                            sample_category: cells[2].textContent.trim(),
+                            sample_leader: cells[3].textContent.trim(),
+                            tester: cells[4].textContent.trim(),
+                            dqe_leader: cells[5].textContent.trim(),
+                            rd_leader: cells[6].textContent.trim(),
+                            sample_sender: cells[7].textContent.trim(),
+                            scheduleDays: cells[8].textContent.trim(),
+                            schedule_start_date: cells[9].textContent.trim(),
+                            schedule_end_date: cells[10].textContent.trim(),
+                            actual_start_time: cells[11].textContent.trim(),
+                            actual_finish_time: cells[12].textContent.trim(),
+                            create_time: cells[13].textContent.trim(),
+                            sampleRecognizeResult: cells[14].textContent.trim(),
+                            rd_sampleRecognizeResult: cells[15] ? cells[15].textContent.trim() : ''
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+            }
+        }
+        
+        // 如果无法从表格获取数据，则根据标题获取基础数据
+        if (projectsToExport.length === 0) {
         switch(title) {
             case '项目总数':
-                originalProjects = projectData;
+                    projectsToExport = projectData;
                 break;
             case '未开始项目详情':
-                originalProjects = projectData.filter(p =>
+                    projectsToExport = projectData.filter(p => 
                     !p.actual_start_time && p.schedule !== '已完成'
                 );
                 break;
             case '进行中项目详情':
-                originalProjects = originalProjects.filter(p =>
+                    projectsToExport = projectData.filter(p => 
                     p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
                 );
                 break;
             case '已完成未确认项目详情':
-                originalProjects = originalProjects.filter(p =>
+                    projectsToExport = projectData.filter(p => 
                     p.actual_finish_time && !p.sampleRecognizeResult
                 );
                 break;
             case '已确认项目详情':
-                originalProjects = originalProjects.filter(p =>
+                    projectsToExport = projectData.filter(p => 
+                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                    );
+                    break;
+                default:
+                    // 如果标题包含筛选信息（如"项目总数 - 产品类别"）
+                    if (title.includes(' - ')) {
+                        const [baseTitle, filterValue] = title.split(' - ');
+                        
+                        // 根据基础标题获取原始项目数据
+                        let baseProjects = [];
+                        switch(baseTitle) {
+                            case '项目总数':
+                                baseProjects = projectData;
+                                break;
+                            case '未开始项目详情':
+                                baseProjects = projectData.filter(p =>
+                                    !p.actual_start_time && p.schedule !== '已完成'
+                                );
+                                break;
+                            case '进行中项目详情':
+                                baseProjects = projectData.filter(p =>
+                                    p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
+                                );
+                                break;
+                            case '已完成未确认项目详情':
+                                baseProjects = projectData.filter(p =>
+                                    p.actual_finish_time && !p.sampleRecognizeResult
+                                );
+                                break;
+                            case '已确认项目详情':
+                                baseProjects = projectData.filter(p =>
                     p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
                 );
                 break;
         }
 
-        // 应用所有筛选条件
-        let projectsToExport = originalProjects.filter(project => {
-            // 类别筛选
-            if (category && project.sample_category !== category) {
-                return false;
-            }
-
-            // 测试负责人筛选
-            if (tester && project.tester !== tester) {
-                return false;
-            }
-
-            // 项目负责人筛选
-            if (leader && project.sample_leader !== leader) {
-                return false;
-            }
-
-            // DQE负责人筛选
-            if (dqeLeader && project.dqe_leader !== dqeLeader) {
-                return false;
-            }
-
-            // 研发负责人筛选
-            if (rdLeader && project.rd_leader !== rdLeader) {
-                return false;
-            }
-
-            // 排期天数筛选
-            if (scheduleDays) {
-                if (scheduleDays === '未设置') {
-                    if (project.scheduleDays && !isNaN(project.scheduleDays)) {
-                        return false;
+                        // 根据筛选值进一步筛选
+                        if (filterValue && baseProjects.length > 0) {
+                            if (filterValue.includes('天')) {
+                                // 排期天数筛选
+                                if (filterValue === '未设置') {
+                                    projectsToExport = baseProjects.filter(project =>
+                                        !project.scheduleDays || isNaN(project.scheduleDays)
+                                    );
+                                } else {
+                                    const days = parseInt(filterValue.replace('天', ''));
+                                    projectsToExport = baseProjects.filter(project =>
+                                        project.scheduleDays === days
+                                    );
+                                }
+                            } else {
+                                // 其他筛选（产品类别、负责人等）
+                                projectsToExport = baseProjects.filter(project => {
+                                    return project.sample_category === filterValue ||
+                                        project.sample_leader === filterValue ||
+                                        project.tester === filterValue ||
+                                        project.dqe_leader === filterValue ||
+                                        project.rd_leader === filterValue ||
+                                        project.sample_sender === filterValue;
+                                });
+                            }
+                        } else {
+                            projectsToExport = baseProjects;
+                        }
+                    } else {
+                        projectsToExport = projectData;
                     }
-                } else {
-                    if (project.scheduleDays !== parseInt(scheduleDays)) {
-                        return false;
-                    }
-                }
+                    break;
             }
-
-            // 时间筛选
-            if (startDate || endDate) {
-                if (!project.create_time) return false;
-
-                const createDate = new Date(project.create_time);
-                let matchesDate = true;
-
-                if (startDate) {
-                    const start = new Date(startDate);
-                    matchesDate = matchesDate && createDate >= start;
-                }
-
-                if (endDate) {
-                    const end = new Date(endDate);
-                    end.setHours(23, 59, 59, 999);
-                    matchesDate = matchesDate && createDate <= end;
-                }
-
-                if (!matchesDate) return false;
-            }
-
-            return true;
-        });
-
+        }
+        
+        // 检查是否有数据可以导出
+        if (projectsToExport.length === 0) {
+            alert('没有数据可以导出！');
+            return;
+        }
+        
+        console.log('导出数据，标题:', title, '数量:', projectsToExport.length);
+        console.log('导出的数据:', projectsToExport);
+        
         // 调用原有的导出函数，传入筛选后的数据
         exportToExcel(title, projectsToExport);
+            }
+
+        // 显示动态图表模态框
+        function showDynamicChartModal(title, projects, status) {
+            // 填充字段选择器
+            populateFieldSelector();
+            
+            // 存储当前项目数据供图表生成使用
+            window.currentProjectsForChart = projects;
+            window.currentChartTitle = title;
+            window.currentChartStatus = status;
+            
+            // 显示模态框
+            document.getElementById('dynamicChartModal').style.display = 'block';
+            
+            // 填充已保存的图表列表
+            populateSavedChartsList();
+        }
+
+        // 关闭动态图表模态框
+        function closeDynamicChartModal() {
+            document.getElementById('dynamicChartModal').style.display = 'none';
+        }
+
+        // 填充字段选择器
+        function populateFieldSelector() {
+            const fieldSelector = document.getElementById('fieldSelector');
+            const fields = [
+                { value: 'sample_id', label: '测试编号' },
+                { value: 'sample_actual_id', label: '样品编号' },
+                { value: 'sample_category', label: '产品类别' },
+                { value: 'sample_model', label: '大编码' },
+                { value: 'materialCode', label: '物料编码' },
+                { value: 'sample_frequency', label: '送样次数' },
+                { value: 'sample_name', label: '产品名称' },
+                { value: 'version', label: '版本号' },
+                { value: 'priority', label: '优先级' },
+                { value: 'sample_leader', label: '项目负责人' },
+                { value: 'supplier', label: '供应商' },
+                { value: 'testProjectCategory', label: '试验项目类别' },
+                { value: 'testProjects', label: '测试子项目' },
+                { value: 'schedule', label: '当前进度' },
+                { value: 'create_time', label: '创建时间' },
+                { value: 'scheduleDays', label: '排期天数' },
+                { value: 'isUsed', label: '是否用在排期上' },
+                { value: 'schedule_start_date', label: '排期开始时间' },
+                { value: 'schedule_end_date', label: '排期结束时间' },
+                { value: 'isCancel', label: '是否作废' },
+                { value: 'actual_start_time', label: '实际开始测试时间' },
+                { value: 'actual_finish_time', label: '实际测试时间' },
+                { value: 'schedule_color', label: '排期颜色' },
+                { value: 'reportReviewTime', label: '报告审核时间' },
+                { value: 'sampleRecognizeResult', label: '样品承认结果' },
+                { value: 'rd_sampleRecognizeResult', label: '研发承认结果' },
+                { value: 'tester', label: '测试负责人' },
+                { value: 'testDuration', label: '实际测试时长' },
+                { value: 'update_time', label: '更新时间' },
+                { value: 'waitSample_classify', label: '待送样归类' },
+                { value: 'sample_sender', label: '送样人' },
+                { value: 'sample_type', label: '送样类别' },
+                { value: 'sample_quantity', label: '送样数量' },
+                { value: 'high_frequency', label: '是否高频' }
+            ];
+            
+            fieldSelector.innerHTML = '<option value="">请选择要分析的字段</option>';
+            fields.forEach(field => {
+                fieldSelector.innerHTML += `<option value="${field.value}">${field.label}</option>`;
+            });
+        }
+
+        // 生成动态图表
+        function generateDynamicChart() {
+            const fieldName = document.getElementById('fieldSelector').value;
+            const chartType = document.getElementById('chartTypeSelector').value;
+            const topN = parseInt(document.getElementById('topNSelector').value) || 10;
+            
+            if (!fieldName) {
+                alert('请选择要分析的字段！');
+                return;
+            }
+            
+            if (!window.currentProjectsForChart || window.currentProjectsForChart.length === 0) {
+                alert('没有数据可以分析！');
+                return;
+            }
+            
+            // 统计数据
+            const stats = {};
+            window.currentProjectsForChart.forEach(project => {
+                let value = project[fieldName];
+                
+                // 处理不同类型的值
+                if (value === null || value === undefined || value === '') {
+                    value = '未设置';
+                } else if (fieldName === 'scheduleDays') {
+                    value = isNaN(value) ? '未设置' : value + '天';
+                } else if (fieldName.includes('date') || fieldName.includes('time')) {
+                    // 对于日期时间字段，提取年月日
+                    if (value && value !== '未设置') {
+                        try {
+                            const date = new Date(value);
+                            if (!isNaN(date.getTime())) {
+                                value = date.toLocaleDateString('zh-CN');
+                            }
+                        } catch (e) {
+                            value = '无效日期';
+                        }
+                    }
+                }
+                
+                stats[value] = (stats[value] || 0) + 1;
+            });
+            
+            // 排序并取前N个
+            const sortedStats = Object.entries(stats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, topN);
+            
+            // 重新构建统计数据
+            const finalStats = {};
+            sortedStats.forEach(([key, value]) => {
+                finalStats[key] = value;
+            });
+            
+            // 生成图表
+            const chartContainer = document.getElementById('dynamicChartContainer');
+            if (chartType === 'pie') {
+                chartContainer.innerHTML = createPieChart(finalStats, 'dynamicChart');
+            } else if (chartType === 'line') {
+                chartContainer.innerHTML = createLineChart(finalStats, 'dynamicChart');
+                } else {
+                chartContainer.innerHTML = createBarChart(finalStats, 'dynamicChart');
+            }
+            
+            // 绑定图表事件
+            bindDynamicChartEvents();
+        }
+
+        // 清除动态图表
+        function clearDynamicChart() {
+            document.getElementById('dynamicChartContainer').innerHTML = `
+                <div style="text-align: center; color: #666;">
+                    <p>请选择字段并点击"生成图表"按钮</p>
+                </div>
+            `;
+        }
+
+        // 保存图表到项目详情
+        function saveChartToProjectDetails() {
+            const fieldName = document.getElementById('fieldSelector').value;
+            const chartType = document.getElementById('chartTypeSelector').value;
+            const topN = parseInt(document.getElementById('topNSelector').value) || 10;
+            
+            if (!fieldName) {
+                alert('请先生成图表！');
+                return;
+            }
+            
+            // 获取字段标签
+            const fieldSelector = document.getElementById('fieldSelector');
+            const selectedOption = fieldSelector.options[fieldSelector.selectedIndex];
+            const fieldLabel = selectedOption ? selectedOption.text : fieldName;
+            
+            // 创建图表配置对象
+            const chartConfig = {
+                id: Date.now(), // 唯一ID
+                fieldName: fieldName,
+                fieldLabel: fieldLabel,
+                chartType: chartType,
+                topN: topN,
+                title: `${fieldLabel}分布`,
+                projects: window.currentProjectsForChart,
+                status: window.currentChartStatus,
+                createTime: new Date().toLocaleString('zh-CN')
+            };
+            
+            // 保存到localStorage，支持多个图表
+            const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+            const key = `${window.currentChartTitle}_${window.currentChartStatus}`;
+            
+            if (!savedCharts[key]) {
+                savedCharts[key] = [];
+            }
+            
+            // 检查是否已存在相同字段的图表
+            const existingIndex = savedCharts[key].findIndex(chart => chart.fieldName === fieldName);
+            if (existingIndex !== -1) {
+                if (confirm(`已存在"${fieldLabel}"的图表，是否替换？`)) {
+                    savedCharts[key][existingIndex] = chartConfig;
+                } else {
+                    return; // 用户取消替换
+                }
+            } else {
+                savedCharts[key].push(chartConfig);
+            }
+            
+            localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
+            
+            alert(`图表已保存！下次进入"${window.currentChartTitle}"时将自动显示此图表。`);
+            
+            // 刷新已保存的图表列表
+            populateSavedChartsList();
+        }
+
+        // 绑定动态图表事件
+        function bindDynamicChartEvents() {
+            const chartContainer = document.getElementById('dynamicChartContainer');
+            
+            // 为饼图的扇形添加点击事件
+            const segments = chartContainer.querySelectorAll('path[id^="segment_"]');
+            segments.forEach(segment => {
+                const label = segment.getAttribute('data-label');
+                const value = segment.getAttribute('data-value');
+                if (label && value) {
+                    segment.onclick = () => {
+                        alert(`点击了: ${label}, 数量: ${value}`);
+                    };
+                }
+            });
+            
+            // 为柱状图的柱子添加点击事件
+            const bars = chartContainer.querySelectorAll('div[data-label][data-value]');
+            bars.forEach(bar => {
+                const label = bar.getAttribute('data-label');
+                const value = bar.getAttribute('data-value');
+                if (label && value) {
+                    if (bar.style.background || bar.style.backgroundColor) {
+                        bar.onclick = () => {
+                            alert(`点击了: ${label}, 数量: ${value}`);
+                        };
+                    }
+                }
+            });
+        }
+
+        // 创建折线图
+        function createLineChart(data, chartId) {
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+            const maxValue = Math.max(...values);
+            
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 800 400">`;
+            
+            // 绘制坐标轴
+            svg += `<line x1="50" y1="350" x2="750" y2="350" stroke="#333" stroke-width="2"/>`;
+            svg += `<line x1="50" y1="50" x2="50" y2="350" stroke="#333" stroke-width="2"/>`;
+            
+            // 绘制折线
+            if (labels.length > 1) {
+                let pathData = '';
+                labels.forEach((label, index) => {
+                    const x = 50 + (index * 700) / (labels.length - 1);
+                    const y = 350 - (values[index] * 300) / maxValue;
+                    
+                    if (index === 0) {
+                        pathData = `M ${x} ${y}`;
+                    } else {
+                        pathData += ` L ${x} ${y}`;
+                    }
+                });
+                
+                svg += `<path d="${pathData}" stroke="#007bff" stroke-width="3" fill="none"/>`;
+                
+                // 绘制数据点
+                labels.forEach((label, index) => {
+                    const x = 50 + (index * 700) / (labels.length - 1);
+                    const y = 350 - (values[index] * 300) / maxValue;
+                    
+                    svg += `<circle cx="${x}" cy="${y}" r="5" fill="#007bff"/>`;
+                    svg += `<text x="${x}" y="${y + 20}" text-anchor="middle" font-size="12" fill="#333">${values[index]}</text>`;
+                });
+            }
+            
+            // 绘制标签
+            labels.forEach((label, index) => {
+                const x = 50 + (index * 700) / (labels.length - 1);
+                svg += `<text x="${x}" y="380" text-anchor="middle" font-size="10" fill="#666">${label}</text>`;
+            });
+            
+            svg += `</svg>`;
+            return svg;
+        }
+
+        // 获取图表类型名称
+        function getChartTypeName(chartType) {
+            const typeNames = {
+                'bar': '柱状图',
+                'pie': '饼图',
+                'line': '折线图'
+            };
+            return typeNames[chartType] || chartType;
+        }
+
+        // 生成保存的图表
+        function generateSavedChart(chartConfig, projects) {
+            // 统计数据
+            const stats = {};
+            projects.forEach(project => {
+                let value = project[chartConfig.fieldName];
+                
+                // 处理不同类型的值（与generateDynamicChart中的逻辑一致）
+                if (value === null || value === undefined || value === '') {
+                    value = '未设置';
+                } else if (chartConfig.fieldName === 'scheduleDays') {
+                    value = isNaN(value) ? '未设置' : value + '天';
+                } else if (chartConfig.fieldName === 'testDuration') {
+                    value = isNaN(value) ? '未设置' : value + '小时';
+                } else if (chartConfig.fieldName === 'sample_frequency') {
+                    value = isNaN(value) ? '未设置' : value + '次';
+                } else if (chartConfig.fieldName === 'isUsed') {
+                    value = value === 1 ? '已用' : value === 0 ? '未用' : '未设置';
+                } else if (chartConfig.fieldName === 'isCancel') {
+                    value = value === 1 ? '已作废' : value === 0 ? '未作废' : '未设置';
+                } else if (chartConfig.fieldName === 'high_frequency') {
+                    value = value === '1' || value === 1 ? '是' : value === '0' || value === 0 ? '否' : value || '未设置';
+                } else if (chartConfig.fieldName.includes('date') || chartConfig.fieldName.includes('time') || chartConfig.fieldName === 'reportReviewTime') {
+                    if (value && value !== '未设置') {
+                        try {
+                            const date = new Date(value);
+                            if (!isNaN(date.getTime())) {
+                                value = date.toLocaleDateString('zh-CN');
+                            }
+                        } catch (e) {
+                            value = '无效日期';
+                        }
+                    }
+                } else if (['priority', 'schedule', 'sample_type'].includes(chartConfig.fieldName)) {
+                    if (value && value.trim() !== '') {
+                        value = value.trim();
+                    } else {
+                        value = '未设置';
+                    }
+                }
+                
+                stats[value] = (stats[value] || 0) + 1;
+            });
+            
+            // 排序并取前N个
+            const sortedStats = Object.entries(stats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, chartConfig.topN);
+            
+            // 重新构建统计数据
+            const finalStats = {};
+            sortedStats.forEach(([key, value]) => {
+                finalStats[key] = value;
+            });
+            
+            // 生成图表
+            if (chartConfig.chartType === 'pie') {
+                return createPieChart(finalStats, 'savedChart');
+            } else if (chartConfig.chartType === 'line') {
+                return createLineChart(finalStats, 'savedChart');
+            } else {
+                return createBarChart(finalStats, 'savedChart');
+            }
+        }
+
+                // 删除保存的图表
+        function removeSavedChart(chartKey, chartId) {
+            if (confirm('确定要删除这个自定义图表吗？')) {
+                const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+                
+                if (savedCharts[chartKey]) {
+                    // 从数组中删除指定ID的图表
+                    savedCharts[chartKey] = savedCharts[chartKey].filter(chart => chart.id !== chartId);
+                    
+                    // 如果数组为空，删除整个key
+                    if (savedCharts[chartKey].length === 0) {
+                        delete savedCharts[chartKey];
+                    }
+                    
+                    localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
+                }
+                
+                // 刷新页面显示
+                const currentStatus = window.currentChartStatus || 'total';
+                showProjectDetails(currentStatus);
+            }
+                }
+
+        // 填充已保存的图表列表
+        function populateSavedChartsList() {
+            const savedChartsList = document.getElementById('savedChartsList');
+            const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+            const chartKey = `${window.currentChartTitle}_${window.currentChartStatus}`;
+            let charts = savedCharts[chartKey] || [];
+            
+            // 确保charts是数组
+            if (!Array.isArray(charts)) {
+                // 如果是旧格式的单个图表，转换为数组格式
+                if (charts && typeof charts === 'object' && charts.fieldName) {
+                    charts = [charts];
+                    // 更新localStorage为新的数组格式
+                    savedCharts[chartKey] = charts;
+                    localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
+                } else {
+                    charts = [];
+                }
+            }
+            
+            if (charts.length === 0) {
+                savedChartsList.innerHTML = '<p style="color: #666; text-align: center;">暂无保存的图表</p>';
+                return;
+            }
+            
+            let html = '';
+            charts.forEach((chart, index) => {
+                html += `
+                    <div style="background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <strong style="color: #333;">${chart.title}</strong>
+                                <span style="color: #666; font-size: 12px; margin-left: 10px;">字段: ${chart.fieldLabel}</span>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadSavedChart('${chartKey}', ${chart.id})" title="加载此图表">📊</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSavedChart('${chartKey}', ${chart.id})" title="删除此图表">🗑️</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            类型: ${getChartTypeName(chart.chartType)} | 显示: 前${chart.topN}个 | 创建: ${chart.createTime}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            savedChartsList.innerHTML = html;
+        }
+
+        // 加载保存的图表到图表容器
+        function loadSavedChart(chartKey, chartId) {
+            const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+            const charts = savedCharts[chartKey] || [];
+            const chart = charts.find(c => c.id === chartId);
+            
+            if (chart) {
+                // 设置字段选择器
+                document.getElementById('fieldSelector').value = chart.fieldName;
+                document.getElementById('chartTypeSelector').value = chart.chartType;
+                document.getElementById('topNSelector').value = chart.topN;
+                
+                // 生成图表
+                generateDynamicChart();
+                
+                alert(`已加载"${chart.title}"图表配置`);
+            }
     }
 </script>
+
+    <!-- 动态图表模态框 -->
+    <div id="dynamicChartModal" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; height: 85%; max-height: 700px;">
+            <div class="modal-header">
+                <h3>动态图表生成器</h3>
+                <span class="close" onclick="closeDynamicChartModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                        <label style="font-weight: bold;">选择字段:</label>
+                        <select id="fieldSelector" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
+                            <option value="">请选择要分析的字段</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateDynamicChart()">生成图表</button>
+                        <button class="btn btn-success" onclick="saveChartToProjectDetails()">保存到项目详情</button>
+                        <button class="btn btn-secondary" onclick="clearDynamicChart()">清除图表</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-weight: bold;">图表类型:</label>
+                        <select id="chartTypeSelector" style="padding: 6px; border: 4px;">
+                            <option value="bar">柱状图</option>
+                            <option value="pie">饼图</option>
+                            <option value="line">折线图</option>
+                        </select>
+                        <label style="font-weight: bold; margin-left: 15px;">显示数量:</label>
+                        <input type="number" id="topNSelector" value="10" min="1" max="50" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; width: 80px;">
+                        <span style="color: #666; font-size: 12px;">(显示前N个最多的值)</span>
+                    </div>
+                </div>
+                <div id="dynamicChartContainer" style="height: 500px; border: 1px solid #eee; border-radius: 8px; padding: 20px; background: #f9f9f9; display: flex; align-items: center; justify-content: center;">
+                    <div style="text-align: center; color: #666;">
+                        <p>请选择字段并点击"生成图表"按钮</p>
+                    </div>
+                </div>
+                
+                <!-- 已保存的图表列表 -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #333; margin-bottom: 15px;">已保存的图表</h4>
+                    <div id="savedChartsList" style="max-height: 300px; overflow-y: auto;">
+                        <!-- 动态填充已保存的图表 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
