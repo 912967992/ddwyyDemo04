@@ -614,6 +614,46 @@
                     testerStats[tester] = (testerStats[tester] || 0) + 1;
                 });
                 
+                // DQE负责人统计
+                const dqeLeaderStats = {};
+                projects.forEach(project => {
+                    const dqeLeader = project.dqe_leader || '未指定';
+                    dqeLeaderStats[dqeLeader] = (dqeLeaderStats[dqeLeader] || 0) + 1;
+                });
+                
+                // 研发负责人统计
+                const rdLeaderStats = {};
+                projects.forEach(project => {
+                    const rdLeader = project.rd_leader || '未指定';
+                    rdLeaderStats[rdLeader] = (rdLeaderStats[rdLeader] || 0) + 1;
+                });
+                
+                // 确认结果分布统计
+                const confirmResultStats = {};
+                projects.forEach(project => {
+                    // 检查研发承认结果
+                    if (project.rd_sampleRecognizeResult) {
+                        const rdResult = project.rd_sampleRecognizeResult.trim();
+                        if (rdResult !== '') {
+                            confirmResultStats[`研发-${rdResult}`] = (confirmResultStats[`研发-${rdResult}`] || 0) + 1;
+                        }
+                    }
+                    
+                    // 检查DQE承认结果
+                    if (project.sampleRecognizeResult) {
+                        const dqeResult = project.sampleRecognizeResult.trim();
+                        if (dqeResult !== '') {
+                            confirmResultStats[`DQE-${dqeResult}`] = (confirmResultStats[`DQE-${dqeResult}`] || 0) + 1;
+                        }
+                    }
+                    
+                    // 统计未确认的项目
+                    if ((!project.rd_sampleRecognizeResult || project.rd_sampleRecognizeResult.trim() === '') && 
+                        (!project.sampleRecognizeResult || project.sampleRecognizeResult.trim() === '')) {
+                        confirmResultStats['未确认'] = (confirmResultStats['未确认'] || 0) + 1;
+                    }
+                });
+                
                 // 排期天数分布统计
                 const scheduleDaysStats = {};
                 projects.forEach(project => {
@@ -643,17 +683,18 @@
                 
                 // 创建图表容器
                 contentHTML += `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-bottom: 25px;">
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                 <h4 style="color: #333; margin: 0; font-size: 16px;">产品类别分布</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('categoryChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('categoryChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('categoryChart', '${JSON.stringify(categoryStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
                                 </div>
                             </div>
                             <div id="categoryChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
-                                ${createPieChart(categoryStats, 'categoryChart')}
+                                ${createBarChart(categoryStats, 'categoryChart')}
                             </div>
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
@@ -662,10 +703,11 @@
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('leaderChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('leaderChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('leaderChart', '${JSON.stringify(leaderStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
                                 </div>
                             </div>
                             <div id="leaderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
-                                ${createPieChart(leaderStats, 'leaderChart')}
+                                ${createBarChart(leaderStats, 'leaderChart')}
                             </div>
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
@@ -674,10 +716,37 @@
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('testerChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('testerChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('testerChart', '${JSON.stringify(testerStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
                                 </div>
                             </div>
                             <div id="testerChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
-                                ${createPieChart(testerStats, 'testerChart')}
+                                ${createBarChart(testerStats, 'testerChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">DQE负责人分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('dqeLeaderChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('dqeLeaderChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('dqeLeaderChart', '${JSON.stringify(dqeLeaderStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
+                                </div>
+                            </div>
+                            <div id="dqeLeaderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createBarChart(dqeLeaderStats, 'dqeLeaderChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">研发负责人分布</h4>
+                                <div style="display: flex; gap: 25px;">
+                                    <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('rdLeaderChart', '${JSON.stringify(rdLeaderStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
+                                </div>
+                            </div>
+                            <div id="rdLeaderChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createBarChart(rdLeaderStats, 'rdLeaderChart')}
                             </div>
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
@@ -686,10 +755,24 @@
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('scheduleChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('scheduleChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('scheduleChart', '${JSON.stringify(orderedScheduleDaysStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
                                 </div>
                             </div>
                             <div id="scheduleChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
                                 ${createBarChart(orderedScheduleDaysStats, 'scheduleChart')}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">确认结果分布</h4>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="zoom-btn" onclick="zoomChart('confirmResultChart', -1)" title="缩小">−</button>
+                                    <button class="zoom-btn" onclick="zoomChart('confirmResultChart', 1)" title="放大">+</button>
+                                    <button class="zoom-btn" onclick="toggleChartType('confirmResultChart', '${JSON.stringify(confirmResultStats).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
+                                </div>
+                            </div>
+                            <div id="confirmResultChart" style="height: 350px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                ${createBarChart(confirmResultStats, 'confirmResultChart')}
                             </div>
                         </div>
                     </div>
@@ -699,6 +782,34 @@
             }
             
             document.getElementById('modalContent').innerHTML = contentHTML;
+            
+            // 绑定图表点击事件和tooltip事件
+            if (projects.length > 0) {
+                bindChartClickEvents('categoryChart');
+                bindChartClickEvents('leaderChart');
+                bindChartClickEvents('testerChart');
+                bindChartClickEvents('dqeLeaderChart');
+                bindChartClickEvents('rdLeaderChart');
+                bindChartClickEvents('scheduleChart');
+                bindChartClickEvents('confirmResultChart');
+                
+                bindTooltipEvents('categoryChart');
+                bindTooltipEvents('leaderChart');
+                bindTooltipEvents('testerChart');
+                bindTooltipEvents('dqeLeaderChart');
+                bindTooltipEvents('rdLeaderChart');
+                bindTooltipEvents('scheduleChart');
+                bindTooltipEvents('confirmResultChart');
+                
+                // 更新放大缩小按钮状态
+                updateZoomButtons('categoryChart', 350);
+                updateZoomButtons('leaderChart', 350);
+                updateZoomButtons('testerChart', 350);
+                updateZoomButtons('dqeLeaderChart', 350);
+                updateZoomButtons('rdLeaderChart', 350);
+                updateZoomButtons('scheduleChart', 350);
+                updateZoomButtons('confirmResultChart', 350);
+            }
         }
         
         // 显示模态框数据列表
@@ -745,6 +856,18 @@
                             </select>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">DQE负责人:</label>
+                            <select class="filter-input" id="modalDqeLeaderFilter">
+                                <option value="">所有DQE负责人</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 14px; color: #333;">研发负责人:</label>
+                            <select class="filter-input" id="modalRdLeaderFilter">
+                                <option value="">所有研发负责人</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
                             <label style="font-size: 14px; color: #333;">排期天数:</label>
                             <select class="filter-input" id="modalScheduleDaysFilter">
                                 <option value="">所有排期天数</option>
@@ -758,7 +881,6 @@
                         </div>
                         <button class="filter-btn" onclick="applyModalFilters()">筛选</button>
                         <button class="filter-btn" onclick="resetModalFilters()">重置</button>
-                        <button class="filter-btn" onclick="exportCurrentModalData('${title}')">导出Excel</button>
                     </div>
                 </div>
             `;
@@ -773,6 +895,8 @@
                                 <th>产品类别</th>
                                 <th>项目负责人</th>
                                 <th>测试负责人</th>
+                                <th>DQE负责人</th>
+                                <th>研发负责人</th>
                                 <th>送样人</th>
                                 <th>排期天数</th>
                                 <th>排期开始</th>
@@ -796,6 +920,8 @@
                             <td>${project.sample_category || '-'}</td>
                             <td>${project.sample_leader || '-'}</td>
                             <td>${project.tester || '-'}</td>
+                            <td>${project.dqe_leader || '-'}</td>
+                            <td>${project.rd_leader || '-'}</td>
                             <td>${project.sample_sender || '-'}</td>
                             <td>${project.scheduleDays || '-'}</td>
                             <td>${formatDate(project.schedule_start_date) || '-'}</td>
@@ -869,6 +995,26 @@
                 });
             }
             
+            // 填充DQE负责人过滤器
+            const dqeLeaders = [...new Set(projects.map(p => p.dqe_leader).filter(Boolean))];
+            const dqeLeaderFilter = document.getElementById('modalDqeLeaderFilter');
+            if (dqeLeaderFilter) {
+                dqeLeaderFilter.innerHTML = '<option value="">所有DQE负责人</option>';
+                dqeLeaders.forEach(dqeLeader => {
+                    dqeLeaderFilter.innerHTML += `<option value="${dqeLeader}">${dqeLeader}</option>`;
+                });
+            }
+            
+            // 填充研发负责人过滤器
+            const rdLeaders = [...new Set(projects.map(p => p.rd_leader).filter(Boolean))];
+            const rdLeaderFilter = document.getElementById('modalRdLeaderFilter');
+            if (rdLeaderFilter) {
+                rdLeaderFilter.innerHTML = '<option value="">所有研发负责人</option>';
+                rdLeaders.forEach(rdLeader => {
+                    rdLeaderFilter.innerHTML += `<option value="${rdLeader}">${rdLeader}</option>`;
+                });
+            }
+            
             // 填充排期天数过滤器
             const scheduleDays = [...new Set(projects.map(p => p.scheduleDays).filter(days => days && !isNaN(days)))];
             const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
@@ -932,16 +1078,17 @@
                     chartHTML += `
                         <path id="${segmentId}" d="${pathData}" fill="${colors[index % colors.length]}" stroke="white" stroke-width="2"
                               style="cursor: pointer;"
+                              data-label="${label}"
+                              data-value="${value}"
                               onmouseover="showSegmentTooltip(event, '${label}', ${value}, ${percentage.toFixed(1)})"
-                              onmouseout="hideSegmentTooltip()"
-                              onclick="filterByChartSegment('${containerId}', '${label}', ${value})"/>
+                              onmouseout="hideSegmentTooltip()"/>
                     `;
                     
-                    // 只有当扇形足够大时才显示标签（角度大于15度）
+                                        // 只有当扇形足够大时才显示标签（角度大于15度）
                     if (angle > 15) {
-                                            // 在扇形中心位置添加标签
+                        // 在扇形中心位置添加标签
                     const midAngle = startAngle + angle / 2;
-                    const labelRadius = radius * 0.6; // 标签位置在扇形中心偏内
+                    const labelRadius = radius * 0.5; // 标签位置在扇形中心更内，避免被边缘遮挡
                     const labelX = centerX + labelRadius * Math.cos(midAngle * Math.PI / 180);
                     const labelY = centerY + labelRadius * Math.sin(midAngle * Math.PI / 180);
                     
@@ -962,23 +1109,22 @@
                         textAnchor = 'start'; // 右半部分
                     }
                     
-                    // 添加标签文本
+                    // 添加标签文本，这里是饼状图上的字体
                     chartHTML += `
                         <text x="${labelX}" y="${labelY}" 
                               text-anchor="${textAnchor}" 
                               dominant-baseline="${dominantBaseline}"
-                              fill="white" 
-                              font-size="16" 
+                              fill="white"
+                              font-size="16"
                               font-weight="bold"
-                              stroke="black" 
-                              stroke-width="1"
+                              stroke="gray"
                               style="pointer-events: none; font-family: 'Microsoft YaHei', Arial, sans-serif;">
                             ${label}
                         </text>
                     `;
                     
                     // 添加数值
-                    const valueRadius = radius * 0.35; // 数值位置在扇形中心更内
+                    const valueRadius = radius * 0.3; // 数值位置在扇形中心更内，避免被边缘遮挡
                     const valueX = centerX + valueRadius * Math.cos(midAngle * Math.PI / 180);
                     const valueY = centerY + valueRadius * Math.sin(midAngle * Math.PI / 180);
                     
@@ -987,7 +1133,7 @@
                               text-anchor="middle" 
                               dominant-baseline="middle"
                               fill="white" 
-                              font-size="18" 
+                              font-size="16" 
                               font-weight="bold"
                               stroke="black" 
                               stroke-width="1"
@@ -1034,33 +1180,44 @@
             
             if (labels.length === 0) return '<p style="text-align: center; color: #666;">暂无数据</p>';
             
+            // 创建标签和值的配对数组，并按值从高到低排序
+            const sortedData = labels.map((label, index) => ({
+                label: label,
+                value: values[index],
+                color: colors[index % colors.length]
+            })).sort((a, b) => b.value - a.value);
+            
             // 根据柱子数量调整布局
             const isManyBars = labels.length > 8;
             const barWidth = isManyBars ? 35 : 50;
             const barSpacing = isManyBars ? 8 : 15;
             
-            let chartHTML = `<div style="display: flex; align-items: end; justify-content: ${isManyBars ? 'space-between' : 'space-around'}; height: 250px; padding: 20px; overflow-x: auto;">`;
+            // 计算总宽度，确保柱子能够居中显示
+            const totalWidth = sortedData.length * (barWidth + barSpacing) - barSpacing;
             
-            labels.forEach((label, index) => {
-                const height = maxValue > 0 ? (values[index] / maxValue) * 200 : 0;
-                const color = colors[index % colors.length];
+            let chartHTML = `<div style="display: flex; align-items: end; justify-content: center; height: 280px; padding: 20px; overflow-x: auto;">
+                <div style="display: flex; align-items: end; gap: ${barSpacing}px; width: ${totalWidth}px;">`;
+            
+            sortedData.forEach((item, index) => {
+                const height = maxValue > 0 ? (item.value / maxValue) * 180 : 0;
                 
                 chartHTML += `
-                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: ${barWidth + barSpacing}px;">
-                        <div style="width: ${barWidth}px; height: ${height}px; background: ${color}; border-radius: 6px 6px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: ${isManyBars ? '14px' : '16px'}; cursor: pointer; transition: all 0.2s ease;" 
-                             onclick="filterByChartSegment('${containerId}', '${label}', ${values[index]})"
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: ${barWidth}px;">
+                        <div style="width: ${barWidth}px; height: ${height}px; background: ${item.color}; border-radius: 6px 6px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: ${isManyBars ? '14px' : '16px'}; cursor: pointer; transition: all 0.2s ease;" 
+                             data-label="${item.label}"
+                             data-value="${item.value}"
                              onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'"
                              onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
-                            ${values[index]}
+                            ${item.value}
                         </div>
-                        <div style="font-size: ${isManyBars ? '12px' : '14px'}; color: #666; max-width: ${barWidth + 10}px; word-wrap: break-word; transform: rotate(-45deg); transform-origin: top left;">
-                            ${label}
+                        <div style="font-size: ${isManyBars ? '12px' : '14px'}; color: #666; max-width: ${barWidth + 10}px; word-wrap: break-word; text-align: center; height: 40px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                            ${item.label}
                         </div>
                     </div>
                 `;
             });
             
-            chartHTML += '</div>';
+            chartHTML += '</div></div>';
             return chartHTML;
         }
         
@@ -1224,6 +1381,16 @@
                 filteredProjects = originalProjects.filter(project => 
                     project.tester === label
                 );
+            } else if (chartId === 'dqeLeaderChart') {
+                // DQE负责人筛选
+                filteredProjects = originalProjects.filter(project => 
+                    project.dqe_leader === label
+                );
+            } else if (chartId === 'rdLeaderChart') {
+                // 研发负责人筛选
+                filteredProjects = originalProjects.filter(project => 
+                    project.rd_leader === label
+                );
             } else if (chartId === 'scheduleChart') {
                 // 排期天数筛选
                 if (label === '未设置') {
@@ -1234,6 +1401,24 @@
                     const days = parseInt(label.replace('天', ''));
                     filteredProjects = originalProjects.filter(project => 
                         project.scheduleDays === days
+                    );
+                }
+            } else if (chartId === 'confirmResultChart') {
+                // 确认结果筛选
+                if (label === '未确认') {
+                    filteredProjects = originalProjects.filter(project => 
+                        (!project.rd_sampleRecognizeResult || project.rd_sampleRecognizeResult.trim() === '') && 
+                        (!project.sampleRecognizeResult || project.sampleRecognizeResult.trim() === '')
+                    );
+                } else if (label.startsWith('研发-')) {
+                    const rdResult = label.replace('研发-', '');
+                    filteredProjects = originalProjects.filter(project => 
+                        project.rd_sampleRecognizeResult && project.rd_sampleRecognizeResult.trim() === rdResult
+                    );
+                } else if (label.startsWith('DQE-')) {
+                    const dqeResult = label.replace('DQE-', '');
+                    filteredProjects = originalProjects.filter(project => 
+                        project.sampleRecognizeResult && project.sampleRecognizeResult.trim() === dqeResult
                     );
                 }
             }
@@ -1266,6 +1451,18 @@
                     const testerFilter = document.getElementById('modalTesterFilter');
                     if (testerFilter) {
                         testerFilter.value = label;
+                    }
+                } else if (chartId === 'dqeLeaderChart') {
+                    // DQE负责人筛选器（如果有的话）
+                    const dqeLeaderFilter = document.getElementById('modalDqeLeaderFilter');
+                    if (dqeLeaderFilter) {
+                        dqeLeaderFilter.value = label;
+                    }
+                } else if (chartId === 'rdLeaderChart') {
+                    // 研发负责人筛选器（如果有的话）
+                    const rdLeaderFilter = document.getElementById('modalRdLeaderFilter');
+                    if (rdLeaderFilter) {
+                        rdLeaderFilter.value = label;
                     }
                 } else if (chartId === 'scheduleChart') {
                     const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
@@ -1337,6 +1534,16 @@
             const chartContainer = document.getElementById(chartId);
             if (!chartContainer) return;
             
+            // 检查当前图表类型
+            const svg = chartContainer.querySelector('svg');
+            const flexContainer = chartContainer.querySelector('div[style*="display: flex"]');
+            
+            // 如果是柱状图（flex容器），则不执行缩放
+            if (flexContainer && !svg) {
+                console.log('柱状图不支持缩放功能');
+                return;
+            }
+            
             // 获取当前尺寸
             const currentHeight = parseInt(chartContainer.style.height) || 350;
             const currentWidth = chartContainer.offsetWidth;
@@ -1348,7 +1555,6 @@
             chartContainer.style.height = newHeight + 'px';
             
             // 如果高度变化较大，调整SVG尺寸
-            const svg = chartContainer.querySelector('svg');
             if (svg) {
                 const scale = newHeight / 350; // 基于原始高度350px计算缩放比例
                 const newSvgSize = 250 * scale;
@@ -1364,22 +1570,49 @@
         
         // 更新放大缩小按钮状态
         function updateZoomButtons(chartId, currentHeight) {
-            const container = document.getElementById(chartId).closest('.chart-container, div[style*="background: #f8f9fa"]');
+            const chartContainer = document.getElementById(chartId);
+            if (!chartContainer) return;
+            
+            const container = chartContainer.closest('.chart-container, div[style*="background: #f8f9fa"]');
             if (!container) return;
             
             const zoomOutBtn = container.querySelector('button[onclick*="-1"]');
             const zoomInBtn = container.querySelector('button[onclick*="1"]');
             
+            // 检查当前图表类型
+            const svg = chartContainer.querySelector('svg');
+            const flexContainer = chartContainer.querySelector('div[style*="display: flex"]');
+            
+            // 如果是柱状图，禁用放大缩小按钮
+            if (flexContainer && !svg) {
+                if (zoomOutBtn) {
+                    zoomOutBtn.disabled = true;
+                    zoomOutBtn.style.opacity = '0.3';
+                    zoomOutBtn.style.cursor = 'not-allowed';
+                    zoomOutBtn.title = '柱状图不支持缩放';
+                }
+                if (zoomInBtn) {
+                    zoomInBtn.disabled = true;
+                    zoomInBtn.style.opacity = '0.3';
+                    zoomInBtn.style.cursor = 'not-allowed';
+                    zoomInBtn.title = '柱状图不支持缩放';
+                }
+                return;
+            }
+            
+            // 饼图的正常按钮状态更新
             if (zoomOutBtn) {
                 zoomOutBtn.disabled = currentHeight <= 250;
                 zoomOutBtn.style.opacity = currentHeight <= 250 ? '0.5' : '1';
                 zoomOutBtn.style.cursor = currentHeight <= 250 ? 'not-allowed' : 'pointer';
+                zoomOutBtn.title = '缩小';
             }
             
             if (zoomInBtn) {
                 zoomInBtn.disabled = currentHeight >= 600;
                 zoomInBtn.style.opacity = currentHeight >= 600 ? '0.5' : '1';
                 zoomInBtn.style.cursor = currentHeight >= 600 ? 'not-allowed' : 'pointer';
+                zoomInBtn.title = '放大';
             }
         }
         
@@ -1484,9 +1717,11 @@
             const category = document.getElementById('modalCategoryFilter')?.value;
             const tester = document.getElementById('modalTesterFilter')?.value;
             const leader = document.getElementById('modalLeaderFilter')?.value;
+            const dqeLeader = document.getElementById('modalDqeLeaderFilter')?.value;
+            const rdLeader = document.getElementById('modalRdLeaderFilter')?.value;
             const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
             
-            if (startDate || endDate || category || tester || leader || scheduleDays) {
+            if (startDate || endDate || category || tester || leader || dqeLeader || rdLeader || scheduleDays) {
                 projectsToExport = projectsToExport.filter(project => {
                     // 类别筛选
                     if (category && project.sample_category !== category) {
@@ -1500,6 +1735,16 @@
                     
                     // 项目负责人筛选
                     if (leader && project.sample_leader !== leader) {
+                        return false;
+                    }
+                    
+                    // DQE负责人筛选
+                    if (dqeLeader && project.dqe_leader !== dqeLeader) {
+                        return false;
+                    }
+                    
+                    // 研发负责人筛选
+                    if (rdLeader && project.rd_leader !== rdLeader) {
                         return false;
                     }
                     
@@ -1571,7 +1816,7 @@
                 // 准备表头
                 const headers = [
                     '样品编号', '产品名称', '产品类别', '大编码', '版本', '项目负责人', 
-                    '当前进度', '测试负责人', '送样人', '送样类别', '创建时间', '排期天数', 
+                    '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '创建时间', '排期天数', 
                     '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果'
                 ];
                 
@@ -1585,6 +1830,8 @@
                     project.sample_leader || '',
                     getProjectStatus(project),
                     project.tester || '',
+                    project.dqe_leader || '',
+                    project.rd_leader || '',
                     project.sample_sender || '',
                     project.sample_type || '',
                     formatDateTime(project.create_time) || '',
@@ -1641,6 +1888,8 @@
             const category = document.getElementById('modalCategoryFilter')?.value;
             const tester = document.getElementById('modalTesterFilter')?.value;
             const leader = document.getElementById('modalLeaderFilter')?.value;
+            const dqeLeader = document.getElementById('modalDqeLeaderFilter')?.value;
+            const rdLeader = document.getElementById('modalRdLeaderFilter')?.value;
             const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
             
             // 获取当前模态框显示的项目数据
@@ -1688,6 +1937,16 @@
                 
                 // 项目负责人筛选
                 if (leader && project.sample_leader !== leader) {
+                    return false;
+                }
+                
+                // DQE负责人筛选
+                if (dqeLeader && project.dqe_leader !== dqeLeader) {
+                    return false;
+                }
+                
+                // 研发负责人筛选
+                if (rdLeader && project.rd_leader !== rdLeader) {
                     return false;
                 }
                 
@@ -1754,6 +2013,12 @@
             const leaderFilter = document.getElementById('modalLeaderFilter');
             if (leaderFilter) leaderFilter.value = '';
             
+            const dqeLeaderFilter = document.getElementById('modalDqeLeaderFilter');
+            if (dqeLeaderFilter) dqeLeaderFilter.value = '';
+            
+            const rdLeaderFilter = document.getElementById('modalRdLeaderFilter');
+            if (rdLeaderFilter) rdLeaderFilter.value = '';
+            
             const scheduleDaysFilter = document.getElementById('modalScheduleDaysFilter');
             if (scheduleDaysFilter) scheduleDaysFilter.value = '';
             
@@ -1798,6 +2063,106 @@
             }
         }
         
+        // 切换图表类型（柱状图/饼状图）
+        function toggleChartType(chartId, dataJson) {
+            try {
+                const data = JSON.parse(dataJson);
+                const chartContainer = document.getElementById(chartId);
+                const toggleBtn = chartContainer.parentElement.querySelector('button[onclick*="toggleChartType"]');
+                
+                if (!chartContainer || !toggleBtn) return;
+                
+                // 检查当前图表类型
+                const currentChart = chartContainer.querySelector('svg, div[style*="display: flex"]');
+                const isCurrentlyBar = currentChart && currentChart.style.display === 'flex';
+                
+                if (isCurrentlyBar) {
+                    // 当前是柱状图，切换到饼状图
+                    chartContainer.innerHTML = createPieChart(data, chartId);
+                    toggleBtn.innerHTML = '🍕';
+                    toggleBtn.title = '切换到柱状图';
+                } else {
+                    // 当前是饼状图，切换到柱状图
+                    chartContainer.innerHTML = createBarChart(data, chartId);
+                    toggleBtn.innerHTML = '📊';
+                    toggleBtn.title = '切换到饼状图';
+                }
+                
+                // 重新绑定点击事件（因为重新生成了HTML）
+                bindChartClickEvents(chartId);
+                
+                // 重新绑定tooltip事件
+                bindTooltipEvents(chartId);
+                
+            } catch (error) {
+                console.error('切换图表类型失败:', error);
+            }
+        }
+        
+        // 绑定图表点击事件
+        function bindChartClickEvents(chartId) {
+            const chartContainer = document.getElementById(chartId);
+            if (!chartContainer) return;
+            
+            // 为饼图的扇形添加点击事件
+            const segments = chartContainer.querySelectorAll('path[id^="segment_"]');
+            segments.forEach(segment => {
+                const label = segment.getAttribute('data-label');
+                const value = segment.getAttribute('data-value');
+                if (label && value) {
+                    segment.onclick = () => filterByChartSegment(chartId, label, parseInt(value));
+                }
+            });
+            
+            // 为柱状图的柱子添加点击事件
+            const bars = chartContainer.querySelectorAll('div[data-label][data-value]');
+            bars.forEach(bar => {
+                const label = bar.getAttribute('data-label');
+                const value = bar.getAttribute('data-value');
+                if (label && value) {
+                    // 确保这是真正的柱子（有背景色的div）
+                    if (bar.style.background || bar.style.backgroundColor) {
+                        bar.onclick = () => filterByChartSegment(chartId, label, parseInt(value));
+                    }
+                }
+            });
+        }
+        
+        // 绑定tooltip事件
+        function bindTooltipEvents(chartId) {
+            const chartContainer = document.getElementById(chartId);
+            if (!chartContainer) return;
+            
+            // 为饼图的扇形添加tooltip事件
+            const segments = chartContainer.querySelectorAll('path[id^="segment_"]');
+            segments.forEach(segment => {
+                const label = segment.getAttribute('data-label');
+                const value = segment.getAttribute('data-value');
+                if (label && value) {
+                    segment.onmouseover = (event) => showSegmentTooltip(event, label, parseInt(value), ((parseInt(value) / getTotalValue(chartId)) * 100).toFixed(1));
+                    segment.onmouseout = hideSegmentTooltip;
+                }
+            });
+        }
+        
+        // 获取图表数据总和
+        function getTotalValue(chartId) {
+            const chartContainer = document.getElementById(chartId);
+            if (!chartContainer) return 0;
+            
+            // 尝试从data属性获取值
+            const elements = chartContainer.querySelectorAll('[data-value]');
+            let total = 0;
+            elements.forEach(element => {
+                const value = parseInt(element.getAttribute('data-value'));
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            
+            return total;
+        }
+        
         // 模态框导出Excel功能（导出筛选后的数据）
         function exportModalExcel(title) {
             // 获取当前筛选后的数据
@@ -1806,6 +2171,8 @@
             const category = document.getElementById('modalCategoryFilter')?.value;
             const tester = document.getElementById('modalTesterFilter')?.value;
             const leader = document.getElementById('modalLeaderFilter')?.value;
+            const dqeLeader = document.getElementById('modalDqeLeaderFilter')?.value;
+            const rdLeader = document.getElementById('modalRdLeaderFilter')?.value;
             const scheduleDays = document.getElementById('modalScheduleDaysFilter')?.value;
             
             // 根据标题重新获取原始项目数据
@@ -1820,17 +2187,17 @@
                     );
                     break;
                 case '进行中项目详情':
-                    originalProjects = projectData.filter(p => 
+                    originalProjects = originalProjects.filter(p => 
                         p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
                     );
                     break;
                 case '已完成未确认项目详情':
-                    originalProjects = projectData.filter(p => 
+                    originalProjects = originalProjects.filter(p => 
                         p.actual_finish_time && !p.sampleRecognizeResult
                     );
                     break;
                 case '已确认项目详情':
-                    originalProjects = projectData.filter(p => 
+                    originalProjects = originalProjects.filter(p => 
                         p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
                     );
                     break;
@@ -1850,6 +2217,16 @@
                 
                 // 项目负责人筛选
                 if (leader && project.sample_leader !== leader) {
+                    return false;
+                }
+                
+                // DQE负责人筛选
+                if (dqeLeader && project.dqe_leader !== dqeLeader) {
+                    return false;
+                }
+                
+                // 研发负责人筛选
+                if (rdLeader && project.rd_leader !== rdLeader) {
                     return false;
                 }
                 

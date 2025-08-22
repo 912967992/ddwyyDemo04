@@ -1310,12 +1310,12 @@
     </delete>
 
     <select id="getProductApprovalDoc" resultType="String">
-        select productRequirement from electric_info
+        select productApprovalDoc from electric_info
         WHERE FIND_IN_SET(#{sample_id}, sample_actual_id)
     </select>
 
     <select id="getProductRequirement" resultType="String">
-        SELECT productApprovalDoc
+        SELECT productRequirement
         FROM electric_info
         WHERE FIND_IN_SET(#{sample_id}, sample_actual_id)
     </select>

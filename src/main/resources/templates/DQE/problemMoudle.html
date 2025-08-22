@@ -2254,9 +2254,10 @@
                                 throw new Error('检查回传状态失败');
                             }
                             const passbackData = await passbackResponse.json();
-                            
+
                             if (passbackData.passbackConfirm !== "已回传") {
-                                alert('该项目尚未回传，不允许签样。请等测试人员回传问题点后才可以进行签样操作。');
+
+                                alert('该项目尚未回传，不允许签样。请催测试人员('+passbackData.tester+')回传问题点后才可以进行签样等操作。');
                                 return;
                             }
                         } catch (error) {

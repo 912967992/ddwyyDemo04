@@ -693,33 +693,53 @@
     <!-- 获取电气项目数据 -->
     <select id="getElectricProjectData" resultType="java.util.Map">
         SELECT 
-            id,
-            sample_id,
-            sample_name,
-            sample_category,
-            sample_model,
-            version,
-            sample_leader,
-            schedule,
-            create_time,
-            scheduleDays,
-            actual_start_time,
-            actual_finish_time,
-            sampleRecognizeResult,
-            tester,
-            sample_sender,
-            sample_type,
-            schedule_start_date,
-            schedule_end_date,
-            testDuration,
-            remark,
-            waitSample_classify,
-            high_frequency,
-            productRequirement,
-            productApprovalDoc
-        FROM electric_info
-        WHERE isCancel = 0  -- 排除已作废的项目
-        ORDER BY create_time DESC
+                ei.id,
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_category,
+            ei.sample_model,
+            ei.version,
+            ei.sample_leader,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.sampleRecognizeResult,
+            ei.rd_sampleRecognizeResult,
+            ei.tester,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.testDuration,
+            ei.remark,
+            ei.waitSample_classify,
+            ei.high_frequency,
+            -- 获取DQE负责人和研发负责人
+            CASE 
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+                THEN (
+                    SELECT s.sample_DQE 
+                    FROM samples s 
+                    WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                    LIMIT 1
+                )
+                ELSE NULL 
+            END as dqe_leader,
+            CASE 
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+                THEN (
+                    SELECT s.sample_Developer 
+                    FROM samples s 
+                    WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                    LIMIT 1
+                )
+                ELSE NULL 
+            END as rd_leader
+        FROM electric_info ei
+        WHERE ei.isCancel = 0  -- 排除已作废的项目
+        ORDER BY ei.create_time DESC
     </select>
 
 </mapper>

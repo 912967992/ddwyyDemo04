@@ -1260,11 +1260,13 @@ public class DQEproblemMoudleController {
         try {
             // 获取项目的回传确认状态
             String passbackConfirm = dqeproblemMoudleService.queryPassbakConfirm(sampleId);
+            String tester = testManIndexService.queryTester(sampleId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("passbackConfirm", passbackConfirm);
-            
+            response.put("tester", tester);
+
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

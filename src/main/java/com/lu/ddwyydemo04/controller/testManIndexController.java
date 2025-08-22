@@ -2157,6 +2157,17 @@ public class testManIndexController {
                 boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
                 if (isEmpty) continue;
 
+                // 检查问题类别的值是否为空或是否包含"-"符号
+                String problemCategory = rowMap.get("问题类别");
+                if (problemCategory == null || problemCategory.trim().isEmpty()) {
+                    result.put("message", "问题类别不能为空，请填写问题类别，问题类别的值同时必须包含'-'");
+                    return result;
+                }
+                if (!problemCategory.contains("-")) {
+                    result.put("message", "问题类别的值请按标准库有\"-\"来写，当前值：" + problemCategory);
+                    return result;
+                }
+
                 TestIssues issue = convertToTestIssue(rowMap, sampleId, history_id, job);
                 String problem = issue.getProblem();
                 if (problem == null || problem.trim().isEmpty()) continue;

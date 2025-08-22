@@ -421,6 +421,7 @@ public class DQEIndexController {
         try {
             // 调用服务层获取electric_info表的数据
             List<Map<String, Object>> projectData = dqeIndexService.getElectricProjectData();
+//            System.out.println("projectData"+projectData);
             
             result.put("success", true);
             result.put("data", projectData);
@@ -430,7 +431,8 @@ public class DQEIndexController {
             result.put("success", false);
             result.put("error", "获取电气项目数据时出错: " + e.getMessage());
         }
-        
+
+
         return result;
     }
 
