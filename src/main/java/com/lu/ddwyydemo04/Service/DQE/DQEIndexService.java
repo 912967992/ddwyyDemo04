@@ -86,4 +86,14 @@ public class DQEIndexService {
         return dqeDao.getElectricProjectData();
     }
 
+    // 获取DQE个人电气项目数据
+    public List<Map<String, Object>> getDqeElectricProjectData(String username) {
+        return dqeDao.getDqeElectricProjectData(username);
+    }
+
+    // 获取研发个人电气项目数据
+    public List<Map<String, Object>> getRdElectricProjectData(String username) {
+        return dqeDao.getRdElectricProjectData(username);
+    }
+
 }

@@ -169,4 +169,10 @@ public interface DQEDao {
     // 获取电气项目数据
     List<Map<String, Object>> getElectricProjectData();
 
+    // 获取DQE个人电气项目数据
+    List<Map<String, Object>> getDqeElectricProjectData(@Param("username") String username);
+
+    // 获取研发个人电气项目数据
+    List<Map<String, Object>> getRdElectricProjectData(@Param("username") String username);
+
 }

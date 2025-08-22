@@ -397,9 +397,9 @@ public class DQEIndexController {
     }
 
     // 新增数据看板路由
-    @GetMapping("/dqeDashboard")
-    public String dqeDashboard() {
-        return "dqeDashboard";
+    @GetMapping("/managerboard")
+    public String managerBoard() {
+        return "managerboard";
     }
 
     @GetMapping("/rdDashboard")
@@ -407,12 +407,29 @@ public class DQEIndexController {
         return "rdDashboard";
     }
 
+    @GetMapping("/manager")
+    public String manager() {
+        return "manager";
+    }
+
     @GetMapping("/projectLeaderDashboard")
     public String projectLeaderDashboard() {
         return "projectLeaderDashboard";
     }
 
-    // 获取电气项目数据
+    // DQE个人数据看板
+    @GetMapping("/dqeDashboard")
+    public String dqeDashboard() {
+        return "dqeDashboard";
+    }
+
+    // 研发个人数据看板
+    @GetMapping("/rdPersonalDashboard")
+    public String rdPersonalDashboard() {
+        return "rdPersonalDashboard";
+    }
+
+    // 获取电气项目数据（管理层看板）
     @GetMapping("/DQEIndex/getElectricProjectData")
     @ResponseBody
     public Map<String, Object> getElectricProjectData() {
@@ -432,6 +449,49 @@ public class DQEIndexController {
             result.put("error", "获取电气项目数据时出错: " + e.getMessage());
         }
 
+        return result;
+    }
+
+    // 获取DQE个人电气项目数据
+    @GetMapping("/DQEIndex/getDqeElectricProjectData")
+    @ResponseBody
+    public Map<String, Object> getDqeElectricProjectData(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 调用服务层获取electric_info表的数据，筛选DQE负责人
+            List<Map<String, Object>> projectData = dqeIndexService.getDqeElectricProjectData(username);
+            
+            result.put("success", true);
+            result.put("data", projectData);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取DQE电气项目数据时出错: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    // 获取研发个人电气项目数据
+    @GetMapping("/DQEIndex/getRdElectricProjectData")
+    @ResponseBody
+    public Map<String, Object> getRdElectricProjectData(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 调用服务层获取electric_info表的数据，筛选研发负责人
+            List<Map<String, Object>> projectData = dqeIndexService.getRdElectricProjectData(username);
+            
+            result.put("success", true);
+            result.put("data", projectData);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取研发电气项目数据时出错: " + e.getMessage());
+        }
 
         return result;
     }
