@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQE数据看板</title>
+    <title>研发数据看板</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     <style>
         body {
@@ -364,32 +364,38 @@
         loadProjectData();
     });
 
-    // 加载项目数据
-    function loadProjectData() {
-        // 模拟从后端API获取数据
-        // 实际使用时应该调用真实的API
-        fetch('/DQEIndex/getElectricProjectData')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    originalProjectData = data.data; // 保存原始数据
-                    projectData = [...originalProjectData];
-                    filteredData = [...originalProjectData];
-                    updateDashboard();
-                    updateProjectTable();
-                    updateCategoryFilter();
-                } else {
-                    console.error('获取数据失败:', data.error);
-                    // 使用模拟数据
+            // 加载项目数据
+        function loadProjectData() {
+            // 从localStorage获取用户名
+            const username = localStorage.getItem('username');
+            if (!username) {
+                alert('请先输入用户名！');
+                return;
+            }
+            
+            // 调用研发个人数据接口
+            fetch(`/DQEIndex/getRdElectricProjectData?username=${encodeURIComponent(username)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        originalProjectData = data.data; // 保存原始数据
+                        projectData = [...originalProjectData];
+                        filteredData = [...originalProjectData];
+                        updateDashboard();
+                        updateProjectTable();
+                        updateCategoryFilter();
+                    } else {
+                        console.error('获取研发个人数据失败:', data.error);
+                        // 使用模拟数据
+                        loadMockData();
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用失败:', error);
+                    // 修改rdDashboard.html的标题
                     loadMockData();
-                }
-            })
-            .catch(error => {
-                console.error('API调用失败:', error);
-                // 使用模拟数据
-                loadMockData();
-            });
-    }
+                });
+        }
 
     // 加载模拟数据（当API不可用时）
     function loadMockData() {

@@ -911,6 +911,16 @@
             sample_id = #{sample_id}
     </update>
 
+    <update id="updateRdElectricInfoReview">
+        UPDATE electric_info
+        SET
+            reportReviewTime = #{reportReviewTime},
+            rd_sampleRecognizeResult = #{rd_sampleRecognizeResult},
+            schedule = '2'
+        WHERE
+            sample_id = #{sample_id}
+    </update>
+
     <update id="saveElectricInfoFilePath">
         UPDATE electric_info
         SET

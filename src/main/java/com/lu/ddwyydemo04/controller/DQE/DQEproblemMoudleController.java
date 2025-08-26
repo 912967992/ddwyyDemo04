@@ -41,9 +41,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 import java.time.format.DateTimeParseException;
@@ -748,6 +746,11 @@ public class DQEproblemMoudleController {
             logger.info("推送DQE审核结果远程成功: {}", processTestElectricalTest.get("remoteBody"));
         }else if(job.equals("rd")){
             updateNodeAsFinish = dqeproblemMoudleService.updateNodeAsFinishWithRD(sampleId);
+            String reportReviewTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);  // 输出 2025-04-14T16:34:23
+            String testNumber = testManIndexService.queryElectricIdByActualId(sampleId);;
+            testManIndexService.updateRdElectricInfoReview(testNumber,reportReviewTime,selectedOptionStr);
+
         }
 
 

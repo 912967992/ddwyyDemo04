@@ -138,6 +138,7 @@ public interface TestManDao {
     void updateElectricInfoColor(@Param("sample_id")String sample_id,@Param("schedule_color") String schedule_color);
 
     void updateElectricInfoReview(@Param("sample_id")String sample_id,@Param("reportReviewTime") String reportReviewTime,@Param("sampleRecognizeResult") String sampleRecognizeResult);
+    void updateRdElectricInfoReview(@Param("sample_id")String sample_id,@Param("reportReviewTime") String reportReviewTime,@Param("rd_sampleRecognizeResult") String rd_sampleRecognizeResult);
 
     void saveElectricInfoFilePath(@Param("sample_id") String sample_id,@Param("filepath")String filepath);
 

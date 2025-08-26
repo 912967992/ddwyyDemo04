@@ -465,6 +465,10 @@ public class TestManIndexService {
         testManDao.updateElectricInfoReview(sample_id,reportReviewTime,sampleRecognizeResult);
     }
 
+    public void updateRdElectricInfoReview(String sample_id,String reportReviewTime,String sampleRecognizeResult){
+        testManDao.updateRdElectricInfoReview(sample_id,reportReviewTime,sampleRecognizeResult);
+    }
+
 
     public void saveElectricInfoFilePath(String sample_id,String filepath){
         testManDao.saveElectricInfoFilePath(sample_id,filepath);

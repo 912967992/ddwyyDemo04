@@ -1,6 +1,7 @@
 package com.lu.ddwyydemo04.Service.DQE;
 
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
+import com.lu.ddwyydemo04.dao.TestManDao;
 import com.lu.ddwyydemo04.pojo.Samples;
 import com.lu.ddwyydemo04.pojo.TestIssues;
 
@@ -16,6 +17,10 @@ public class DQEproblemMoudleService {
 
     @Autowired
     private DQEDao dqeDao;
+
+
+    @Autowired
+    private TestManDao testManDao;
 
     public List<TestIssues> searchTestissues(){
         return dqeDao.searchTestissues();
@@ -85,6 +90,11 @@ public class DQEproblemMoudleService {
 
 
     public int updateSampleWithSchAndResult(String sampleId, String sampleSchedule, String job, String selectedOption) {
+        // 2. 如果是 DQE，同步更新 electric_info 表
+        if ("DQE".equals(job)) {
+
+            dqeDao.updateElectricInfoScheduleBySampleId(sampleSchedule,sampleId);
+        }
         return dqeDao.updateSampleWithSchAndResult(sampleId, sampleSchedule, job, selectedOption);
     }
 

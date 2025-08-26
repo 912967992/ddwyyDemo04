@@ -792,12 +792,14 @@
             END as rd_leader
         FROM electric_info ei
         WHERE ei.isCancel = 0
-        AND ei.sample_actual_id IS NOT NULL 
-        AND ei.sample_actual_id != ''
-        AND EXISTS (
-            SELECT 1 FROM samples s 
-            WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
-            AND s.sample_DQE = #{username}
+        AND (
+            ei.sample_sender = #{username}
+            OR ei.sample_leader = #{username}
+            OR EXISTS (
+                SELECT 1 FROM samples s 
+                WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                AND s.sample_DQE = #{username}
+            )
         )
         ORDER BY ei.create_time DESC
     </select>
@@ -853,12 +855,28 @@
         WHERE ei.isCancel = 0
         AND ei.sample_actual_id IS NOT NULL 
         AND ei.sample_actual_id != ''
-        AND EXISTS (
-            SELECT 1 FROM samples s 
-            WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
-            AND s.sample_Developer = #{username}
+        AND (
+            ei.sample_sender = #{username}
+            OR ei.sample_leader = #{username}
+            OR EXISTS (
+                SELECT 1 FROM samples s 
+                WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                AND s.sample_Developer = #{username}
+            )
         )
         ORDER BY ei.create_time DESC
     </select>
+
+    <update id="updateElectricInfoScheduleBySampleId">
+        UPDATE electric_info ei
+            INNER JOIN samples s
+            ON FIND_IN_SET(s.sample_id, ei.sample_actual_id) > 0
+        SET ei.schedule = #{schedule}
+        WHERE s.sample_id = #{sample_id}
+          AND ei.sample_actual_id IS NOT NULL
+          AND ei.sample_actual_id != ''
+    </update>
+
+
 
 </mapper>

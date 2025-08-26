@@ -175,4 +175,6 @@ public interface DQEDao {
     // 获取研发个人电气项目数据
     List<Map<String, Object>> getRdElectricProjectData(@Param("username") String username);
 
+    void updateElectricInfoScheduleBySampleId(@Param("schedule")String schedule, @Param("sample_id")String sample_id);
+
 }
