@@ -338,28 +338,19 @@
 
 
     <div class="main-container">
-<!--        <div class="dashboard" onclick="location.href='/dataBoard'">-->
-        <div class="dashboard" onclick="goToDashboard()">
-
-        <div>
-                <div class="bar-chart">
-                    <div class="bar bar1">75%</div>
-                    <div class="bar bar2">50%</div>
-                    <div class="bar bar3">90%</div>
-                </div>
-                <p>数据看板</p>
-            </div>
+        <!-- 数据看板 - 改为使用 module highlighted -->
+        <div class="module highlighted" onclick="goToDashboard()">
+            数据看板
         </div>
 
         <div class="grid-container">
             <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
             <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
             <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
-<!--            <div class="module" onclick="location.href='/scheduleBoard'">项目<br>排期</div>-->
-<!--            <div class="module" onclick="location.href='/otherMoudle'">其他<br>模块</div>-->
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
         </div>
     </div>
+
 
 
     <!-- 下方固定按钮 -->
@@ -447,9 +438,10 @@
                 case 'rd':
                     location.href = '/rdDashboard';
                     break;
+                // case 'projectLeader':
+                //     location.href = '/projectLeaderDashboard';
+                //     break;
                 case 'projectLeader':
-                    location.href = '/projectLeaderDashboard';
-                    break;
                 case 'manager':
                     location.href = '/managerboard'; // 经理级别也跳转到DQE看板
                     break;

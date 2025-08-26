@@ -177,4 +177,5 @@ public interface DQEDao {
 
     void updateElectricInfoScheduleBySampleId(@Param("schedule")String schedule, @Param("sample_id")String sample_id);
 
+
 }

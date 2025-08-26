@@ -345,4 +345,43 @@
     </update>
 
 
+    <select id="findDQEUnconfirmedSamples" resultType="map">
+        SELECT
+            ei.sample_id AS electric_sample_id,
+            ei.actual_finish_time,
+            s.sample_DQE
+        FROM electric_info ei
+                 JOIN samples s
+                      ON s.sample_id = CAST(SUBSTRING_INDEX(ei.sample_actual_id, ',', 1) AS UNSIGNED)
+                          AND s.passbackConfirm = '已回传'
+                          AND ei.sampleRecognizeResult is null
+                          AND ei.actual_finish_time is not null
+    </select>
+
+
+    <select id="findRDUnconfirmedSamples" resultType="map">
+        SELECT
+            ei.sample_id AS electric_sample_id,
+            ei.actual_finish_time,
+            s.sample_Developer
+        FROM electric_info ei
+                 JOIN samples s
+                      ON s.sample_id = CAST(SUBSTRING_INDEX(ei.sample_actual_id, ',', 1) AS UNSIGNED)
+                          AND s.passbackConfirm = '已回传'
+                          AND ei.rd_sampleRecognizeResult is null
+                          AND ei.actual_finish_time is not null
+    </select>
+
+
+    <select id="findTesterUnconfirmedSamples" resultType="map">
+            SELECT
+                sample_id,
+                finish_time,
+                tester
+            FROM samples
+            WHERE passbackConfirm = '未回传'
+            AND finish_time is not null
+    </select>
+
+
 </mapper>

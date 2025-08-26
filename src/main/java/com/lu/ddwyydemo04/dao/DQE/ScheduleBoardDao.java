@@ -30,16 +30,16 @@ public interface ScheduleBoardDao {
     /**
      * 基于 changeRecord 的搜索功能
      */
-    List<Map<String, Object>> searchByChangeRecord(@Param("tester") String tester, 
-                                                   @Param("startDate") String startDate, 
-                                                   @Param("endDate") String endDate, 
+    List<Map<String, Object>> searchByChangeRecord(@Param("tester") String tester,
+                                                   @Param("startDate") String startDate,
+                                                   @Param("endDate") String endDate,
                                                    @Param("isUsed") String isUsed,
                                                    @Param("remark") String remark);
 
     /**
      * 获取变更记录统计信息
      */
-    Map<String, Object> getChangeRecordStats(@Param("startDate") String startDate, 
+    Map<String, Object> getChangeRecordStats(@Param("startDate") String startDate,
                                            @Param("endDate") String endDate);
 
     /**
@@ -91,6 +91,10 @@ public interface ScheduleBoardDao {
 
     int updateScheduleColorGray();
     int updateScheduleColorGreen();
+
+    List<Map<String, Object>> findDQEUnconfirmedSamples();
+    List<Map<String, Object>> findRDUnconfirmedSamples();
+    List<Map<String, Object>> findTesterUnconfirmedSamples();
 
 
 

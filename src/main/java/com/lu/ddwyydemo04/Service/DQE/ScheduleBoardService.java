@@ -133,6 +133,14 @@ public class ScheduleBoardService {
         return scheduleBoardDao.updateScheduleColorGreen();
     }
 
-
+    public List<Map<String, Object>> findDQEUnconfirmedSamples() {
+        return scheduleBoardDao.findDQEUnconfirmedSamples();
+    }
+   public List<Map<String, Object>> findRDUnconfirmedSamples() {
+        return scheduleBoardDao.findRDUnconfirmedSamples();
+    }
+   public List<Map<String, Object>> findTesterUnconfirmedSamples() {
+        return scheduleBoardDao.findTesterUnconfirmedSamples();
+    }
 
 }

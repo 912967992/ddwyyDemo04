@@ -274,7 +274,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>DQE数据看板</h1>
+        <h1>主管级别以上数据看板</h1>
         <p>研发质量管理系统 - 电气测试项目数据展示</p>
 
         <!-- 创建时间过滤器 -->
@@ -366,9 +366,15 @@
 
     // 加载项目数据
     function loadProjectData() {
-        // 模拟从后端API获取数据
-        // 实际使用时应该调用真实的API
-        fetch('/DQEIndex/getElectricProjectData')
+        // 从localStorage获取用户名
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('请先输入用户名！');
+            return;
+        }
+
+        // 调用DQE个人数据接口
+        fetch(`/DQEIndex/getElectricProjectData?username=${encodeURIComponent(username)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -379,7 +385,7 @@
                     updateProjectTable();
                     updateCategoryFilter();
                 } else {
-                    console.error('获取数据失败:', data.error);
+                    console.error('获取DQE个人数据失败:', data.error);
                     // 使用模拟数据
                     loadMockData();
                 }
@@ -638,7 +644,7 @@
             case 'not-started':
                 title = '未开始项目详情';
                 projects = projectData.filter(p =>
-                    !p.actual_start_time && p.schedule !== '已完成'
+                    !p.actual_start_time
                 );
                 break;
             case 'in-progress':
@@ -678,7 +684,7 @@
                             查看数据列表
                         </button>
                         <button class="filter-btn" onclick="showDynamicChartModal('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
-                            动态图表
+                            自定义图表
                         </button>
                         <button class="filter-btn" onclick="exportModalExcel('${title}')">
                             导出Excel
@@ -812,7 +818,7 @@
                 // 统计未确认的项目
                 if ((!project.rd_sampleRecognizeResult || project.rd_sampleRecognizeResult.trim() === '') &&
                     (!project.sampleRecognizeResult || project.sampleRecognizeResult.trim() === '')) {
-                    confirmResultStats['未确认'] = (confirmResultStats['未确认'] || 0) + 1;
+                    confirmResultStats['DQE-未确认'] = (confirmResultStats['DQE-未确认'] || 0) + 1;
                 }
             });
 
@@ -1504,7 +1510,8 @@
         // 根据柱子数量调整布局
         const isManyBars = labels.length > 8;
         const barWidth = isManyBars ? 35 : 50;
-        const barSpacing = isManyBars ? 8 : 15;
+        //  下边这个是修改柱状图标签之间的间距的
+        const barSpacing = isManyBars ? 15 : 25;
 
         // 计算总宽度，确保柱子能够居中显示
         const totalWidth = sortedData.length * (barWidth + barSpacing) - barSpacing;
@@ -1765,7 +1772,7 @@
             }
         } else if (chartId === 'confirmResultChart') {
             // 确认结果筛选
-            if (label === '未确认') {
+            if (label === 'DQE-未确认') {
                 filteredProjects = originalProjects.filter(project =>
                     (!project.rd_sampleRecognizeResult || project.rd_sampleRecognizeResult.trim() === '') &&
                     (!project.sampleRecognizeResult || project.sampleRecognizeResult.trim() === '')
@@ -2762,7 +2769,7 @@
         exportToExcel(title, projectsToExport);
     }
 
-    // 显示动态图表模态框
+    // 显示自定义图表模态框
     function showDynamicChartModal(title, projects, status) {
         // 填充字段选择器
         populateFieldSelector();
@@ -2779,7 +2786,7 @@
         populateSavedChartsList();
     }
 
-    // 关闭动态图表模态框
+    // 关闭自定义图表模态框
     function closeDynamicChartModal() {
         document.getElementById('dynamicChartModal').style.display = 'none';
     }
@@ -2815,7 +2822,7 @@
         });
     }
 
-    // 生成动态图表
+    // 生成自定义图表
     function generateDynamicChart() {
         const fieldName = document.getElementById('fieldSelector').value;
         const chartType = document.getElementById('chartTypeSelector').value;
@@ -2921,7 +2928,7 @@
         bindDynamicChartEvents();
     }
 
-    // 清除动态图表
+    // 清除自定义图表
     function clearDynamicChart() {
         document.getElementById('dynamicChartContainer').innerHTML = `
                 <div style="text-align: center; color: #666;">
@@ -2987,7 +2994,7 @@
         populateSavedChartsList();
     }
 
-    // 绑定动态图表事件
+    // 绑定自定义图表事件
     function bindDynamicChartEvents() {
         const chartContainer = document.getElementById('dynamicChartContainer');
 
@@ -3555,11 +3562,11 @@
     }
 </script>
 
-<!-- 动态图表模态框 -->
+<!-- 自定义图表模态框 -->
 <div id="dynamicChartModal" class="modal">
     <div class="modal-content" style="width: 90%; max-width: 1200px; height: 85%; max-height: 700px;">
         <div class="modal-header">
-            <h3>动态图表生成器</h3>
+            <h3>自定义图表生成器</h3>
             <span class="close" onclick="closeDynamicChartModal()">&times;</span>
         </div>
         <div class="modal-body">

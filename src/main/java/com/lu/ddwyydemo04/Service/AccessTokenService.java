@@ -6,6 +6,7 @@ import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.*;
 import com.dingtalk.api.response.*;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
+import com.lu.ddwyydemo04.Service.DQE.ScheduleBoardService;
 import com.lu.ddwyydemo04.controller.testManIndexController;
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
 import com.lu.ddwyydemo04.pojo.Samples;
@@ -54,6 +55,9 @@ public class AccessTokenService {
 
     @Autowired
     private DQEproblemMoudleService dqeproblemMoudleService;
+
+    @Autowired
+    private ScheduleBoardService scheduleBoardService;
 
     public String getAccessToken() throws ApiException {
         DefaultDingTalkClient client = new DefaultDingTalkClient(GET_TOKEN_URL);
@@ -1125,6 +1129,219 @@ public class AccessTokenService {
         } catch (Exception e) {
             logger.error("测试findAllValidSamples失败: " + e.getMessage(), e);
         }
+    }
+
+    @Scheduled(cron = "0 0 9 * * ?") // 每天早上9点执行
+    public void checkUnconfirmedStatus() {
+        logger.info("开始执行定时任务，检查 DQE 和研发未确认状态...");
+        
+        try {
+            // 查询 DQE 未确认的记录
+            List<Map<String, Object>> dqeUnconfirmedSamples = scheduleBoardService.findDQEUnconfirmedSamples();
+            
+            // 统计 DQE 未确认的信息并发送通知
+            logger.info("找到 " + dqeUnconfirmedSamples.size() + " 个 DQE 未确认的样品记录");
+            StringBuilder dqeReport = new StringBuilder("DQE 未确认样品列表：\n");
+            dqeReport.append("数量：").append(dqeUnconfirmedSamples.size()).append("\n");
+            
+            // 按 DQE 人名分组汇总数据
+            Map<String, List<Map<String, Object>>> dqeGroupedByName = new HashMap<>();
+            for (Map<String, Object> sample : dqeUnconfirmedSamples) {
+                String dqeName = (String) sample.get("sample_DQE");
+                if (dqeName != null && !dqeName.isEmpty()) {
+                    dqeGroupedByName.computeIfAbsent(dqeName, k -> new ArrayList<>()).add(sample);
+                }
+            }
+            
+            // 按人名发送汇总通知
+            for (Map.Entry<String, List<Map<String, Object>>> entry : dqeGroupedByName.entrySet()) {
+                String dqeName = entry.getKey();
+                List<Map<String, Object>> samples = entry.getValue();
+                
+                StringBuilder message = new StringBuilder();
+                message.append("【DQE未确认提醒】\n");
+                message.append("您有 ").append(samples.size()).append(" 个报告未确认，详情如下：\n");
+                
+                for (Map<String, Object> sample : samples) {
+                    String electricSampleId = (String) sample.get("electric_sample_id");
+                    Object actualFinishTimeObj = sample.get("actual_finish_time");
+                    String actualFinishTime = "";
+                    if (actualFinishTimeObj instanceof LocalDateTime) {
+                        actualFinishTime = ((LocalDateTime) actualFinishTimeObj).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    } else if (actualFinishTimeObj instanceof String) {
+                        actualFinishTime = (String) actualFinishTimeObj;
+                    }
+                    String tester = (String) sample.get("tester");
+                    
+                    message.append("电气编号：").append(electricSampleId).append("\n");
+                    message.append("测试人员实际完成时间：").append(actualFinishTime).append("\n");
+                    message.append("DQE：").append(dqeName).append("\n\n");
+                    
+                    dqeReport.append("电气编号：").append(electricSampleId)
+                                .append("，实际完成时间：").append(actualFinishTime)
+                                .append("，测试人员：").append(tester)
+                                .append("，DQE：").append(dqeName)
+                                .append("\n");
+                }
+                
+                // 发送汇总通知给对应的 DQE
+                if (dqeName != null && !dqeName.isEmpty()) {
+                    String userId = getUserIdByName(dqeName);
+                    if (userId != null && !userId.isEmpty()) {
+                        sendTextNotification(userId, message.toString());
+                        logger.info("已发送未确认汇总通知给 DQE 用户: " + dqeName + "，报告数量: " + samples.size());
+                    } else {
+                        logger.warn("未找到 DQE 用户 " + dqeName + " 的userId");
+                    }
+                }
+            }
+            logger.info(dqeReport.toString());
+            
+            // 查询研发未确认的记录
+            List<Map<String, Object>> rdUnconfirmedSamples = scheduleBoardService.findRDUnconfirmedSamples();
+            
+            // 统计研发未确认的信息并发送通知
+            logger.info("找到 " + rdUnconfirmedSamples.size() + " 个研发未确认的样品记录");
+            StringBuilder rdReport = new StringBuilder("研发未确认样品列表：\n");
+            rdReport.append("数量：").append(rdUnconfirmedSamples.size()).append("\n");
+            
+            // 按 Developer 人名分组汇总数据
+            Map<String, List<Map<String, Object>>> rdGroupedByName = new HashMap<>();
+            for (Map<String, Object> sample : rdUnconfirmedSamples) {
+                String developerName = (String) sample.get("sample_Developer");
+                if (developerName != null && !developerName.isEmpty()) {
+                    rdGroupedByName.computeIfAbsent(developerName, k -> new ArrayList<>()).add(sample);
+                }
+            }
+            
+            // 按人名发送汇总通知
+            for (Map.Entry<String, List<Map<String, Object>>> entry : rdGroupedByName.entrySet()) {
+                String developerName = entry.getKey();
+                List<Map<String, Object>> samples = entry.getValue();
+                
+                StringBuilder message = new StringBuilder();
+                message.append("【研发未确认提醒】\n");
+                message.append("您有 ").append(samples.size()).append(" 个报告未确认，详情如下：\n");
+                
+                for (Map<String, Object> sample : samples) {
+                    String electricSampleId = (String) sample.get("electric_sample_id");
+                    Object actualFinishTimeObj = sample.get("actual_finish_time");
+                    String actualFinishTime = "";
+                    if (actualFinishTimeObj instanceof LocalDateTime) {
+                        actualFinishTime = ((LocalDateTime) actualFinishTimeObj).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    } else if (actualFinishTimeObj instanceof String) {
+                        actualFinishTime = (String) actualFinishTimeObj;
+                    }
+                    String tester = (String) sample.get("tester");
+                    
+                    message.append("电气编号：").append(electricSampleId).append("\n");
+                    message.append("测试人员实际完成时间：").append(actualFinishTime).append("\n");
+                    message.append("研发工程师：").append(developerName).append("\n\n");
+                    
+                    rdReport.append("电气编号：").append(electricSampleId)
+                               .append("，实际完成时间：").append(actualFinishTime)
+                               .append("，测试人员：").append(tester)
+                               .append("，研发：").append(developerName)
+                               .append("\n");
+                }
+                
+                // 发送汇总通知给对应的 Developer
+                if (developerName != null && !developerName.isEmpty()) {
+                    String userId = getUserIdByName(developerName);
+                    if (userId != null && !userId.isEmpty()) {
+                        sendTextNotification(userId, message.toString());
+                        logger.info("已发送未确认汇总通知给研发用户: " + developerName + "，报告数量: " + samples.size());
+                    } else {
+                        logger.warn("未找到研发用户 " + developerName + " 的userId");
+                    }
+                }
+            }
+            logger.info(rdReport.toString());
+            
+            // 查询测试人员未回传的记录
+            List<Map<String, Object>> testerUnreturnedSamples = scheduleBoardService.findTesterUnconfirmedSamples();
+            
+            // 统计测试人员未回传的信息并发送通知
+            logger.info("找到 " + testerUnreturnedSamples.size() + " 个测试人员未回传的样品记录");
+            StringBuilder testerReport = new StringBuilder("测试人员未回传样品列表：\n");
+            testerReport.append("数量：").append(testerUnreturnedSamples.size()).append("\n");
+            
+            // 按 Tester 人名分组汇总数据
+            Map<String, List<Map<String, Object>>> testerGroupedByName = new HashMap<>();
+            for (Map<String, Object> sample : testerUnreturnedSamples) {
+                String testerName = (String) sample.get("tester");
+                if (testerName != null && !testerName.isEmpty()) {
+                    testerGroupedByName.computeIfAbsent(testerName, k -> new ArrayList<>()).add(sample);
+                }
+            }
+            
+            // 按人名发送汇总通知
+            for (Map.Entry<String, List<Map<String, Object>>> entry : testerGroupedByName.entrySet()) {
+                String testerName = entry.getKey();
+                List<Map<String, Object>> samples = entry.getValue();
+                
+                StringBuilder message = new StringBuilder();
+                message.append("【测试人员未回传提醒】\n");
+                message.append("您有 ").append(samples.size()).append(" 个报告未回传，详情如下：\n");
+                
+                for (Map<String, Object> sample : samples) {
+                    String sampleId = String.valueOf(sample.get("sample_id"));
+                    Object submitTimeObj = sample.get("finish_time");
+                    String submitTime = "";
+                    if (submitTimeObj instanceof LocalDateTime) {
+                        submitTime = ((LocalDateTime) submitTimeObj).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    } else if (submitTimeObj instanceof String) {
+                        submitTime = (String) submitTimeObj;
+                    }
+                    
+                    message.append("样品编号：").append(sampleId).append("\n");
+                    message.append("提交时间：").append(submitTime).append("\n");
+                    message.append("测试人员：").append(testerName).append("\n\n");
+                    
+                    testerReport.append("样品编号：").append(sampleId)
+                                .append("，提交时间：").append(submitTime)
+                                .append("，测试人员：").append(testerName)
+                                .append("\n");
+                }
+                
+                // 发送汇总通知给对应的 Tester
+                if (testerName != null && !testerName.isEmpty()) {
+                    String userId = getUserIdByName(testerName);
+                    if (userId != null && !userId.isEmpty()) {
+                        sendTextNotification(userId, message.toString());
+                        logger.info("已发送未回传汇总通知给测试人员: " + testerName + "，报告数量: " + samples.size());
+                    } else {
+                        logger.warn("未找到测试人员 " + testerName + " 的userId");
+                    }
+                }
+            }
+            logger.info(testerReport.toString());
+            
+        } catch (Exception e) {
+            logger.error("执行定时任务检查 DQE 和研发未确认状态时出错: ", e);
+        }
+    }
+    
+    /**
+     * 发送未确认通知给指定用户
+     */
+    private void sendUnconfirmedNotification(String userName, String sampleId, String fullModel, String actualFinishTime, String role) throws ApiException {
+        String userId = getUserIdByName(userName);
+        if (userId == null || userId.isEmpty()) {
+            logger.warn("未找到用户 " + userName + " 的userId");
+            return;
+        }
+        
+        StringBuilder message = new StringBuilder();
+        message.append("【未确认提醒】\n");
+        message.append("您有一个样品需要确认：\n");
+        message.append("样品ID: ").append(sampleId).append("\n");
+        message.append("电气编号: ").append(fullModel).append("\n");
+        message.append("实际完成时间: ").append(actualFinishTime).append("\n");
+        message.append("请尽快处理！");
+        
+        sendTextNotification(userId, message.toString());
+        logger.info("已发送未确认通知给 " + role + " 用户: " + userName + ", 样品ID: " + sampleId);
     }
 
 }

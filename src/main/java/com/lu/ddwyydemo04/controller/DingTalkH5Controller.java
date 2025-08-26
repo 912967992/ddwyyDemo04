@@ -267,7 +267,7 @@ public class DingTalkH5Controller {
 
     public String checkParentDepartment(String jsonResponse,String username) {
         // 如果用户名是黄家灿，直接设置 job 为 DQE 并返回
-        if ("黄家灿".equals(username) || "荣成彧".equals(username)) {
+        if ("黄家灿".equals(username) || "荣成彧".equals(username) || "李良健".equals(username) ) {
             return "manager";
         }
 
@@ -275,7 +275,7 @@ public class DingTalkH5Controller {
         if ("官旺华".equals(username) || "赵梓宇".equals(username) || "刘鹏飞".equals(username)) {
             return "tester";
         } else {
-            if ("卢健".equals(username) || "许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) || "李良健".equals(username)) {
+            if ("卢健".equals(username) || "许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) ) {
                 return "DQE";
             }
 
