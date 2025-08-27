@@ -355,6 +355,12 @@
 </div>
 
 <script>
+    function getParams() {
+        let query = window.location.search;
+
+        return new URLSearchParams(query);
+    }
+
     let projectData = [];
     let filteredData = [];
     let originalProjectData = []; // 保存原始数据
@@ -366,12 +372,17 @@
 
     // 加载项目数据
     function loadProjectData() {
-        // 从localStorage获取用户名
-        const username = localStorage.getItem('username');
+        const urlParams = getParams();
+        let username = urlParams.get('username');
+        let job = urlParams.get('job');
+
         if (!username) {
             alert('请先输入用户名！');
             return;
         }
+
+        localStorage.setItem("username",username);
+        localStorage.setItem("job",job);
 
         // 调用DQE个人数据接口
         fetch(`/DQEIndex/getElectricProjectData?username=${encodeURIComponent(username)}`)

@@ -430,23 +430,40 @@
                 alert("请先选择角色！");
                 return;
             }
-            
+
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            // const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            const url = 'http://m6699deb.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+            if (isDingTalk) {
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开 ' + job + ' 看板');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
+            } else {
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
+            }
+        }
+
+        // 辅助函数：根据角色获取看板路径
+        function getDashboardPath(job) {
             switch(job) {
                 case 'DQE':
-                    location.href = '/dqeDashboard';
-                    break;
+                    return 'dqeDashboard';
                 case 'rd':
-                    location.href = '/rdDashboard';
-                    break;
-                // case 'projectLeader':
-                //     location.href = '/projectLeaderDashboard';
-                //     break;
-                case 'projectLeader':
+                    return 'rdDashboard';
                 case 'manager':
-                    location.href = '/managerboard'; // 经理级别也跳转到DQE看板
-                    break;
+                    return 'managerboard';
                 default:
-                    alert("未知角色，无法跳转！");
+                    return '';
             }
         }
 
