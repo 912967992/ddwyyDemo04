@@ -1420,7 +1420,7 @@
             ei.sample_type as smallSpecial,
             ei.sample_category as sampleCategory,
             ei.version,
-            ei.sample_sender as personInCharge,
+            ei.tester as personInCharge,
             ei.create_time as create_time,
             '1' as node_number,
             '待测试' as status_value
@@ -1442,7 +1442,7 @@
             ei.sample_type as smallSpecial,
             ei.sample_category as sampleCategory,
             ei.version,
-            ei.sample_sender as personInCharge,
+            ei.tester as personInCharge,
             ei.create_time as create_time,
             '2' as node_number,
             '测试进行中' as status_value

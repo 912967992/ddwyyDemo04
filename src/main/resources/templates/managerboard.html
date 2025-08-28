@@ -70,6 +70,8 @@
             padding: 25px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             margin-bottom: 25px;
+            width: 100%;
+            overflow-x: hidden;
         }
         .chart-title {
             font-size: 1.5rem;
@@ -277,10 +279,10 @@
         <h1>主管级别以上数据看板</h1>
         <p>研发质量管理系统 - 电气测试项目数据展示</p>
 
-        <!-- 创建时间过滤器 -->
+        <!-- 提单时间过滤器 -->
         <div class="time-filter-container">
             <div class="filter-group">
-                <label for="createTimeStart">创建时间开始：</label>
+                <label for="createTimeStart">提单时间开始：</label>
                 <input type="date" id="createTimeStart" class="filter-input">
                 <span class="filter-separator">至</span>
                 <label for="createTimeEnd">结束：</label>
@@ -465,7 +467,7 @@
                             <th>测试负责人</th>
                             <th>送样人</th>
                             <th>送样类别</th>
-                            <th>创建时间</th>
+                            <th>提单时间</th>
                             <th>排期天数</th>
                             <th>排期开始</th>
                             <th>排期结束</th>
@@ -886,7 +888,7 @@
                             notStartedDaysStats['日期无效'] = (notStartedDaysStats['日期无效'] || 0) + 1;
                         }
                     } else {
-                        // 如果没有创建时间，归类为"未设置"
+                        // 如果没有提单时间，归类为"未设置"
                         notStartedDaysStats['未设置'] = (notStartedDaysStats['未设置'] || 0) + 1;
                     }
                 });
@@ -929,7 +931,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-bottom: 25px;">
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">产品类别分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-产品类别分布' : status === 'in-progress' ? '进行中项目-产品类别分布' : status === 'completed' ? '已完成项目（未经确认）-产品类别分布' : '报告确认闭环项目-产品类别分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('categoryChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('categoryChart', 1)" title="放大">+</button>
@@ -942,7 +944,7 @@
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">项目负责人分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-项目负责人分布' : status === 'in-progress' ? '进行中项目-项目负责人分布' : status === 'completed' ? '已完成项目（未经确认）-项目负责人分布' : '报告确认闭环项目-项目负责人分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('leaderChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('leaderChart', 1)" title="放大">+</button>
@@ -955,7 +957,7 @@
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">测试负责人分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-测试负责人分布' : status === 'in-progress' ? '进行中项目-测试负责人分布' : status === 'completed' ? '已完成项目（未经确认）-测试负责人分布' : '报告确认闭环项目-测试负责人分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('testerChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('testerChart', 1)" title="放大">+</button>
@@ -968,7 +970,7 @@
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">DQE负责人分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-DQE负责人分布' : status === 'in-progress' ? '进行中项目-DQE负责人分布' : status === 'completed' ? '已完成项目（未经确认）-DQE负责人分布' : '报告确认闭环项目-DQE负责人分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('dqeLeaderChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('dqeLeaderChart', 1)" title="放大">+</button>
@@ -981,7 +983,7 @@
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">研发负责人分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-研发负责人分布' : status === 'in-progress' ? '进行中项目-研发负责人分布' : status === 'completed' ? '已完成项目（未经确认）-研发负责人分布' : '报告确认闭环项目-研发负责人分布'}</h4>
                                  <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('rdLeaderChart', 1)" title="放大">+</button>
@@ -994,7 +996,7 @@
                         </div>
                          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                 <h4 style="color: #333; margin: 0; font-size: 16px;">送样人分布</h4>
+                                 <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-送样人分布' : status === 'in-progress' ? '进行中项目-送样人分布' : status === 'completed' ? '已完成项目（未经确认）-送样人分布' : '报告确认闭环项目-送样人分布'}</h4>
                                  <div style="display: flex; gap: 5px;">
                                      <button class="zoom-btn" onclick="zoomChart('sampleSenderChart', -1)" title="缩小">−</button>
                                      <button class="zoom-btn" onclick="zoomChart('sampleSenderChart', 1)" title="放大">+</button>
@@ -1007,7 +1009,7 @@
                         </div>
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">排期天数分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-排期天数分布' : status === 'in-progress' ? '进行中项目-排期天数分布' : status === 'completed' ? '已完成项目（未经确认）-排期天数分布' : '报告确认闭环项目-排期天数分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('scheduleChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('scheduleChart', 1)" title="放大">+</button>
@@ -1021,7 +1023,7 @@
                         ${status === 'not-started' ? `
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">未开始天数分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-未开始天数分布' : status === 'in-progress' ? '进行中项目-未开始天数分布' : status === 'completed' ? '已完成项目（未经确认）-未开始天数分布' : '报告确认闭环项目-未开始天数分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('notStartedDaysChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('notStartedDaysChart', 1)" title="放大">+</button>
@@ -1035,7 +1037,7 @@
                         ` : ''}
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="color: #333; margin: 0; font-size: 16px;">确认结果分布</h4>
+                                <h4 style="color: #333; margin: 0; font-size: 16px;">${status === 'not-started' ? '未开始项目-确认结果分布' : status === 'in-progress' ? '进行中项目-确认结果分布' : status === 'completed' ? '已完成项目（未经确认）-确认结果分布' : '报告确认闭环项目-确认结果分布'}</h4>
                                 <div style="display: flex; gap: 5px;">
                                     <button class="zoom-btn" onclick="zoomChart('confirmResultChart', -1)" title="缩小">−</button>
                                     <button class="zoom-btn" onclick="zoomChart('confirmResultChart', 1)" title="放大">+</button>
@@ -1161,7 +1163,7 @@
                             </select>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <label style="font-size: 14px; color: #333;">创建时间:</label>
+                            <label style="font-size: 14px; color: #333;">提单时间:</label>
                             <input type="date" class="filter-input" id="modalStartDate" placeholder="开始日期">
                             <span style="color: #666;">至</span>
                             <input type="date" class="filter-input" id="modalEndDate" placeholder="结束日期">
@@ -1190,7 +1192,7 @@
                                 <th>排期结束</th>
                                 <th>实际开始时间</th>
                                 <th>实际结束时间</th>
-                                <th>创建时间</th>
+                                <th>提单时间</th>
                                  <th>DQE承认结果</th>
                                  <th>研发承认结果</th>
                             </tr>
@@ -2285,7 +2287,7 @@
             // 准备表头
             const headers = [
                 '样品编号', '产品名称', '产品类别', '大编码', '版本', '项目负责人',
-                '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '创建时间', '排期天数',
+                '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '提单时间', '排期天数',
                 '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果', 'DQE承认结果', '研发承认结果'
             ];
 
@@ -2814,7 +2816,7 @@
             { value: 'priority', label: '优先级' },
             { value: 'supplier', label: '供应商' },
             { value: 'schedule', label: '当前进度' },
-            { value: 'create_time', label: '创建时间' },
+            { value: 'create_time', label: '提单时间' },
             { value: 'schedule_start_date', label: '排期开始时间' },
             { value: 'schedule_end_date', label: '排期结束时间' },
             { value: 'actual_start_time', label: '实际开始测试时间' },
@@ -3524,7 +3526,7 @@
                                             <th>计划结束时间</th>
                                             <th>实际开始时间</th>
                                             <th>实际完成时间</th>
-                                            <th>创建时间</th>
+                                            <th>提单时间</th>
                                             <th>DQE承认结果</th>
                                             <th>研发承认结果</th>
                                         </tr>

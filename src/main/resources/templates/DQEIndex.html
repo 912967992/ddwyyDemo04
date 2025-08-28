@@ -228,7 +228,11 @@
             <span class="close overdue-close">&times;</span>
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>超时项目列表</h3>
-                <button id="saveOverdueReasons" style="margin-left: auto;">提交超时原因</button>
+                <div>
+                    <input type="text" id="overdueSearch" placeholder="输入关键字搜索..." style="padding: 5px; margin-right: 10px;">
+                    <button onclick="searchOverdueTable()">搜索</button>
+                    <button id="saveOverdueReasons" style="margin-left: 10px;">提交超时原因</button>
+                </div>
             </div>
 
             <table id="overdueTable">
@@ -411,9 +415,27 @@
         }
 
         function goToScheduleBoard() {
-            if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏"
-            || username === "李良健") {
-                location.href = "/scheduleBoard";
+            if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏" || username === "李良健") {
+                // 检查是否在钉钉环境中
+                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+                // const url = 'http://m6699deb.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
+                const url = 'http://219.134.191.195:64000/scheduleBoard?username=' + encodeURIComponent(username);
+
+                if (isDingTalk) {
+                    dd.openLink({
+                        url: url,
+                        success: function() {
+                            console.log('成功打开项目排期看板');
+                        },
+                        fail: function(err) {
+                            alert('打开页面失败：' + JSON.stringify(err));
+                            console.error('dd.openLink fail:', err);
+                        }
+                    });
+                } else {
+                    // 非钉钉环境使用普通跳转
+                    window.location.href = url;
+                }
             } else {
                 alert("您无权限进入该页面");
             }
@@ -433,8 +455,8 @@
 
             // 检查是否在钉钉环境中
             const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-            // const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            const url = 'http://m6699deb.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const url = 'http://ua6fbe8b.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
             if (isDingTalk) {
                 dd.openLink({
@@ -1081,6 +1103,27 @@
 
 
     };
+
+    function searchOverdueTable() {
+        var input, filter, table, tr, td, i, j, txtValue;
+        input = document.getElementById("overdueSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("overdueTable");
+        tr = table.getElementsByTagName("tr");
+
+        // 遍历表格的每一行，从第二行开始（跳过表头）
+        for (i = 1; i < tr.length; i++) {
+            tr[i].style.display = "none"; // 先隐藏所有行
+            td = tr[i].getElementsByTagName("td");
+            for (j = 0; j < td.length; j++) {
+                txtValue = td[j].textContent || td[j].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = ""; // 如果找到匹配项，显示该行
+                    break; // 找到一个匹配项后，不需要继续检查该行的其他单元格
+                }
+            }
+        }
+    }
 
     overdueClose.onclick = function() {
         overdueModal.style.display = "none";

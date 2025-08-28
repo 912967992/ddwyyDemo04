@@ -651,7 +651,28 @@
 
 
 <script>
-    const username = sessionStorage.getItem('username');
+    function getParams() {
+        let query = window.location.search;
+        return new URLSearchParams(query);
+    }
+
+    const urlParams = getParams();
+    let username = urlParams.get('username');
+    let job = urlParams.get('job');
+
+    // 只有当参数存在时才存储到localStorage
+    if (username !== null) {
+        localStorage.setItem("username", username);
+    }else{
+        username = sessionStorage.getItem('username');
+    }
+    if (job !== null) {
+        localStorage.setItem("job", job);
+    }else{
+        job = sessionStorage.getItem('job');
+    }
+
+
     // const username = "卢健";
 
     let localScheduleChanges = [];
