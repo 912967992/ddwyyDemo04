@@ -356,6 +356,7 @@
                           AND s.passbackConfirm = '已回传'
                           AND ei.sampleRecognizeResult is null
                           AND ei.actual_finish_time is not null
+                          AND ei.create_time >= '2025-08-01'
     </select>
 
 
@@ -370,6 +371,7 @@
                           AND s.passbackConfirm = '已回传'
                           AND ei.rd_sampleRecognizeResult is null
                           AND ei.actual_finish_time is not null
+                          AND ei.create_time >= '2025-08-01'
     </select>
 
 

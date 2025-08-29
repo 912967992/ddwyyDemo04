@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class DQEIndexController {
@@ -232,9 +233,10 @@ public class DQEIndexController {
     public ResponseEntity<Map<String, Object>> saveAgents(@RequestBody Map<String, Object> requestData) {
         try {
             List<String> agents = (List<String>) requestData.get("agents");
-            String username = (String) requestData.get("username");
-            String agent_name = String.join(", ", agents);
 
+            String username = (String) requestData.get("username");
+            String agent_name = String.join(",", agents);
+            System.out.println("agent_name:"+agent_name);
             
             int queryAgent = dqeIndexService.queryAgents(username);
             if(queryAgent > 0){

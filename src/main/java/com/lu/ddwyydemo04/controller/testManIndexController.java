@@ -472,9 +472,9 @@ public class testManIndexController {
             sample.setTest_Overseas(editTestOverseas); // 确保参数名一致
             sample.setPriority(editpriority);
             sample.setSample_remark(editsample_remark);
-            sample.setSample_DQE(editSampleDQE);
-            sample.setSample_Developer(editSampleDeveloper);
-            sample.setSample_leader(editSampleleader);
+            sample.setSample_DQE(editSampleDQE.trim());
+            sample.setSample_Developer(editSampleDeveloper.trim());
+            sample.setSample_leader(editSampleleader.trim());
             sample.setTester(tester);
 
 

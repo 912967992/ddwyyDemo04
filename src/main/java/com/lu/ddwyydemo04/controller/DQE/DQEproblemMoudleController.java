@@ -169,9 +169,9 @@ public class DQEproblemMoudleController {
                 String projectLeader = sample.getSample_leader();
 
                 // 检查用户是否是项目的直接负责人
-                boolean isDirectResponsible = username.equals(projectDQE) || 
-                                            username.equals(projectRD) || 
-                                            username.equals(projectLeader);
+                boolean isDirectResponsible = username.equals(projectDQE.trim()) ||
+                                            username.equals(projectRD.trim()) ||
+                                            username.equals(projectLeader.trim());
 
                 if (!isDirectResponsible) {
                     // 检查用户是否是代理人
@@ -1311,9 +1311,10 @@ public class DQEproblemMoudleController {
             String projectLeader = sample.getSample_leader();
 
             // 检查用户是否是项目的直接负责人
-            boolean isDirectResponsible = username.equals(projectDQE) ||
-                                        username.equals(projectRD) ||
-                                        username.equals(projectLeader);
+            boolean isDirectResponsible = username.equals(projectDQE.trim()) ||
+                                        username.equals(projectRD.trim()) ||
+                                        username.equals(projectLeader.trim());
+//            System.out.println("isDirectResponsible:"+isDirectResponsible);
 
             if (isDirectResponsible) {
                 Map<String, Object> response = new HashMap<>();
@@ -1335,9 +1336,9 @@ public class DQEproblemMoudleController {
                     String trimmedAgent = agent.trim();
                     if (!trimmedAgent.isEmpty()) {
                         // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                        if (trimmedAgent.equals(projectDQE) ||
-                            trimmedAgent.equals(projectRD) ||
-                            trimmedAgent.equals(projectLeader)) {
+                        if (trimmedAgent.equals(projectDQE.trim()) ||
+                            trimmedAgent.equals(projectRD.trim()) ||
+                            trimmedAgent.equals(projectLeader.trim())) {
                             isAgent = true;
                             agentFor = trimmedAgent;
                             break;

@@ -1587,10 +1587,10 @@
                             document.getElementById('editModal').remove();
                             performSearch();
                         }
-                        document.getElementById('edit_sample_DQE').value = $('#edit_sample_DQE').val();
-                        document.getElementById('edit_sample_Developer').value = $('#edit_sample_Developer').val();
-                        document.getElementById('edit_supplier').value = $('#edit_supplier').val();
-                        document.getElementById('edit_sample_name').value = $('#edit_sample_name').val();
+                        document.getElementById('edit_sample_DQE').value = $('#edit_sample_DQE').val().trim();
+                        document.getElementById('edit_sample_Developer').value = $('#edit_sample_Developer').val().trim();
+                        document.getElementById('edit_supplier').value = $('#edit_supplier').val().trim();
+                        document.getElementById('edit_sample_name').value = $('#edit_sample_name').val().trim();
                         // 优先显示 warning，如果没有才显示 message
                         if (response.warning && response.warning.trim() !== "") {
                             alert(response.warning);

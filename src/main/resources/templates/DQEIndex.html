@@ -348,7 +348,7 @@
         </div>
 
         <div class="grid-container">
-            <div class="module highlighted" onclick="redirectToPage()">问题点<br>模块</div>
+            <div class="module highlighted" onclick="redirectToPage()">问题点<br>审核</div>
             <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
             <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
@@ -1486,7 +1486,7 @@
                 return;
             }
         }
-        
+
         // 显示保存状态
         saveAgentsBtn.disabled = true;
         saveAgentsBtn.textContent = '保存中...';
@@ -1496,7 +1496,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ agents, username })
+            body: JSON.stringify({ agents: agents, username })
         })
         .then(response => {
             if (!response.ok) {
