@@ -2894,7 +2894,6 @@
                 max: 1,
                 onSuccess: function(contactData) {
                     const selectedUserId = contactData[0].emplId; // 获取单个用户ID
-
                     // 选择钉盘目录
                     dd.chooseDingTalkDir({
                         corpId: corp_id, // 企业ID
@@ -2954,7 +2953,7 @@
                     });
                 },
                 onFail: function(err) {
-                    alert("选择联系人出错" + err);
+                    alert("选择联系人出错1" + err);
                     // hideLoading(); // 隐藏加载提示框
                     // 失败后恢复按钮的状态
                     exportButton.disabled = false;
