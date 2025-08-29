@@ -349,7 +349,9 @@
         SELECT
             ei.sample_id AS electric_sample_id,
             ei.actual_finish_time,
-            s.sample_DQE
+            s.sample_DQE,
+            s.sample_model,
+            s.sample_coding
         FROM electric_info ei
                  JOIN samples s
                       ON s.sample_id = CAST(SUBSTRING_INDEX(ei.sample_actual_id, ',', 1) AS UNSIGNED)
@@ -364,7 +366,9 @@
         SELECT
             ei.sample_id AS electric_sample_id,
             ei.actual_finish_time,
-            s.sample_Developer
+            s.sample_Developer,
+            s.sample_model,
+            s.sample_coding
         FROM electric_info ei
                  JOIN samples s
                       ON s.sample_id = CAST(SUBSTRING_INDEX(ei.sample_actual_id, ',', 1) AS UNSIGNED)

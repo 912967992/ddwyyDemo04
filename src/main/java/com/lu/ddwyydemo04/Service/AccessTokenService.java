@@ -1131,7 +1131,7 @@ public class AccessTokenService {
         }
     }
 
-    @Scheduled(cron = "0 0 9 * * ?") // 每天早上9点执行
+    @Scheduled(cron = "0 06 16 * * ?") // 每天早上9点执行
     public void checkUnconfirmedStatus() {
         logger.info("开始执行定时任务，检查 DQE 和研发未确认状态...");
         
@@ -1171,15 +1171,16 @@ public class AccessTokenService {
                     } else if (actualFinishTimeObj instanceof String) {
                         actualFinishTime = (String) actualFinishTimeObj;
                     }
-                    String tester = (String) sample.get("tester");
-                    
+                    String sku = sample.get("sample_model") + " " + sample.get("sample_coding");
+
                     message.append("电气编号：").append(electricSampleId).append("\n");
+                    message.append("SKU：").append(sku).append("\n");
                     message.append("测试人员实际完成时间：").append(actualFinishTime).append("\n");
                     message.append("DQE：").append(dqeName).append("\n\n");
                     
                     dqeReport.append("电气编号：").append(electricSampleId)
+                                .append("，SKU：").append(sku)
                                 .append("，实际完成时间：").append(actualFinishTime)
-                                .append("，测试人员：").append(tester)
                                 .append("，DQE：").append(dqeName)
                                 .append("\n");
                 }
@@ -1233,12 +1234,15 @@ public class AccessTokenService {
                         actualFinishTime = (String) actualFinishTimeObj;
                     }
                     String tester = (String) sample.get("tester");
+                    String sku = sample.get("sample_model") + " " + sample.get("sample_coding");
                     
                     message.append("电气编号：").append(electricSampleId).append("\n");
+                    message.append("SKU：").append(sku).append("\n");
                     message.append("测试人员实际完成时间：").append(actualFinishTime).append("\n");
                     message.append("研发工程师：").append(developerName).append("\n\n");
                     
                     rdReport.append("电气编号：").append(electricSampleId)
+                               .append("，SKU：").append(sku)
                                .append("，实际完成时间：").append(actualFinishTime)
                                .append("，测试人员：").append(tester)
                                .append("，研发：").append(developerName)
