@@ -754,6 +754,10 @@ public class AccessTokenService {
             judge = "特采";
         } else if (judge.equals("4")) {
             judge = "会议评审接受";
+        } else if (judge.equals("5")) {
+            judge = "验证样品合格";
+        } else if (judge.equals("6")) {
+            judge = "验证样品不合格";
         }
         return judge;
     }
@@ -1131,7 +1135,7 @@ public class AccessTokenService {
         }
     }
 
-    @Scheduled(cron = "0 06 16 * * ?") // 每天早上9点执行
+    @Scheduled(cron = "0 0 9 * * ?") // 每天早上9点执行
     public void checkUnconfirmedStatus() {
         logger.info("开始执行定时任务，检查 DQE 和研发未确认状态...");
         

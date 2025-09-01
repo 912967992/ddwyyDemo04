@@ -340,6 +340,12 @@ public class durationTableController {
                                 case "4":
                                     resultDescription = "会议评审接受";
                                     break;
+                                case "5":
+                                    resultDescription = "验证样品合格";
+                                    break;
+                                case "6":
+                                    resultDescription = "验证样品不合格";
+                                    break;
                                 default:
                                     resultDescription = "";
                                     break;

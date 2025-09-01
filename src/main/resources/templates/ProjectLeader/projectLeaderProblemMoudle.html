@@ -166,6 +166,8 @@
                 <option value="2">限收</option>
                 <option value="3">特采</option>
                 <option value="4">会议评审接受</option>
+                <option value="5">验证样品合格</option>
+                <option value="6">验证样品不合格</option>
 
             </select>
         </div>
@@ -180,6 +182,8 @@
                 <option value="2">限收</option>
                 <option value="3">特采</option>
                 <option value="4">会议评审接受</option>
+                <option value="5">验证样品合格</option>
+                <option value="6">验证样品不合格</option>
 
             </select>
         </div>
@@ -231,6 +235,8 @@
                 <option value="2">限收</option>
                 <option value="3">特采</option>
                 <option value="4">会议评审接受</option>
+                <option value="5">验证样品合格</option>
+                <option value="6">验证样品不合格</option>
             </select>
         </div>
         <div class="confirmModal-footer">
@@ -630,6 +636,12 @@
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }else if(cellData === "4"){
                             td.textContent = "会议评审接受";
+                            // td.style.color = 'red'; // 设置字体颜色为绿色
+                        }else if(cellData === "5"){
+                            td.textContent = "验证样品合格";
+                            // td.style.color = 'red'; // 设置字体颜色为绿色
+                        }else if(cellData === "6"){
+                            td.textContent = "验证样品不合格";
                             // td.style.color = 'red'; // 设置字体颜色为绿色
                         }
                     }else if (headers[index] === "问题点数量") {
@@ -1510,6 +1522,10 @@
                 result_judge = "特采";
             } else if (result_judge === "4") {
                 result_judge = "会议评审接受";
+            } else if (result_judge === "5") {
+                result_judge = "验证样品合格";
+            } else if (result_judge === "6") {
+                result_judge = "验证样品不合格";
             }
             return result_judge;
         }
