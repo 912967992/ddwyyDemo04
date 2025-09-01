@@ -120,7 +120,7 @@
                 if (sampleId && response.job !== "tester") {
                     // 构造跳转的钉钉链接
                     const baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
-                    // const baseUrl = "http://ua6fbe8b.natappfree.cc/problemMoudle?dd_orientation=landscape";
+                    // const baseUrl = "http://x58b7659.natappfree.cc/problemMoudle?dd_orientation=landscape";
                     const redirectUrl = `${baseUrl}&sample_id=${encodeURIComponent(sampleId)}&username=${encodeURIComponent(response.username)}&job=${encodeURIComponent(response.job)}`;
 
                     const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;

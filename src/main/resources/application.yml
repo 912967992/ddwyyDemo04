@@ -57,17 +57,17 @@ mybatis:
 
 dingtalk:
 #  测试用Demo版本
-#  appKey: dingdopwfacnq4jwxetg
-#  appSecret: wwXuKPRFKVXhQBHBqkT7C6_U13RkxFK_FksYqVP5CsIIU2X-nAqISyNrweHzJQn5
-#  corpid: ding39a9d20442a933ec35c2f4657eb6378f
-#  agentid: 3152575892
-#  apiToDingTalkUrl: https://api.dingtalk.coml
-##  研发质量管理系统
-  appKey: dingifih6yjygcaok5xp
-  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox
+  appKey: dingdopwfacnq4jwxetg
+  appSecret: wwXuKPRFKVXhQBHBqkT7C6_U13RkxFK_FksYqVP5CsIIU2X-nAqISyNrweHzJQn5
   corpid: ding39a9d20442a933ec35c2f4657eb6378f
-  agentid: 3078576183
-  apiToDingTalkUrl: https://api.dingtalk.com
+  agentid: 3152575892
+  apiToDingTalkUrl: https://api.dingtalk.coml
+##  研发质量管理系统
+#  appKey: dingifih6yjygcaok5xp
+#  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox
+#  corpid: ding39a9d20442a933ec35c2f4657eb6378f
+#  agentid: 3078576183
+#  apiToDingTalkUrl: https://api.dingtalk.com
 
 #  测试开发门户网站
 #  appKey: dingljsbvvtgiaofoa4l
@@ -90,15 +90,15 @@ file:
 #    jsonpath: C:/ddwyy-lj/jsonpath
 #    issuespath: C:/ddwyy-lj/issuespath
 #    研发质量管理系统
-    templatespath: Z:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
-    savepath: Z:/ddwyy-lj/savepath
-    imagepath: Z:/ddwyy-lj/imageDirectory
-    jsonpath: Z:/ddwyy-lj/jsonpath
-    issuespath: Z:/ddwyy-lj/issuespath
+#    templatespath: Z:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
+#    savepath: Z:/ddwyy-lj/savepath
+#    imagepath: Z:/ddwyy-lj/imageDirectory
+#    jsonpath: Z:/ddwyy-lj/jsonpath
+#    issuespath: Z:/ddwyy-lj/issuespath
 #   ROG枪神8 测试用
-#    templatespath: E:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
-#    savepath: E:/ddwyy-lj/savepath
-#    imagepath: E:/ddwyy-lj/imageDirectory
-#    jsonpath: E:/ddwyy-lj/jsonpath
-#    issuespath: E:/ddwyy-lj/issuespath
+    templatespath: E:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
+    savepath: E:/ddwyy-lj/savepath
+    imagepath: E:/ddwyy-lj/imageDirectory
+    jsonpath: E:/ddwyy-lj/jsonpath
+    issuespath: E:/ddwyy-lj/issuespath
 

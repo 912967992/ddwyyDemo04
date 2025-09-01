@@ -3553,175 +3553,50 @@
             });
     }
 
-    function exportProblemXlsx(data, exportButton) {
-        // console.log(data);
+    function exportProblemXlsx(data) {
+        const requestData = { issues: data };
 
-        // 选择联系人
-        dd.biz.contact.choose({
-            multiple: false,
-            users: [],
-            corpId: corp_id,
-            max: 1,
-            onSuccess: function(contactData) {
-                const selectedUserId = contactData[0].emplId; // 获取单个用户ID
+        $.ajax({
+            url: '/problemMoudle/exportProblemXlsx',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            xhrFields: { responseType: 'blob' },
+            success: function (blob, status, xhr) {
+                // 解析文件名：同时支持 filename 与 filename*
+                const cd = xhr.getResponseHeader('Content-Disposition') || '';
+                let fileName = '测试问题点.xlsx';
 
-                // 选择钉盘目录
-                dd.chooseDingTalkDir({
-                    corpId: corp_id, // 企业ID
-                    onSuccess: function(res) {
-                        const selectedDirId = res.data[0].dirId; // 获取选中的目录ID
-                        const selectedSpaceId = res.data[0].spaceId; // 获取选中的空间ID
+                // 匹配 filename*=
+                const fnStar = /filename\*\=UTF-8''([^;]+)/i.exec(cd);
+                if (fnStar && fnStar[1]) {
+                    fileName = decodeURIComponent(fnStar[1]);
+                } else {
+                    // 匹配 filename=
+                    const fnNormal = /filename\=\"?([^\";]+)\"?/i.exec(cd);
+                    if (fnNormal && fnNormal[1]) fileName = fnNormal[1];
+                }
 
-                        // 获取应用免登授权码
-                        dd.runtime.permission.requestAuthCode({
-                            corpId: corp_id,
-                            onSuccess: function(result) {
-                                const authCode = result.code; // 获取到授权码
-
-                                // 创建一个对象，将 issues 和其他参数包装在一起
-                                const requestData = {
-                                    issues: data  // 包含多个问题的数组
-                                };
-
-                                // 发送 AJAX 请求
-                                $.ajax({
-                                    url: `/problemMoudle/exportProblemXlsx?dirId=${selectedDirId}&spaceId=${selectedSpaceId}&receiverId=${selectedUserId}&authCode=${authCode}`,
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(requestData), // 将对象序列化为 JSON
-                                    success: function(response) {
-                                        alert("发送成功");
-                                        // 成功后恢复按钮的状态
-                                        exportButton.disabled = false;
-                                    },
-                                    error: function(xhr, status, error) {
-                                        alert('导出测试报告失败: ' + error);
-                                        // 失败后恢复按钮的状态
-                                        exportButton.disabled = false;
-                                    }
-                                });
-                            },
-                            onFail: function(err) {
-                                alert('获取授权码失败：' + JSON.stringify(err));
-                                // hideLoading(); // 隐藏加载提示框
-                                // 失败后恢复按钮的状态
-                                exportButton.disabled = false;
-                            }
-                        });
-                    },
-                    fail: function(err) {
-                        alert('选择目录失败：' + JSON.stringify(err));
-                        // hideLoading(); // 隐藏加载提示框
-                        // 失败后恢复按钮的状态
-                        exportButton.disabled = false;
-                    },
-                    onCancel: function() {
-                        alert('选择目录取消');
-                        // 取消选择目录时恢复按钮的状态
-                        exportButton.disabled = false;
-                        return; // 在这里直接返回，阻止后续代码执行
-                    }
-                });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
             },
-            onFail: function(err) {
-                alert("选择联系人出错" + err);
-                // hideLoading(); // 隐藏加载提示框
-                // 失败后恢复按钮的状态
-                exportButton.disabled = false;
-            },
-            onCancel: function() {
-                alert("选择联系人取消");
-                // 取消选择联系人时恢复按钮的状态
-                exportButton.disabled = false;
-                return; // 在这里直接返回，阻止后续代码执行
+            error: function (xhr) {
+                const msg = xhr.responseText || '导出失败';
+                alert(msg);
             }
         });
     }
 
     function exportFile(sampleId) {
-        // 首先通过 sampleId 获取文件路径
-        $.ajax({
-            url: `/problemMoudle/getFilePath?sampleId=${sampleId}`,
-            type: 'GET',
-            success: function(data) {
-                const filePath = data.filePath; // 后端返回的完整 URL
-                const fileName = data.fileName; // 后端返回的文件名
-
-                // if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
-                //     return; // 用户选择不上传
-                // }
-
-                // 选择联系人
-                dd.biz.contact.choose({
-                    multiple: false,
-                    users: [],
-                    corpId: corp_id,
-                    max: 1,
-                    onSuccess: function(data) {
-                        const selectedUserId = data[0].emplId; // 获取单个用户ID
-
-                        // 选择钉盘目录
-                        dd.chooseDingTalkDir({
-                            corpId: corp_id, // 企业ID
-                            onSuccess: function(res) {
-                                const selectedDirId = res.data[0].dirId; // 获取选中的目录ID
-                                const selectedSpaceId = res.data[0].spaceId; // 获取选中的空间ID
-
-                                // 获取应用免登授权码
-                                dd.runtime.permission.requestAuthCode({
-                                    corpId: corp_id,
-                                    onSuccess: function(result) {
-                                        const authCode = result.code; // 获取到授权码
-                                        // 发起后端请求上传文件和发送文件
-                                        $.ajax({
-                                            url: '/testManIndex/uploadFileToDingtalk',
-                                            type: 'POST',
-                                            data: {
-                                                filepath: filePath, // 使用从后端获取的文件路径
-                                                dirId: selectedDirId,
-                                                spaceId: selectedSpaceId,
-                                                authCode: authCode,
-                                                receiverId: selectedUserId,
-                                                username : username
-                                            },
-                                            success: function(response) {
-                                                alert('文件上传并发送成功');
-                                                // hideLoading(); // 隐藏加载提示框
-                                            },
-                                            error: function(xhr, status, error) {
-                                                alert('文件上传发送失败: ' + error);
-                                                // hideLoading(); // 隐藏加载提示框
-                                            }
-                                        });
-                                    },
-                                    onFail: function(err) {
-                                        alert('获取授权码失败：' + JSON.stringify(err));
-                                        // hideLoading(); // 隐藏加载提示框
-                                    }
-                                });
-                            },
-                            fail: function(err) {
-                                alert('选择目录失败：' + JSON.stringify(err));
-                                // hideLoading(); // 隐藏加载提示框
-                            },
-                            onCancel: function() {
-                                alert('选择目录取消');
-                                // hideLoading(); // 隐藏加载提示框
-                            }
-                        });
-                    },
-                    onFail: function(err) {
-                        alert("选择联系人出错" + err);
-                        // hideLoading(); // 隐藏加载提示框
-                    }
-                });
-            },
-            error: function(xhr, status, error) {
-                alert('获取文件路径失败: ' + error);
-            }
-        });
+        // 直接访问后端的下载接口，让浏览器自动下载
+        window.location.href = `/problemMoudle/downloadFile?sampleId=${sampleId}`;
     }
-
 
     function updateSchedule(sample_schedule, sample_id, receiver, statusBarBgColor, sender, job ,selectedOption,isReceiverTester) {
         fetch('/problemMoudle/updateSchedule', {

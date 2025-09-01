@@ -1,5 +1,6 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
+
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.OapiCspaceAddRequest;
@@ -25,8 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -45,10 +49,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 import java.time.format.DateTimeParseException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class DQEproblemMoudleController {
@@ -932,253 +933,187 @@ public class DQEproblemMoudleController {
         }
     }
 
+
     @PostMapping("/problemMoudle/exportProblemXlsx")
     @ResponseBody
-    public Map<String, String> exportProblemXlsx(@RequestBody Map<String, List<TestIssues>> request,
-                                                 @RequestParam("dirId") String dirId,
-                                                 @RequestParam("spaceId") String spaceId,
-                                                 @RequestParam("receiverId") String receiverId,
-                                                 @RequestParam("authCode") String authCode) throws IOException {
-        List<TestIssues> issues = request.get("issues"); // 从 Map 中获取 issues
-//        System.out.println("issues:"+issues);
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<InputStreamResource> exportProblemXlsx(@RequestBody Map<String, List<TestIssues>> request) {
+        List<TestIssues> issues = request.get("issues");
+        if (issues == null || issues.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(null);
+        }
 
-        // 创建 Excel 工作簿
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("测试问题点汇总");
+        try {
+            Sheet sheet = workbook.createSheet("测试问题点汇总");
 
-        // 创建一个样式，用于居中对齐
-        CellStyle centeredStyle = workbook.createCellStyle();
-        centeredStyle.setAlignment(HorizontalAlignment.CENTER);
-        centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        // 设置边框
-        centeredStyle.setBorderTop(BorderStyle.THIN);
-        centeredStyle.setBorderBottom(BorderStyle.THIN);
-        centeredStyle.setBorderLeft(BorderStyle.THIN);
-        centeredStyle.setBorderRight(BorderStyle.THIN);
+            // ====== 样式 ======
+            CellStyle centeredStyle = workbook.createCellStyle();
+            centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+            centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            centeredStyle.setBorderTop(BorderStyle.THIN);
+            centeredStyle.setBorderBottom(BorderStyle.THIN);
+            centeredStyle.setBorderLeft(BorderStyle.THIN);
+            centeredStyle.setBorderRight(BorderStyle.THIN);
 
-        // 设置列宽和行高
-        for (int i = 0; i < 33; i++) {
-            sheet.setColumnWidth(i, 20 * 256); // 设置列宽
-        }
+            // 列宽
+            for (int i = 0; i < 33; i++) sheet.setColumnWidth(i, 20 * 256);
 
-        // 创建表头
+            // ====== 标题 ======
+            Row titleRow = sheet.createRow(0);
+            titleRow.setHeightInPoints(30);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("测试问题点汇总");
 
-        // 在第一行添加标题“测试问题点汇总”
-        Row titleRow = sheet.createRow(0);
-        titleRow.setHeightInPoints(30); // 设置行高
-        Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("测试问题点汇总");
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setFontHeightInPoints((short) 20);
+            titleFont.setBold(true);
+            titleStyle.setFont(titleFont);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+            titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            titleStyle.setBorderTop(BorderStyle.THIN);
+            titleStyle.setBorderBottom(BorderStyle.THIN);
+            titleStyle.setBorderLeft(BorderStyle.THIN);
+            titleStyle.setBorderRight(BorderStyle.THIN);
+            titleCell.setCellStyle(titleStyle);
 
-// 设置标题样式（居中 + 加粗 + 字号 + 边框）
-        CellStyle titleStyle = workbook.createCellStyle();
-        Font titleFont = workbook.createFont();
-        titleFont.setFontHeightInPoints((short) 20);
-        titleFont.setBold(true);
-        titleStyle.setFont(titleFont);
-        titleStyle.setAlignment(HorizontalAlignment.CENTER);
-        titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        titleStyle.setBorderTop(BorderStyle.THIN);
-        titleStyle.setBorderBottom(BorderStyle.THIN);
-        titleStyle.setBorderLeft(BorderStyle.THIN);
-        titleStyle.setBorderRight(BorderStyle.THIN);
-        titleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 32));
 
-// 合并单元格（比如从第0列到第32列）
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 32));
-
-
-        Row headerRow = sheet.createRow(1); // 表头移到第二行
-
-        headerRow.setHeightInPoints(50); // 设置表头行高
-//        String[] headers = {
-//                "ID", "DQE确认", "DQE意见信息", "研发确认", "研发意见信息",
-//                "完整型号", "样品阶段", "版本", "芯片方案", "测试平台",
-//                "显示设备", "其他设备", "问题描述", "问题图片", "问题时间",
-//                "复现方法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
-//                "对比上一版或竞品", "提出人", "DQE&研发确认", "改善对策（研发回复）",
-//                "分析责任人", "改善后风险", "下一版回归测试", "备注", "创建时间",
-//                "历史ID", "问题点创建者", "最后一次改动者", "改动时间"
-//        };
-
-        // 修改新的导出问题点的列名：
-        String[] headers = {
-                "序号", "样品型号", "SKU", "样品阶段", "内/外贸",
-                "供应商", "版本", "芯片方案", "日期", "测试人员",
-                "测试平台", "显示设备", "其他设备", "问题点", "问题类别",
-                "责任单位", "问题视频或图片", "复现概率", "复现手法", "恢复方法",
-                "缺陷等级", "当前状态", "对比上一版或竞品", "DQE确认回复（每个版本的回复请勿删除）",
-                "研发确认回复（每个版本的回复请勿删除）" , "DQE责任人", "分析责任人", "改善后风险", "评审结论",
-                "下一版回归测试", "备注"
-        };
-
-
-
-        // 创建表头并应用居中样式
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(centeredStyle);
-        }
-
-        // 填充数据
-        int rowNum = 2;
-        for (TestIssues issue : issues) {
-            Row row = sheet.createRow(rowNum++);
-            row.setHeightInPoints(50); // 设置每行行高
-            createCell(row, 0, issue.getId(), centeredStyle);
-            createCell(row, 1, issue.getFull_model(), centeredStyle);
-            createCell(row, 2, issue.getSku(), centeredStyle);
-            createCell(row, 3, issue.getSample_stage(), centeredStyle);
-            createCell(row, 4, issue.getTest_Overseas(), centeredStyle);
-            createCell(row, 5, issue.getSupplier(), centeredStyle);
-            createCell(row, 6, issue.getVersion(), centeredStyle);
-            createCell(row, 7, issue.getChip_solution(), centeredStyle);
-            createCell(row, 8, issue.getProblem_time(), centeredStyle);
-            createCell(row, 9, issue.getTester(), centeredStyle);
-            createCell(row, 10, issue.getTest_platform(), centeredStyle);
-            createCell(row, 11, issue.getTest_device(), centeredStyle);
-            createCell(row, 12, issue.getOther_device(), centeredStyle);
-
-            createCell(row, 13, issue.getProblem(), centeredStyle);
-            createCell(row, 14, issue.getProblemCategory(), centeredStyle);
-            createCell(row, 15, issue.getResponsibleDepartment(), centeredStyle);
-//            createCell(row, 15, issue.getProblem_image_or_video(), centeredStyle);
-
-            // 处理问题图片（略去具体实现）
-
-            // 处理问题图片
-            String problemImage = issue.getProblem_image_or_video();
-            if (problemImage != null && (problemImage.contains("/imageDirectory/") || problemImage.contains("/issuespath/"))) {
-                String filePath;
-                if (problemImage.contains("/imageDirectory/")) {
-                    filePath = imagepath + problemImage.replace("imageDirectory/", "");
-                } else {
-                    filePath = issuespath + problemImage.replace("issuespath/", "");
-                }
-
-                // 读取图片文件并插入
-                try (InputStream is = new FileInputStream(filePath);
-                     ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = is.read(buffer)) != -1) {
-                        baos.write(buffer, 0, bytesRead);
-                    }
-                    // 将图片添加到工作簿中
-                    String imageFormat = problemImage.substring(problemImage.lastIndexOf(".") + 1);
-                    int pictureType;
-                    if ("png".equalsIgnoreCase(imageFormat)) {
-                        pictureType = Workbook.PICTURE_TYPE_PNG;
-                    } else if ("jpeg".equalsIgnoreCase(imageFormat) || "jpg".equalsIgnoreCase(imageFormat)) {
-                        pictureType = Workbook.PICTURE_TYPE_JPEG;
-                    } else {
-                        throw new IllegalArgumentException("Unsupported image format: " + imageFormat);
-                    }
-                    int pictureIndex = workbook.addPicture(baos.toByteArray(), pictureType);
-                    Drawing<?> drawing = sheet.createDrawingPatriarch();
-                    // 创建图片锚点
-                    ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, (short) 16, rowNum - 1, (short) 17, rowNum);
-                    // 插入图片
-                    drawing.createPicture(anchor, pictureIndex);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    createCell(row, 16, "图片加载失败", centeredStyle);
-                }
-            } else {
-                createCell(row, 16, problemImage, centeredStyle);
+            // ====== 表头 ======
+            Row headerRow = sheet.createRow(1);
+            headerRow.setHeightInPoints(50);
+            String[] headers = {
+                    "序号", "样品型号", "SKU", "样品阶段", "内/外贸",
+                    "供应商", "版本", "芯片方案", "日期", "测试人员",
+                    "测试平台", "显示设备", "其他设备", "问题点", "问题类别",
+                    "责任单位", "问题视频或图片", "复现概率", "复现手法", "恢复方法",
+                    "缺陷等级", "当前状态", "对比上一版或竞品", "DQE确认回复（每个版本的回复请勿删除）",
+                    "研发确认回复（每个版本的回复请勿删除）" , "DQE责任人", "分析责任人", "改善后风险", "评审结论",
+                    "下一版回归测试", "备注"
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(centeredStyle);
             }
 
-//            createCell(row, 14, issue.getProblem_time(), centeredStyle);
-//            createCell(row, 15, issue.getReproduction_method(), centeredStyle);
-//            createCell(row, 16, issue.getRecovery_method(), centeredStyle);
-//            createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
-//            createCell(row, 18, issue.getDefect_level(), centeredStyle);
-//            createCell(row, 19, issue.getCurrent_status(), centeredStyle);
-//            createCell(row, 20, issue.getComparison_with_previous(), centeredStyle);
-//            createCell(row, 21, issue.getTester(), centeredStyle);
-//            createCell(row, 22, issue.getDqe_and_development_confirm(), centeredStyle);
-//            createCell(row, 23, issue.getImprovement_plan(), centeredStyle);
-//            createCell(row, 24, issue.getResponsible_person(), centeredStyle);
-//            createCell(row, 25, issue.getPost_improvement_risk(), centeredStyle);
-//            createCell(row, 26, issue.getNext_version_regression_test(), centeredStyle);
-//            createCell(row, 27, issue.getRemark(), centeredStyle);
-//            createCell(row, 28, issue.getCreated_at() != null ? issue.getCreated_at().toString() : "", centeredStyle);
-//            createCell(row, 29, issue.getHistory_id(), centeredStyle);
-//            createCell(row, 30, issue.getCreated_by(), centeredStyle);
-//            createCell(row, 31, issue.getModifier(), centeredStyle);
-//            createCell(row, 32, issue.getModify_at() != null ? issue.getModify_at().toString() : "", centeredStyle);
-            createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
-            createCell(row, 18, issue.getReproduction_method(), centeredStyle);
-            createCell(row, 19, issue.getRecovery_method(), centeredStyle);
-            createCell(row, 20, issue.getDefect_level(), centeredStyle);
-            createCell(row, 21, issue.getCurrent_status(), centeredStyle);
-            createCell(row, 22, issue.getComparison_with_previous(), centeredStyle);
-            createCell(row, 23, issue.getGreen_union_dqe(), centeredStyle);
-            createCell(row, 24, issue.getGreen_union_rd(), centeredStyle);
-            createCell(row, 25, issue.getDqe(), centeredStyle);
-            createCell(row, 26, issue.getResponsible_person(), centeredStyle);
-            createCell(row, 27, issue.getPost_improvement_risk(), centeredStyle);
-            createCell(row, 28, issue.getReview_conclusion(), centeredStyle);
-            createCell(row, 29, issue.getNext_version_regression_test(), centeredStyle);
-            createCell(row, 30, issue.getRemark(), centeredStyle);
-        }
+            // ====== 数据行 + 图片 ======
+            int rowNum = 2;
+            for (TestIssues issue : issues) {
+                Row row = sheet.createRow(rowNum);
+                row.setHeightInPoints(50);
 
-        // 创建文件名
-        TestIssues firstIssue = issues.get(0);
-        String fileName = String.format("%s_%s_%s问题点.xlsx",
-                sanitizeFileName(firstIssue.getFull_model()),
-                sanitizeFileName(firstIssue.getSample_stage()),
-                sanitizeFileName(firstIssue.getVersion())
-        );
+                createCell(row, 0,  issue.getId(), centeredStyle);
+                createCell(row, 1,  issue.getFull_model(), centeredStyle);
+                createCell(row, 2,  issue.getSku(), centeredStyle);
+                createCell(row, 3,  issue.getSample_stage(), centeredStyle);
+                createCell(row, 4,  issue.getTest_Overseas(), centeredStyle);
+                createCell(row, 5,  issue.getSupplier(), centeredStyle);
+                createCell(row, 6,  issue.getVersion(), centeredStyle);
+                createCell(row, 7,  issue.getChip_solution(), centeredStyle);
+                createCell(row, 8,  issue.getProblem_time(), centeredStyle);
+                createCell(row, 9,  issue.getTester(), centeredStyle);
+                createCell(row, 10, issue.getTest_platform(), centeredStyle);
+                createCell(row, 11, issue.getTest_device(), centeredStyle);
+                createCell(row, 12, issue.getOther_device(), centeredStyle);
+                createCell(row, 13, issue.getProblem(), centeredStyle);
+                createCell(row, 14, issue.getProblemCategory(), centeredStyle);
+                createCell(row, 15, issue.getResponsibleDepartment(), centeredStyle);
 
+                // 图片或占位文本到第16列（索引16）
+                String problemImage = issue.getProblem_image_or_video();
+                if (problemImage != null && (problemImage.contains("/imageDirectory/") || problemImage.contains("/issuespath/"))) {
+                    String filePath;
+                    if (problemImage.contains("/imageDirectory/")) {
+                        filePath = imagepath + problemImage.replace("imageDirectory/", "");
+                    } else {
+                        filePath = issuespath + problemImage.replace("issuespath/", "");
+                    }
 
-        // 保存到临时文件
-        String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + fileName;
-        System.out.println("fileName:"+fileName);
-        try (FileOutputStream fileOut = new FileOutputStream(tempFilePath)) {
-            workbook.write(fileOut);
-        } finally {
-            workbook.close();
-        }
+                    try (InputStream is = new FileInputStream(filePath);
+                         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) baos.write(buffer, 0, bytesRead);
 
-        // 上传文件到钉盘
-        try {
-            String accessToken = accessTokenService.getAccessToken();
-            String media_id = testManIndexService.getMediaId(tempFilePath, accessToken,agentid);
-            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/cspace/add");
-            OapiCspaceAddRequest req = new OapiCspaceAddRequest();
-            req.setAgentId(agentid);
-            req.setCode(authCode);
-            req.setFolderId(dirId);
-            req.setMediaId(media_id);
-            req.setSpaceId(spaceId);
-            req.setName(fileName);
-            req.setOverwrite(true);
-            req.setHttpMethod("GET");
-            OapiCspaceAddResponse rsp = client.execute(req, accessToken);
-            logger.info("Response from DingTalk cspace add: {}", rsp.getBody());
+                        String ext = problemImage.substring(problemImage.lastIndexOf(".") + 1);
+                        int pictureType;
+                        if ("png".equalsIgnoreCase(ext)) {
+                            pictureType = Workbook.PICTURE_TYPE_PNG;
+                        } else if ("jpeg".equalsIgnoreCase(ext) || "jpg".equalsIgnoreCase(ext)) {
+                            pictureType = Workbook.PICTURE_TYPE_JPEG;
+                        } else {
+                            // 不支持格式，写文本
+                            createCell(row, 16, "不支持的图片格式: " + ext, centeredStyle);
+                            rowNum++;
+                            continue;
+                        }
 
-            // 发送钉盘文件给用户
-            testManIndexService.sendDingFileToUser(accessToken, fileName, media_id, receiverId,agentid);
+                        int pictureIndex = workbook.addPicture(baos.toByteArray(), pictureType);
+                        Drawing<?> drawing = sheet.createDrawingPatriarch();
+                        // 图片锚点：第16列到第17列之间
+                        ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, (short) 16, rowNum, (short) 17, rowNum + 1);
+                        drawing.createPicture(anchor, pictureIndex);
+                    } catch (IOException e) {
+                        createCell(row, 16, "图片加载失败", centeredStyle);
+                    }
+                } else {
+                    createCell(row, 16, problemImage, centeredStyle);
+                }
 
-            response.put("status", "发送成功");
-            response.put("filePath", tempFilePath); // 返回临时文件路径
-            response.put("fileName", fileName); // 返回文件名
+                createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
+                createCell(row, 18, issue.getReproduction_method(), centeredStyle);
+                createCell(row, 19, issue.getRecovery_method(), centeredStyle);
+                createCell(row, 20, issue.getDefect_level(), centeredStyle);
+                createCell(row, 21, issue.getCurrent_status(), centeredStyle);
+                createCell(row, 22, issue.getComparison_with_previous(), centeredStyle);
+                createCell(row, 23, issue.getGreen_union_dqe(), centeredStyle);
+                createCell(row, 24, issue.getGreen_union_rd(), centeredStyle);
+                createCell(row, 25, issue.getDqe(), centeredStyle);
+                createCell(row, 26, issue.getResponsible_person(), centeredStyle);
+                createCell(row, 27, issue.getPost_improvement_risk(), centeredStyle);
+                createCell(row, 28, issue.getReview_conclusion(), centeredStyle);
+                createCell(row, 29, issue.getNext_version_regression_test(), centeredStyle);
+                createCell(row, 30, issue.getRemark(), centeredStyle);
 
-            logger.info("exportProblemXlsx successfully.");
-        } catch (ApiException e) {
-            e.printStackTrace();
-            response.put("status", "发送失败");
-            logger.info("exportProblemXlsx fail.");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                rowNum++;
+            }
+
+            // ====== 文件名 ======
+            TestIssues firstIssue = issues.get(0);
+            String rawName = String.format("%s_%s_%s问题点.xlsx",
+                    sanitizeFileName(firstIssue.getFull_model()),
+                    sanitizeFileName(firstIssue.getSample_stage()),
+                    sanitizeFileName(firstIssue.getVersion())
+            );
+            String encoded = URLEncoder.encode(rawName, String.valueOf(StandardCharsets.UTF_8)).replace("+", "%20");
+            String disposition = "attachment; filename=\"" + rawName + "\"; filename*=UTF-8''" + encoded;
+
+            // 写入内存输出
+            workbook.write(out);
+            byte[] bytes = out.toByteArray();
+
+            InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(bytes));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(bytes.length)
+                    .body(resource);
+
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // 记录日志后返回500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            try { workbook.close(); } catch (IOException ignored) {}
+            try { out.close(); } catch (IOException ignored) {}
         }
-
-        return response;
     }
+
+
+
 
     /**
      * 清理文件名：移除或替换操作系统不允许的字符
@@ -1212,33 +1147,41 @@ public class DQEproblemMoudleController {
     }
 
 
-    @GetMapping("/problemMoudle/getFilePath")
+    @GetMapping("/problemMoudle/downloadFile")
     @ResponseBody
-    public ResponseEntity<?> getFilePath(@RequestParam String sampleId) {
+    public ResponseEntity<?> downloadFile(@RequestParam String sampleId) {
         try {
             // 从数据库获取文件路径
             String filePath = dqeproblemMoudleService.getFilePathBySampleId(sampleId);
-            System.out.println("filePath:"+filePath);
+            System.out.println("filePath:" + filePath);
 
-            if (filePath != null) {
-                // 从 filePath 提取文件名
-                String fileName = filePath.substring(filePath.lastIndexOf("\\") + 1);
-
-
-                // 返回文件路径和文件名
-                Map<String, String> response = new HashMap<>();
-                response.put("filePath", filePath);  // 文件路径
-                response.put("fileName", fileName);  // 文件名
-                System.out.println("filePath:"+filePath);
-                return ResponseEntity.ok(response);
-            } else {
+            if (filePath == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文件未找到");
             }
+
+            File file = new File(filePath);
+            if (!file.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文件不存在: " + filePath);
+            }
+
+            // 提取文件名
+            String fileName = file.getName();
+
+            // 构造文件流响应
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(fileName, "UTF-8"))
+                    .contentLength(file.length())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
         } catch (Exception e) {
-            e.printStackTrace(); // 打印异常信息
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器错误");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器错误: " + e.getMessage());
         }
     }
+
 
 
     @GetMapping("/problemMoudle/queryResultJudge")
