@@ -153,16 +153,24 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: fixed;
+            min-width: 100%;
         }
         .project-table th, .project-table td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 8px 6px;
             text-align: left;
+            font-size: 12px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .project-table th {
             background-color: #f8f9fa;
             font-weight: bold;
             color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         .project-table tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -170,6 +178,31 @@
         .project-table tr:hover {
             background-color: #f0f0f0;
         }
+        
+        /* 为不同列设置合适的宽度 */
+        .project-table th:nth-child(1), .project-table td:nth-child(1) { width: 8%; } /* 样品编号 */
+        .project-table th:nth-child(2), .project-table td:nth-child(2) { width: 10%; } /* 产品名称 */
+        .project-table th:nth-child(3), .project-table td:nth-child(3) { width: 6%; } /* 产品类别 */
+        .project-table th:nth-child(4), .project-table td:nth-child(4) { width: 8%; } /* 大编码 */
+        .project-table th:nth-child(5), .project-table td:nth-child(5) { width: 8%; } /* 物料编码 */
+        .project-table th:nth-child(6), .project-table td:nth-child(6) { width: 4%; } /* 版本 */
+        .project-table th:nth-child(7), .project-table td:nth-child(7) { width: 6%; } /* 项目负责人 */
+        .project-table th:nth-child(8), .project-table td:nth-child(8) { width: 6%; } /* 当前进度 */
+        .project-table th:nth-child(9), .project-table td:nth-child(9) { width: 6%; } /* 测试负责人 */
+        .project-table th:nth-child(10), .project-table td:nth-child(10) { width: 6%; } /* DQE负责人 */
+        .project-table th:nth-child(11), .project-table td:nth-child(11) { width: 6%; } /* 研发负责人 */
+        .project-table th:nth-child(12), .project-table td:nth-child(12) { width: 5%; } /* 送样人 */
+        .project-table th:nth-child(13), .project-table td:nth-child(13) { width: 5%; } /* 送样类别 */
+        .project-table th:nth-child(14), .project-table td:nth-child(14) { width: 4%; } /* 送样数量 */
+        .project-table th:nth-child(15), .project-table td:nth-child(15) { width: 4%; } /* 是否高频 */
+        .project-table th:nth-child(16), .project-table td:nth-child(16) { width: 6%; } /* 提单时间 */
+        .project-table th:nth-child(17), .project-table td:nth-child(17) { width: 4%; } /* 排期天数 */
+        .project-table th:nth-child(18), .project-table td:nth-child(18) { width: 6%; } /* 排期开始 */
+        .project-table th:nth-child(19), .project-table td:nth-child(19) { width: 6%; } /* 排期结束 */
+        .project-table th:nth-child(20), .project-table td:nth-child(20) { width: 6%; } /* 实际开始时间 */
+        .project-table th:nth-child(21), .project-table td:nth-child(21) { width: 6%; } /* 实际完成时间 */
+        .project-table th:nth-child(22), .project-table td:nth-child(22) { width: 6%; } /* DQE承认结果 */
+        .project-table th:nth-child(23), .project-table td:nth-child(23) { width: 6%; } /* 研发承认结果 */
 
         /* 模态框样式 */
         .modal {
@@ -184,12 +217,12 @@
         }
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 2% auto;
             padding: 20px;
             border-radius: 10px;
-            width: 90%;
-            max-width: 1200px;
-            max-height: 80vh;
+            width: 95%;
+            max-width: 95vw;
+            max-height: 90vh;
             overflow-y: auto;
         }
         .close {
@@ -461,19 +494,21 @@
                             <th>产品名称</th>
                             <th>产品类别</th>
                             <th>大编码</th>
+                            <th>物料编码</th>
                             <th>版本</th>
                             <th>项目负责人</th>
                             <th>当前进度</th>
                             <th>测试负责人</th>
                             <th>送样人</th>
                             <th>送样类别</th>
+                            <th>送样数量</th>
+                            <th>是否高频</th>
                             <th>提单时间</th>
                             <th>排期天数</th>
                             <th>排期开始</th>
                             <th>排期结束</th>
                             <th>实际开始时间</th>
                             <th>实际完成时间</th>
-                            <th>承认结果</th>
                              <th>DQE承认结果</th>
                              <th>研发承认结果</th>
                         </tr>
@@ -506,6 +541,7 @@
                         <td>${project.sample_name || '-'}</td>
                         <td>${project.sample_category || '-'}</td>
                         <td>${project.sample_model || '-'}</td>
+                        <td>${project.materialCode || '-'}</td>
                         <td>${project.version || '-'}</td>
                         <td>${project.sample_leader || '-'}</td>
                         <td>
@@ -516,6 +552,8 @@
                         <td>${project.tester || '-'}</td>
                         <td>${project.sample_sender || '-'}</td>
                         <td>${project.sample_type || '-'}</td>
+                        <td>${project.sample_quantity || '-'}</td>
+                        <td>${project.high_frequency || '-'}</td>
                         <td>${formatDateTime(project.create_time) || '-'}</td>
                         <td>${project.scheduleDays || '-'}</td>
                         <td>${formatDate(project.schedule_start_date) || '-'}</td>
@@ -524,7 +562,6 @@
                         </td>
                         <td>${formatDateTime(project.actual_start_time) || '-'}</td>
                         <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
-                        <td>${project.sampleRecognizeResult || '-'}</td>
                          <td>${project.sampleRecognizeResult || '-'}</td>
                          <td>${project.rd_sampleRecognizeResult || '-'}</td>
                     </tr>
@@ -1182,19 +1219,26 @@
                                 <th>样品编号</th>
                                 <th>产品名称</th>
                                 <th>产品类别</th>
+                                <th>大编码</th>
+                                <th>物料编码</th>
+                                <th>版本</th>
                                 <th>项目负责人</th>
+                                <th>当前进度</th>
                                 <th>测试负责人</th>
                                 <th>DQE负责人</th>
                                 <th>研发负责人</th>
                                 <th>送样人</th>
+                                <th>送样类别</th>
+                                <th>送样数量</th>
+                                <th>是否高频</th>
+                                <th>提单时间</th>
                                 <th>排期天数</th>
                                 <th>排期开始</th>
                                 <th>排期结束</th>
                                 <th>实际开始时间</th>
-                                <th>实际结束时间</th>
-                                <th>提单时间</th>
-                                 <th>DQE承认结果</th>
-                                 <th>研发承认结果</th>
+                                <th>实际完成时间</th>
+                                <th>DQE承认结果</th>
+                                <th>研发承认结果</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1209,11 +1253,19 @@
                             <td><strong>${project.sample_id || '-'}</strong></td>
                             <td>${project.sample_name || '-'}</td>
                             <td>${project.sample_category || '-'}</td>
+                            <td>${project.sample_model || '-'}</td>
+                            <td>${project.materialCode || '-'}</td>
+                            <td>${project.version || '-'}</td>
                             <td>${project.sample_leader || '-'}</td>
+                            <td>${project.schedule || '-'}</td>
                             <td>${project.tester || '-'}</td>
                             <td>${project.dqe_leader || '-'}</td>
                             <td>${project.rd_leader || '-'}</td>
                             <td>${project.sample_sender || '-'}</td>
+                            <td>${project.sample_type || '-'}</td>
+                            <td>${project.sample_quantity || '-'}</td>
+                            <td>${project.high_frequency || '-'}</td>
+                            <td>${formatDateTime(project.create_time) || '-'}</td>
                             <td>${project.scheduleDays || '-'}</td>
                             <td>${formatDate(project.schedule_start_date) || '-'}</td>
                             <td style="${(isOverdue && !project.sampleRecognizeResult) ? 'color: red; font-weight: bold;' : ''}">
@@ -1221,9 +1273,8 @@
                             </td>
                             <td>${formatDateTime(project.actual_start_time) || '-'}</td>
                             <td>${formatDateTime(project.actual_finish_time) || '-'}</td>
-                            <td>${formatDateTime(project.create_time) || '-'}</td>
-                             <td>${project.sampleRecognizeResult || '-'}</td>
-                             <td>${project.rd_sampleRecognizeResult || '-'}</td>
+                            <td>${project.sampleRecognizeResult || '-'}</td>
+                            <td>${project.rd_sampleRecognizeResult || '-'}</td>
                         </tr>
                     `;
                 });
@@ -2286,9 +2337,9 @@
             try {
                 // 准备表头
                 const headers = [
-                    '样品编号', '产品名称', '产品类别', '大编码', '版本', '项目负责人',
-                    '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '提单时间', '排期天数',
-                 '排期开始', '排期结束', '实际开始时间', '实际完成时间', '承认结果', 'DQE承认结果', '研发承认结果'
+                    '样品编号', '产品名称', '产品类别', '大编码', '物料编码', '版本', '项目负责人',
+                    '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '送样数量', '是否高频', '提单时间', '排期天数',
+                 '排期开始', '排期结束', '实际开始时间', '实际完成时间', 'DQE承认结果', '研发承认结果'
                 ];
 
                 // 准备数据
@@ -2297,6 +2348,7 @@
                     project.sample_name || '',
                     project.sample_category || '',
                     project.sample_model || '',
+                    project.materialCode || '',
                     project.version || '',
                     project.sample_leader || '',
                     getProjectStatus(project),
@@ -2305,13 +2357,14 @@
                     project.rd_leader || '',
                     project.sample_sender || '',
                     project.sample_type || '',
+                    project.sample_quantity || '',
+                    project.high_frequency || '',
                     formatDateTime(project.create_time) || '',
                     project.scheduleDays || '',
                     formatDate(project.schedule_start_date) || '',
                     formatDate(project.schedule_end_date) || '',
                     formatDateTime(project.actual_start_time) || '',
                     formatDateTime(project.actual_finish_time) || '',
-                 project.sampleRecognizeResult || '',
                  project.sampleRecognizeResult || '',
                  project.rd_sampleRecognizeResult || ''
                 ]);
@@ -2650,25 +2703,32 @@
                     // 从表格行中提取数据
                     projectsToExport = Array.from(tableRows).map(row => {
                         const cells = row.querySelectorAll('td');
-                        if (cells.length >= 15) { // 确保有足够的列
-                            return {
-                                sample_id: cells[0].textContent.trim(),
-                                sample_name: cells[1].textContent.trim(),
-                                sample_category: cells[2].textContent.trim(),
-                                sample_leader: cells[3].textContent.trim(),
-                                tester: cells[4].textContent.trim(),
-                                dqe_leader: cells[5].textContent.trim(),
-                                rd_leader: cells[6].textContent.trim(),
-                                sample_sender: cells[7].textContent.trim(),
-                                scheduleDays: cells[8].textContent.trim(),
-                                schedule_start_date: cells[9].textContent.trim(),
-                                schedule_end_date: cells[10].textContent.trim(),
-                                actual_start_time: cells[11].textContent.trim(),
-                                actual_finish_time: cells[12].textContent.trim(),
-                                create_time: cells[13].textContent.trim(),
-                                sampleRecognizeResult: cells[14].textContent.trim(),
-                                rd_sampleRecognizeResult: cells[15] ? cells[15].textContent.trim() : ''
-                            };
+                        if (cells.length >= 23) { // 确保有足够的列
+                                                    return {
+                            sample_id: cells[0].textContent.trim(),
+                            sample_name: cells[1].textContent.trim(),
+                            sample_category: cells[2].textContent.trim(),
+                            sample_model: cells[3].textContent.trim(),
+                            materialCode: cells[4].textContent.trim(),
+                            version: cells[5].textContent.trim(),
+                            sample_leader: cells[6].textContent.trim(),
+                            schedule: cells[7].textContent.trim(),
+                            tester: cells[8].textContent.trim(),
+                            dqe_leader: cells[9].textContent.trim(),
+                            rd_leader: cells[10].textContent.trim(),
+                            sample_sender: cells[11].textContent.trim(),
+                            sample_type: cells[12].textContent.trim(),
+                            sample_quantity: cells[13].textContent.trim(),
+                            high_frequency: cells[14].textContent.trim(),
+                            create_time: cells[15].textContent.trim(),
+                            scheduleDays: cells[16].textContent.trim(),
+                            schedule_start_date: cells[17].textContent.trim(),
+                            schedule_end_date: cells[18].textContent.trim(),
+                            actual_start_time: cells[19].textContent.trim(),
+                            actual_finish_time: cells[20].textContent.trim(),
+                            sampleRecognizeResult: cells[21].textContent.trim(),
+                            rd_sampleRecognizeResult: cells[22] ? cells[22].textContent.trim() : ''
+                        };
                         }
                         return null;
                     }).filter(Boolean);
@@ -3514,19 +3574,27 @@
                                 <table class="data-table" style="width: 100%; border-collapse: collapse;">
                                     <thead>
                                         <tr>
-                                            <th>测试编号</th>
                                             <th>样品编号</th>
-                                            <th>产品类别</th>
                                             <th>产品名称</th>
+                                            <th>产品类别</th>
+                                            <th>大编码</th>
+                                            <th>物料编码</th>
+                                            <th>版本</th>
                                             <th>项目负责人</th>
+                                            <th>当前进度</th>
                                             <th>测试负责人</th>
+                                            <th>DQE负责人</th>
+                                            <th>研发负责人</th>
                                             <th>送样人</th>
+                                            <th>送样类别</th>
+                                            <th>送样数量</th>
+                                            <th>是否高频</th>
+                                            <th>提单时间</th>
                                             <th>排期天数</th>
-                                            <th>计划开始时间</th>
-                                            <th>计划结束时间</th>
+                                            <th>排期开始</th>
+                                            <th>排期结束</th>
                                             <th>实际开始时间</th>
                                             <th>实际完成时间</th>
-                                            <th>提单时间</th>
                                             <th>DQE承认结果</th>
                                             <th>研发承认结果</th>
                                         </tr>
@@ -3535,18 +3603,26 @@
                                         ${filteredProjects.map(project => `
                                             <tr>
                                                 <td>${project.sample_id || '-'}</td>
-                                                <td>${project.sample_actual_id || '-'}</td>
-                                                <td>${project.sample_category || '-'}</td>
                                                 <td>${project.sample_name || '-'}</td>
+                                                <td>${project.sample_category || '-'}</td>
+                                                <td>${project.sample_model || '-'}</td>
+                                                <td>${project.materialCode || '-'}</td>
+                                                <td>${project.version || '-'}</td>
                                                 <td>${project.sample_leader || '-'}</td>
+                                                <td>${project.schedule || '-'}</td>
                                                 <td>${project.tester || '-'}</td>
+                                                <td>${project.dqe_leader || '-'}</td>
+                                                <td>${project.rd_leader || '-'}</td>
                                                 <td>${project.sample_sender || '-'}</td>
+                                                <td>${project.sample_type || '-'}</td>
+                                                <td>${project.sample_quantity || '-'}</td>
+                                                <td>${project.high_frequency || '-'}</td>
+                                                <td>${project.create_time || '-'}</td>
                                                 <td>${project.scheduleDays || '-'}</td>
                                                 <td>${project.schedule_start_date || '-'}</td>
                                                 <td>${project.schedule_end_date || '-'}</td>
                                                 <td>${project.actual_start_time || '-'}</td>
                                                 <td>${project.actual_finish_time || '-'}</td>
-                                                <td>${project.create_time || '-'}</td>
                                                 <td>${project.sampleRecognizeResult || '-'}</td>
                                                 <td>${project.rd_sampleRecognizeResult || '-'}</td>
                                             </tr>

@@ -406,20 +406,16 @@
             } else {
                 alert("您无权限进入该页面");
             }
-            // if (username === '卢健') {
-            //     window.location.href = '/loginTestEnvironment';
-            //     window.location.href = '/testPageUI';
-            // } else {
-            //     alert('无权限访问该模块，仅限卢健操作');
-            // }
+
         }
 
         function goToScheduleBoard() {
             if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏" || username === "李良健") {
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-                // const url = 'http://m6699deb.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
+
                 const url = 'http://219.134.191.195:64000/scheduleBoard?username=' + encodeURIComponent(username);
+                // const url = 'http://x58b7659.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
 
                 if (isDingTalk) {
                     dd.openLink({
@@ -456,7 +452,7 @@
             // 检查是否在钉钉环境中
             const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
             const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            // const url = 'http://ua6fbe8b.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const url = 'http://x58b7659.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
             if (isDingTalk) {
                 dd.openLink({
@@ -479,6 +475,7 @@
         function getDashboardPath(job) {
             switch(job) {
                 case 'DQE':
+                case 'manager':
                     return 'dqeDashboard';
                 case 'rd':
                     return 'rdDashboard';

@@ -11,6 +11,8 @@ import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.JsapiTicketService;
 import com.taobao.api.ApiException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -50,6 +52,8 @@ public class DingTalkH5Controller {
     private String imagepath;
     private static final String GET_USER_INFO_URL = "https://oapi.dingtalk.com/user/getuserinfo";
 
+    private static final Logger logger = LoggerFactory.getLogger(testManIndexController.class);
+
     // 获取access_token的方法
 
 
@@ -78,7 +82,9 @@ public class DingTalkH5Controller {
             infoReq.setLanguage("zh_CN");
             OapiV2UserGetResponse infoRsp = infoClient.execute(infoReq, accessToken);
             String username = extractParamOfResult(infoRsp.getBody(),"name");
-            System.out.println("name:"+username);
+//            System.out.println("name:"+username);
+            logger.info("name:"+username);
+
 
             //提取职位,"测试专员"
 //            String job = extractParamOfResult(infoRsp.getBody(),"title");
@@ -86,8 +92,9 @@ public class DingTalkH5Controller {
 
             //提取部门id,"523459714"是电子测试组的编号
             String departmentId = extractDepartmentIds(infoRsp.getBody());
-            System.out.println("departmentIds:"+departmentId);
-            System.out.println("infoRsp.getBody():"+infoRsp.getBody());
+//            System.out.println("departmentIds:"+departmentId);
+            logger.info("departmentIds:"+departmentId);
+//            System.out.println("infoRsp.getBody():"+infoRsp.getBody());
 
 
 
@@ -107,7 +114,8 @@ public class DingTalkH5Controller {
 
             // 调用方法检查部门
             String job = checkParentDepartment(responseDeptBody,username);
-            System.out.println(job);
+//            System.out.println(job);
+            logger.info("job:"+job);
 
             // 特殊用户名覆盖 job 为 "it"
             if ("陈少侠".equals(username) || "郭丽纯".equals(username) ||

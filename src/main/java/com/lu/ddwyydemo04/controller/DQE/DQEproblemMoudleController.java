@@ -1254,9 +1254,9 @@ public class DQEproblemMoudleController {
             String projectLeader = sample.getSample_leader();
 
             // 检查用户是否是项目的直接负责人
-            boolean isDirectResponsible = username.equals(projectDQE.trim()) ||
-                                        username.equals(projectRD.trim()) ||
-                                        username.equals(projectLeader.trim());
+            boolean isDirectResponsible = username.equals(projectDQE != null ? projectDQE.trim() : "") ||
+                                        username.equals(projectRD != null ? projectRD.trim() : "") ||
+                                        username.equals(projectLeader != null ? projectLeader.trim() : "");
 //            System.out.println("isDirectResponsible:"+isDirectResponsible);
 
             if (isDirectResponsible) {
@@ -1279,9 +1279,9 @@ public class DQEproblemMoudleController {
                     String trimmedAgent = agent.trim();
                     if (!trimmedAgent.isEmpty()) {
                         // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                        if (trimmedAgent.equals(projectDQE.trim()) ||
-                            trimmedAgent.equals(projectRD.trim()) ||
-                            trimmedAgent.equals(projectLeader.trim())) {
+                        if (trimmedAgent.equals(projectDQE != null ? projectDQE.trim() : "") ||
+                            trimmedAgent.equals(projectRD != null ? projectRD.trim() : "") ||
+                            trimmedAgent.equals(projectLeader != null ? projectLeader.trim() : "")) {
                             isAgent = true;
                             agentFor = trimmedAgent;
                             break;

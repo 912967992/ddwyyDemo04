@@ -692,7 +692,7 @@
 
     <!-- 获取电气项目数据 -->
     <select id="getElectricProjectData" resultType="java.util.Map">
-        SELECT 
+        SELECT
                 ei.id,
             ei.sample_id,
             ei.sample_name,
@@ -716,26 +716,40 @@
             ei.remark,
             ei.waitSample_classify,
             ei.high_frequency,
+            ei.sample_frequency,
+            ei.sample_quantity,
+                -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
+                (
+                    SELECT GROUP_CONCAT(
+                                   CONCAT(mi.materialCode, '-', mi.sample_frequency)
+                                   ORDER BY mi.sample_frequency, mi.materialCode
+                                   SEPARATOR ','
+                           )
+                    FROM material_items mi
+                    WHERE mi.sample_id = ei.sample_id
+                      AND mi.materialCode IS NOT NULL
+                      AND mi.materialCode != ''
+                ) as materialCode,
             -- 获取DQE负责人和研发负责人
-            CASE 
-                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+            CASE
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != ''
                 THEN (
-                    SELECT s.sample_DQE 
-                    FROM samples s 
+                    SELECT s.sample_DQE
+                    FROM samples s
                     WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
                     LIMIT 1
                 )
-                ELSE NULL 
+                ELSE NULL
             END as dqe_leader,
-            CASE 
-                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+            CASE
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != ''
                 THEN (
-                    SELECT s.sample_Developer 
-                    FROM samples s 
+                    SELECT s.sample_Developer
+                    FROM samples s
                     WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
                     LIMIT 1
                 )
-                ELSE NULL 
+                ELSE NULL
             END as rd_leader
         FROM electric_info ei
         WHERE ei.isCancel = 0
@@ -769,6 +783,20 @@
             ei.remark,
             ei.waitSample_classify,
             ei.high_frequency,
+            ei.sample_frequency,
+            ei.sample_quantity,
+            -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
+            (
+                SELECT GROUP_CONCAT(
+                               CONCAT(mi.materialCode, '-', mi.sample_frequency)
+                               ORDER BY mi.sample_frequency, mi.materialCode
+                               SEPARATOR ','
+                       )
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+                  AND mi.materialCode IS NOT NULL
+                  AND mi.materialCode != ''
+            ) as materialCode,
             -- 获取DQE负责人和研发负责人
             CASE 
                 WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
@@ -830,6 +858,20 @@
             ei.remark,
             ei.waitSample_classify,
             ei.high_frequency,
+            ei.sample_frequency,
+            ei.sample_quantity,
+            -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
+            (
+                SELECT GROUP_CONCAT(
+                               CONCAT(mi.materialCode, '-', mi.sample_frequency)
+                               ORDER BY mi.sample_frequency, mi.materialCode
+                               SEPARATOR ','
+                       )
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+                  AND mi.materialCode IS NOT NULL
+                  AND mi.materialCode != ''
+            ) as materialCode,
             -- 获取DQE负责人和研发负责人
             CASE 
                 WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
