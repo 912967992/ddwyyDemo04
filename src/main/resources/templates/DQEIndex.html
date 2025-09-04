@@ -348,7 +348,8 @@
         </div>
 
         <div class="grid-container">
-            <div class="module highlighted" onclick="redirectToPage()">问题点<br>审核</div>
+            <div class="module highlighted" onclick="redirectToPage()">DQE/研发<br>审核</div>
+            <div class="module highlighted" onclick="checkProblemLibraryPermission()">问题点库<br>管理</div>
             <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
             <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
@@ -407,6 +408,15 @@
                 alert("您无权限进入该页面");
             }
 
+        }
+
+        function checkProblemLibraryPermission() {
+            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿'];
+            if (allowedUsers.includes(username)) {
+                location.href = '/problemLibraryManage';
+            } else {
+                alert("您无权限进入问题点库管理页面");
+            }
         }
 
         function goToScheduleBoard() {

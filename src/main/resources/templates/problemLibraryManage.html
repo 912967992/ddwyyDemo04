@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问题点库管理</title>
+    <!-- 引入字体图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 引入外部CSS文件 -->
+    <link rel="stylesheet" href="/css/problemLibraryManageStyle.css">
+    <!-- 引入jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- 引入钉钉JSAPI -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
+    <!-- 引入问题类别配置 -->
+    <script src="/js/problemCategories.js"></script>
+</head>
+<body>
+    <!-- 页面头部 -->
+    <div class="header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="fas fa-database"></i>
+                问题点库管理
+            </h1>
+            <div class="user-info">
+                <span id="currentUser"></span>
+                <span id="currentRole"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 筛选和操作区域 -->
+    <div class="filter-section">
+        <div class="filter-container">
+            <!-- 基础筛选 -->
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>完整编码:</label>
+                    <input type="text" id="fullModelFilter" placeholder="输入完整编码">
+                </div>
+                <div class="filter-group">
+                    <label>样品阶段:</label>
+                    <input type="text" id="sampleStageFilter" placeholder="输入样品阶段">
+                </div>
+                <div class="filter-group">
+                    <label>版本:</label>
+                    <input type="text" id="versionFilter" placeholder="输入版本">
+                </div>
+                <div class="filter-group">
+                    <label>问题类别:</label>
+                    <select id="problemCategoryFilter">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>缺陷等级:</label>
+                    <select id="defectLevelFilter">
+                        <option value="">全部</option>
+                        <option value="S">S</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="待确定">待确定</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>当前状态:</label>
+                    <select id="currentStatusFilter">
+                        <option value="">全部</option>
+                        <option value="Open">Open</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Follow up">Follow up</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>测试人员:</label>
+                    <input type="text" id="testerFilter" placeholder="输入测试人员">
+                </div>
+                <div class="filter-group">
+                    <label>责任部门:</label>
+                    <select id="responsibleDepartmentFilter">
+                        <option value="">全部</option>
+                        <option value="SQE">SQE</option>
+                        <option value="ID">ID</option>
+                        <option value="结构">结构</option>
+                        <option value="研发">研发</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>创建时间:</label>
+                    <input type="date" id="startDateFilter">
+                    <span>至</span>
+                    <input type="date" id="endDateFilter">
+                </div>
+                <div class="filter-group">
+                    <label>DQE负责人:</label>
+                    <input type="text" id="dqeFilter" placeholder="输入DQE负责人">
+                </div>
+                <div class="filter-group">
+                    <label>问题描述:</label>
+                    <input type="text" id="problemFilter" placeholder="输入问题关键词">
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button id="searchBtn" class="btn btn-primary">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+                <button id="resetBtn" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> 重置
+                </button>
+                <button id="exportBtn" class="btn btn-success">
+                    <i class="fas fa-download"></i> 导出筛选结果
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据统计区域 -->
+    <div class="stats-section">
+        <div class="stats-container">
+
+            <div class="stat-item clickable-stat" onclick="filterByStatus('Open')">
+                <span class="stat-label">Open:</span>
+                <span class="stat-value" id="openCount">0</span>
+            </div>
+            <div class="stat-item clickable-stat" onclick="filterByStatus('Closed')">
+                <span class="stat-label">Closed:</span>
+                <span class="stat-value" id="closedCount">0</span>
+            </div>
+            <div class="stat-item clickable-stat" onclick="filterByStatus('Follow up')">
+                <span class="stat-label">Follow up:</span>
+                <span class="stat-value" id="followupCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">筛选结果:</span>
+                <span class="stat-value" id="filteredCount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据表格区域 -->
+    <div class="table-section">
+        <div class="table-container">
+            <table id="problemTable" class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>完整编码</th>
+                        <th>样品阶段</th>
+                        <th>版本</th>
+                        <th>测试平台</th>
+                        <th>测试设备</th>
+                        <th>其他设备</th>
+                        <th>问题描述</th>
+                        <th>问题类别</th>
+                        <th>缺陷等级</th>
+                        <th>当前状态</th>
+                        <th>测试人员</th>
+                        <th>DQE责任人</th>
+                        <th>责任部门</th>
+                        <th>DQE确认回复</th>
+                        <th>研发确认回复</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="problemTableBody">
+                    <!-- 数据将通过JavaScript动态加载 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分页控件 -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span>显示第 <span id="startRecord">1</span> - <span id="endRecord">10</span> 条，共 <span id="totalRecords">0</span> 条记录</span>
+                <div class="page-size-selector">
+                    <label>每页显示:</label>
+                    <select id="pageSizeSelect">
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span>条</span>
+                </div>
+            </div>
+            <div class="pagination-controls">
+                <button id="firstPageBtn" class="btn btn-sm" title="首页">首页</button>
+                <button id="prevPageBtn" class="btn btn-sm">上一页</button>
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- 页码按钮将通过JavaScript动态生成 -->
+                </div>
+                <button id="nextPageBtn" class="btn btn-sm">下一页</button>
+                <button id="lastPageBtn" class="btn btn-sm" title="末页">末页</button>
+                <div class="page-jump">
+                    <span>跳转到</span>
+                    <input type="number" id="pageJumpInput" min="1" style="width: 60px; margin: 0 5px;">
+                    <span>页</span>
+                    <button id="pageJumpBtn" class="btn btn-sm">跳转</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 问题点详情模态框 -->
+    <div id="problemDetailModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>问题点详情</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProblemId" value="">
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h3>基本信息</h3>
+                        <div class="detail-row">
+                            <label>样品ID:</label>
+                            <span id="detailSampleId" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <label>完整编码:</label>
+                            <span id="detailFullModel" class="detail-value"></span>
+                            <input type="text" id="editDetailFullModel" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>样品阶段:</label>
+                            <span id="detailSampleStage" class="detail-value"></span>
+                            <input type="text" id="editDetailSampleStage" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>版本:</label>
+                            <span id="detailVersion" class="detail-value"></span>
+                            <input type="text" id="editDetailVersion" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>芯片方案:</label>
+                            <span id="detailChipSolution" class="detail-value"></span>
+                            <input type="text" id="editDetailChipSolution" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>测试平台:</label>
+                            <span id="detailTestPlatform" class="detail-value"></span>
+                            <input type="text" id="editDetailTestPlatform" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>测试设备:</label>
+                            <span id="detailTestDevice" class="detail-value"></span>
+                            <input type="text" id="editDetailTestDevice" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>其他设备:</label>
+                            <span id="detailOtherDevice" class="detail-value"></span>
+                            <input type="text" id="editDetailOtherDevice" class="detail-input" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>问题信息</h3>
+                        <div class="detail-row">
+                            <label>问题描述:</label>
+                            <div id="detailProblem" class="detail-value"></div>
+                            <textarea id="editDetailProblem" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>问题类别:</label>
+                            <span id="detailProblemCategory" class="detail-value"></span>
+                            <select id="editDetailProblemCategory" class="detail-input" style="display: none;">
+                                <option value="">请选择问题类别</option>
+                                <optgroup label="视频组">
+                                    <option value="视频播放问题">视频播放问题</option>
+                                    <option value="视频录制问题">视频录制问题</option>
+                                    <option value="视频编码问题">视频编码问题</option>
+                                    <option value="视频解码问题">视频解码问题</option>
+                                    <option value="视频传输问题">视频传输问题</option>
+                                    <option value="视频显示问题">视频显示问题</option>
+                                    <option value="视频格式问题">视频格式问题</option>
+                                    <option value="视频画质问题">视频画质问题</option>
+                                    <option value="视频同步问题">视频同步问题</option>
+                                    <option value="视频卡顿问题">视频卡顿问题</option>
+                                </optgroup>
+                                <optgroup label="蓝牙组">
+                                    <option value="蓝牙连接问题">蓝牙连接问题</option>
+                                    <option value="蓝牙配对问题">蓝牙配对问题</option>
+                                    <option value="蓝牙传输问题">蓝牙传输问题</option>
+                                    <option value="蓝牙音频问题">蓝牙音频问题</option>
+                                    <option value="蓝牙信号问题">蓝牙信号问题</option>
+                                    <option value="蓝牙兼容性问题">蓝牙兼容性问题</option>
+                                    <option value="蓝牙功耗问题">蓝牙功耗问题</option>
+                                    <option value="蓝牙协议问题">蓝牙协议问题</option>
+                                    <option value="蓝牙设备识别问题">蓝牙设备识别问题</option>
+                                    <option value="蓝牙断连问题">蓝牙断连问题</option>
+                                </optgroup>
+                                <optgroup label="硬件组">
+                                    <option value="硬件设计问题">硬件设计问题</option>
+                                    <option value="生产问题">生产问题</option>
+                                    <option value="器件问题">器件问题</option>
+                                    <option value="配件问题">配件问题</option>
+                                    <option value="外观问题">外观问题</option>
+                                    <option value="PCBA问题">PCBA问题</option>
+                                    <option value="电路问题">电路问题</option>
+                                    <option value="接口问题">接口问题</option>
+                                    <option value="散热问题">散热问题</option>
+                                    <option value="机械结构问题">机械结构问题</option>
+                                </optgroup>
+                                <optgroup label="软件组">
+                                    <option value="软件问题">软件问题</option>
+                                    <option value="系统问题">系统问题</option>
+                                    <option value="驱动问题">驱动问题</option>
+                                    <option value="固件问题">固件问题</option>
+                                    <option value="应用问题">应用问题</option>
+                                    <option value="界面问题">界面问题</option>
+                                    <option value="性能问题">性能问题</option>
+                                    <option value="兼容性问题">兼容性问题</option>
+                                    <option value="稳定性问题">稳定性问题</option>
+                                    <option value="功能缺失问题">功能缺失问题</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="detail-row">
+                            <label>缺陷等级:</label>
+                            <span id="detailDefectLevel" class="detail-value"></span>
+                            <select id="editDetailDefectLevel" class="detail-input" style="display: none;">
+                                <option value="S">S</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="待确定">待确定</option>
+                            </select>
+                        </div>
+                        <div class="detail-row">
+                            <label>当前状态:</label>
+                            <span id="detailCurrentStatus" class="detail-value"></span>
+                            <select id="editDetailCurrentStatus" class="detail-input" style="display: none;">
+                                <option value="Open">Open</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Follow up">Follow up</option>
+                            </select>
+                        </div>
+                        <div class="detail-row">
+                            <label>复现手法:</label>
+                            <div id="detailReproductionMethod" class="detail-value"></div>
+                            <textarea id="editDetailReproductionMethod" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>恢复方法:</label>
+                            <div id="detailRecoveryMethod" class="detail-value"></div>
+                            <textarea id="editDetailRecoveryMethod" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>复现概率:</label>
+                            <span id="detailReproductionProbability" class="detail-value"></span>
+                            <input type="text" id="editDetailReproductionProbability" class="detail-input" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>处理信息</h3>
+                        <div class="detail-row">
+                            <label>测试人员:</label>
+                            <span id="detailTester" class="detail-value"></span>
+                            <input type="text" id="editDetailTester" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>责任部门:</label>
+                            <span id="detailResponsibleDepartment" class="detail-value"></span>
+                            <select id="editDetailResponsibleDepartment" class="detail-input" style="display: none;">
+                                <option value="SQE">SQE</option>
+                                <option value="ID">ID</option>
+                                <option value="结构">结构</option>
+                                <option value="研发">研发</option>
+                            </select>
+                        </div>
+                        <div class="detail-row">
+                            <label>分析责任人:</label>
+                            <span id="detailResponsiblePerson" class="detail-value"></span>
+                            <input type="text" id="editDetailResponsiblePerson" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>DQE确认:</label>
+                            <span id="detailDqeConfirm" class="detail-value"></span>
+                            <input type="text" id="editDetailDqeConfirm" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>研发确认:</label>
+                            <span id="detailRdConfirm" class="detail-value"></span>
+                            <input type="text" id="editDetailRdConfirm" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>改善对策:</label>
+                            <div id="detailImprovementPlan" class="detail-value"></div>
+                            <textarea id="editDetailImprovementPlan" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>DQE回复:</label>
+                            <div id="detailGreenUnionDqe" class="detail-value"></div>
+                            <textarea id="editDetailGreenUnionDqe" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>研发回复:</label>
+                            <div id="detailGreenUnionRd" class="detail-value"></div>
+                            <textarea id="editDetailGreenUnionRd" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>其他信息</h3>
+                        <div class="detail-row">
+                            <label>对比上一版:</label>
+                            <div id="detailComparisonWithPrevious" class="detail-value"></div>
+                            <textarea id="editDetailComparisonWithPrevious" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>改善后风险:</label>
+                            <div id="detailPostImprovementRisk" class="detail-value"></div>
+                            <textarea id="editDetailPostImprovementRisk" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>下一版回归测试:</label>
+                            <div id="detailNextVersionRegressionTest" class="detail-value"></div>
+                            <textarea id="editDetailNextVersionRegressionTest" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>备注:</label>
+                            <div id="detailRemark" class="detail-value"></div>
+                            <textarea id="editDetailRemark" class="detail-input" rows="3" style="display: none;"></textarea>
+                        </div>
+                        <div class="detail-row">
+                            <label>内外贸:</label>
+                            <span id="detailTestOverseas" class="detail-value"></span>
+                            <select id="editDetailTestOverseas" class="detail-input" style="display: none;">
+                                <option value="内贸">内贸</option>
+                                <option value="外贸">外贸</option>
+                            </select>
+                        </div>
+                        <div class="detail-row">
+                            <label>创建时间:</label>
+                            <span id="detailCreatedAt" class="detail-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="editProblemBtn" class="btn btn-primary" style="display: none;">编辑</button>
+                <button id="saveDetailBtn" class="btn btn-success" style="display: none;">保存</button>
+                <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;">取消</button>
+                <button id="closeDetailModal" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑问题点模态框 -->
+    <div id="editProblemModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>编辑问题点</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editProblemForm">
+                    <input type="hidden" id="editProblemId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="editFullModel">完整编码:</label>
+                            <input type="text" id="editFullModel" name="fullModel">
+                        </div>
+                        <div class="form-group">
+                            <label for="editSampleStage">样品阶段:</label>
+                            <select id="editSampleStage" name="sampleStage">
+                                <option value="EVT">EVT</option>
+                                <option value="DVT">DVT</option>
+                                <option value="PVT">PVT</option>
+                                <option value="MP">MP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editVersion">版本:</label>
+                            <input type="text" id="editVersion" name="version">
+                        </div>
+                        <div class="form-group">
+                            <label for="editProblemCategory">问题类别:</label>
+                            <select id="editProblemCategory" name="problemCategory">
+                                <option value="">请选择问题类别</option>
+                                <optgroup label="视频组">
+                                    <option value="视频播放问题">视频播放问题</option>
+                                    <option value="视频录制问题">视频录制问题</option>
+                                    <option value="视频编码问题">视频编码问题</option>
+                                    <option value="视频解码问题">视频解码问题</option>
+                                    <option value="视频传输问题">视频传输问题</option>
+                                    <option value="视频显示问题">视频显示问题</option>
+                                    <option value="视频格式问题">视频格式问题</option>
+                                    <option value="视频画质问题">视频画质问题</option>
+                                    <option value="视频同步问题">视频同步问题</option>
+                                    <option value="视频卡顿问题">视频卡顿问题</option>
+                                </optgroup>
+                                <optgroup label="蓝牙组">
+                                    <option value="蓝牙连接问题">蓝牙连接问题</option>
+                                    <option value="蓝牙配对问题">蓝牙配对问题</option>
+                                    <option value="蓝牙传输问题">蓝牙传输问题</option>
+                                    <option value="蓝牙音频问题">蓝牙音频问题</option>
+                                    <option value="蓝牙信号问题">蓝牙信号问题</option>
+                                    <option value="蓝牙兼容性问题">蓝牙兼容性问题</option>
+                                    <option value="蓝牙功耗问题">蓝牙功耗问题</option>
+                                    <option value="蓝牙协议问题">蓝牙协议问题</option>
+                                    <option value="蓝牙设备识别问题">蓝牙设备识别问题</option>
+                                    <option value="蓝牙断连问题">蓝牙断连问题</option>
+                                </optgroup>
+                                <optgroup label="硬件组">
+                                <option value="硬件设计问题">硬件设计问题</option>
+                                <option value="生产问题">生产问题</option>
+                                <option value="器件问题">器件问题</option>
+                                <option value="配件问题">配件问题</option>
+                                <option value="外观问题">外观问题</option>
+                                <option value="PCBA问题">PCBA问题</option>
+                                    <option value="电路问题">电路问题</option>
+                                    <option value="接口问题">接口问题</option>
+                                    <option value="散热问题">散热问题</option>
+                                    <option value="机械结构问题">机械结构问题</option>
+                                </optgroup>
+                                <optgroup label="软件组">
+                                    <option value="软件问题">软件问题</option>
+                                    <option value="系统问题">系统问题</option>
+                                    <option value="驱动问题">驱动问题</option>
+                                    <option value="固件问题">固件问题</option>
+                                    <option value="应用问题">应用问题</option>
+                                    <option value="界面问题">界面问题</option>
+                                    <option value="性能问题">性能问题</option>
+                                    <option value="兼容性问题">兼容性问题</option>
+                                    <option value="稳定性问题">稳定性问题</option>
+                                    <option value="功能缺失问题">功能缺失问题</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDefectLevel">缺陷等级:</label>
+                            <select id="editDefectLevel" name="defectLevel">
+                                <option value="S">S</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="待确定">待确定</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCurrentStatus">当前状态:</label>
+                            <select id="editCurrentStatus" name="currentStatus">
+                                <option value="Open">Open</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Follow up">Follow up</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editProblem">问题描述:</label>
+                            <textarea id="editProblem" name="problem" rows="3"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editReproductionMethod">复现手法:</label>
+                            <textarea id="editReproductionMethod" name="reproductionMethod" rows="3"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editRecoveryMethod">恢复方法:</label>
+                            <textarea id="editRecoveryMethod" name="recoveryMethod" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="editReproductionProbability">复现概率:</label>
+                            <input type="text" id="editReproductionProbability" name="reproductionProbability">
+                        </div>
+                        <div class="form-group">
+                            <label for="editTester">测试人员:</label>
+                            <input type="text" id="editTester" name="tester">
+                        </div>
+                        <div class="form-group">
+                            <label for="editResponsibleDepartment">责任部门:</label>
+                            <select id="editResponsibleDepartment" name="responsibleDepartment">
+                                <option value="SQE">SQE</option>
+                                <option value="ID">ID</option>
+                                <option value="结构">结构</option>
+                                <option value="研发">研发</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editResponsiblePerson">分析责任人:</label>
+                            <input type="text" id="editResponsiblePerson" name="responsiblePerson">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editImprovementPlan">改善对策:</label>
+                            <textarea id="editImprovementPlan" name="improvementPlan" rows="3"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editGreenUnionDqe">DQE回复:</label>
+                            <textarea id="editGreenUnionDqe" name="greenUnionDqe" rows="3"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editGreenUnionRd">研发回复:</label>
+                            <textarea id="editGreenUnionRd" name="greenUnionRd" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTestOverseas">内外贸:</label>
+                            <select id="editTestOverseas" name="testOverseas">
+                                <option value="内贸">内贸</option>
+                                <option value="外贸">外贸</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editRemark">备注:</label>
+                            <textarea id="editRemark" name="remark" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="saveProblemBtn" class="btn btn-primary">保存</button>
+                <button id="cancelEditBtn" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史版本模态框 -->
+    <div id="historyVersionsModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>历史版本</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="history-versions-container">
+                    <table id="historyVersionsTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>版本号</th>
+                                <th>问题描述</th>
+                                <th>状态</th>
+                                <th>修改人</th>
+                                <th>修改时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyVersionsTableBody">
+                            <!-- 历史版本数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeHistoryModal" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>加载中...</p>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+            <span>返回</span>
+        </button>
+        <button class="nav-btn" onclick="goHome()">
+            <i class="fas fa-home"></i>
+            <span>主页</span>
+        </button>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentUser = '';
+        let currentRole = '';
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalRecords = 0;
+        let filteredData = [];
+        let isSuperAdmin = false; // 是否为超级管理员
+
+        // 标准化状态显示
+        function normalizeStatus(status) {
+            if (!status) return '';
+            const normalized = status.toLowerCase().trim();
+            switch (normalized) {
+                case 'open':
+                    return 'Open';
+                case 'closed':
+                case 'close':
+                    return 'Closed';
+                case 'follow up':
+                case 'followup':
+                    return 'Follow up';
+                default:
+                    return status; // 保持原值
+            }
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查用户权限
+            checkUserPermission();
+            
+            // 初始化问题类别筛选器
+            initProblemCategoryFilter();
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 确保分页控件可见
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (paginationContainer) {
+                paginationContainer.style.display = 'flex';
+                console.log('分页控件已显示');
+            } else {
+                console.error('找不到分页控件');
+            }
+            
+            // 加载数据
+            loadProblemData();
+        });
+
+        // 初始化问题类别筛选器
+        function initProblemCategoryFilter() {
+            const filterSelect = document.getElementById('problemCategoryFilter');
+            if (!filterSelect) return;
+            
+            // 清空现有选项（保留"全部"选项）
+            filterSelect.innerHTML = '<option value="">全部</option>';
+            
+            // 使用配置文件生成选项
+            if (typeof generateFilterProblemCategorySelect === 'function') {
+                const optionsHtml = generateFilterProblemCategorySelect();
+                // 提取option标签
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = optionsHtml;
+                const options = tempDiv.querySelectorAll('option:not(:first-child)');
+                const optgroups = tempDiv.querySelectorAll('optgroup');
+                
+                // 添加optgroup和option
+                optgroups.forEach(optgroup => {
+                    const newOptgroup = document.createElement('optgroup');
+                    newOptgroup.label = optgroup.label;
+                    optgroup.querySelectorAll('option').forEach(option => {
+                        const newOption = document.createElement('option');
+                        newOption.value = option.value;
+                        newOption.textContent = option.textContent;
+                        newOptgroup.appendChild(newOption);
+                    });
+                    filterSelect.appendChild(newOptgroup);
+                });
+            }
+        }
+
+        // 检查用户权限
+        function checkUserPermission() {
+            currentUser = localStorage.getItem('username');
+            currentRole = localStorage.getItem('job');
+            
+            if (!currentUser || !currentRole) {
+                alert('请先登录并选择角色！');
+                window.location.href = '/DQEIndex';
+                return;
+            }
+            
+            // 检查是否有权限进入问题点库管理页面
+            const allowedUsers = ['邓小英', '邓令章', '卢健', '李良健', '黄家灿'];
+            if (!allowedUsers.includes(currentUser)) {
+                alert('您没有权限进入问题点库管理页面！');
+                window.location.href = '/DQEIndex';
+                return;
+            }
+            
+            // 检查是否为超级管理员
+            isSuperAdmin = (currentUser === '卢健' && currentRole === 'manager');
+            
+            // 显示用户信息
+            document.getElementById('currentUser').textContent = `用户: ${currentUser}`;
+            document.getElementById('currentRole').textContent = `角色: ${currentRole}`;
+            
+            // 根据权限控制界面元素
+            controlEditPermissions();
+        }
+
+        // 控制编辑权限
+        function controlEditPermissions() {
+            // 新增问题点按钮已移除，无需控制
+        }
+
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 搜索按钮
+            document.getElementById('searchBtn').addEventListener('click', searchProblems);
+            
+            // 重置按钮
+            document.getElementById('resetBtn').addEventListener('click', resetFilters);
+            
+            // 为筛选输入框添加回车键搜索功能
+            const filterInputs = [
+                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'testerFilter', 'dqeFilter', 'problemFilter'
+            ];
+            
+            filterInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            searchProblems();
+                        }
+                    });
+                }
+            });
+            
+            // 导出按钮
+            document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
+            
+
+            
+            // 分页按钮
+            document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
+            document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
+            document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
+            document.getElementById('lastPageBtn').addEventListener('click', () => goToLastPage());
+            
+            // 每页显示数量选择器
+            document.getElementById('pageSizeSelect').addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+            
+            // 页码跳转
+            document.getElementById('pageJumpBtn').addEventListener('click', jumpToPage);
+            document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    jumpToPage();
+                }
+            });
+            
+            // 保存问题点
+            document.getElementById('saveProblemBtn').addEventListener('click', saveProblem);
+            
+            // 取消编辑（编辑模态框的取消按钮）
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                // 检查当前是否在编辑模态框中
+                const editModal = document.getElementById('editProblemModal');
+                if (editModal && editModal.style.display === 'block') {
+                    closeModal(); // 关闭编辑模态框
+                } else {
+                    exitEditMode(); // 退出详情模态框的编辑模式
+                }
+            });
+
+            // 关闭历史版本模态框
+            document.getElementById('closeHistoryModal').addEventListener('click', closeModal);
+
+            // 关闭详情模态框
+            document.getElementById('closeDetailModal').addEventListener('click', function() {
+                closeSpecificModal('problemDetailModal');
+            });
+
+            // 详情模态框编辑按钮
+            document.getElementById('editProblemBtn').addEventListener('click', function() {
+                enterEditMode();
+            });
+
+            // 保存详情按钮
+            document.getElementById('saveDetailBtn').addEventListener('click', function() {
+                saveDetailChanges();
+            });
+
+
+
+            // 使用事件委托来处理所有关闭按钮
+            document.addEventListener('click', function(event) {
+                // 处理X按钮关闭
+                if (event.target.classList.contains('close')) {
+                    // 找到最近的模态框并关闭
+                    const modal = event.target.closest('.modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                // 处理点击模态框外部关闭
+                if (event.target.classList.contains('modal')) {
+                    // 只关闭被点击的模态框
+                    event.target.style.display = 'none';
+                    return;
+                }
+            });
+        }
+
+        // 加载问题点数据
+        function loadProblemData() {
+            showLoading();
+            
+            fetch('/problemLibrary/getProblems', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    filteredData = data.data;
+                    updateStatistics();
+                    renderTable();
+                } else {
+                    alert('加载数据失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('加载数据时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 搜索问题点
+        function searchProblems() {
+            showLoading();
+            
+            const filters = {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                problemCategory: document.getElementById('problemCategoryFilter').value,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                currentStatus: document.getElementById('currentStatusFilter').value,
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value
+            };
+            
+            fetch('/problemLibrary/searchProblems', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    filteredData = data.data;
+                    currentPage = 1;
+                    updateStatistics();
+                    renderTable();
+                } else {
+                    alert('搜索失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('搜索时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('fullModelFilter').value = '';
+            document.getElementById('sampleStageFilter').value = '';
+            document.getElementById('versionFilter').value = '';
+            document.getElementById('problemCategoryFilter').value = '';
+            document.getElementById('defectLevelFilter').value = '';
+            document.getElementById('currentStatusFilter').value = '';
+            document.getElementById('testerFilter').value = '';
+            document.getElementById('responsibleDepartmentFilter').value = '';
+            document.getElementById('startDateFilter').value = '';
+            document.getElementById('endDateFilter').value = '';
+            document.getElementById('dqeFilter').value = '';
+            document.getElementById('problemFilter').value = '';
+            
+            loadProblemData();
+        }
+
+        // 导出筛选结果
+        function exportFilteredData() {
+            if (filteredData.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+            
+            showLoading();
+            
+            // 使用当前的筛选条件
+            const filters = {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                problemCategory: document.getElementById('problemCategoryFilter').value,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                currentStatus: document.getElementById('currentStatusFilter').value,
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value
+            };
+            
+            fetch('/problemLibrary/exportProblems', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('导出失败');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `问题点库_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('导出时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 显示问题点详情
+        function showProblemDetail(problemId) {
+            // 首先尝试从当前过滤数据中查找
+            let problem = filteredData.find(p => p.id === problemId);
+            
+            // 如果没找到，说明是从历史版本模态框中点击的，需要通过API获取详情
+            if (!problem) {
+                showLoading();
+                fetch(`/problemLibrary/getProblemById?id=${problemId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        problem = data.data;
+                        displayProblemDetail(problem);
+                    } else {
+                        alert('获取问题点详情失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('获取问题点详情时发生错误');
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+                return;
+            }
+            
+            displayProblemDetail(problem);
+        }
+
+        // 显示问题点详情的具体实现
+        function displayProblemDetail(problem) {
+            // 填充详情数据
+            document.getElementById('detailFullModel').textContent = problem.full_model || '';
+            document.getElementById('detailSampleId').textContent = problem.sample_id || '';
+            document.getElementById('detailSampleStage').textContent = problem.sample_stage || '';
+            document.getElementById('detailVersion').textContent = problem.version || '';
+            document.getElementById('detailChipSolution').textContent = problem.chip_solution || '';
+            document.getElementById('detailTestPlatform').textContent = problem.test_platform || '';
+            document.getElementById('detailTestDevice').textContent = problem.test_device || '';
+            document.getElementById('detailOtherDevice').textContent = problem.other_device || '';
+            document.getElementById('detailProblem').textContent = problem.problem || '';
+            document.getElementById('detailProblemCategory').textContent = problem.problemCategory || '';
+            document.getElementById('detailDefectLevel').textContent = problem.defect_level || '';
+            document.getElementById('detailCurrentStatus').textContent = normalizeStatus(problem.current_status);
+            document.getElementById('detailReproductionMethod').textContent = problem.reproduction_method || '';
+            document.getElementById('detailRecoveryMethod').textContent = problem.recovery_method || '';
+            document.getElementById('detailReproductionProbability').textContent = problem.reproduction_probability || '';
+            document.getElementById('detailTester').textContent = problem.tester || '';
+            document.getElementById('detailResponsibleDepartment').textContent = problem.responsibleDepartment || '';
+            document.getElementById('detailResponsiblePerson').textContent = problem.responsible_person || '';
+            document.getElementById('detailDqeConfirm').textContent = problem.dqe_confirm || '';
+            document.getElementById('detailRdConfirm').textContent = problem.rd_confirm || '';
+            document.getElementById('detailImprovementPlan').textContent = problem.improvement_plan || '';
+            document.getElementById('detailGreenUnionDqe').textContent = problem.green_union_dqe || '';
+            document.getElementById('detailGreenUnionRd').textContent = problem.green_union_rd || '';
+            document.getElementById('detailComparisonWithPrevious').textContent = problem.comparison_with_previous || '';
+            document.getElementById('detailPostImprovementRisk').textContent = problem.post_improvement_risk || '';
+            document.getElementById('detailNextVersionRegressionTest').textContent = problem.next_version_regression_test || '';
+            document.getElementById('detailRemark').textContent = problem.remark || '';
+            document.getElementById('detailTestOverseas').textContent = problem.test_Overseas || '';
+            document.getElementById('detailCreatedAt').textContent = problem.created_at || '';
+            
+            // 设置问题ID
+            document.getElementById('editProblemId').value = problem.id;
+
+            // 同步编辑输入框的值
+            document.getElementById('editDetailFullModel').value = problem.full_model || '';
+            document.getElementById('editDetailSampleStage').value = problem.sample_stage || '';
+            document.getElementById('editDetailVersion').value = problem.version || '';
+            document.getElementById('editDetailChipSolution').value = problem.chip_solution || '';
+            document.getElementById('editDetailTestPlatform').value = problem.test_platform || '';
+            document.getElementById('editDetailTestDevice').value = problem.test_device || '';
+            document.getElementById('editDetailOtherDevice').value = problem.other_device || '';
+            document.getElementById('editDetailProblem').value = problem.problem || '';
+            document.getElementById('editDetailProblemCategory').value = problem.problemCategory || '';
+            document.getElementById('editDetailDefectLevel').value = problem.defect_level || '';
+            document.getElementById('editDetailCurrentStatus').value = normalizeStatus(problem.current_status);
+            document.getElementById('editDetailReproductionMethod').value = problem.reproduction_method || '';
+            document.getElementById('editDetailRecoveryMethod').value = problem.recovery_method || '';
+            document.getElementById('editDetailReproductionProbability').value = problem.reproduction_probability || '';
+            document.getElementById('editDetailTester').value = problem.tester || '';
+            document.getElementById('editDetailResponsibleDepartment').value = problem.responsibleDepartment || '';
+            document.getElementById('editDetailResponsiblePerson').value = problem.responsible_person || '';
+            document.getElementById('editDetailDqeConfirm').value = problem.dqe_confirm || '';
+            document.getElementById('editDetailRdConfirm').value = problem.rd_confirm || '';
+            document.getElementById('editDetailImprovementPlan').value = problem.improvement_plan || '';
+            document.getElementById('editDetailGreenUnionDqe').value = problem.green_union_dqe || '';
+            document.getElementById('editDetailGreenUnionRd').value = problem.green_union_rd || '';
+            document.getElementById('editDetailComparisonWithPrevious').value = problem.comparison_with_previous || '';
+            document.getElementById('editDetailPostImprovementRisk').value = problem.post_improvement_risk || '';
+            document.getElementById('editDetailNextVersionRegressionTest').value = problem.next_version_regression_test || '';
+            document.getElementById('editDetailRemark').value = problem.remark || '';
+            document.getElementById('editDetailTestOverseas').value = problem.test_Overseas || '';
+
+            // 根据权限控制编辑按钮显示
+            const editBtn = document.getElementById('editProblemBtn');
+            if (editBtn) {
+                if (isSuperAdmin) {
+                    editBtn.style.display = 'inline-flex';
+                } else {
+                    editBtn.style.display = 'none';
+                }
+            }
+            
+            // 确保退出编辑模式
+            exitEditMode();
+            
+            document.getElementById('problemDetailModal').style.display = 'block';
+        }
+
+
+
+        // 显示编辑问题点模态框
+        function showEditProblemModal(problemId) {
+            // 检查权限
+            if (!isSuperAdmin) {
+                alert('您没有权限进行此操作！');
+                return;
+            }
+            
+            const problem = filteredData.find(p => p.id === problemId);
+            if (!problem) return;
+            
+            // 填充编辑表单
+            document.getElementById('editProblemId').value = problem.id;
+            document.getElementById('editFullModel').value = problem.full_model || '';
+            document.getElementById('editSampleStage').value = problem.sample_stage || '';
+            document.getElementById('editVersion').value = problem.version || '';
+            document.getElementById('editProblemCategory').value = problem.problemCategory || '';
+            document.getElementById('editDefectLevel').value = problem.defect_level || '';
+            document.getElementById('editCurrentStatus').value = normalizeStatus(problem.current_status);
+            document.getElementById('editProblem').value = problem.problem || '';
+            document.getElementById('editReproductionMethod').value = problem.reproduction_method || '';
+            document.getElementById('editRecoveryMethod').value = problem.recovery_method || '';
+            document.getElementById('editReproductionProbability').value = problem.reproduction_probability || '';
+            document.getElementById('editTester').value = problem.tester || '';
+            document.getElementById('editResponsibleDepartment').value = problem.responsibleDepartment || '';
+            document.getElementById('editResponsiblePerson').value = problem.responsible_person || '';
+            document.getElementById('editImprovementPlan').value = problem.improvement_plan || '';
+            document.getElementById('editGreenUnionDqe').value = problem.green_union_dqe || '';
+            document.getElementById('editGreenUnionRd').value = problem.green_union_rd || '';
+            document.getElementById('editTestOverseas').value = problem.test_Overseas || '';
+            document.getElementById('editRemark').value = problem.remark || '';
+            
+            document.getElementById('editProblemModal').style.display = 'block';
+        }
+
+        // 保存问题点
+        function saveProblem() {
+            // 检查权限
+            if (!isSuperAdmin) {
+                alert('您没有权限进行此操作！');
+                return;
+            }
+            
+            // 检查问题点字段是否为空
+            const problemValue = document.getElementById('editProblem').value;
+            if (!problemValue || problemValue.trim() === '') {
+                alert('问题点字段不能为空，请填写问题描述！');
+                document.getElementById('editProblem').focus();
+                return;
+            }
+            
+            const formData = new FormData(document.getElementById('editProblemForm'));
+            const problemData = Object.fromEntries(formData.entries());
+            problemData.id = document.getElementById('editProblemId').value;
+            problemData.modifier = currentUser;
+            
+            showLoading();
+            
+            fetch('/problemLibrary/updateProblem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(problemData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('保存成功');
+                    closeModal();
+                    loadProblemData();
+                } else {
+                    alert('保存失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('保存时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('problemTableBody');
+            tbody.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            pageData.forEach(problem => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${problem.id}</td>
+                    <td>${problem.full_model || ''}</td>
+                    <td>${problem.sample_stage || ''}</td>
+                    <td>${problem.version || ''}</td>
+                    <td>${problem.test_platform || ''}</td>
+                    <td>${problem.test_device || ''}</td>
+                    <td>${problem.other_device || ''}</td>
+                    <td class="problem-desc">${(problem.problem || '').substring(0, 50)}${(problem.problem || '').length > 50 ? '...' : ''}</td>
+                    <td>${problem.problemCategory || ''}</td>
+                    <td>${problem.defect_level || ''}</td>
+                    <td>${normalizeStatus(problem.current_status)}</td>
+                    <td>${problem.tester || ''}</td>
+                    <td>${problem.dqe || ''}</td>
+                    <td>${problem.responsibleDepartment || ''}</td>
+                    <td>${problem.green_union_dqe || ''}</td>
+                    <td>${problem.green_union_rd || ''}</td>
+                    <td>${problem.created_at ? problem.created_at.substring(0, 10) : ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="showProblemDetail(${problem.id})">查看</button>
+                        <button class="btn btn-sm btn-secondary" onclick="showHistoryVersions('${problem.sample_id}')">历史版本</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updatePagination();
+        }
+
+        // 更新分页信息
+        function updatePagination() {
+            totalRecords = filteredData.length;
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            const startRecord = totalRecords > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+            const endRecord = Math.min(currentPage * pageSize, totalRecords);
+            
+            // 确保当前页不超过总页数
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            }
+            
+            document.getElementById('startRecord').textContent = startRecord;
+            document.getElementById('endRecord').textContent = endRecord;
+            document.getElementById('totalRecords').textContent = totalRecords;
+            
+            // 更新按钮状态
+            document.getElementById('firstPageBtn').disabled = currentPage === 1 || totalPages === 0;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1 || totalPages === 0;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+            document.getElementById('lastPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+            
+            // 生成页码按钮
+            generatePageNumbers(totalPages);
+            
+            // 更新跳转输入框的最大值
+            document.getElementById('pageJumpInput').max = totalPages;
+            
+            // 调试信息
+            console.log(`分页信息: 总记录数=${totalRecords}, 总页数=${totalPages}, 当前页=${currentPage}, 每页=${pageSize}`);
+        }
+
+        // 切换页面
+        function changePage(direction) {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            const newPage = currentPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderTable();
+            }
+        }
+
+        // 跳转到指定页面
+        function goToPage(page) {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+            }
+        }
+
+        // 跳转到最后一页
+        function goToLastPage() {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            if (totalPages > 0) {
+                currentPage = totalPages;
+                renderTable();
+            }
+        }
+
+        // 页码跳转
+        function jumpToPage() {
+            const input = document.getElementById('pageJumpInput');
+            const page = parseInt(input.value);
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+                input.value = '';
+            } else {
+                alert(`请输入1到${totalPages}之间的页码`);
+                input.value = '';
+            }
+        }
+
+        // 生成页码按钮
+        function generatePageNumbers(totalPages) {
+            const pageNumbersContainer = document.getElementById('pageNumbers');
+            pageNumbersContainer.innerHTML = '';
+            
+            // 即使只有一页也显示页码
+            if (totalPages <= 0) return;
+            
+            if (totalPages === 1) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = '1';
+                pageBtn.className = 'btn btn-sm page-number active';
+                pageBtn.onclick = () => goToPage(1);
+                pageNumbersContainer.appendChild(pageBtn);
+                return;
+            }
+            
+            const maxVisiblePages = 5; // 最多显示5个页码按钮
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // 调整起始页码
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // 添加省略号
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = '1';
+                firstBtn.className = 'btn btn-sm page-number';
+                firstBtn.onclick = () => goToPage(1);
+                pageNumbersContainer.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'page-ellipsis';
+                    pageNumbersContainer.appendChild(ellipsis);
+                }
+            }
+            
+            // 添加页码按钮
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = `btn btn-sm page-number ${i === currentPage ? 'active' : ''}`;
+                pageBtn.onclick = () => goToPage(i);
+                pageNumbersContainer.appendChild(pageBtn);
+            }
+            
+            // 添加省略号
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'page-ellipsis';
+                    pageNumbersContainer.appendChild(ellipsis);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = totalPages;
+                lastBtn.className = 'btn btn-sm page-number';
+                lastBtn.onclick = () => goToPage(totalPages);
+                pageNumbersContainer.appendChild(lastBtn);
+            }
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const open = filteredData.filter(p => (p.current_status || '').toLowerCase() === 'open').length;
+            const closed = filteredData.filter(p => {
+                const status = (p.current_status || '').toLowerCase();
+                return status === 'closed' || status === 'close';
+            }).length;
+            const followup = filteredData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
+            
+            document.getElementById('openCount').textContent = open;
+            document.getElementById('closedCount').textContent = closed;
+            document.getElementById('followupCount').textContent = followup;
+            document.getElementById('filteredCount').textContent = filteredData.length;
+        }
+
+        // 根据状态筛选
+        function filterByStatus(status) {
+            // 保持其他筛选条件不变，只修改当前状态筛选
+            document.getElementById('currentStatusFilter').value = status;
+            
+            // 执行搜索
+            searchProblems();
+        }
+
+        // 进入编辑模式
+        function enterEditMode() {
+            // 检查权限
+            if (!isSuperAdmin) {
+                alert('您没有权限进行此操作！');
+                return;
+            }
+
+            // 所有可编辑字段（除了创建时间）
+            const editableFields = [
+                'detailFullModel', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
+                'detailTestPlatform', 'detailTestDevice', 'detailOtherDevice',
+                'detailProblem', 'detailProblemCategory', 'detailDefectLevel', 'detailCurrentStatus',
+                'detailReproductionMethod', 'detailRecoveryMethod', 'detailReproductionProbability',
+                'detailTester', 'detailResponsibleDepartment', 'detailResponsiblePerson',
+                'detailDqeConfirm', 'detailRdConfirm', 'detailImprovementPlan',
+                'detailGreenUnionDqe', 'detailGreenUnionRd',
+                'detailComparisonWithPrevious', 'detailPostImprovementRisk',
+                'detailNextVersionRegressionTest', 'detailRemark', 'detailTestOverseas'
+            ];
+
+            editableFields.forEach(fieldId => {
+                const displayElement = document.getElementById(fieldId);
+                const inputElement = document.getElementById('edit' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1));
+                
+                if (displayElement && inputElement) {
+                    displayElement.style.display = 'none';
+                    inputElement.style.display = 'block';
+                }
+            });
+
+            // 切换按钮显示
+            document.getElementById('editProblemBtn').style.display = 'none';
+            document.getElementById('saveDetailBtn').style.display = 'inline-flex';
+            document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+        }
+
+        // 退出编辑模式
+        function exitEditMode() {
+            // 所有可编辑字段（除了创建时间）
+            const editableFields = [
+                'detailFullModel', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
+                'detailTestPlatform', 'detailTestDevice', 'detailOtherDevice',
+                'detailProblem', 'detailProblemCategory', 'detailDefectLevel', 'detailCurrentStatus',
+                'detailReproductionMethod', 'detailRecoveryMethod', 'detailReproductionProbability',
+                'detailTester', 'detailResponsibleDepartment', 'detailResponsiblePerson',
+                'detailDqeConfirm', 'detailRdConfirm', 'detailImprovementPlan',
+                'detailGreenUnionDqe', 'detailGreenUnionRd',
+                'detailComparisonWithPrevious', 'detailPostImprovementRisk',
+                'detailNextVersionRegressionTest', 'detailRemark', 'detailTestOverseas'
+            ];
+
+            editableFields.forEach(fieldId => {
+                const displayElement = document.getElementById(fieldId);
+                const inputElement = document.getElementById('edit' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1));
+                
+                if (displayElement && inputElement) {
+                    displayElement.style.display = 'block';
+                    inputElement.style.display = 'none';
+                }
+            });
+
+            // 切换按钮显示
+            document.getElementById('editProblemBtn').style.display = 'inline-flex';
+            document.getElementById('saveDetailBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
+        // 保存详情修改
+        function saveDetailChanges() {
+            // 检查权限
+            if (!isSuperAdmin) {
+                alert('您没有权限进行此操作！');
+                return;
+            }
+
+            // 检查问题点字段是否为空
+            const problemValue = document.getElementById('editDetailProblem').value;
+            if (!problemValue || problemValue.trim() === '') {
+                alert('问题点字段不能为空，请填写问题描述！');
+                document.getElementById('editDetailProblem').focus();
+                return;
+            }
+
+            // 收集修改的数据 - 只传递必要的字段
+            const problemData = {
+                id: document.getElementById('editProblemId').value,
+                modifier: currentUser
+            };
+
+            // 只添加有值的字段
+            const fields = [
+                { key: 'full_model', element: 'editDetailFullModel' },
+                { key: 'sample_stage', element: 'editDetailSampleStage' },
+                { key: 'version', element: 'editDetailVersion' },
+                { key: 'chip_solution', element: 'editDetailChipSolution' },
+                { key: 'test_platform', element: 'editDetailTestPlatform' },
+                { key: 'test_device', element: 'editDetailTestDevice' },
+                { key: 'other_device', element: 'editDetailOtherDevice' },
+                { key: 'problem', element: 'editDetailProblem' },
+                { key: 'problemCategory', element: 'editDetailProblemCategory' },
+                { key: 'defect_level', element: 'editDetailDefectLevel' },
+                { key: 'current_status', element: 'editDetailCurrentStatus' },
+                { key: 'reproduction_method', element: 'editDetailReproductionMethod' },
+                { key: 'recovery_method', element: 'editDetailRecoveryMethod' },
+                { key: 'reproduction_probability', element: 'editDetailReproductionProbability' },
+                { key: 'tester', element: 'editDetailTester' },
+                { key: 'responsibleDepartment', element: 'editDetailResponsibleDepartment' },
+                { key: 'responsible_person', element: 'editDetailResponsiblePerson' },
+                { key: 'dqe_confirm', element: 'editDetailDqeConfirm' },
+                { key: 'rd_confirm', element: 'editDetailRdConfirm' },
+                { key: 'improvement_plan', element: 'editDetailImprovementPlan' },
+                { key: 'green_union_dqe', element: 'editDetailGreenUnionDqe' },
+                { key: 'green_union_rd', element: 'editDetailGreenUnionRd' },
+                { key: 'comparison_with_previous', element: 'editDetailComparisonWithPrevious' },
+                { key: 'post_improvement_risk', element: 'editDetailPostImprovementRisk' },
+                { key: 'next_version_regression_test', element: 'editDetailNextVersionRegressionTest' },
+                { key: 'remark', element: 'editDetailRemark' },
+                { key: 'test_Overseas', element: 'editDetailTestOverseas' }
+            ];
+
+            fields.forEach(field => {
+                const element = document.getElementById(field.element);
+                if (element && element.value !== '') {
+                    problemData[field.key] = element.value;
+                }
+            });
+
+            showLoading();
+
+            fetch('/problemLibrary/updateProblem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(problemData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('保存成功');
+                    exitEditMode();
+                    loadProblemData(); // 重新加载表格数据
+                    
+                    // 重新获取并显示更新后的问题点详情
+                    const problemId = document.getElementById('editProblemId').value;
+                    fetch(`/problemLibrary/getProblemById?id=${problemId}`)
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success && result.data) {
+                                displayProblemDetail(result.data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取更新后数据失败:', error);
+                        });
+                } else {
+                    alert('保存失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('保存时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            // 获取所有可见的模态框，按z-index排序
+            const visibleModals = Array.from(document.querySelectorAll('.modal'))
+                .filter(modal => modal.style.display === 'block')
+                .sort((a, b) => {
+                    const aZIndex = parseInt(window.getComputedStyle(a).zIndex) || 0;
+                    const bZIndex = parseInt(window.getComputedStyle(b).zIndex) || 0;
+                    return bZIndex - aZIndex; // 降序排列，z-index高的在前
+                });
+            
+            if (visibleModals.length > 0) {
+                // 只关闭最顶层的模态框
+                visibleModals[0].style.display = 'none';
+            }
+        }
+
+        // 关闭指定模态框
+        function closeSpecificModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 返回上一页
+        function goBack() {
+            window.history.back();
+        }
+
+        // 返回主页
+        function goHome() {
+            window.location.href = '/DQEIndex';
+        }
+
+        // 显示历史版本
+        function showHistoryVersions(sampleId) {
+            showLoading();
+
+            fetch(`/problemLibrary/getHistoryVersions?sampleId=${sampleId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderHistoryVersions(data.data);
+                    document.getElementById('historyVersionsModal').style.display = 'block';
+                } else {
+                    alert('获取历史版本失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('获取历史版本时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 渲染历史版本表格
+        function renderHistoryVersions(historyVersions) {
+            const tbody = document.getElementById('historyVersionsTableBody');
+            tbody.innerHTML = '';
+
+            if (!historyVersions || historyVersions.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="6" style="text-align: center;">暂无历史版本</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+
+            historyVersions.forEach(version => {
+                const row = document.createElement('tr');
+                const isLatest = version.history_id === Math.max(...historyVersions.map(v => v.history_id));
+                const latestBadge = isLatest ? '<span class="badge badge-primary">最新</span>' : '';
+
+                row.innerHTML = `
+                    <td>${version.history_id} ${latestBadge}</td>
+                    <td class="problem-desc">${(version.problem || '').substring(0, 50)}${(version.problem || '').length > 50 ? '...' : ''}</td>
+                    <td>${normalizeStatus(version.current_status)}</td>
+                    <td>${version.modifier || version.tester || ''}</td>
+                    <td>${version.modify_at ? new Date(version.modify_at).toLocaleString('zh-CN') : (version.created_at ? new Date(version.created_at).toLocaleString('zh-CN') : '')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="showProblemDetail(${version.id})">查看详情</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1082,7 +1082,7 @@
             const hiddenColumns = JSON.parse(localStorage.getItem('hiddenColumns')) || [];
 
             // 发送 AJAX 请求以获取数据，将 sampleId 作为查询参数
-            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}&username=${encodeURIComponent(username)}`, {
+            fetch(`/problemMoudle/addNewRow?sampleId=${sampleId}&username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1464,7 +1464,7 @@
 
             // **先检查用户是否有权限访问该项目**
             try {
-                const permissionResponse = await fetch(`/problemMoudle/checkAccessPermission?sampleId=${sampleId}&username=${encodeURIComponent(username)}`);
+                const permissionResponse = await fetch(`/problemMoudle/checkAccessPermission?sampleId=${sampleId}&username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`);
                 const permissionData = await permissionResponse.json();
                 
                 if (!permissionData.success) {
@@ -1977,7 +1977,7 @@
                                                     // 检查测试人是否为"/"，如果是则允许删除
                                                     if (item.tester === "/" || item.tester === null || item.tester === "" || (username && username === item.tester)) {
                                                         // 发送删除请求到控制层
-                                                        fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}`)
+                                                        fetch(`/problemMoudle/deleteProblemById/${value}/${encodeURIComponent(username)}?job=${encodeURIComponent(job)}`)
                                                             .then(response => {
                                                                 if (response.ok) {
                                                                     alert(`ID为${value}的问题点已成功删除`);
@@ -2742,6 +2742,7 @@
             formData.append('sampleId', sampleId);  // 添加 sampleId
             formData.append('id', id);  // 添加 sampleId
             formData.append('username', username);  // 添加用户名
+            formData.append('job', job);  // 添加job参数
 
             fetch('/problemMoudle/uploadImage', {
                 method: 'POST',

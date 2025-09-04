@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.ProblemLibraryDao">
+
+    <!-- 获取所有问题点（只显示最新版本，history_id最大的） -->
+    <select id="getAllProblems" resultType="TestIssues">
+        SELECT t.* FROM test_issues t
+        INNER JOIN (
+            SELECT sample_id, MAX(history_id) as max_history_id
+            FROM test_issues
+            GROUP BY sample_id
+        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
+        ORDER BY t.created_at DESC
+    </select>
+
+    <!-- 根据条件搜索问题点（只显示最新版本，history_id最大的） -->
+    <select id="searchProblems" resultType="TestIssues" parameterType="map">
+        SELECT t.* FROM test_issues t
+        INNER JOIN (
+            SELECT sample_id, MAX(history_id) as max_history_id
+            FROM test_issues
+            GROUP BY sample_id
+        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
+        WHERE 1=1
+        <if test="filters.fullModel != null and filters.fullModel != ''">
+            AND t.full_model LIKE CONCAT('%', #{filters.fullModel}, '%')
+        </if>
+        <if test="filters.sampleStage != null and filters.sampleStage != ''">
+            AND LOWER(t.sample_stage) LIKE CONCAT('%', LOWER(#{filters.sampleStage}), '%')
+        </if>
+        <if test="filters.version != null and filters.version != ''">
+            AND t.version LIKE CONCAT('%', #{filters.version}, '%')
+        </if>
+        <if test="filters.problemCategory != null and filters.problemCategory != ''">
+            AND t.problemCategory = #{filters.problemCategory}
+        </if>
+        <if test="filters.defectLevel != null and filters.defectLevel != ''">
+            AND t.defect_level = #{filters.defectLevel}
+        </if>
+        <if test="filters.currentStatus != null and filters.currentStatus != ''">
+            AND t.current_status = #{filters.currentStatus}
+            <!-- 调试信息 -->
+            <!-- 当前状态筛选: #{filters.currentStatus} -->
+        </if>
+        <if test="filters.tester != null and filters.tester != ''">
+            AND t.tester LIKE CONCAT('%', #{filters.tester}, '%')
+        </if>
+        <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
+            AND t.responsibleDepartment = #{filters.responsibleDepartment}
+        </if>
+        <if test="filters.dqe != null and filters.dqe != ''">
+            AND t.dqe LIKE CONCAT('%', #{filters.dqe}, '%')
+        </if>
+        <if test="filters.problem != null and filters.problem != ''">
+            AND t.problem LIKE CONCAT('%', #{filters.problem}, '%')
+        </if>
+        <if test="filters.startDate != null and filters.startDate != ''">
+            AND t.created_at >= #{filters.startDate}
+        </if>
+        <if test="filters.endDate != null and filters.endDate != ''">
+            AND t.created_at &lt;= CONCAT(#{filters.endDate}, ' 23:59:59')
+        </if>
+        ORDER BY t.created_at DESC
+    </select>
+
+    <!-- 更新问题点信息 -->
+    <update id="updateProblem" parameterType="TestIssues">
+        UPDATE test_issues
+        SET
+            <if test="full_model != null">full_model = #{full_model},</if>
+            <if test="sample_stage != null">sample_stage = #{sample_stage},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="chip_solution != null">chip_solution = #{chip_solution},</if>
+            <if test="test_platform != null">test_platform = #{test_platform},</if>
+            <if test="test_device != null">test_device = #{test_device},</if>
+            <if test="other_device != null">other_device = #{other_device},</if>
+            <if test="problem != null">problem = #{problem},</if>
+            <if test="problemCategory != null">problemCategory = #{problemCategory},</if>
+            <if test="problem_time != null">problem_time = #{problem_time},</if>
+            <if test="reproduction_method != null">reproduction_method = #{reproduction_method},</if>
+            <if test="recovery_method != null">recovery_method = #{recovery_method},</if>
+            <if test="reproduction_probability != null">reproduction_probability = #{reproduction_probability},</if>
+            <if test="defect_level != null">defect_level = #{defect_level},</if>
+            <if test="current_status != null">current_status = #{current_status},</if>
+            <if test="comparison_with_previous != null">comparison_with_previous = #{comparison_with_previous},</if>
+            <if test="tester != null">tester = #{tester},</if>
+            <if test="dqe_and_development_confirm != null">dqe_and_development_confirm = #{dqe_and_development_confirm},</if>
+            <if test="improvement_plan != null">improvement_plan = #{improvement_plan},</if>
+            <if test="responsible_person != null">responsible_person = #{responsible_person},</if>
+            <if test="post_improvement_risk != null">post_improvement_risk = #{post_improvement_risk},</if>
+            <if test="next_version_regression_test != null">next_version_regression_test = #{next_version_regression_test},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="dqe_confirm != null">dqe_confirm = #{dqe_confirm},</if>
+            <if test="dqe != null">dqe = #{dqe},</if>
+            <if test="rd_confirm != null">rd_confirm = #{rd_confirm},</if>
+            <if test="rd != null">rd = #{rd},</if>
+            <if test="responsibleDepartment != null">responsibleDepartment = #{responsibleDepartment},</if>
+            <if test="sku != null">sku = #{sku},</if>
+            <if test="green_union_dqe != null">green_union_dqe = #{green_union_dqe},</if>
+            <if test="green_union_rd != null">green_union_rd = #{green_union_rd},</if>
+            <if test="solution_provider != null">solution_provider = #{solution_provider},</if>
+            <if test="supplier != null">supplier = #{supplier},</if>
+            <if test="review_conclusion != null">review_conclusion = #{review_conclusion},</if>
+            <if test="test_Overseas != null">test_Overseas = #{test_Overseas},</if>
+            modifier = #{modifier},
+            modify_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID获取问题点详情 -->
+    <select id="getProblemById" resultType="TestIssues">
+        SELECT * FROM test_issues WHERE id = #{id}
+    </select>
+
+    <!-- 统计问题点数量 -->
+    <select id="countProblems" resultType="int" parameterType="map">
+        SELECT COUNT(DISTINCT t.sample_id) FROM test_issues t
+        INNER JOIN (
+            SELECT sample_id, MAX(history_id) as max_history_id
+            FROM test_issues
+            GROUP BY sample_id
+        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
+        WHERE 1=1
+        <if test="filters.fullModel != null and filters.fullModel != ''">
+            AND t.full_model LIKE CONCAT('%', #{filters.fullModel}, '%')
+        </if>
+        <if test="filters.sampleStage != null and filters.sampleStage != ''">
+            AND LOWER(t.sample_stage) LIKE CONCAT('%', LOWER(#{filters.sampleStage}), '%')
+        </if>
+        <if test="filters.version != null and filters.version != ''">
+            AND t.version LIKE CONCAT('%', #{filters.version}, '%')
+        </if>
+        <if test="filters.problemCategory != null and filters.problemCategory != ''">
+            AND t.problemCategory = #{filters.problemCategory}
+        </if>
+        <if test="filters.defectLevel != null and filters.defectLevel != ''">
+            AND t.defect_level = #{filters.defectLevel}
+        </if>
+        <if test="filters.currentStatus != null and filters.currentStatus != ''">
+            AND t.current_status = #{filters.currentStatus}
+        </if>
+        <if test="filters.tester != null and filters.tester != ''">
+            AND t.tester LIKE CONCAT('%', #{filters.tester}, '%')
+        </if>
+        <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
+            AND t.responsibleDepartment = #{filters.responsibleDepartment}
+        </if>
+        <if test="filters.dqe != null and filters.dqe != ''">
+            AND t.dqe LIKE CONCAT('%', #{filters.dqe}, '%')
+        </if>
+        <if test="filters.problem != null and filters.problem != ''">
+            AND t.problem LIKE CONCAT('%', #{filters.problem}, '%')
+        </if>
+        <if test="filters.startDate != null and filters.startDate != ''">
+            AND t.created_at >= #{filters.startDate}
+        </if>
+        <if test="filters.endDate != null and filters.endDate != ''">
+            AND t.created_at &lt;= CONCAT(#{filters.endDate}, ' 23:59:59')
+        </if>
+    </select>
+
+    <!-- 获取指定sample_id的历史版本，按history_id降序排列 -->
+    <select id="getHistoryVersions" resultType="TestIssues">
+        SELECT * FROM test_issues
+        WHERE sample_id = #{sampleId}
+        ORDER BY history_id DESC
+    </select>
+
+    <!-- 获取指定sample_id的最新版本 -->
+    <select id="getLatestVersion" resultType="TestIssues">
+        SELECT * FROM test_issues
+        WHERE sample_id = #{sampleId}
+        ORDER BY history_id DESC
+        LIMIT 1
+    </select>
+
+</mapper>

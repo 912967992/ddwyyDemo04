@@ -373,9 +373,10 @@ input[type="number"] {
 .grid-container {
     display: flex;
     justify-content: space-around;
-    width: 80%;
-    max-width: 800px;
-    gap: 10px;
+    width: 90%;
+    max-width: 1000px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 /* 默认灰色的单个模块样式 */
@@ -385,13 +386,14 @@ input[type="number"] {
     align-items: center;
     background-color: #a9a9a9; /* 默认灰色背景 */
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     text-align: center;
     border-radius: 10px;
     cursor: pointer;
     height: 150px;
-    width: 25%;
+    width: 18%;
+    min-width: 150px;
     transition: transform 0.3s ease, background-color 0.3s ease;
 }
 

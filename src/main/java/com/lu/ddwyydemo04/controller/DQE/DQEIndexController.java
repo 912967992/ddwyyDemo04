@@ -431,6 +431,12 @@ public class DQEIndexController {
         return "rdPersonalDashboard";
     }
 
+    // 研发个人数据看板
+    @GetMapping("/problemLibraryManage")
+    public String problemLibraryManage() {
+        return "problemLibraryManage";
+    }
+
     // 获取电气项目数据（管理层看板）
     @GetMapping("/DQEIndex/getElectricProjectData")
     @ResponseBody
@@ -440,7 +446,7 @@ public class DQEIndexController {
         try {
             // 调用服务层获取electric_info表的数据
             List<Map<String, Object>> projectData = dqeIndexService.getElectricProjectData();
-            System.out.println("projectData"+projectData);
+//            System.out.println("projectData"+projectData);
             
             result.put("success", true);
             result.put("data", projectData);

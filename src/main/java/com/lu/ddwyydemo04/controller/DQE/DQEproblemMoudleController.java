@@ -154,7 +154,7 @@ public class DQEproblemMoudleController {
 
     @GetMapping("/problemMoudle/addNewRow") // 处理页面跳转请求
     @ResponseBody
-    public Map<String, Object> addNewRow(@RequestParam int sampleId, @RequestParam(required = false) String username) {
+    public Map<String, Object> addNewRow(@RequestParam int sampleId, @RequestParam(required = false) String username, @RequestParam(required = false) String job) {
         // 如果提供了用户名，进行权限检查
         if (username != null && !username.trim().isEmpty()) {
             try {
@@ -176,7 +176,27 @@ public class DQEproblemMoudleController {
 
                 if (!isDirectResponsible) {
                     // 检查用户是否是代理人
-                    String agentsStr = dqeIndexService.getAgents(username);
+                    String param;
+                    if (job != null) {
+                        switch (job) {
+                            case "DQE":
+                                param = projectDQE;
+                                break;
+                            case "rd":
+                                param = projectRD;
+                                break;
+                            case "projectLeader":
+                                param = projectLeader;
+                                break;
+                            default:
+                                param = "default_group";
+                                break;
+                        }
+                    } else {
+                        // 如果没有job参数，使用默认逻辑
+                        param = "default_group";
+                    }
+                    String agentsStr = dqeIndexService.getAgents(param);
                     boolean isAgent = false;
 
                     if (agentsStr != null && !agentsStr.trim().isEmpty()) {
@@ -184,10 +204,8 @@ public class DQEproblemMoudleController {
                         for (String agent : agentArray) {
                             String trimmedAgent = agent.trim();
                             if (!trimmedAgent.isEmpty()) {
-                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                                if (trimmedAgent.equals(projectDQE) || 
-                                    trimmedAgent.equals(projectRD) || 
-                                    trimmedAgent.equals(projectLeader)) {
+                                // 检查当前用户是否在代理人列表中
+                                if (trimmedAgent.equals(username)) {
                                     isAgent = true;
                                     break;
                                 }
@@ -266,7 +284,22 @@ public class DQEproblemMoudleController {
 
                 if (!isDirectResponsible) {
                     // 检查用户是否是代理人
-                    String agentsStr = dqeIndexService.getAgents(username);
+                    String param;
+                    switch (job) {
+                        case "DQE":
+                            param = projectDQE;
+                            break;
+                        case "rd":
+                            param = projectRD;
+                            break;
+                        case "projectLeader":
+                            param = projectLeader;
+                            break;
+                        default:
+                            param = "default_group";
+                            break;
+                    }
+                    String agentsStr = dqeIndexService.getAgents(param);
                     boolean isAgent = false;
 
                     if (agentsStr != null && !agentsStr.trim().isEmpty()) {
@@ -274,10 +307,8 @@ public class DQEproblemMoudleController {
                         for (String agent : agentArray) {
                             String trimmedAgent = agent.trim();
                             if (!trimmedAgent.isEmpty()) {
-                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                                if (trimmedAgent.equals(projectDQE) || 
-                                    trimmedAgent.equals(projectRD) || 
-                                    trimmedAgent.equals(projectLeader)) {
+                                // 检查当前用户是否在代理人列表中
+                                if (trimmedAgent.equals(username)) {
                                     isAgent = true;
                                     break;
                                 }
@@ -441,7 +472,7 @@ public class DQEproblemMoudleController {
 
     @GetMapping("/problemMoudle/deleteProblemById/{id}/{username}")
     @ResponseBody
-    public ResponseEntity<String> deleteProblemById(@PathVariable Long id, @PathVariable String username) {
+    public ResponseEntity<String> deleteProblemById(@PathVariable Long id, @PathVariable String username, @RequestParam(required = false) String job) {
         try {
             // 权限检查 - 需要先获取问题点所属的项目ID
             Long sampleId = dqeproblemMoudleService.getSampleIdByProblemId(id);
@@ -467,7 +498,27 @@ public class DQEproblemMoudleController {
 
             if (!isDirectResponsible) {
                 // 检查用户是否是代理人
-                String agentsStr = dqeIndexService.getAgents(username);
+                String param;
+                if (job != null) {
+                    switch (job) {
+                        case "DQE":
+                            param = projectDQE;
+                            break;
+                        case "rd":
+                            param = projectRD;
+                            break;
+                        case "projectLeader":
+                            param = projectLeader;
+                            break;
+                        default:
+                            param = "default_group";
+                            break;
+                    }
+                } else {
+                    // 如果没有job参数，使用默认逻辑
+                    param = "default_group";
+                }
+                String agentsStr = dqeIndexService.getAgents(param);
                 boolean isAgent = false;
 
                 if (agentsStr != null && !agentsStr.trim().isEmpty()) {
@@ -475,10 +526,8 @@ public class DQEproblemMoudleController {
                     for (String agent : agentArray) {
                         String trimmedAgent = agent.trim();
                         if (!trimmedAgent.isEmpty()) {
-                            // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                            if (trimmedAgent.equals(projectDQE) || 
-                                trimmedAgent.equals(projectRD) || 
-                                trimmedAgent.equals(projectLeader)) {
+                            // 检查当前用户是否在代理人列表中
+                            if (trimmedAgent.equals(username)) {
                                 isAgent = true;
                                 break;
                             }
@@ -557,7 +606,8 @@ public class DQEproblemMoudleController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("sampleId") String sampleId,
             @RequestParam("id") Long issueid,
-            @RequestParam(required = false) String username
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String job
     ) {
         System.out.println("进入 uploadImage");
         System.out.println("sampleId：" + sampleId);
@@ -587,7 +637,27 @@ public class DQEproblemMoudleController {
 
                 if (!isDirectResponsible) {
                     // 检查用户是否是代理人
-                    String agentsStr = dqeIndexService.getAgents(username);
+                    String param;
+                    if (job != null) {
+                        switch (job) {
+                            case "DQE":
+                                param = projectDQE;
+                                break;
+                            case "rd":
+                                param = projectRD;
+                                break;
+                            case "projectLeader":
+                                param = projectLeader;
+                                break;
+                            default:
+                                param = "default_group";
+                                break;
+                        }
+                    } else {
+                        // 如果没有job参数，使用默认逻辑
+                        param = "default_group";
+                    }
+                    String agentsStr = dqeIndexService.getAgents(param);
                     boolean isAgent = false;
 
                     if (agentsStr != null && !agentsStr.trim().isEmpty()) {
@@ -595,10 +665,8 @@ public class DQEproblemMoudleController {
                         for (String agent : agentArray) {
                             String trimmedAgent = agent.trim();
                             if (!trimmedAgent.isEmpty()) {
-                                // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                                if (trimmedAgent.equals(projectDQE) || 
-                                    trimmedAgent.equals(projectRD) || 
-                                    trimmedAgent.equals(projectLeader)) {
+                                // 检查当前用户是否在代理人列表中
+                                if (trimmedAgent.equals(username)) {
                                     isAgent = true;
                                     break;
                                 }
@@ -1226,7 +1294,8 @@ public class DQEproblemMoudleController {
 
     @GetMapping("/problemMoudle/checkAccessPermission")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> checkAccessPermission(@RequestParam String sampleId, @RequestParam String username) {
+    public ResponseEntity<Map<String, Object>> checkAccessPermission(@RequestParam String sampleId, @RequestParam String username,
+                                                                     @RequestParam String job) {
         try {
             // 获取项目信息
             List<Samples> samples = dqeproblemMoudleService.querySamples(sampleId);
@@ -1269,7 +1338,23 @@ public class DQEproblemMoudleController {
 
 
             // 检查用户是否是代理人
-            String agentsStr = dqeIndexService.getAgents(username);
+            String param;
+            switch (job) {
+                case "DQE":
+                    param = projectDQE;
+                    break;
+                case "rd":
+                    param = projectRD;
+                    break;
+                case "projectLeader":
+                    param = projectLeader;
+                    break;
+                default:
+                    param = "default_group";
+                    break;
+            }
+            String agentsStr = dqeIndexService.getAgents(param);
+
             boolean isAgent = false;
             String agentFor = "";
 
@@ -1278,12 +1363,10 @@ public class DQEproblemMoudleController {
                 for (String agent : agentArray) {
                     String trimmedAgent = agent.trim();
                     if (!trimmedAgent.isEmpty()) {
-                        // 检查代理人是否被授权给项目的DQE、RD或项目负责人
-                        if (trimmedAgent.equals(projectDQE != null ? projectDQE.trim() : "") ||
-                            trimmedAgent.equals(projectRD != null ? projectRD.trim() : "") ||
-                            trimmedAgent.equals(projectLeader != null ? projectLeader.trim() : "")) {
+                        // 检查当前用户是否在代理人列表中
+                        if (trimmedAgent.equals(username)) {
                             isAgent = true;
-                            agentFor = trimmedAgent;
+                            agentFor = param; // 记录被代理的人
                             break;
                         }
                     }
