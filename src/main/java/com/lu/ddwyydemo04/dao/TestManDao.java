@@ -232,4 +232,7 @@ public interface TestManDao {
 
     int updateSamplePassbackConfirm(@Param("sample_id")int sample_id,@Param("passbackConfirm")String passbackConfirm);
 
+    // 根据样品ID查询样品详细信息
+    Samples getSampleById(@Param("sample_id")int sample_id);
+
 }

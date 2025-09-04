@@ -800,5 +800,10 @@ public class TestManIndexService {
         return testManDao.updateSamplePassbackConfirm(sample_id,passbackConfirm);
     }
 
+    // 根据样品ID查询样品详细信息
+    public Samples getSampleById(int sample_id){
+        return testManDao.getSampleById(sample_id);
+    }
+
 
 }

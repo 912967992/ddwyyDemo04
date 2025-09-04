@@ -1056,7 +1056,7 @@ public class AccessTokenService {
     /**
      * 发送文本消息通知
      */
-    private void sendTextNotification(String userId, String content) throws ApiException {
+    public void sendTextNotification(String userId, String content) throws ApiException {
         DingTalkClient client = new DefaultDingTalkClient(SEND_MESSAGE_URL);
         OapiMessageCorpconversationAsyncsendV2Request request = new OapiMessageCorpconversationAsyncsendV2Request();
         

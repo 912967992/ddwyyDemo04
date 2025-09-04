@@ -623,6 +623,50 @@ public class testManIndexController {
             int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleIdInt,passbackConfirmStr);
             
             if (updateSamplePassbackConfirm > 0) {
+                // 如果选择已回传，发送通知给DQE和研发
+                if (passbackConfirm) {
+                    try {
+                        // 查询样品详细信息
+                        Samples sample = testManIndexService.getSampleById(sampleIdInt);
+                        if (sample != null) {
+                            // 构建通知消息
+                            StringBuilder message = new StringBuilder();
+                            message.append("【样品回传通知】\n");
+                            message.append("样品ID: ").append(sample.getSample_id()).append("\n");
+                            message.append("SKU: ").append(sample.getSample_model()).append(" ").append(sample.getSample_coding()).append("\n");
+                            message.append("电气编号: ").append(sample.getElectric_sample_id() != null ? sample.getElectric_sample_id() : "无").append("\n");
+                            message.append("产品名称: ").append(sample.getSample_name()).append("\n");
+                            message.append("版本: ").append(sample.getVersion()).append("\n");
+                            message.append("该样品已回传，请及时处理！");
+                            
+                            // 发送通知给DQE
+                            if (sample.getSample_DQE() != null && !sample.getSample_DQE().trim().isEmpty()) {
+                                String dqeUserId = accessTokenService.getUserIdByName(sample.getSample_DQE().trim());
+                                if (dqeUserId != null && !dqeUserId.isEmpty()) {
+                                    accessTokenService.sendTextNotification(dqeUserId, message.toString());
+                                    logger.info("已发送样品回传通知给DQE: {}", sample.getSample_DQE());
+                                } else {
+                                    logger.warn("未找到DQE用户 {} 的userId", sample.getSample_DQE());
+                                }
+                            }
+                            
+                            // 发送通知给研发
+                            if (sample.getSample_Developer() != null && !sample.getSample_Developer().trim().isEmpty()) {
+                                String rdUserId = accessTokenService.getUserIdByName(sample.getSample_Developer().trim());
+                                if (rdUserId != null && !rdUserId.isEmpty()) {
+                                    accessTokenService.sendTextNotification(rdUserId, message.toString());
+                                    logger.info("已发送样品回传通知给研发: {}", sample.getSample_Developer());
+                                } else {
+                                    logger.warn("未找到研发用户 {} 的userId", sample.getSample_Developer());
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("发送样品回传通知时出错: {}", e.getMessage(), e);
+                        // 通知发送失败不影响主流程，继续执行
+                    }
+                }
+                
                 response.put("status", "success");
                 response.put("message", "问题点确认状态更新成功");
 //                logger.info("问题点确认状态更新成功，样品ID: {}, 状态: {}", sampleIdInt, passbackConfirm);
@@ -2157,6 +2201,11 @@ public class testManIndexController {
                 boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
                 if (isEmpty) continue;
 
+                // 检查是否为只有序号的行（序号列有值但其他重要字段都为空）
+                if (isOnlySequenceNumberRow(rowMap)) {
+                    continue; // 跳过只有序号的行
+                }
+
                 // 检查问题类别的值是否为空或是否包含"-"符号
                 String problemCategory = rowMap.get("问题类别");
                 if (problemCategory == null || problemCategory.trim().isEmpty()) {
@@ -2405,6 +2454,31 @@ public class testManIndexController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("测试失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 判断行是否只包含序号而没有其他有效数据
+     * @param rowMap 行数据映射
+     * @return true 如果该行只包含序号，false 如果有其他有效数据
+     */
+    private boolean isOnlySequenceNumberRow(Map<String, String> rowMap) {
+        // 定义重要的字段列表，这些字段如果有值说明行包含有效数据
+        String[] importantFields = {
+            "问题类别", "问题", "复现手法", "恢复方法", "复现概率", 
+            "缺陷等级", "当前状态", "对比上一版或竞品", "测试人员",
+            "DQE&研发确认", "改善对策（研发回复）", "分析责任人", 
+            "改善后风险", "下一版回归测试", "备注"
+        };
+        
+        // 检查重要字段是否有非空值
+        for (String field : importantFields) {
+            String value = rowMap.get(field);
+            if (value != null && !value.trim().isEmpty()) {
+                return false; // 如果任何重要字段有值，说明不是只有序号的行
+            }
+        }
+        
+        return true; // 所有重要字段都为空，说明只有序号
     }
 
 

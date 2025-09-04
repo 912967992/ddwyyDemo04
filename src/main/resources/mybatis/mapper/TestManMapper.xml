@@ -1525,4 +1525,10 @@
             passbackConfirm = #{passbackConfirm}
         WHERE sample_id = #{sample_id}
     </update>
+
+    <!-- 根据样品ID查询样品详细信息 -->
+    <select id="getSampleById" resultType="Samples">
+        SELECT * FROM samples
+        WHERE sample_id = #{sample_id}
+    </select>
 </mapper>
