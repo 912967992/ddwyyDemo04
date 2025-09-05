@@ -59,6 +59,7 @@ public class ProblemLibraryController {
     public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> filters) {
         try {
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
+            System.out.println("filters:"+filters);
             Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
 
             Map<String, Object> response = new HashMap<>();
@@ -195,6 +196,27 @@ public class ProblemLibraryController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "获取问题点详情失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * 获取大类小类选项
+     */
+    @GetMapping("/getSpeciesOptions")
+    public ResponseEntity<Map<String, Object>> getSpeciesOptions() {
+        try {
+            Map<String, List<String>> speciesOptions = problemLibraryService.getSpeciesOptions();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", speciesOptions);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "获取大类小类选项失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

@@ -13,6 +13,12 @@ public class TestIssues {
     // 完整编码(大小编码)
     private String full_model;
 
+    // 大类
+    private String big_species;
+
+    // 小类
+    private String small_species;
+
     // 样品阶段
     private String sample_stage;
 
@@ -132,6 +138,22 @@ public class TestIssues {
 
     public void setFull_model(String full_model) {
         this.full_model = full_model;
+    }
+
+    public String getBig_species() {
+        return big_species;
+    }
+
+    public void setBig_species(String big_species) {
+        this.big_species = big_species;
+    }
+
+    public String getSmall_species() {
+        return small_species;
+    }
+
+    public void setSmall_species(String small_species) {
+        this.small_species = small_species;
     }
 
     public String getSample_stage() {
@@ -485,6 +507,8 @@ public class TestIssues {
         return "TestIssues{" +
                 "id=" + id +
                 ", full_model='" + full_model + '\'' +
+                ", big_species='" + big_species + '\'' +
+                ", small_species='" + small_species + '\'' +
                 ", sample_stage='" + sample_stage + '\'' +
                 ", version='" + version + '\'' +
                 ", chip_solution='" + chip_solution + '\'' +

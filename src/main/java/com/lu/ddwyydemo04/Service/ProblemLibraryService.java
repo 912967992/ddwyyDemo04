@@ -30,10 +30,22 @@ public class ProblemLibraryService {
      * @return 问题点列表
      */
     public List<TestIssues> searchProblems(Map<String, Object> filters) {
-        System.out.println("=== 搜索参数调试 ===");
-        System.out.println("所有筛选参数: " + filters);
-        System.out.println("当前状态筛选值: " + filters.get("currentStatus"));
-        System.out.println("==================");
+        // 处理当前状态的兼容性筛选
+        if (filters.containsKey("currentStatus") && filters.get("currentStatus") != null) {
+            String currentStatus = (String) filters.get("currentStatus");
+            if (!currentStatus.isEmpty()) {
+                // 根据选择的状态，添加兼容的搜索条件
+                if ("Closed".equals(currentStatus)) {
+                    // Closed状态兼容 close, closed, Close, CLOSED
+                    filters.put("currentStatusCompatible", "close,closed,Close,CLOSED");
+                } else if ("Follow up".equals(currentStatus)) {
+                    // Follow up状态兼容 follow up, followup, Follow up, FOLLOW UP
+                    filters.put("currentStatusCompatible", "follow up,followup,Follow up,FOLLOW UP");
+                }
+                // Open状态不需要兼容处理，保持原值
+            }
+        }
+        
         return problemLibraryDao.searchProblems(filters);
     }
 
@@ -125,5 +137,116 @@ public class ProblemLibraryService {
     public boolean hasHistoryVersions(String sampleId) {
         List<TestIssues> historyVersions = getHistoryVersions(sampleId);
         return historyVersions != null && historyVersions.size() > 1;
+    }
+
+    /**
+     * 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备选项
+     * @return 包含大类、小类、样品阶段、完整编码、版本、问题类别、测试人员、责任部门、测试平台和显示设备选项的Map
+     */
+    public Map<String, List<String>> getSpeciesOptions() {
+        Map<String, Object> rawData = problemLibraryDao.getSpeciesOptions();
+        Map<String, List<String>> result = new HashMap<>();
+        
+        // 处理大类选项
+        String bigSpeciesStr = (String) rawData.get("bigSpecies");
+        if (bigSpeciesStr != null && !bigSpeciesStr.isEmpty()) {
+            List<String> bigSpeciesList = java.util.Arrays.asList(bigSpeciesStr.split(","));
+            // 将"空值"转换为空字符串，用于前端显示和筛选
+            bigSpeciesList = bigSpeciesList.stream()
+                .map(value -> "空值".equals(value) ? "" : value)
+                .collect(java.util.stream.Collectors.toList());
+            result.put("bigSpecies", bigSpeciesList);
+        } else {
+            result.put("bigSpecies", new java.util.ArrayList<>());
+        }
+        
+        // 处理小类选项
+        String smallSpeciesStr = (String) rawData.get("smallSpecies");
+        if (smallSpeciesStr != null && !smallSpeciesStr.isEmpty()) {
+            List<String> smallSpeciesList = java.util.Arrays.asList(smallSpeciesStr.split(","));
+            // 将"空值"转换为空字符串，用于前端显示和筛选
+            smallSpeciesList = smallSpeciesList.stream()
+                .map(value -> "空值".equals(value) ? "" : value)
+                .collect(java.util.stream.Collectors.toList());
+            result.put("smallSpecies", smallSpeciesList);
+        } else {
+            result.put("smallSpecies", new java.util.ArrayList<>());
+        }
+        
+        // 处理样品阶段选项
+        String sampleStageStr = (String) rawData.get("sampleStage");
+        if (sampleStageStr != null && !sampleStageStr.isEmpty()) {
+            result.put("sampleStage", java.util.Arrays.asList(sampleStageStr.split(",")));
+        } else {
+            result.put("sampleStage", new java.util.ArrayList<>());
+        }
+        
+        // 处理完整编码选项
+        String fullModelStr = (String) rawData.get("fullModel");
+        if (fullModelStr != null && !fullModelStr.isEmpty()) {
+            result.put("fullModel", java.util.Arrays.asList(fullModelStr.split(",")));
+        } else {
+            result.put("fullModel", new java.util.ArrayList<>());
+        }
+        
+        // 处理版本选项
+        String versionStr = (String) rawData.get("version");
+        if (versionStr != null && !versionStr.isEmpty()) {
+            result.put("version", java.util.Arrays.asList(versionStr.split(",")));
+        } else {
+            result.put("version", new java.util.ArrayList<>());
+        }
+        
+        // 处理问题类别选项
+        String problemCategoryStr = (String) rawData.get("problemCategory");
+        if (problemCategoryStr != null && !problemCategoryStr.isEmpty()) {
+            result.put("problemCategory", java.util.Arrays.asList(problemCategoryStr.split(",")));
+        } else {
+            result.put("problemCategory", new java.util.ArrayList<>());
+        }
+        
+        // 处理测试人员选项
+        String testerStr = (String) rawData.get("tester");
+        if (testerStr != null && !testerStr.isEmpty()) {
+            result.put("tester", java.util.Arrays.asList(testerStr.split(",")));
+        } else {
+            result.put("tester", new java.util.ArrayList<>());
+        }
+        
+        // 处理责任部门选项
+        String responsibleDepartmentStr = (String) rawData.get("responsibleDepartment");
+        if (responsibleDepartmentStr != null && !responsibleDepartmentStr.isEmpty()) {
+            result.put("responsibleDepartment", java.util.Arrays.asList(responsibleDepartmentStr.split(",")));
+        } else {
+            result.put("responsibleDepartment", new java.util.ArrayList<>());
+        }
+        
+        // 处理测试平台选项
+        String testPlatformStr = (String) rawData.get("testPlatform");
+        if (testPlatformStr != null && !testPlatformStr.isEmpty()) {
+            List<String> testPlatformList = java.util.Arrays.asList(testPlatformStr.split(","));
+            // 将"空值"转换为空字符串，用于前端显示和筛选
+            testPlatformList = testPlatformList.stream()
+                .map(value -> "空值".equals(value) ? "" : value)
+                .collect(java.util.stream.Collectors.toList());
+            result.put("testPlatform", testPlatformList);
+        } else {
+            result.put("testPlatform", new java.util.ArrayList<>());
+        }
+        
+        // 处理显示设备选项
+        String testDeviceStr = (String) rawData.get("testDevice");
+        if (testDeviceStr != null && !testDeviceStr.isEmpty()) {
+            List<String> testDeviceList = java.util.Arrays.asList(testDeviceStr.split(","));
+            // 将"空值"转换为空字符串，用于前端显示和筛选
+            testDeviceList = testDeviceList.stream()
+                .map(value -> "空值".equals(value) ? "" : value)
+                .collect(java.util.stream.Collectors.toList());
+            result.put("testDevice", testDeviceList);
+        } else {
+            result.put("testDevice", new java.util.ArrayList<>());
+        }
+        
+        return result;
     }
 }

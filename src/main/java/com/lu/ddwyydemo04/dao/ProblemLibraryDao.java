@@ -57,4 +57,10 @@ public interface ProblemLibraryDao {
      * @return 最新版本
      */
     TestIssues getLatestVersion(@Param("sampleId") String sampleId);
+
+    /**
+     * 获取大类小类选项
+     * @return 包含大类和小类选项的Map
+     */
+    Map<String, Object> getSpeciesOptions();
 }

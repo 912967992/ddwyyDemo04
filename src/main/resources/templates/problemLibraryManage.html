@@ -26,6 +26,7 @@
             <div class="user-info">
                 <span id="currentUser"></span>
                 <span id="currentRole"></span>
+                <span id="cacheStatus" class="cache-status" style="font-size: 12px; color: #666; margin-left: 10px;"></span>
             </div>
         </div>
     </div>
@@ -37,21 +38,64 @@
             <div class="filter-row">
                 <div class="filter-group">
                     <label>完整编码:</label>
-                    <input type="text" id="fullModelFilter" placeholder="输入完整编码">
+                    <select id="fullModelFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshFullModelBtn" class="btn btn-sm btn-outline-info" title="刷新完整编码选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="filter-group">
                     <label>样品阶段:</label>
-                    <input type="text" id="sampleStageFilter" placeholder="输入样品阶段">
+                    <select id="sampleStageFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshSampleStageBtn" class="btn btn-sm btn-outline-info" title="刷新样品阶段选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="filter-group">
                     <label>版本:</label>
-                    <input type="text" id="versionFilter" placeholder="输入版本">
+                    <select id="versionFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshVersionBtn" class="btn btn-sm btn-outline-info" title="刷新版本选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <label>大类:</label>
+                    <select id="bigSpeciesFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshBigSpeciesBtn" class="btn btn-sm btn-outline-info" title="刷新大类选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <label>小类:</label>
+                    <select id="smallSpeciesFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshSmallSpeciesBtn" class="btn btn-sm btn-outline-info" title="刷新小类选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="filter-group">
                     <label>问题类别:</label>
-                    <select id="problemCategoryFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="filter-input-group">
+                        <select id="problemCategoryFilter">
+                            <option value="">全部</option>
+                        </select>
+                        <div class="button-group">
+                            <button id="refreshProblemCategoryBtn" class="btn btn-sm btn-outline-primary" title="从数据库刷新问题类别选项">
+                                <i class="fas fa-database"></i>
+                            </button>
+                            <button id="refreshProblemCategoryConfigBtn" class="btn btn-sm btn-outline-secondary" title="从配置文件刷新问题类别选项">
+                                <i class="fas fa-file-code"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -69,32 +113,36 @@
                 </div>
                 <div class="filter-group">
                     <label>当前状态:</label>
-                    <select id="currentStatusFilter">
+                    <select id="currentStatusFilter" data-compatible="true">
                         <option value="">全部</option>
                         <option value="Open">Open</option>
-                        <option value="Closed">Closed</option>
-                        <option value="Follow up">Follow up</option>
+                        <option value="Closed" data-compatible-values="close,closed,Close,CLOSED">Closed</option>
+                        <option value="Follow up" data-compatible-values="follow up,followup,Follow up,FOLLOW UP">Follow up</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label>测试人员:</label>
-                    <input type="text" id="testerFilter" placeholder="输入测试人员">
+                    <select id="testerFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshTesterBtn" class="btn btn-sm btn-outline-info" title="刷新测试人员选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="filter-group">
                     <label>责任部门:</label>
                     <select id="responsibleDepartmentFilter">
                         <option value="">全部</option>
-                        <option value="SQE">SQE</option>
-                        <option value="ID">ID</option>
-                        <option value="结构">结构</option>
-                        <option value="研发">研发</option>
                     </select>
+                    <button id="refreshResponsibleDepartmentBtn" class="btn btn-sm btn-outline-info" title="刷新责任部门选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </div>
 
             <div class="filter-row">
                 <div class="filter-group">
-                    <label>创建时间:</label>
+                    <label>提交时间:</label>
                     <input type="date" id="startDateFilter">
                     <span>至</span>
                     <input type="date" id="endDateFilter">
@@ -107,6 +155,31 @@
                     <label>问题描述:</label>
                     <input type="text" id="problemFilter" placeholder="输入问题关键词">
                 </div>
+                <div class="filter-group">
+                    <label>测试平台:</label>
+                    <select id="testPlatformFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshTestPlatformBtn" class="btn btn-sm btn-outline-info" title="刷新测试平台选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>显示设备:</label>
+                    <select id="testDeviceFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshTestDeviceBtn" class="btn btn-sm btn-outline-info" title="刷新显示设备选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <label>其他设备:</label>
+                    <input type="text" id="otherDeviceFilter" placeholder="输入其他设备">
+                </div>
             </div>
 
             <!-- 操作按钮 -->
@@ -117,8 +190,14 @@
                 <button id="resetBtn" class="btn btn-secondary">
                     <i class="fas fa-undo"></i> 重置
                 </button>
+                <button id="addToCartBtn" class="btn btn-warning">
+                    <i class="fas fa-shopping-cart"></i> 加入收藏夹
+                </button>
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
+                </button>
+                <button id="showCartBtn" class="btn btn-info">
+                    <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
             </div>
         </div>
@@ -155,10 +234,12 @@
                     <tr>
                         <th>ID</th>
                         <th>完整编码</th>
+                        <th>大类</th>
+                        <th>小类</th>
                         <th>样品阶段</th>
                         <th>版本</th>
                         <th>测试平台</th>
-                        <th>测试设备</th>
+                        <th>显示设备</th>
                         <th>其他设备</th>
                         <th>问题描述</th>
                         <th>问题类别</th>
@@ -169,7 +250,7 @@
                         <th>责任部门</th>
                         <th>DQE确认回复</th>
                         <th>研发确认回复</th>
-                        <th>创建时间</th>
+                        <th>提交时间</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -233,6 +314,16 @@
                             <input type="text" id="editDetailFullModel" class="detail-input" style="display: none;">
                         </div>
                         <div class="detail-row">
+                            <label>大类:</label>
+                            <span id="detailBigSpecies" class="detail-value"></span>
+                            <input type="text" id="editDetailBigSpecies" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
+                            <label>小类:</label>
+                            <span id="detailSmallSpecies" class="detail-value"></span>
+                            <input type="text" id="editDetailSmallSpecies" class="detail-input" style="display: none;">
+                        </div>
+                        <div class="detail-row">
                             <label>样品阶段:</label>
                             <span id="detailSampleStage" class="detail-value"></span>
                             <input type="text" id="editDetailSampleStage" class="detail-input" style="display: none;">
@@ -253,7 +344,7 @@
                             <input type="text" id="editDetailTestPlatform" class="detail-input" style="display: none;">
                         </div>
                         <div class="detail-row">
-                            <label>测试设备:</label>
+                            <label>显示设备:</label>
                             <span id="detailTestDevice" class="detail-value"></span>
                             <input type="text" id="editDetailTestDevice" class="detail-input" style="display: none;">
                         </div>
@@ -443,7 +534,7 @@
                             </select>
                         </div>
                         <div class="detail-row">
-                            <label>创建时间:</label>
+                            <label>提交时间:</label>
                             <span id="detailCreatedAt" class="detail-value"></span>
                         </div>
                     </div>
@@ -656,6 +747,82 @@
         </div>
     </div>
 
+    <!-- 收藏夹模态框 -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>收藏夹管理</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="cart-controls">
+                    <button id="clearCartBtn" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> 清空收藏夹
+                    </button>
+                    <button id="exportCartBtn" class="btn btn-success btn-sm">
+                        <i class="fas fa-download"></i> 导出收藏夹数据
+                    </button>
+                    <button id="mergeCartBtn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-layer-group"></i> 合并显示
+                    </button>
+                </div>
+                
+                <div class="cart-items-container">
+                    <table id="cartItemsTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>筛选条件</th>
+                                <th>数据量</th>
+                                <th>保存时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItemsTableBody">
+                            <!-- 收藏夹项目将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 合并数据展示区域 -->
+                <div id="mergedDataSection" class="merged-data-section" style="display: none;">
+                    <h3>合并数据预览</h3>
+                    <div class="merged-stats">
+                        <span>总数据量: <strong id="mergedTotalCount">0</strong></span>
+                        <span>去重后: <strong id="mergedUniqueCount">0</strong></span>
+                    </div>
+                    <div class="merged-table-container">
+                        <table id="mergedDataTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>完整编码</th>
+                                    <th>大类</th>
+                                    <th>小类</th>
+                                    <th>样品阶段</th>
+                                    <th>版本</th>
+                                    <th>问题描述</th>
+                                    <th>问题类别</th>
+                                    <th>缺陷等级</th>
+                                    <th>当前状态</th>
+                                    <th>测试人员</th>
+                                    <th>责任部门</th>
+                                    <th>提交时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mergedDataTableBody">
+                                <!-- 合并数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeCartModal" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 加载提示 -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner">
@@ -685,6 +852,25 @@
         let totalRecords = 0;
         let filteredData = [];
         let isSuperAdmin = false; // 是否为超级管理员
+        
+        // 购物车/收藏夹相关变量
+        let cartItems = []; // 收藏夹项目
+        let mergedData = []; // 合并后的数据
+        
+        // 缓存相关变量
+        let speciesCache = {
+            bigSpecies: null,
+            smallSpecies: null,
+            sampleStage: null,
+            fullModel: null,
+            version: null,
+            problemCategory: null,
+            tester: null,
+            responsibleDepartment: null,
+            testPlatform: null,
+            testDevice: null,
+            lastUpdated: null
+        };
 
         // 标准化状态显示
         function normalizeStatus(status) {
@@ -704,6 +890,189 @@
             }
         }
 
+        // 缓存管理函数
+        function getCachedSpeciesOptions(speciesType) {
+            // 先从内存缓存获取
+            if (speciesCache[speciesType]) {
+                return speciesCache[speciesType];
+            }
+            
+            // 如果内存缓存没有，从localStorage获取
+            try {
+                const cached = localStorage.getItem('speciesCache');
+                if (cached) {
+                    const parsedCache = JSON.parse(cached);
+                    if (parsedCache[speciesType] && isCacheValid(parsedCache.lastUpdated)) {
+                        // 恢复到内存缓存
+                        speciesCache = parsedCache;
+                        return speciesCache[speciesType];
+                    }
+                }
+            } catch (e) {
+                console.error('读取缓存失败:', e);
+            }
+            
+            return null;
+        }
+
+        // 检查并加载缓存选项到下拉框
+        function checkAndLoadCachedOptions(speciesType) {
+            const cachedOptions = getCachedSpeciesOptions(speciesType);
+            if (cachedOptions && cachedOptions.length > 0) {
+                updateSelectOptions(speciesType + 'Filter', cachedOptions);
+                return true;
+            }
+            return false;
+        }
+
+        function setCachedSpeciesOptions(speciesType, options) {
+            // 更新内存缓存
+            speciesCache[speciesType] = options;
+            speciesCache.lastUpdated = new Date().getTime();
+            
+            // 保存到localStorage
+            try {
+                localStorage.setItem('speciesCache', JSON.stringify(speciesCache));
+            } catch (e) {
+                console.error('保存缓存失败:', e);
+            }
+            
+            updateCacheStatusDisplay();
+        }
+
+        function isCacheValid(lastUpdated) {
+            // 缓存有效期为1小时（3600000毫秒）
+            const CACHE_DURATION = 60 * 60 * 1000;
+            const timestamp = lastUpdated || speciesCache.lastUpdated;
+            return timestamp && (new Date().getTime() - timestamp) < CACHE_DURATION;
+        }
+
+        function clearSpeciesCache() {
+            // 清除内存缓存
+            speciesCache = {
+                bigSpecies: null,
+                smallSpecies: null,
+                sampleStage: null,
+                fullModel: null,
+                version: null,
+                problemCategory: null,
+                tester: null,
+                responsibleDepartment: null,
+                testPlatform: null,
+                testDevice: null,
+                lastUpdated: null
+            };
+            
+            // 清除localStorage缓存
+            try {
+                localStorage.removeItem('speciesCache');
+            } catch (e) {
+                console.error('清除缓存失败:', e);
+            }
+            
+            updateCacheStatusDisplay();
+        }
+
+        function loadCacheFromStorage() {
+            try {
+                const cached = localStorage.getItem('speciesCache');
+                if (cached) {
+                    const parsedCache = JSON.parse(cached);
+                    if (isCacheValid(parsedCache.lastUpdated)) {
+                        // 恢复缓存到内存
+                        speciesCache = parsedCache;
+                        console.log('缓存已从localStorage恢复');
+                        
+                        // 从缓存加载选项到下拉框
+                        loadOptionsFromCache();
+                    } else {
+                        console.log('localStorage中的缓存已过期');
+                    }
+                }
+            } catch (e) {
+                console.error('从localStorage加载缓存失败:', e);
+            }
+        }
+
+        function loadOptionsFromCache() {
+            // 加载大类选项
+            if (speciesCache.bigSpecies && speciesCache.bigSpecies.length > 0) {
+                updateSelectOptions('bigSpeciesFilter', speciesCache.bigSpecies);
+                console.log('大类选项已从缓存加载');
+            }
+            
+            // 加载小类选项
+            if (speciesCache.smallSpecies && speciesCache.smallSpecies.length > 0) {
+                updateSelectOptions('smallSpeciesFilter', speciesCache.smallSpecies);
+                console.log('小类选项已从缓存加载');
+            }
+            
+            // 加载样品阶段选项
+            if (speciesCache.sampleStage && speciesCache.sampleStage.length > 0) {
+                updateSelectOptions('sampleStageFilter', speciesCache.sampleStage);
+                console.log('样品阶段选项已从缓存加载');
+            }
+            
+            // 加载完整编码选项
+            if (speciesCache.fullModel && speciesCache.fullModel.length > 0) {
+                updateSelectOptions('fullModelFilter', speciesCache.fullModel);
+                console.log('完整编码选项已从缓存加载');
+            }
+            
+            // 加载版本选项
+            if (speciesCache.version && speciesCache.version.length > 0) {
+                updateSelectOptions('versionFilter', speciesCache.version);
+                console.log('版本选项已从缓存加载');
+            }
+            
+            // 加载问题类别选项
+            if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                updateSelectOptions('problemCategoryFilter', speciesCache.problemCategory);
+                console.log('问题类别选项已从缓存加载');
+            }
+            
+            // 加载测试人员选项
+            if (speciesCache.tester && speciesCache.tester.length > 0) {
+                updateSelectOptions('testerFilter', speciesCache.tester);
+                console.log('测试人员选项已从缓存加载');
+            }
+            
+            // 加载责任部门选项
+            if (speciesCache.responsibleDepartment && speciesCache.responsibleDepartment.length > 0) {
+                updateSelectOptions('responsibleDepartmentFilter', speciesCache.responsibleDepartment);
+                console.log('责任部门选项已从缓存加载');
+            }
+            
+            // 加载测试平台选项
+            if (speciesCache.testPlatform && speciesCache.testPlatform.length > 0) {
+                updateSelectOptions('testPlatformFilter', speciesCache.testPlatform);
+                console.log('测试平台选项已从缓存加载');
+            }
+            
+            // 加载显示设备选项
+            if (speciesCache.testDevice && speciesCache.testDevice.length > 0) {
+                updateSelectOptions('testDeviceFilter', speciesCache.testDevice);
+                console.log('显示设备选项已从缓存加载');
+            }
+        }
+
+        function updateCacheStatusDisplay() {
+            const cacheStatusElement = document.getElementById('cacheStatus');
+            if (!cacheStatusElement) return;
+
+            if (speciesCache.lastUpdated && isCacheValid()) {
+                const timeAgo = Math.floor((new Date().getTime() - speciesCache.lastUpdated) / 1000 / 60);
+                cacheStatusElement.textContent = `缓存有效 (${timeAgo}分钟前)`;
+                cacheStatusElement.style.color = '#28a745';
+            } else if (speciesCache.lastUpdated) {
+                cacheStatusElement.textContent = '缓存已过期';
+                cacheStatusElement.style.color = '#ffc107';
+            } else {
+                cacheStatusElement.textContent = '无缓存';
+                cacheStatusElement.style.color = '#6c757d';
+            }
+        }
+
         // 页面初始化
         document.addEventListener('DOMContentLoaded', function() {
             // 检查用户权限
@@ -714,6 +1083,14 @@
             
             // 初始化事件监听器
             initEventListeners();
+            
+            // 初始化缓存状态显示
+            loadCacheFromStorage();
+            updateCacheStatusDisplay();
+            
+            // 初始化购物车
+            loadCartFromStorage();
+            updateCartCount();
             
             // 确保分页控件可见
             const paginationContainer = document.querySelector('.pagination-container');
@@ -730,6 +1107,8 @@
 
         // 初始化问题类别筛选器
         function initProblemCategoryFilter() {
+            // 注释掉原来的配置文件方法，现在使用缓存系统
+            /*
             const filterSelect = document.getElementById('problemCategoryFilter');
             if (!filterSelect) return;
             
@@ -758,6 +1137,10 @@
                     filterSelect.appendChild(newOptgroup);
                 });
             }
+            */
+            
+            // 现在使用缓存系统，在loadOptionsFromCache中处理
+            console.log('问题类别筛选器初始化完成，将使用缓存系统');
         }
 
         // 检查用户权限
@@ -805,7 +1188,8 @@
             
             // 为筛选输入框添加回车键搜索功能
             const filterInputs = [
-                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'testerFilter', 'dqeFilter', 'problemFilter'
+                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter', 
+                'testerFilter', 'dqeFilter', 'problemFilter', 'testPlatformFilter', 'testDeviceFilter', 'otherDeviceFilter'
             ];
             
             filterInputs.forEach(inputId => {
@@ -821,6 +1205,75 @@
             
             // 导出按钮
             document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
+            
+            // 加入收藏夹按钮
+            document.getElementById('addToCartBtn').addEventListener('click', addToCart);
+            
+            // 查看收藏夹按钮
+            document.getElementById('showCartBtn').addEventListener('click', showCartModal);
+            
+            // 收藏夹相关按钮
+            document.getElementById('clearCartBtn').addEventListener('click', clearCart);
+            document.getElementById('exportCartBtn').addEventListener('click', exportCartData);
+            document.getElementById('mergeCartBtn').addEventListener('click', mergeCartData);
+            document.getElementById('closeCartModal').addEventListener('click', function() {
+                closeSpecificModal('cartModal');
+            });
+            
+            // 刷新大类按钮
+            document.getElementById('refreshBigSpeciesBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('bigSpecies');
+            });
+            
+            // 刷新小类按钮
+            document.getElementById('refreshSmallSpeciesBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('smallSpecies');
+            });
+            
+            // 刷新样品阶段按钮
+            document.getElementById('refreshSampleStageBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('sampleStage');
+            });
+            
+            // 刷新完整编码按钮
+            document.getElementById('refreshFullModelBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('fullModel');
+            });
+            
+            // 刷新版本按钮
+            document.getElementById('refreshVersionBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('version');
+            });
+            
+            // 刷新问题类别按钮
+            document.getElementById('refreshProblemCategoryBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('problemCategory');
+            });
+            
+            // 刷新问题类别配置文件按钮
+            document.getElementById('refreshProblemCategoryConfigBtn').addEventListener('click', function() {
+                refreshProblemCategoryFromConfig();
+            });
+            
+            // 刷新测试人员按钮
+            document.getElementById('refreshTesterBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('tester');
+            });
+            
+            // 刷新责任部门按钮
+            document.getElementById('refreshResponsibleDepartmentBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('responsibleDepartment');
+            });
+            
+            // 刷新测试平台按钮
+            document.getElementById('refreshTestPlatformBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('testPlatform');
+            });
+            
+            // 刷新显示设备按钮
+            document.getElementById('refreshTestDeviceBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('testDevice');
+            });
             
 
             
@@ -937,6 +1390,8 @@
                 fullModel: document.getElementById('fullModelFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
                 problemCategory: document.getElementById('problemCategoryFilter').value,
                 defectLevel: document.getElementById('defectLevelFilter').value,
                 currentStatus: document.getElementById('currentStatusFilter').value,
@@ -945,7 +1400,10 @@
                 startDate: document.getElementById('startDateFilter').value,
                 endDate: document.getElementById('endDateFilter').value,
                 dqe: document.getElementById('dqeFilter').value,
-                problem: document.getElementById('problemFilter').value
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
             };
             
             fetch('/problemLibrary/searchProblems', {
@@ -980,6 +1438,8 @@
             document.getElementById('fullModelFilter').value = '';
             document.getElementById('sampleStageFilter').value = '';
             document.getElementById('versionFilter').value = '';
+            document.getElementById('bigSpeciesFilter').value = '';
+            document.getElementById('smallSpeciesFilter').value = '';
             document.getElementById('problemCategoryFilter').value = '';
             document.getElementById('defectLevelFilter').value = '';
             document.getElementById('currentStatusFilter').value = '';
@@ -989,6 +1449,9 @@
             document.getElementById('endDateFilter').value = '';
             document.getElementById('dqeFilter').value = '';
             document.getElementById('problemFilter').value = '';
+            document.getElementById('testPlatformFilter').value = '';
+            document.getElementById('testDeviceFilter').value = '';
+            document.getElementById('otherDeviceFilter').value = '';
             
             loadProblemData();
         }
@@ -1007,6 +1470,8 @@
                 fullModel: document.getElementById('fullModelFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
                 problemCategory: document.getElementById('problemCategoryFilter').value,
                 defectLevel: document.getElementById('defectLevelFilter').value,
                 currentStatus: document.getElementById('currentStatusFilter').value,
@@ -1015,7 +1480,10 @@
                 startDate: document.getElementById('startDateFilter').value,
                 endDate: document.getElementById('endDateFilter').value,
                 dqe: document.getElementById('dqeFilter').value,
-                problem: document.getElementById('problemFilter').value
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
             };
             
             fetch('/problemLibrary/exportProblems', {
@@ -1092,6 +1560,8 @@
             // 填充详情数据
             document.getElementById('detailFullModel').textContent = problem.full_model || '';
             document.getElementById('detailSampleId').textContent = problem.sample_id || '';
+            document.getElementById('detailBigSpecies').textContent = problem.big_species || '';
+            document.getElementById('detailSmallSpecies').textContent = problem.small_species || '';
             document.getElementById('detailSampleStage').textContent = problem.sample_stage || '';
             document.getElementById('detailVersion').textContent = problem.version || '';
             document.getElementById('detailChipSolution').textContent = problem.chip_solution || '';
@@ -1125,6 +1595,8 @@
 
             // 同步编辑输入框的值
             document.getElementById('editDetailFullModel').value = problem.full_model || '';
+            document.getElementById('editDetailBigSpecies').value = problem.big_species || '';
+            document.getElementById('editDetailSmallSpecies').value = problem.small_species || '';
             document.getElementById('editDetailSampleStage').value = problem.sample_stage || '';
             document.getElementById('editDetailVersion').value = problem.version || '';
             document.getElementById('editDetailChipSolution').value = problem.chip_solution || '';
@@ -1268,6 +1740,8 @@
                 row.innerHTML = `
                     <td>${problem.id}</td>
                     <td>${problem.full_model || ''}</td>
+                    <td>${problem.big_species || ''}</td>
+                    <td>${problem.small_species || ''}</td>
                     <td>${problem.sample_stage || ''}</td>
                     <td>${problem.version || ''}</td>
                     <td>${problem.test_platform || ''}</td>
@@ -1463,6 +1937,169 @@
             searchProblems();
         }
 
+        // 刷新单个选项（大类或小类）
+        function refreshSingleSpeciesOptions(speciesType) {
+            // 直接从服务器获取最新数据，不使用缓存
+            fetchSpeciesOptionsFromServer(speciesType);
+        }
+
+        // 强制刷新（忽略缓存）
+        function forceRefreshSpeciesOptions(speciesType) {
+            // 清除缓存
+            clearSpeciesCache();
+            // 从服务器获取
+            fetchSpeciesOptionsFromServer(speciesType);
+        }
+
+        // 从服务器获取选项
+        function fetchSpeciesOptionsFromServer(speciesType) {
+            showLoading();
+            
+            fetch('/problemLibrary/getSpeciesOptions', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(data.data)
+                    // 更新缓存（同时更新所有选项，因为服务器返回的是完整数据）
+                    setCachedSpeciesOptions('bigSpecies', data.data.bigSpecies);
+                    setCachedSpeciesOptions('smallSpecies', data.data.smallSpecies);
+                    setCachedSpeciesOptions('sampleStage', data.data.sampleStage);
+                    setCachedSpeciesOptions('fullModel', data.data.fullModel);
+                    setCachedSpeciesOptions('version', data.data.version);
+                    setCachedSpeciesOptions('problemCategory', data.data.problemCategory);
+                    setCachedSpeciesOptions('tester', data.data.tester);
+                    setCachedSpeciesOptions('responsibleDepartment', data.data.responsibleDepartment);
+                    setCachedSpeciesOptions('testPlatform', data.data.testPlatform);
+                    setCachedSpeciesOptions('testDevice', data.data.testDevice);
+                    
+                    // 更新对应的下拉框
+                    if (speciesType === 'bigSpecies') {
+                        updateSelectOptions('bigSpeciesFilter', data.data.bigSpecies);
+                        alert('大类选项已刷新并缓存');
+                    } else if (speciesType === 'smallSpecies') {
+                        updateSelectOptions('smallSpeciesFilter', data.data.smallSpecies);
+                        alert('小类选项已刷新并缓存');
+                    } else if (speciesType === 'sampleStage') {
+                        updateSelectOptions('sampleStageFilter', data.data.sampleStage);
+                        alert('样品阶段选项已刷新并缓存');
+                    } else if (speciesType === 'fullModel') {
+                        updateSelectOptions('fullModelFilter', data.data.fullModel);
+                        alert('完整编码选项已刷新并缓存');
+                    } else if (speciesType === 'version') {
+                        updateSelectOptions('versionFilter', data.data.version);
+                        alert('版本选项已刷新并缓存');
+                    } else if (speciesType === 'problemCategory') {
+                        updateSelectOptions('problemCategoryFilter', data.data.problemCategory);
+                        alert('问题类别选项已刷新并缓存');
+                    } else if (speciesType === 'tester') {
+                        updateSelectOptions('testerFilter', data.data.tester);
+                        alert('测试人员选项已刷新并缓存');
+                    } else if (speciesType === 'responsibleDepartment') {
+                        updateSelectOptions('responsibleDepartmentFilter', data.data.responsibleDepartment);
+                        alert('责任部门选项已刷新并缓存');
+                    } else if (speciesType === 'testPlatform') {
+                        updateSelectOptions('testPlatformFilter', data.data.testPlatform);
+                        alert('测试平台选项已刷新并缓存');
+                    } else if (speciesType === 'testDevice') {
+                        updateSelectOptions('testDeviceFilter', data.data.testDevice);
+                        alert('显示设备选项已刷新并缓存');
+                    }
+                } else {
+                    alert('刷新失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('刷新时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 更新下拉框选项
+        function updateSelectOptions(selectId, options) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            // 保存当前选中的值
+            const currentValue = select.value;
+            
+            // 清空现有选项（保留"全部"选项）
+            select.innerHTML = '<option value="">全部</option>';
+            
+            // 添加新选项
+            if (options && options.length > 0) {
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    // 如果选项为空字符串，显示为"空值"
+                    optionElement.textContent = option === '' ? '空值' : option;
+                    select.appendChild(optionElement);
+                });
+            }
+            
+            // 尝试恢复之前选中的值
+            if (currentValue && Array.from(select.options).some(option => option.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // 从配置文件刷新问题类别选项
+        function refreshProblemCategoryFromConfig() {
+            const filterSelect = document.getElementById('problemCategoryFilter');
+            if (!filterSelect) return;
+            
+            // 保存当前选中的值
+            const currentValue = filterSelect.value;
+            
+            // 清空现有选项（保留"全部"选项）
+            filterSelect.innerHTML = '<option value="">全部</option>';
+            
+            // 使用配置文件生成选项
+            if (typeof generateFilterProblemCategorySelect === 'function') {
+                const optionsHtml = generateFilterProblemCategorySelect();
+                // 提取option标签
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = optionsHtml;
+                const optgroups = tempDiv.querySelectorAll('optgroup');
+                
+                // 收集所有选项值用于缓存
+                const allOptions = [];
+                
+                // 添加optgroup和option
+                optgroups.forEach(optgroup => {
+                    const newOptgroup = document.createElement('optgroup');
+                    newOptgroup.label = optgroup.label;
+                    optgroup.querySelectorAll('option').forEach(option => {
+                        const newOption = document.createElement('option');
+                        newOption.value = option.value;
+                        newOption.textContent = option.textContent;
+                        newOptgroup.appendChild(newOption);
+                        allOptions.push(option.value);
+                    });
+                    filterSelect.appendChild(newOptgroup);
+                });
+                
+                // 将配置文件选项保存到缓存
+                setCachedSpeciesOptions('problemCategory', allOptions);
+                
+                // 尝试恢复之前选中的值
+                if (currentValue && Array.from(filterSelect.options).some(option => option.value === currentValue)) {
+                    filterSelect.value = currentValue;
+                }
+                
+                alert('问题类别选项已从配置文件刷新并缓存');
+            } else {
+                alert('配置文件函数不可用，请检查problemCategories.js是否正确加载');
+            }
+        }
+
         // 进入编辑模式
         function enterEditMode() {
             // 检查权限
@@ -1471,9 +2108,9 @@
                 return;
             }
 
-            // 所有可编辑字段（除了创建时间）
+            // 所有可编辑字段（除了提交时间）
             const editableFields = [
-                'detailFullModel', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
+                'detailFullModel', 'detailBigSpecies', 'detailSmallSpecies', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
                 'detailTestPlatform', 'detailTestDevice', 'detailOtherDevice',
                 'detailProblem', 'detailProblemCategory', 'detailDefectLevel', 'detailCurrentStatus',
                 'detailReproductionMethod', 'detailRecoveryMethod', 'detailReproductionProbability',
@@ -1502,9 +2139,9 @@
 
         // 退出编辑模式
         function exitEditMode() {
-            // 所有可编辑字段（除了创建时间）
+            // 所有可编辑字段（除了提交时间）
             const editableFields = [
-                'detailFullModel', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
+                'detailFullModel', 'detailBigSpecies', 'detailSmallSpecies', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
                 'detailTestPlatform', 'detailTestDevice', 'detailOtherDevice',
                 'detailProblem', 'detailProblemCategory', 'detailDefectLevel', 'detailCurrentStatus',
                 'detailReproductionMethod', 'detailRecoveryMethod', 'detailReproductionProbability',
@@ -1556,6 +2193,8 @@
             // 只添加有值的字段
             const fields = [
                 { key: 'full_model', element: 'editDetailFullModel' },
+                { key: 'big_species', element: 'editDetailBigSpecies' },
+                { key: 'small_species', element: 'editDetailSmallSpecies' },
                 { key: 'sample_stage', element: 'editDetailSampleStage' },
                 { key: 'version', element: 'editDetailVersion' },
                 { key: 'chip_solution', element: 'editDetailChipSolution' },
@@ -1736,6 +2375,315 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        // ==================== 购物车/收藏夹功能 ====================
+        
+        // 加入收藏夹
+        function addToCart() {
+            if (filteredData.length === 0) {
+                alert('没有数据可以加入收藏夹，请先进行搜索！');
+                return;
+            }
+            
+            // 获取当前筛选条件
+            const filters = getCurrentFilters();
+            const filterDescription = generateFilterDescription(filters);
+            
+            // 创建收藏夹项目
+            const cartItem = {
+                id: Date.now(), // 使用时间戳作为唯一ID
+                filters: filters,
+                data: [...filteredData], // 复制当前筛选结果
+                dataCount: filteredData.length,
+                filterDescription: filterDescription,
+                saveTime: new Date().toLocaleString('zh-CN'),
+                user: currentUser
+            };
+            
+            // 添加到收藏夹
+            cartItems.push(cartItem);
+            
+            // 保存到本地存储
+            saveCartToStorage();
+            
+            // 更新收藏夹计数
+            updateCartCount();
+            
+            alert(`已成功将 ${filteredData.length} 条数据加入收藏夹！`);
+        }
+        
+        // 获取当前筛选条件
+        function getCurrentFilters() {
+            return {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
+                problemCategory: document.getElementById('problemCategoryFilter').value,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                currentStatus: document.getElementById('currentStatusFilter').value,
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
+            };
+        }
+        
+        // 生成筛选条件描述
+        function generateFilterDescription(filters) {
+            const descriptions = [];
+            
+            if (filters.fullModel) descriptions.push(`完整编码: ${filters.fullModel}`);
+            if (filters.sampleStage) descriptions.push(`样品阶段: ${filters.sampleStage}`);
+            if (filters.version) descriptions.push(`版本: ${filters.version}`);
+            if (filters.bigSpecies) descriptions.push(`大类: ${filters.bigSpecies}`);
+            if (filters.smallSpecies) descriptions.push(`小类: ${filters.smallSpecies}`);
+            if (filters.problemCategory) descriptions.push(`问题类别: ${filters.problemCategory}`);
+            if (filters.defectLevel) descriptions.push(`缺陷等级: ${filters.defectLevel}`);
+            if (filters.currentStatus) descriptions.push(`当前状态: ${filters.currentStatus}`);
+            if (filters.tester) descriptions.push(`测试人员: ${filters.tester}`);
+            if (filters.responsibleDepartment) descriptions.push(`责任部门: ${filters.responsibleDepartment}`);
+            if (filters.startDate) descriptions.push(`开始时间: ${filters.startDate}`);
+            if (filters.endDate) descriptions.push(`结束时间: ${filters.endDate}`);
+            if (filters.dqe) descriptions.push(`DQE负责人: ${filters.dqe}`);
+            if (filters.problem) descriptions.push(`问题描述: ${filters.problem}`);
+            if (filters.testPlatform) descriptions.push(`测试平台: ${filters.testPlatform}`);
+            if (filters.testDevice) descriptions.push(`显示设备: ${filters.testDevice}`);
+            if (filters.otherDevice) descriptions.push(`其他设备: ${filters.otherDevice}`);
+            
+            return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
+        }
+        
+        // 显示收藏夹模态框
+        function showCartModal() {
+            renderCartItems();
+            document.getElementById('cartModal').style.display = 'block';
+        }
+        
+        // 渲染收藏夹项目
+        function renderCartItems() {
+            const tbody = document.getElementById('cartItemsTableBody');
+            tbody.innerHTML = '';
+            
+            if (cartItems.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="5" style="text-align: center; color: #666;">收藏夹为空</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+            
+            cartItems.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="filter-desc" title="${item.filterDescription}">${item.filterDescription.length > 50 ? item.filterDescription.substring(0, 50) + '...' : item.filterDescription}</td>
+                    <td>${item.dataCount}</td>
+                    <td>${item.saveTime}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewCartItem(${item.id})">查看</button>
+                        <button class="btn btn-sm btn-danger" onclick="removeCartItem(${item.id})">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 查看收藏夹项目
+        function viewCartItem(itemId) {
+            const item = cartItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            // 将收藏夹数据设置为当前筛选结果
+            filteredData = [...item.data];
+            currentPage = 1;
+            updateStatistics();
+            renderTable();
+            
+            // 关闭收藏夹模态框
+            closeSpecificModal('cartModal');
+            
+            alert(`已加载收藏夹项目，共 ${item.dataCount} 条数据`);
+        }
+        
+        // 删除收藏夹项目
+        function removeCartItem(itemId) {
+            if (confirm('确定要删除这个收藏夹项目吗？')) {
+                cartItems = cartItems.filter(i => i.id !== itemId);
+                saveCartToStorage();
+                updateCartCount();
+                renderCartItems();
+            }
+        }
+        
+        // 清空收藏夹
+        function clearCart() {
+            if (confirm('确定要清空整个收藏夹吗？此操作不可恢复！')) {
+                cartItems = [];
+                mergedData = [];
+                saveCartToStorage();
+                updateCartCount();
+                renderCartItems();
+                hideMergedData();
+                alert('收藏夹已清空');
+            }
+        }
+        
+        // 合并收藏夹数据
+        function mergeCartData() {
+            if (cartItems.length === 0) {
+                alert('收藏夹为空，无法合并数据！');
+                return;
+            }
+            
+            // 合并所有收藏夹项目的数据
+            mergedData = [];
+            const idSet = new Set(); // 用于去重
+            
+            cartItems.forEach(item => {
+                item.data.forEach(problem => {
+                    if (!idSet.has(problem.id)) {
+                        idSet.add(problem.id);
+                        mergedData.push(problem);
+                    }
+                });
+            });
+            
+            // 显示合并数据
+            showMergedData();
+        }
+        
+        // 显示合并数据
+        function showMergedData() {
+            const section = document.getElementById('mergedDataSection');
+            const totalCount = mergedData.length;
+            const uniqueCount = mergedData.length; // 已经去重了
+            
+            document.getElementById('mergedTotalCount').textContent = totalCount;
+            document.getElementById('mergedUniqueCount').textContent = uniqueCount;
+            
+            // 渲染合并数据表格
+            renderMergedDataTable();
+            
+            section.style.display = 'block';
+        }
+        
+        // 隐藏合并数据
+        function hideMergedData() {
+            document.getElementById('mergedDataSection').style.display = 'none';
+        }
+        
+        // 渲染合并数据表格
+        function renderMergedDataTable() {
+            const tbody = document.getElementById('mergedDataTableBody');
+            tbody.innerHTML = '';
+            
+            mergedData.forEach(problem => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${problem.id}</td>
+                    <td>${problem.full_model || ''}</td>
+                    <td>${problem.big_species || ''}</td>
+                    <td>${problem.small_species || ''}</td>
+                    <td>${problem.sample_stage || ''}</td>
+                    <td>${problem.version || ''}</td>
+                    <td class="problem-desc">${(problem.problem || '').substring(0, 50)}${(problem.problem || '').length > 50 ? '...' : ''}</td>
+                    <td>${problem.problemCategory || ''}</td>
+                    <td>${problem.defect_level || ''}</td>
+                    <td>${normalizeStatus(problem.current_status)}</td>
+                    <td>${problem.tester || ''}</td>
+                    <td>${problem.responsibleDepartment || ''}</td>
+                    <td>${problem.created_at ? problem.created_at.substring(0, 10) : ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 导出收藏夹数据
+        function exportCartData() {
+            if (mergedData.length === 0) {
+                alert('没有合并数据可以导出，请先点击"合并显示"！');
+                return;
+            }
+            
+            showLoading();
+            
+            // 准备导出数据
+            const exportData = {
+                data: mergedData,
+                exportType: 'cart',
+                fileName: `收藏夹合并数据_${new Date().toISOString().slice(0, 10)}.xlsx`
+            };
+            
+            fetch('/problemLibrary/exportProblems', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(exportData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('导出失败');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = exportData.fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('导出时发生错误');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // 更新收藏夹计数
+        function updateCartCount() {
+            const countElement = document.getElementById('cartCount');
+            if (countElement) {
+                countElement.textContent = cartItems.length;
+            }
+        }
+        
+        // 保存收藏夹到本地存储
+        function saveCartToStorage() {
+            try {
+                localStorage.setItem('problemLibraryCart', JSON.stringify(cartItems));
+            } catch (e) {
+                console.error('保存收藏夹失败:', e);
+            }
+        }
+        
+        // 从本地存储加载收藏夹
+        function loadCartFromStorage() {
+            try {
+                const stored = localStorage.getItem('problemLibraryCart');
+                if (stored) {
+                    cartItems = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error('加载收藏夹失败:', e);
+                cartItems = [];
+            }
         }
     </script>
 </body>
