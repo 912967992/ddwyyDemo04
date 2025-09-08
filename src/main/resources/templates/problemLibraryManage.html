@@ -14,6 +14,83 @@
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
     <!-- 引入问题类别配置 -->
     <script src="/js/problemCategories.js"></script>
+    
+    <!-- 自定义提示框样式 -->
+    <style>
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            min-width: 300px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+        }
+
+        .toast-icon {
+            color: #28a745;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            cursor: pointer;
+            color: #999;
+            font-size: 12px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .toast-close:hover {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+
+        .custom-toast.success .toast-icon {
+            color: #28a745;
+        }
+
+        .custom-toast.error .toast-icon {
+            color: #dc3545;
+        }
+
+        .custom-toast.warning .toast-icon {
+            color: #ffc107;
+        }
+
+        .custom-toast.info .toast-icon {
+            color: #17a2b8;
+        }
+    </style>
 </head>
 <body>
     <!-- 页面头部 -->
@@ -259,7 +336,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- 分页控件 -->
         <div class="pagination-container">
             <div class="pagination-info">
@@ -766,7 +843,7 @@
                         <i class="fas fa-layer-group"></i> 合并显示
                     </button>
                 </div>
-                
+
                 <div class="cart-items-container">
                     <table id="cartItemsTable" class="data-table">
                         <thead>
@@ -783,7 +860,7 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- 合并数据展示区域 -->
                 <div id="mergedDataSection" class="merged-data-section" style="display: none;">
                     <h3>合并数据预览</h3>
@@ -801,12 +878,18 @@
                                     <th>小类</th>
                                     <th>样品阶段</th>
                                     <th>版本</th>
+                                    <th>测试平台</th>
+                                    <th>显示设备</th>
+                                    <th>其他设备</th>
                                     <th>问题描述</th>
                                     <th>问题类别</th>
                                     <th>缺陷等级</th>
                                     <th>当前状态</th>
                                     <th>测试人员</th>
+                                    <th>DQE责任人</th>
                                     <th>责任部门</th>
+                                    <th>DQE确认回复</th>
+                                    <th>研发确认回复</th>
                                     <th>提交时间</th>
                                 </tr>
                             </thead>
@@ -831,6 +914,19 @@
         </div>
     </div>
 
+    <!-- 自定义提示框 -->
+    <div id="customToast" class="custom-toast">
+        <div class="toast-content">
+            <div class="toast-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="toast-message" id="toastMessage">操作成功</div>
+            <div class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+    </div>
+
     <!-- 底部导航 -->
     <div class="bottom-nav">
         <button class="nav-btn" onclick="goBack()">
@@ -852,11 +948,11 @@
         let totalRecords = 0;
         let filteredData = [];
         let isSuperAdmin = false; // 是否为超级管理员
-        
+
         // 购物车/收藏夹相关变量
         let cartItems = []; // 收藏夹项目
         let mergedData = []; // 合并后的数据
-        
+
         // 缓存相关变量
         let speciesCache = {
             bigSpecies: null,
@@ -896,7 +992,7 @@
             if (speciesCache[speciesType]) {
                 return speciesCache[speciesType];
             }
-            
+
             // 如果内存缓存没有，从localStorage获取
             try {
                 const cached = localStorage.getItem('speciesCache');
@@ -911,7 +1007,7 @@
             } catch (e) {
                 console.error('读取缓存失败:', e);
             }
-            
+
             return null;
         }
 
@@ -929,14 +1025,14 @@
             // 更新内存缓存
             speciesCache[speciesType] = options;
             speciesCache.lastUpdated = new Date().getTime();
-            
+
             // 保存到localStorage
             try {
                 localStorage.setItem('speciesCache', JSON.stringify(speciesCache));
             } catch (e) {
                 console.error('保存缓存失败:', e);
             }
-            
+
             updateCacheStatusDisplay();
         }
 
@@ -962,14 +1058,14 @@
                 testDevice: null,
                 lastUpdated: null
             };
-            
+
             // 清除localStorage缓存
             try {
                 localStorage.removeItem('speciesCache');
             } catch (e) {
                 console.error('清除缓存失败:', e);
             }
-            
+
             updateCacheStatusDisplay();
         }
 
@@ -982,7 +1078,7 @@
                         // 恢复缓存到内存
                         speciesCache = parsedCache;
                         console.log('缓存已从localStorage恢复');
-                        
+
                         // 从缓存加载选项到下拉框
                         loadOptionsFromCache();
                     } else {
@@ -1000,55 +1096,55 @@
                 updateSelectOptions('bigSpeciesFilter', speciesCache.bigSpecies);
                 console.log('大类选项已从缓存加载');
             }
-            
+
             // 加载小类选项
             if (speciesCache.smallSpecies && speciesCache.smallSpecies.length > 0) {
                 updateSelectOptions('smallSpeciesFilter', speciesCache.smallSpecies);
                 console.log('小类选项已从缓存加载');
             }
-            
+
             // 加载样品阶段选项
             if (speciesCache.sampleStage && speciesCache.sampleStage.length > 0) {
                 updateSelectOptions('sampleStageFilter', speciesCache.sampleStage);
                 console.log('样品阶段选项已从缓存加载');
             }
-            
+
             // 加载完整编码选项
             if (speciesCache.fullModel && speciesCache.fullModel.length > 0) {
                 updateSelectOptions('fullModelFilter', speciesCache.fullModel);
                 console.log('完整编码选项已从缓存加载');
             }
-            
+
             // 加载版本选项
             if (speciesCache.version && speciesCache.version.length > 0) {
                 updateSelectOptions('versionFilter', speciesCache.version);
                 console.log('版本选项已从缓存加载');
             }
-            
+
             // 加载问题类别选项
             if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
                 updateSelectOptions('problemCategoryFilter', speciesCache.problemCategory);
                 console.log('问题类别选项已从缓存加载');
             }
-            
+
             // 加载测试人员选项
             if (speciesCache.tester && speciesCache.tester.length > 0) {
                 updateSelectOptions('testerFilter', speciesCache.tester);
                 console.log('测试人员选项已从缓存加载');
             }
-            
+
             // 加载责任部门选项
             if (speciesCache.responsibleDepartment && speciesCache.responsibleDepartment.length > 0) {
                 updateSelectOptions('responsibleDepartmentFilter', speciesCache.responsibleDepartment);
                 console.log('责任部门选项已从缓存加载');
             }
-            
+
             // 加载测试平台选项
             if (speciesCache.testPlatform && speciesCache.testPlatform.length > 0) {
                 updateSelectOptions('testPlatformFilter', speciesCache.testPlatform);
                 console.log('测试平台选项已从缓存加载');
             }
-            
+
             // 加载显示设备选项
             if (speciesCache.testDevice && speciesCache.testDevice.length > 0) {
                 updateSelectOptions('testDeviceFilter', speciesCache.testDevice);
@@ -1077,21 +1173,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 检查用户权限
             checkUserPermission();
-            
+
             // 初始化问题类别筛选器
             initProblemCategoryFilter();
-            
+
             // 初始化事件监听器
             initEventListeners();
-            
+
             // 初始化缓存状态显示
             loadCacheFromStorage();
             updateCacheStatusDisplay();
-            
+
             // 初始化购物车
             loadCartFromStorage();
             updateCartCount();
-            
+
             // 确保分页控件可见
             const paginationContainer = document.querySelector('.pagination-container');
             if (paginationContainer) {
@@ -1100,7 +1196,7 @@
             } else {
                 console.error('找不到分页控件');
             }
-            
+
             // 加载数据
             loadProblemData();
         });
@@ -1111,10 +1207,10 @@
             /*
             const filterSelect = document.getElementById('problemCategoryFilter');
             if (!filterSelect) return;
-            
+
             // 清空现有选项（保留"全部"选项）
             filterSelect.innerHTML = '<option value="">全部</option>';
-            
+
             // 使用配置文件生成选项
             if (typeof generateFilterProblemCategorySelect === 'function') {
                 const optionsHtml = generateFilterProblemCategorySelect();
@@ -1123,7 +1219,7 @@
                 tempDiv.innerHTML = optionsHtml;
                 const options = tempDiv.querySelectorAll('option:not(:first-child)');
                 const optgroups = tempDiv.querySelectorAll('optgroup');
-                
+
                 // 添加optgroup和option
                 optgroups.forEach(optgroup => {
                     const newOptgroup = document.createElement('optgroup');
@@ -1138,7 +1234,7 @@
                 });
             }
             */
-            
+
             // 现在使用缓存系统，在loadOptionsFromCache中处理
             console.log('问题类别筛选器初始化完成，将使用缓存系统');
         }
@@ -1147,13 +1243,13 @@
         function checkUserPermission() {
             currentUser = localStorage.getItem('username');
             currentRole = localStorage.getItem('job');
-            
+
             if (!currentUser || !currentRole) {
                 alert('请先登录并选择角色！');
                 window.location.href = '/DQEIndex';
                 return;
             }
-            
+
             // 检查是否有权限进入问题点库管理页面
             const allowedUsers = ['邓小英', '邓令章', '卢健', '李良健', '黄家灿'];
             if (!allowedUsers.includes(currentUser)) {
@@ -1161,14 +1257,14 @@
                 window.location.href = '/DQEIndex';
                 return;
             }
-            
+
             // 检查是否为超级管理员
             isSuperAdmin = (currentUser === '卢健' && currentRole === 'manager');
-            
+
             // 显示用户信息
             document.getElementById('currentUser').textContent = `用户: ${currentUser}`;
             document.getElementById('currentRole').textContent = `角色: ${currentRole}`;
-            
+
             // 根据权限控制界面元素
             controlEditPermissions();
         }
@@ -1182,16 +1278,16 @@
         function initEventListeners() {
             // 搜索按钮
             document.getElementById('searchBtn').addEventListener('click', searchProblems);
-            
+
             // 重置按钮
             document.getElementById('resetBtn').addEventListener('click', resetFilters);
-            
+
             // 为筛选输入框添加回车键搜索功能
             const filterInputs = [
-                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter', 
+                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
                 'testerFilter', 'dqeFilter', 'problemFilter', 'testPlatformFilter', 'testDeviceFilter', 'otherDeviceFilter'
             ];
-            
+
             filterInputs.forEach(inputId => {
                 const input = document.getElementById(inputId);
                 if (input) {
@@ -1202,16 +1298,16 @@
                     });
                 }
             });
-            
+
             // 导出按钮
             document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
-            
+
             // 加入收藏夹按钮
             document.getElementById('addToCartBtn').addEventListener('click', addToCart);
-            
+
             // 查看收藏夹按钮
             document.getElementById('showCartBtn').addEventListener('click', showCartModal);
-            
+
             // 收藏夹相关按钮
             document.getElementById('clearCartBtn').addEventListener('click', clearCart);
             document.getElementById('exportCartBtn').addEventListener('click', exportCartData);
@@ -1219,77 +1315,77 @@
             document.getElementById('closeCartModal').addEventListener('click', function() {
                 closeSpecificModal('cartModal');
             });
-            
+
             // 刷新大类按钮
             document.getElementById('refreshBigSpeciesBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('bigSpecies');
             });
-            
+
             // 刷新小类按钮
             document.getElementById('refreshSmallSpeciesBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('smallSpecies');
             });
-            
+
             // 刷新样品阶段按钮
             document.getElementById('refreshSampleStageBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('sampleStage');
             });
-            
+
             // 刷新完整编码按钮
             document.getElementById('refreshFullModelBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('fullModel');
             });
-            
+
             // 刷新版本按钮
             document.getElementById('refreshVersionBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('version');
             });
-            
+
             // 刷新问题类别按钮
             document.getElementById('refreshProblemCategoryBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('problemCategory');
             });
-            
+
             // 刷新问题类别配置文件按钮
             document.getElementById('refreshProblemCategoryConfigBtn').addEventListener('click', function() {
                 refreshProblemCategoryFromConfig();
             });
-            
+
             // 刷新测试人员按钮
             document.getElementById('refreshTesterBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('tester');
             });
-            
+
             // 刷新责任部门按钮
             document.getElementById('refreshResponsibleDepartmentBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('responsibleDepartment');
             });
-            
+
             // 刷新测试平台按钮
             document.getElementById('refreshTestPlatformBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('testPlatform');
             });
-            
+
             // 刷新显示设备按钮
             document.getElementById('refreshTestDeviceBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('testDevice');
             });
-            
 
-            
+
+
             // 分页按钮
             document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
             document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
             document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
             document.getElementById('lastPageBtn').addEventListener('click', () => goToLastPage());
-            
+
             // 每页显示数量选择器
             document.getElementById('pageSizeSelect').addEventListener('change', function() {
                 pageSize = parseInt(this.value);
                 currentPage = 1;
                 renderTable();
             });
-            
+
             // 页码跳转
             document.getElementById('pageJumpBtn').addEventListener('click', jumpToPage);
             document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
@@ -1297,10 +1393,10 @@
                     jumpToPage();
                 }
             });
-            
+
             // 保存问题点
             document.getElementById('saveProblemBtn').addEventListener('click', saveProblem);
-            
+
             // 取消编辑（编辑模态框的取消按钮）
             document.getElementById('cancelEditBtn').addEventListener('click', function() {
                 // 检查当前是否在编辑模态框中
@@ -1343,7 +1439,7 @@
                     }
                     return;
                 }
-                
+
                 // 处理点击模态框外部关闭
                 if (event.target.classList.contains('modal')) {
                     // 只关闭被点击的模态框
@@ -1351,12 +1447,26 @@
                     return;
                 }
             });
+
+            // 提示框事件监听器
+            const toast = document.getElementById('customToast');
+            const toastClose = document.getElementById('toastClose');
+            
+            // 点击关闭按钮
+            toastClose.addEventListener('click', hideToast);
+            
+            // 点击提示框外部关闭
+            toast.addEventListener('click', function(event) {
+                if (event.target === toast) {
+                    hideToast();
+                }
+            });
         }
 
         // 加载问题点数据
         function loadProblemData() {
             showLoading();
-            
+
             fetch('/problemLibrary/getProblems', {
                 method: 'GET',
                 headers: {
@@ -1385,7 +1495,7 @@
         // 搜索问题点
         function searchProblems() {
             showLoading();
-            
+
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
@@ -1405,7 +1515,7 @@
                 testDevice: document.getElementById('testDeviceFilter').value,
                 otherDevice: document.getElementById('otherDeviceFilter').value
             };
-            
+
             fetch('/problemLibrary/searchProblems', {
                 method: 'POST',
                 headers: {
@@ -1452,7 +1562,7 @@
             document.getElementById('testPlatformFilter').value = '';
             document.getElementById('testDeviceFilter').value = '';
             document.getElementById('otherDeviceFilter').value = '';
-            
+
             loadProblemData();
         }
 
@@ -1462,9 +1572,9 @@
                 alert('没有数据可导出');
                 return;
             }
-            
+
             showLoading();
-            
+
             // 使用当前的筛选条件
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
@@ -1485,7 +1595,7 @@
                 testDevice: document.getElementById('testDeviceFilter').value,
                 otherDevice: document.getElementById('otherDeviceFilter').value
             };
-            
+
             fetch('/problemLibrary/exportProblems', {
                 method: 'POST',
                 headers: {
@@ -1523,7 +1633,7 @@
         function showProblemDetail(problemId) {
             // 首先尝试从当前过滤数据中查找
             let problem = filteredData.find(p => p.id === problemId);
-            
+
             // 如果没找到，说明是从历史版本模态框中点击的，需要通过API获取详情
             if (!problem) {
                 showLoading();
@@ -1551,7 +1661,7 @@
                 });
                 return;
             }
-            
+
             displayProblemDetail(problem);
         }
 
@@ -1589,7 +1699,7 @@
             document.getElementById('detailRemark').textContent = problem.remark || '';
             document.getElementById('detailTestOverseas').textContent = problem.test_Overseas || '';
             document.getElementById('detailCreatedAt').textContent = problem.created_at || '';
-            
+
             // 设置问题ID
             document.getElementById('editProblemId').value = problem.id;
 
@@ -1633,10 +1743,10 @@
                     editBtn.style.display = 'none';
                 }
             }
-            
+
             // 确保退出编辑模式
             exitEditMode();
-            
+
             document.getElementById('problemDetailModal').style.display = 'block';
         }
 
@@ -1649,10 +1759,10 @@
                 alert('您没有权限进行此操作！');
                 return;
             }
-            
+
             const problem = filteredData.find(p => p.id === problemId);
             if (!problem) return;
-            
+
             // 填充编辑表单
             document.getElementById('editProblemId').value = problem.id;
             document.getElementById('editFullModel').value = problem.full_model || '';
@@ -1673,7 +1783,7 @@
             document.getElementById('editGreenUnionRd').value = problem.green_union_rd || '';
             document.getElementById('editTestOverseas').value = problem.test_Overseas || '';
             document.getElementById('editRemark').value = problem.remark || '';
-            
+
             document.getElementById('editProblemModal').style.display = 'block';
         }
 
@@ -1684,7 +1794,7 @@
                 alert('您没有权限进行此操作！');
                 return;
             }
-            
+
             // 检查问题点字段是否为空
             const problemValue = document.getElementById('editProblem').value;
             if (!problemValue || problemValue.trim() === '') {
@@ -1692,14 +1802,14 @@
                 document.getElementById('editProblem').focus();
                 return;
             }
-            
+
             const formData = new FormData(document.getElementById('editProblemForm'));
             const problemData = Object.fromEntries(formData.entries());
             problemData.id = document.getElementById('editProblemId').value;
             problemData.modifier = currentUser;
-            
+
             showLoading();
-            
+
             fetch('/problemLibrary/updateProblem', {
                 method: 'POST',
                 headers: {
@@ -1730,11 +1840,11 @@
         function renderTable() {
             const tbody = document.getElementById('problemTableBody');
             tbody.innerHTML = '';
-            
+
             const startIndex = (currentPage - 1) * pageSize;
             const endIndex = Math.min(startIndex + pageSize, filteredData.length);
             const pageData = filteredData.slice(startIndex, endIndex);
-            
+
             pageData.forEach(problem => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1764,7 +1874,7 @@
                 `;
                 tbody.appendChild(row);
             });
-            
+
             updatePagination();
         }
 
@@ -1774,28 +1884,28 @@
             const totalPages = Math.ceil(totalRecords / pageSize);
             const startRecord = totalRecords > 0 ? (currentPage - 1) * pageSize + 1 : 0;
             const endRecord = Math.min(currentPage * pageSize, totalRecords);
-            
+
             // 确保当前页不超过总页数
             if (currentPage > totalPages && totalPages > 0) {
                 currentPage = totalPages;
             }
-            
+
             document.getElementById('startRecord').textContent = startRecord;
             document.getElementById('endRecord').textContent = endRecord;
             document.getElementById('totalRecords').textContent = totalRecords;
-            
+
             // 更新按钮状态
             document.getElementById('firstPageBtn').disabled = currentPage === 1 || totalPages === 0;
             document.getElementById('prevPageBtn').disabled = currentPage === 1 || totalPages === 0;
             document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
             document.getElementById('lastPageBtn').disabled = currentPage === totalPages || totalPages === 0;
-            
+
             // 生成页码按钮
             generatePageNumbers(totalPages);
-            
+
             // 更新跳转输入框的最大值
             document.getElementById('pageJumpInput').max = totalPages;
-            
+
             // 调试信息
             console.log(`分页信息: 总记录数=${totalRecords}, 总页数=${totalPages}, 当前页=${currentPage}, 每页=${pageSize}`);
         }
@@ -1804,7 +1914,7 @@
         function changePage(direction) {
             const totalPages = Math.ceil(totalRecords / pageSize);
             const newPage = currentPage + direction;
-            
+
             if (newPage >= 1 && newPage <= totalPages) {
                 currentPage = newPage;
                 renderTable();
@@ -1834,7 +1944,7 @@
             const input = document.getElementById('pageJumpInput');
             const page = parseInt(input.value);
             const totalPages = Math.ceil(totalRecords / pageSize);
-            
+
             if (page >= 1 && page <= totalPages) {
                 currentPage = page;
                 renderTable();
@@ -1849,10 +1959,10 @@
         function generatePageNumbers(totalPages) {
             const pageNumbersContainer = document.getElementById('pageNumbers');
             pageNumbersContainer.innerHTML = '';
-            
+
             // 即使只有一页也显示页码
             if (totalPages <= 0) return;
-            
+
             if (totalPages === 1) {
                 const pageBtn = document.createElement('button');
                 pageBtn.textContent = '1';
@@ -1861,16 +1971,16 @@
                 pageNumbersContainer.appendChild(pageBtn);
                 return;
             }
-            
+
             const maxVisiblePages = 5; // 最多显示5个页码按钮
             let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
             let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            
+
             // 调整起始页码
             if (endPage - startPage + 1 < maxVisiblePages) {
                 startPage = Math.max(1, endPage - maxVisiblePages + 1);
             }
-            
+
             // 添加省略号
             if (startPage > 1) {
                 const firstBtn = document.createElement('button');
@@ -1878,7 +1988,7 @@
                 firstBtn.className = 'btn btn-sm page-number';
                 firstBtn.onclick = () => goToPage(1);
                 pageNumbersContainer.appendChild(firstBtn);
-                
+
                 if (startPage > 2) {
                     const ellipsis = document.createElement('span');
                     ellipsis.textContent = '...';
@@ -1886,7 +1996,7 @@
                     pageNumbersContainer.appendChild(ellipsis);
                 }
             }
-            
+
             // 添加页码按钮
             for (let i = startPage; i <= endPage; i++) {
                 const pageBtn = document.createElement('button');
@@ -1895,7 +2005,7 @@
                 pageBtn.onclick = () => goToPage(i);
                 pageNumbersContainer.appendChild(pageBtn);
             }
-            
+
             // 添加省略号
             if (endPage < totalPages) {
                 if (endPage < totalPages - 1) {
@@ -1904,7 +2014,7 @@
                     ellipsis.className = 'page-ellipsis';
                     pageNumbersContainer.appendChild(ellipsis);
                 }
-                
+
                 const lastBtn = document.createElement('button');
                 lastBtn.textContent = totalPages;
                 lastBtn.className = 'btn btn-sm page-number';
@@ -1921,7 +2031,7 @@
                 return status === 'closed' || status === 'close';
             }).length;
             const followup = filteredData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
-            
+
             document.getElementById('openCount').textContent = open;
             document.getElementById('closedCount').textContent = closed;
             document.getElementById('followupCount').textContent = followup;
@@ -1932,7 +2042,7 @@
         function filterByStatus(status) {
             // 保持其他筛选条件不变，只修改当前状态筛选
             document.getElementById('currentStatusFilter').value = status;
-            
+
             // 执行搜索
             searchProblems();
         }
@@ -1954,7 +2064,7 @@
         // 从服务器获取选项
         function fetchSpeciesOptionsFromServer(speciesType) {
             showLoading();
-            
+
             fetch('/problemLibrary/getSpeciesOptions', {
                 method: 'GET',
                 headers: {
@@ -1964,7 +2074,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log(data.data)
+                    // console.log(data.data)
                     // 更新缓存（同时更新所有选项，因为服务器返回的是完整数据）
                     setCachedSpeciesOptions('bigSpecies', data.data.bigSpecies);
                     setCachedSpeciesOptions('smallSpecies', data.data.smallSpecies);
@@ -1976,46 +2086,46 @@
                     setCachedSpeciesOptions('responsibleDepartment', data.data.responsibleDepartment);
                     setCachedSpeciesOptions('testPlatform', data.data.testPlatform);
                     setCachedSpeciesOptions('testDevice', data.data.testDevice);
-                    
+
                     // 更新对应的下拉框
                     if (speciesType === 'bigSpecies') {
                         updateSelectOptions('bigSpeciesFilter', data.data.bigSpecies);
-                        alert('大类选项已刷新并缓存');
+                        showToast('大类选项已刷新并缓存', 'success');
                     } else if (speciesType === 'smallSpecies') {
                         updateSelectOptions('smallSpeciesFilter', data.data.smallSpecies);
-                        alert('小类选项已刷新并缓存');
+                        showToast('小类选项已刷新并缓存', 'success');
                     } else if (speciesType === 'sampleStage') {
                         updateSelectOptions('sampleStageFilter', data.data.sampleStage);
-                        alert('样品阶段选项已刷新并缓存');
+                        showToast('样品阶段选项已刷新并缓存', 'success');
                     } else if (speciesType === 'fullModel') {
                         updateSelectOptions('fullModelFilter', data.data.fullModel);
-                        alert('完整编码选项已刷新并缓存');
+                        showToast('完整编码选项已刷新并缓存', 'success');
                     } else if (speciesType === 'version') {
                         updateSelectOptions('versionFilter', data.data.version);
-                        alert('版本选项已刷新并缓存');
+                        showToast('版本选项已刷新并缓存', 'success');
                     } else if (speciesType === 'problemCategory') {
                         updateSelectOptions('problemCategoryFilter', data.data.problemCategory);
-                        alert('问题类别选项已刷新并缓存');
+                        showToast('问题类别选项已刷新并缓存', 'success');
                     } else if (speciesType === 'tester') {
                         updateSelectOptions('testerFilter', data.data.tester);
-                        alert('测试人员选项已刷新并缓存');
+                        showToast('测试人员选项已刷新并缓存', 'success');
                     } else if (speciesType === 'responsibleDepartment') {
                         updateSelectOptions('responsibleDepartmentFilter', data.data.responsibleDepartment);
-                        alert('责任部门选项已刷新并缓存');
+                        showToast('责任部门选项已刷新并缓存', 'success');
                     } else if (speciesType === 'testPlatform') {
                         updateSelectOptions('testPlatformFilter', data.data.testPlatform);
-                        alert('测试平台选项已刷新并缓存');
+                        showToast('测试平台选项已刷新并缓存', 'success');
                     } else if (speciesType === 'testDevice') {
                         updateSelectOptions('testDeviceFilter', data.data.testDevice);
-                        alert('显示设备选项已刷新并缓存');
+                        showToast('显示设备选项已刷新并缓存', 'success');
                     }
                 } else {
-                    alert('刷新失败: ' + data.message);
+                    showToast('刷新失败: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('刷新时发生错误');
+                showToast('刷新时发生错误', 'error');
             })
             .finally(() => {
                 hideLoading();
@@ -2026,13 +2136,13 @@
         function updateSelectOptions(selectId, options) {
             const select = document.getElementById(selectId);
             if (!select) return;
-            
+
             // 保存当前选中的值
             const currentValue = select.value;
-            
+
             // 清空现有选项（保留"全部"选项）
             select.innerHTML = '<option value="">全部</option>';
-            
+
             // 添加新选项
             if (options && options.length > 0) {
                 options.forEach(option => {
@@ -2043,7 +2153,7 @@
                     select.appendChild(optionElement);
                 });
             }
-            
+
             // 尝试恢复之前选中的值
             if (currentValue && Array.from(select.options).some(option => option.value === currentValue)) {
                 select.value = currentValue;
@@ -2054,13 +2164,13 @@
         function refreshProblemCategoryFromConfig() {
             const filterSelect = document.getElementById('problemCategoryFilter');
             if (!filterSelect) return;
-            
+
             // 保存当前选中的值
             const currentValue = filterSelect.value;
-            
+
             // 清空现有选项（保留"全部"选项）
             filterSelect.innerHTML = '<option value="">全部</option>';
-            
+
             // 使用配置文件生成选项
             if (typeof generateFilterProblemCategorySelect === 'function') {
                 const optionsHtml = generateFilterProblemCategorySelect();
@@ -2068,10 +2178,10 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = optionsHtml;
                 const optgroups = tempDiv.querySelectorAll('optgroup');
-                
+
                 // 收集所有选项值用于缓存
                 const allOptions = [];
-                
+
                 // 添加optgroup和option
                 optgroups.forEach(optgroup => {
                     const newOptgroup = document.createElement('optgroup');
@@ -2085,15 +2195,15 @@
                     });
                     filterSelect.appendChild(newOptgroup);
                 });
-                
+
                 // 将配置文件选项保存到缓存
                 setCachedSpeciesOptions('problemCategory', allOptions);
-                
+
                 // 尝试恢复之前选中的值
                 if (currentValue && Array.from(filterSelect.options).some(option => option.value === currentValue)) {
                     filterSelect.value = currentValue;
                 }
-                
+
                 alert('问题类别选项已从配置文件刷新并缓存');
             } else {
                 alert('配置文件函数不可用，请检查problemCategories.js是否正确加载');
@@ -2124,7 +2234,7 @@
             editableFields.forEach(fieldId => {
                 const displayElement = document.getElementById(fieldId);
                 const inputElement = document.getElementById('edit' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1));
-                
+
                 if (displayElement && inputElement) {
                     displayElement.style.display = 'none';
                     inputElement.style.display = 'block';
@@ -2155,7 +2265,7 @@
             editableFields.forEach(fieldId => {
                 const displayElement = document.getElementById(fieldId);
                 const inputElement = document.getElementById('edit' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1));
-                
+
                 if (displayElement && inputElement) {
                     displayElement.style.display = 'block';
                     inputElement.style.display = 'none';
@@ -2245,7 +2355,7 @@
                     alert('保存成功');
                     exitEditMode();
                     loadProblemData(); // 重新加载表格数据
-                    
+
                     // 重新获取并显示更新后的问题点详情
                     const problemId = document.getElementById('editProblemId').value;
                     fetch(`/problemLibrary/getProblemById?id=${problemId}`)
@@ -2281,6 +2391,49 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
+        // 显示自定义提示框
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.getElementById('customToast');
+            const messageEl = document.getElementById('toastMessage');
+            const iconEl = toast.querySelector('.toast-icon i');
+            
+            // 设置消息内容
+            messageEl.textContent = message;
+            
+            // 设置图标和样式
+            toast.className = 'custom-toast ' + type;
+            switch(type) {
+                case 'success':
+                    iconEl.className = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    iconEl.className = 'fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    iconEl.className = 'fas fa-exclamation-triangle';
+                    break;
+                case 'info':
+                    iconEl.className = 'fas fa-info-circle';
+                    break;
+            }
+            
+            // 显示提示框
+            toast.classList.add('show');
+            
+            // 自动隐藏
+            if (duration > 0) {
+                setTimeout(() => {
+                    hideToast();
+                }, duration);
+            }
+        }
+
+        // 隐藏自定义提示框
+        function hideToast() {
+            const toast = document.getElementById('customToast');
+            toast.classList.remove('show');
+        }
+
         // 关闭模态框
         function closeModal() {
             // 获取所有可见的模态框，按z-index排序
@@ -2291,7 +2444,7 @@
                     const bZIndex = parseInt(window.getComputedStyle(b).zIndex) || 0;
                     return bZIndex - aZIndex; // 降序排列，z-index高的在前
                 });
-            
+
             if (visibleModals.length > 0) {
                 // 只关闭最顶层的模态框
                 visibleModals[0].style.display = 'none';
@@ -2378,18 +2531,18 @@
         }
 
         // ==================== 购物车/收藏夹功能 ====================
-        
+
         // 加入收藏夹
         function addToCart() {
             if (filteredData.length === 0) {
                 alert('没有数据可以加入收藏夹，请先进行搜索！');
                 return;
             }
-            
+
             // 获取当前筛选条件
             const filters = getCurrentFilters();
             const filterDescription = generateFilterDescription(filters);
-            
+
             // 创建收藏夹项目
             const cartItem = {
                 id: Date.now(), // 使用时间戳作为唯一ID
@@ -2400,19 +2553,19 @@
                 saveTime: new Date().toLocaleString('zh-CN'),
                 user: currentUser
             };
-            
+
             // 添加到收藏夹
             cartItems.push(cartItem);
-            
+
             // 保存到本地存储
             saveCartToStorage();
-            
+
             // 更新收藏夹计数
             updateCartCount();
-            
+
             alert(`已成功将 ${filteredData.length} 条数据加入收藏夹！`);
         }
-        
+
         // 获取当前筛选条件
         function getCurrentFilters() {
             return {
@@ -2435,11 +2588,11 @@
                 otherDevice: document.getElementById('otherDeviceFilter').value
             };
         }
-        
+
         // 生成筛选条件描述
         function generateFilterDescription(filters) {
             const descriptions = [];
-            
+
             if (filters.fullModel) descriptions.push(`完整编码: ${filters.fullModel}`);
             if (filters.sampleStage) descriptions.push(`样品阶段: ${filters.sampleStage}`);
             if (filters.version) descriptions.push(`版本: ${filters.version}`);
@@ -2457,21 +2610,21 @@
             if (filters.testPlatform) descriptions.push(`测试平台: ${filters.testPlatform}`);
             if (filters.testDevice) descriptions.push(`显示设备: ${filters.testDevice}`);
             if (filters.otherDevice) descriptions.push(`其他设备: ${filters.otherDevice}`);
-            
+
             return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
         }
-        
+
         // 显示收藏夹模态框
         function showCartModal() {
             renderCartItems();
             document.getElementById('cartModal').style.display = 'block';
         }
-        
+
         // 渲染收藏夹项目
         function renderCartItems() {
             const tbody = document.getElementById('cartItemsTableBody');
             tbody.innerHTML = '';
-            
+
             if (cartItems.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2480,7 +2633,7 @@
                 tbody.appendChild(row);
                 return;
             }
-            
+
             cartItems.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2496,24 +2649,24 @@
                 tbody.appendChild(row);
             });
         }
-        
+
         // 查看收藏夹项目
         function viewCartItem(itemId) {
             const item = cartItems.find(i => i.id === itemId);
             if (!item) return;
-            
+
             // 将收藏夹数据设置为当前筛选结果
             filteredData = [...item.data];
             currentPage = 1;
             updateStatistics();
             renderTable();
-            
+
             // 关闭收藏夹模态框
             closeSpecificModal('cartModal');
-            
+
             alert(`已加载收藏夹项目，共 ${item.dataCount} 条数据`);
         }
-        
+
         // 删除收藏夹项目
         function removeCartItem(itemId) {
             if (confirm('确定要删除这个收藏夹项目吗？')) {
@@ -2523,7 +2676,7 @@
                 renderCartItems();
             }
         }
-        
+
         // 清空收藏夹
         function clearCart() {
             if (confirm('确定要清空整个收藏夹吗？此操作不可恢复！')) {
@@ -2536,18 +2689,18 @@
                 alert('收藏夹已清空');
             }
         }
-        
+
         // 合并收藏夹数据
         function mergeCartData() {
             if (cartItems.length === 0) {
                 alert('收藏夹为空，无法合并数据！');
                 return;
             }
-            
+
             // 合并所有收藏夹项目的数据
             mergedData = [];
             const idSet = new Set(); // 用于去重
-            
+
             cartItems.forEach(item => {
                 item.data.forEach(problem => {
                     if (!idSet.has(problem.id)) {
@@ -2556,36 +2709,36 @@
                     }
                 });
             });
-            
+
             // 显示合并数据
             showMergedData();
         }
-        
+
         // 显示合并数据
         function showMergedData() {
             const section = document.getElementById('mergedDataSection');
             const totalCount = mergedData.length;
             const uniqueCount = mergedData.length; // 已经去重了
-            
+
             document.getElementById('mergedTotalCount').textContent = totalCount;
             document.getElementById('mergedUniqueCount').textContent = uniqueCount;
-            
+
             // 渲染合并数据表格
             renderMergedDataTable();
-            
+
             section.style.display = 'block';
         }
-        
+
         // 隐藏合并数据
         function hideMergedData() {
             document.getElementById('mergedDataSection').style.display = 'none';
         }
-        
+
         // 渲染合并数据表格
         function renderMergedDataTable() {
             const tbody = document.getElementById('mergedDataTableBody');
             tbody.innerHTML = '';
-            
+
             mergedData.forEach(problem => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2595,35 +2748,55 @@
                     <td>${problem.small_species || ''}</td>
                     <td>${problem.sample_stage || ''}</td>
                     <td>${problem.version || ''}</td>
+                    <td>${problem.test_platform || ''}</td>
+                    <td>${problem.test_device || ''}</td>
+                    <td>${problem.other_device || ''}</td>
                     <td class="problem-desc">${(problem.problem || '').substring(0, 50)}${(problem.problem || '').length > 50 ? '...' : ''}</td>
                     <td>${problem.problemCategory || ''}</td>
                     <td>${problem.defect_level || ''}</td>
                     <td>${normalizeStatus(problem.current_status)}</td>
                     <td>${problem.tester || ''}</td>
+                    <td>${problem.dqe_responsible || ''}</td>
                     <td>${problem.responsibleDepartment || ''}</td>
+                    <td>${problem.dqe_reply || ''}</td>
+                    <td>${problem.rd_reply || ''}</td>
                     <td>${problem.created_at ? problem.created_at.substring(0, 10) : ''}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
-        
+
         // 导出收藏夹数据
         function exportCartData() {
-            if (mergedData.length === 0) {
-                alert('没有合并数据可以导出，请先点击"合并显示"！');
+            if (cartItems.length === 0) {
+                alert('收藏夹为空，无法导出数据！');
                 return;
             }
-            
+
             showLoading();
-            
+
+            // 直接复制合并显示的逻辑
+            const exportMergedData = [];
+            const idSet = new Set(); // 用于去重
+
+            cartItems.forEach(item => {
+                item.data.forEach(problem => {
+                    if (!idSet.has(problem.id)) {
+                        idSet.add(problem.id);
+                        exportMergedData.push(problem);
+                    }
+                });
+            });
+
+
             // 准备导出数据
             const exportData = {
-                data: mergedData,
+                data: exportMergedData,
                 exportType: 'cart',
                 fileName: `收藏夹合并数据_${new Date().toISOString().slice(0, 10)}.xlsx`
             };
-            
-            fetch('/problemLibrary/exportProblems', {
+
+            fetch('/problemLibrary/exportCartsData', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2646,6 +2819,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
+                alert(`成功导出收藏夹合并数据，共 ${exportMergedData.length} 条记录！`);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -2655,7 +2829,7 @@
                 hideLoading();
             });
         }
-        
+
         // 更新收藏夹计数
         function updateCartCount() {
             const countElement = document.getElementById('cartCount');
@@ -2663,7 +2837,7 @@
                 countElement.textContent = cartItems.length;
             }
         }
-        
+
         // 保存收藏夹到本地存储
         function saveCartToStorage() {
             try {
@@ -2672,7 +2846,7 @@
                 console.error('保存收藏夹失败:', e);
             }
         }
-        
+
         // 从本地存储加载收藏夹
         function loadCartFromStorage() {
             try {

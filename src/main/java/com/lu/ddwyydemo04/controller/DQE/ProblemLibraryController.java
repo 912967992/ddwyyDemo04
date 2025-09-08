@@ -132,6 +132,37 @@ public class ProblemLibraryController {
     }
 
     /**
+     * 导出收藏夹合并数据
+     */
+    @PostMapping("/exportCartsData")
+    public ResponseEntity<byte[]> exportCartsData(@RequestBody Map<String, Object> requestData) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> data = (List<Map<String, Object>>) requestData.get("data");
+            String fileName = (String) requestData.get("fileName");
+            
+            if (data == null || data.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // 创建Excel文件
+            ByteArrayOutputStream outputStream = createCartsExcelFile(data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "收藏夹合并数据_" + java.time.LocalDate.now() + ".xlsx");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 获取指定sample_id的历史版本
      */
     @GetMapping("/getHistoryVersions")
@@ -337,6 +368,98 @@ public class ProblemLibraryController {
             workbook.write(out);
             byte[] bytes = out.toByteArray();
 
+            return out;
+
+        } finally {
+            try { workbook.close(); } catch (IOException ignored) {}
+        }
+    }
+
+    // 创建收藏夹合并数据Excel文件
+    private ByteArrayOutputStream createCartsExcelFile(List<Map<String, Object>> data) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Workbook workbook = new XSSFWorkbook();
+        try {
+            Sheet sheet = workbook.createSheet("收藏夹合并数据");
+
+            // ====== 样式 ======
+            CellStyle centeredStyle = workbook.createCellStyle();
+            centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+            centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            centeredStyle.setBorderTop(BorderStyle.THIN);
+            centeredStyle.setBorderBottom(BorderStyle.THIN);
+            centeredStyle.setBorderLeft(BorderStyle.THIN);
+            centeredStyle.setBorderRight(BorderStyle.THIN);
+
+            // 列宽
+            for (int i = 0; i < 19; i++) sheet.setColumnWidth(i, 20 * 256);
+
+            // ====== 标题 ======
+            Row titleRow = sheet.createRow(0);
+            titleRow.setHeightInPoints(30);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("收藏夹合并数据");
+
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setFontHeightInPoints((short) 20);
+            titleFont.setBold(true);
+            titleStyle.setFont(titleFont);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+            titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            titleStyle.setBorderTop(BorderStyle.THIN);
+            titleStyle.setBorderBottom(BorderStyle.THIN);
+            titleStyle.setBorderLeft(BorderStyle.THIN);
+            titleStyle.setBorderRight(BorderStyle.THIN);
+            titleCell.setCellStyle(titleStyle);
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 18));
+
+            // ====== 表头 ======
+            Row headerRow = sheet.createRow(1);
+            headerRow.setHeightInPoints(50);
+            String[] headers = {
+                    "ID", "完整编码", "大类", "小类", "样品阶段", "版本", "测试平台", 
+                    "显示设备", "其他设备", "问题描述", "问题类别", "缺陷等级", "当前状态", 
+                    "测试人员", "DQE负责人", "责任部门", "DQE确认回复", "研发确认回复", "提交时间"
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(centeredStyle);
+            }
+
+            // ====== 数据行 ======
+            int rowNum = 2;
+            for (Map<String, Object> item : data) {
+                Row row = sheet.createRow(rowNum);
+                row.setHeightInPoints(50);
+
+                createCell(row, 0, item.get("id"), centeredStyle);
+                createCell(row, 1, item.get("full_model"), centeredStyle);
+                createCell(row, 2, item.get("big_species"), centeredStyle);
+                createCell(row, 3, item.get("small_species"), centeredStyle);
+                createCell(row, 4, item.get("sample_stage"), centeredStyle);
+                createCell(row, 5, item.get("version"), centeredStyle);
+                createCell(row, 6, item.get("test_platform"), centeredStyle);
+                createCell(row, 7, item.get("test_device"), centeredStyle);
+                createCell(row, 8, item.get("other_device"), centeredStyle);
+                createCell(row, 9, item.get("problem"), centeredStyle);
+                createCell(row, 10, item.get("problemCategory"), centeredStyle);
+                createCell(row, 11, item.get("defect_level"), centeredStyle);
+                createCell(row, 12, item.get("current_status"), centeredStyle);
+                createCell(row, 13, item.get("tester"), centeredStyle);
+                createCell(row, 14, item.get("dqe_responsible"), centeredStyle);
+                createCell(row, 15, item.get("responsibleDepartment"), centeredStyle);
+                createCell(row, 16, item.get("dqe_reply"), centeredStyle);
+                createCell(row, 17, item.get("rd_reply"), centeredStyle);
+                createCell(row, 18, item.get("created_at"), centeredStyle);
+
+                rowNum++;
+            }
+
+            // 写入内存输出
+            workbook.write(out);
             return out;
 
         } finally {
