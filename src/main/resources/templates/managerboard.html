@@ -703,9 +703,19 @@
                 break;
             case 'not-started':
                 title = '未开始项目详情';
-                projects = projectData.filter(p =>
-                    !p.actual_start_time
-                );
+                projects = projectData.filter(p => {
+                    // 排除已排期但未到开始时间的项目
+                    if (p.schedule_start_date) {
+                        const now = new Date();
+                        const scheduleStart = new Date(p.schedule_start_date);
+                        // 如果已排期但还没到开始时间，则排除
+                        if (scheduleStart > now) {
+                            return false;
+                        }
+                    }
+                    // 只显示真正未开始的项目（没有实际开始时间）
+                    return !p.actual_start_time;
+                });
                 break;
             case 'in-progress':
                 title = '进行中项目详情';

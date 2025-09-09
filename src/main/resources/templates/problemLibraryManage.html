@@ -90,6 +90,339 @@
         .custom-toast.info .toast-icon {
             color: #17a2b8;
         }
+
+        /* 问题图片容器样式 */
+        .problem-image-container {
+            max-width: 100%;
+            margin-top: 8px;
+        }
+
+        .problem-image-container img {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 5px 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .problem-image-container img:hover {
+            transform: scale(1.02);
+        }
+
+        .problem-image-container .no-image {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+        }
+
+        .problem-image-container .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .problem-image-container .image-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .problem-image-container .image-item img {
+            display: block;
+            margin: 0;
+        }
+
+        /* 图片编辑容器样式 */
+        .image-edit-container {
+            width: 100%;
+        }
+
+        .image-edit-container textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            min-height: 60px;
+        }
+
+        .image-preview .preview-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .image-preview .preview-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image-preview .preview-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .image-preview .preview-item .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .image-preview .preview-item:hover .remove-btn {
+            display: block;
+        }
+
+        .image-edit-tips {
+            margin-top: 5px;
+            color: #666;
+        }
+
+        .image-edit-tips small {
+            font-size: 11px;
+        }
+
+        /* 收藏夹模态框样式修复 */
+        .cart-items-container {
+            margin-top: 20px;
+        }
+
+        .cart-items-container .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .cart-items-container .data-table th,
+        .cart-items-container .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .cart-items-container .data-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .cart-items-container .data-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .cart-items-container .data-table tbody tr:hover td {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .cart-items-container .filter-desc {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #333 !important;
+        }
+
+        /* 合并数据展示区域样式 */
+        .merged-data-section {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .merged-data-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .merged-stats {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .merged-stats span {
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .merged-stats strong {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .merged-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .merged-table-container .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .merged-table-container .data-table th,
+        .merged-table-container .data-table td {
+            padding: 8px 6px;
+            text-align: left;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .merged-table-container .data-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .merged-table-container .data-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .merged-table-container .data-table tbody tr:hover td {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .merged-table-container .problem-desc {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #333 !important;
+        }
+
+        /* 收藏夹控制按钮样式 */
+        .cart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cart-controls .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 收藏夹详情模态框样式 */
+        .cart-detail-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .cart-detail-info .detail-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+
+        .cart-detail-info .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .cart-detail-info label {
+            font-weight: bold;
+            color: #495057;
+            min-width: 100px;
+            margin-right: 10px;
+        }
+
+        .cart-detail-info .detail-value {
+            color: #333;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .cart-detail-table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .cart-detail-table-container .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .cart-detail-table-container .data-table th,
+        .cart-detail-table-container .data-table td {
+            padding: 8px 6px;
+            text-align: left;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .cart-detail-table-container .data-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .cart-detail-table-container .data-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .cart-detail-table-container .data-table tbody tr:hover td {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .cart-detail-table-container .problem-desc {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #333 !important;
+        }
     </style>
 </head>
 <body>
@@ -440,6 +773,10 @@
                             <textarea id="editDetailProblem" class="detail-input" rows="3" style="display: none;"></textarea>
                         </div>
                         <div class="detail-row">
+                            <label>问题图片:</label>
+                            <div id="detailProblemImage" class="detail-value problem-image-container"></div>
+                        </div>
+                        <div class="detail-row">
                             <label>问题类别:</label>
                             <span id="detailProblemCategory" class="detail-value"></span>
                             <select id="editDetailProblemCategory" class="detail-input" style="display: none;">
@@ -731,6 +1068,16 @@
                             <textarea id="editProblem" name="problem" rows="3"></textarea>
                         </div>
                         <div class="form-group full-width">
+                            <label for="editProblemImage">问题图片:</label>
+                            <div class="image-edit-container">
+                                <textarea id="editProblemImage" name="problem_image_or_video" rows="2" placeholder="请输入图片路径，多个图片用逗号分隔，如：/imageDirectory/image1.png,/imageDirectory/image2.png"></textarea>
+                                <div class="image-preview" id="editImagePreview"></div>
+                                <div class="image-edit-tips">
+                                    <small>支持格式：/imageDirectory/图片名称.png 或 多个路径用逗号分隔</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
                             <label for="editReproductionMethod">复现手法:</label>
                             <textarea id="editReproductionMethod" name="reproductionMethod" rows="3"></textarea>
                         </div>
@@ -848,6 +1195,9 @@
                     <table id="cartItemsTable" class="data-table">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAllCartItems" title="全选/取消全选">
+                                </th>
                                 <th>序号</th>
                                 <th>筛选条件</th>
                                 <th>数据量</th>
@@ -902,6 +1252,66 @@
             </div>
             <div class="modal-footer">
                 <button id="closeCartModal" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 收藏夹详情模态框 -->
+    <div id="cartDetailModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>收藏夹详情</h2>
+                <span class="close" onclick="closeSpecificModal('cartDetailModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="cart-detail-info">
+                    <div class="detail-row">
+                        <label>筛选条件:</label>
+                        <span id="cartDetailFilter" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <label>数据量:</label>
+                        <span id="cartDetailCount" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <label>保存时间:</label>
+                        <span id="cartDetailTime" class="detail-value"></span>
+                    </div>
+                </div>
+                
+                <div class="cart-detail-table-container">
+                    <table id="cartDetailTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>完整编码</th>
+                                <th>大类</th>
+                                <th>小类</th>
+                                <th>样品阶段</th>
+                                <th>版本</th>
+                                <th>测试平台</th>
+                                <th>显示设备</th>
+                                <th>其他设备</th>
+                                <th>问题描述</th>
+                                <th>问题类别</th>
+                                <th>缺陷等级</th>
+                                <th>当前状态</th>
+                                <th>测试人员</th>
+                                <th>DQE责任人</th>
+                                <th>责任部门</th>
+                                <th>DQE确认回复</th>
+                                <th>研发确认回复</th>
+                                <th>提交时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartDetailTableBody">
+                            <!-- 详情数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSpecificModal('cartDetailModal')">关闭</button>
             </div>
         </div>
     </div>
@@ -1461,17 +1871,31 @@
                     hideToast();
                 }
             });
+
+            // 全选收藏夹项目复选框
+            document.getElementById('selectAllCartItems').addEventListener('change', toggleSelectAllCartItems);
+
+            // 问题图片编辑字段事件监听器
+            const editImageField = document.getElementById('editProblemImage');
+            if (editImageField) {
+                editImageField.addEventListener('input', updateImagePreview);
+                editImageField.addEventListener('blur', updateImagePreview);
+            }
         }
 
         // 加载问题点数据
         function loadProblemData() {
             showLoading();
 
-            fetch('/problemLibrary/getProblems', {
-                method: 'GET',
+            // 使用searchProblems接口，传入空的筛选条件来获取所有数据
+            const filters = {};
+            
+            fetch('/problemLibrary/searchProblems', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify(filters)
             })
             .then(response => response.json())
             .then(data => {
@@ -1679,6 +2103,10 @@
             document.getElementById('detailTestDevice').textContent = problem.test_device || '';
             document.getElementById('detailOtherDevice').textContent = problem.other_device || '';
             document.getElementById('detailProblem').textContent = problem.problem || '';
+            
+            // 显示问题图片
+            displayProblemImages(problem.problem_image_or_video);
+            
             document.getElementById('detailProblemCategory').textContent = problem.problemCategory || '';
             document.getElementById('detailDefectLevel').textContent = problem.defect_level || '';
             document.getElementById('detailCurrentStatus').textContent = normalizeStatus(problem.current_status);
@@ -1750,7 +2178,260 @@
             document.getElementById('problemDetailModal').style.display = 'block';
         }
 
+        // 显示问题图片
+        function displayProblemImages(imageData) {
+            const container = document.getElementById('detailProblemImage');
+            container.innerHTML = '';
 
+            if (!imageData || imageData.trim() === '') {
+                container.innerHTML = '<div class="no-image">暂无问题图片</div>';
+                return;
+            }
+
+            try {
+                // 处理图片路径数据
+                let imageUrls = [];
+                
+                // 如果是JSON字符串，尝试解析
+                if (imageData.startsWith('[') || imageData.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(imageData);
+                        if (Array.isArray(parsed)) {
+                            imageUrls = parsed;
+                        } else if (parsed.urls && Array.isArray(parsed.urls)) {
+                            imageUrls = parsed.urls;
+                        }
+                    } catch (e) {
+                        console.warn('解析图片JSON数据失败:', e);
+                    }
+                }
+                
+                // 如果解析失败或不是JSON，尝试按逗号分割
+                if (imageUrls.length === 0) {
+                    imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
+                }
+
+                if (imageUrls.length === 0) {
+                    container.innerHTML = '<div class="no-image">暂无问题图片</div>';
+                    return;
+                }
+
+                // 创建图片画廊
+                const gallery = document.createElement('div');
+                gallery.className = 'image-gallery';
+
+                imageUrls.forEach((imagePath, index) => {
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'image-item';
+                    
+                    const img = document.createElement('img');
+                    
+                    // 处理图片路径：如果是相对路径，直接使用；如果是绝对路径，也直接使用
+                    let imageUrl = imagePath;
+                    
+                    // 确保路径以/开头（服务器相对路径）
+                    if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+                        imageUrl = '/' + imagePath;
+                    }
+                    
+                    img.src = imageUrl;
+                    img.alt = `问题图片 ${index + 1}`;
+                    img.title = `点击查看大图 - ${imagePath}`;
+                    
+                    // 添加点击事件，可以放大查看
+                    img.addEventListener('click', function() {
+                        showImageModal(imageUrl, index + 1, imageUrls.map(path => {
+                            if (!path.startsWith('/') && !path.startsWith('http')) {
+                                return '/' + path;
+                            }
+                            return path;
+                        }));
+                    });
+                    
+                    // 添加错误处理
+                    img.addEventListener('error', function() {
+                        this.style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'no-image';
+                        errorDiv.textContent = `图片加载失败: ${imagePath}`;
+                        imageItem.appendChild(errorDiv);
+                    });
+                    
+                    imageItem.appendChild(img);
+                    gallery.appendChild(imageItem);
+                });
+
+                container.appendChild(gallery);
+            } catch (error) {
+                console.error('处理问题图片时发生错误:', error);
+                container.innerHTML = '<div class="no-image">图片数据格式错误</div>';
+            }
+        }
+
+        // 显示图片放大模态框
+        function showImageModal(imageUrl, currentIndex, allUrls) {
+            // 创建图片查看模态框
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.zIndex = '10001';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 20px;">
+                    <div class="modal-header">
+                        <h2>问题图片查看 (${currentIndex}/${allUrls.length})</h2>
+                        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                    </div>
+                    <div class="modal-body" style="text-align: center; overflow: auto; position: relative;">
+                        <div id="imageContainer" style="position: relative; display: inline-block;">
+                            <img id="modalImage" src="${imageUrl}" style="max-width: 100%; max-height: 70vh; border-radius: 4px; transition: transform 0.3s ease; cursor: zoom-in;">
+                        </div>
+                        <div style="margin-top: 10px;">
+                            ${allUrls.length > 1 ? `
+                                <button onclick="switchImage(${currentIndex - 2}, ${allUrls.length})" ${currentIndex <= 1 ? 'disabled' : ''}>上一张</button>
+                                <button onclick="switchImage(${currentIndex}, ${allUrls.length})" ${currentIndex >= allUrls.length ? 'disabled' : ''}>下一张</button>
+                            ` : ''}
+                            <button onclick="resetImageZoom()">重置缩放</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+            
+            // 初始化图片缩放功能
+            initImageZoom(modal);
+            
+            // 点击模态框外部关闭
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // 初始化图片缩放功能
+        function initImageZoom(modal) {
+            const img = modal.querySelector('#modalImage');
+            const container = modal.querySelector('#imageContainer');
+            let scale = 1;
+            let isDragging = false;
+            let startX, startY, translateX = 0, translateY = 0;
+
+            // 鼠标滚轮缩放
+            img.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                const newScale = Math.max(0.1, Math.min(5, scale + delta));
+                
+                if (newScale !== scale) {
+                    scale = newScale;
+                    updateImageTransform();
+                }
+            });
+
+            // 鼠标点击切换缩放
+            img.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                if (scale === 1) {
+                    scale = 2;
+                    img.style.cursor = 'zoom-out';
+                } else {
+                    scale = 1;
+                    translateX = 0;
+                    translateY = 0;
+                    img.style.cursor = 'zoom-in';
+                }
+                
+                updateImageTransform();
+            });
+
+            // 鼠标拖拽
+            img.addEventListener('mousedown', function(e) {
+                if (scale > 1) {
+                    isDragging = true;
+                    startX = e.clientX - translateX;
+                    startY = e.clientY - translateY;
+                    img.style.cursor = 'grabbing';
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    translateX = e.clientX - startX;
+                    translateY = e.clientY - startY;
+                    updateImageTransform();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    img.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
+                }
+            });
+
+            // 更新图片变换
+            function updateImageTransform() {
+                img.style.transform = `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)`;
+            }
+
+            // 重置缩放
+            window.resetImageZoom = function() {
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                img.style.cursor = 'zoom-in';
+                updateImageTransform();
+            };
+
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (modal.style.display === 'block') {
+                    if (e.key === 'Escape') {
+                        modal.remove();
+                    } else if (e.key === '0') {
+                        resetImageZoom();
+                    } else if (e.key === '+' || e.key === '=') {
+                        scale = Math.min(5, scale + 0.2);
+                        updateImageTransform();
+                    } else if (e.key === '-') {
+                        scale = Math.max(0.1, scale - 0.2);
+                        updateImageTransform();
+                    }
+                }
+            });
+        }
+
+        // 切换图片
+        function switchImage(newIndex, totalCount) {
+            if (newIndex < 0 || newIndex >= totalCount) return;
+            
+            const modal = document.querySelector('.modal[style*="z-index: 10001"]');
+            if (modal) {
+                const img = modal.querySelector('#modalImage');
+                const allUrls = Array.from(document.querySelectorAll('.image-item img')).map(img => img.src);
+                img.src = allUrls[newIndex];
+                
+                // 重置缩放状态
+                img.style.transform = 'scale(1) translate(0px, 0px)';
+                img.style.cursor = 'zoom-in';
+                
+                // 更新标题
+                const title = modal.querySelector('h2');
+                title.textContent = `问题图片查看 (${newIndex + 1}/${totalCount})`;
+                
+                // 更新按钮状态
+                const prevBtn = modal.querySelector('button[onclick*="上一张"]');
+                const nextBtn = modal.querySelector('button[onclick*="下一张"]');
+                if (prevBtn) prevBtn.disabled = newIndex <= 0;
+                if (nextBtn) nextBtn.disabled = newIndex >= totalCount - 1;
+                
+                // 重新初始化缩放功能
+                initImageZoom(modal);
+            }
+        }
 
         // 显示编辑问题点模态框
         function showEditProblemModal(problemId) {
@@ -1772,6 +2453,12 @@
             document.getElementById('editDefectLevel').value = problem.defect_level || '';
             document.getElementById('editCurrentStatus').value = normalizeStatus(problem.current_status);
             document.getElementById('editProblem').value = problem.problem || '';
+            
+            // 初始化问题图片字段
+            const imageField = document.getElementById('editProblemImage');
+            imageField.value = problem.problem_image_or_video || '';
+            updateImagePreview();
+            
             document.getElementById('editReproductionMethod').value = problem.reproduction_method || '';
             document.getElementById('editRecoveryMethod').value = problem.recovery_method || '';
             document.getElementById('editReproductionProbability').value = problem.reproduction_probability || '';
@@ -1785,6 +2472,155 @@
             document.getElementById('editRemark').value = problem.remark || '';
 
             document.getElementById('editProblemModal').style.display = 'block';
+        }
+
+        // 更新图片预览
+        function updateImagePreview() {
+            const imageField = document.getElementById('editProblemImage');
+            const previewContainer = document.getElementById('editImagePreview');
+            
+            if (!imageField || !previewContainer) return;
+            
+            const imageData = imageField.value.trim();
+            previewContainer.innerHTML = '';
+            
+            if (!imageData) {
+                previewContainer.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无图片预览</div>';
+                return;
+            }
+            
+            try {
+                // 解析图片路径
+                let imageUrls = [];
+                
+                // 如果是JSON字符串，尝试解析
+                if (imageData.startsWith('[') || imageData.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(imageData);
+                        if (Array.isArray(parsed)) {
+                            imageUrls = parsed;
+                        } else if (parsed.urls && Array.isArray(parsed.urls)) {
+                            imageUrls = parsed.urls;
+                        }
+                    } catch (e) {
+                        console.warn('解析图片JSON数据失败:', e);
+                    }
+                }
+                
+                // 如果解析失败或不是JSON，尝试按逗号分割
+                if (imageUrls.length === 0) {
+                    imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
+                }
+                
+                if (imageUrls.length === 0) {
+                    previewContainer.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无有效图片路径</div>';
+                    return;
+                }
+                
+                // 创建预览画廊
+                const gallery = document.createElement('div');
+                gallery.className = 'preview-gallery';
+                
+                imageUrls.forEach((imagePath, index) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    
+                    const img = document.createElement('img');
+                    let imageUrl = imagePath;
+                    
+                    // 确保路径以/开头（服务器相对路径）
+                    if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+                        imageUrl = '/' + imagePath;
+                    }
+                    
+                    img.src = imageUrl;
+                    img.alt = `预览图片 ${index + 1}`;
+                    img.title = imagePath;
+                    
+                    // 添加点击事件，可以放大查看
+                    img.addEventListener('click', function() {
+                        showImageModal(imageUrl, index + 1, imageUrls.map(path => {
+                            if (!path.startsWith('/') && !path.startsWith('http')) {
+                                return '/' + path;
+                            }
+                            return path;
+                        }));
+                    });
+                    
+                    // 添加错误处理
+                    img.addEventListener('error', function() {
+                        this.style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.color = '#dc3545';
+                        errorDiv.style.fontSize = '10px';
+                        errorDiv.style.padding = '5px';
+                        errorDiv.textContent = '加载失败';
+                        previewItem.appendChild(errorDiv);
+                    });
+                    
+                    // 添加删除按钮
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '×';
+                    removeBtn.title = '删除此图片';
+                    removeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        removeImageFromEdit(index);
+                    });
+                    
+                    previewItem.appendChild(img);
+                    previewItem.appendChild(removeBtn);
+                    gallery.appendChild(previewItem);
+                });
+                
+                previewContainer.appendChild(gallery);
+            } catch (error) {
+                console.error('处理图片预览时发生错误:', error);
+                previewContainer.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 20px;">图片数据格式错误</div>';
+            }
+        }
+
+        // 从编辑中删除图片
+        function removeImageFromEdit(index) {
+            const imageField = document.getElementById('editProblemImage');
+            const imageData = imageField.value.trim();
+            
+            if (!imageData) return;
+            
+            try {
+                let imageUrls = [];
+                
+                // 解析图片路径
+                if (imageData.startsWith('[') || imageData.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(imageData);
+                        if (Array.isArray(parsed)) {
+                            imageUrls = parsed;
+                        } else if (parsed.urls && Array.isArray(parsed.urls)) {
+                            imageUrls = parsed.urls;
+                        }
+                    } catch (e) {
+                        console.warn('解析图片JSON数据失败:', e);
+                    }
+                }
+                
+                if (imageUrls.length === 0) {
+                    imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
+                }
+                
+                // 删除指定索引的图片
+                if (index >= 0 && index < imageUrls.length) {
+                    imageUrls.splice(index, 1);
+                    
+                    // 更新字段值
+                    imageField.value = imageUrls.join(',');
+                    
+                    // 更新预览
+                    updateImagePreview();
+                }
+            } catch (error) {
+                console.error('删除图片时发生错误:', error);
+            }
         }
 
         // 保存问题点
@@ -2628,7 +3464,7 @@
             if (cartItems.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="5" style="text-align: center; color: #666;">收藏夹为空</td>
+                    <td colspan="6" style="text-align: center; color: #666;">收藏夹为空</td>
                 `;
                 tbody.appendChild(row);
                 return;
@@ -2637,6 +3473,9 @@
             cartItems.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="cart-item-checkbox" data-item-id="${item.id}" onchange="updateSelectAllStatus()">
+                    </td>
                     <td>${index + 1}</td>
                     <td class="filter-desc" title="${item.filterDescription}">${item.filterDescription.length > 50 ? item.filterDescription.substring(0, 50) + '...' : item.filterDescription}</td>
                     <td>${item.dataCount}</td>
@@ -2650,21 +3489,103 @@
             });
         }
 
-        // 查看收藏夹项目
+        // 全选/取消全选收藏夹项目
+        function toggleSelectAllCartItems() {
+            const selectAllCheckbox = document.getElementById('selectAllCartItems');
+            const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+            
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        // 更新全选状态
+        function updateSelectAllStatus() {
+            const selectAllCheckbox = document.getElementById('selectAllCartItems');
+            const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+            const checkedCount = document.querySelectorAll('.cart-item-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCount === itemCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        // 获取选中的收藏夹项目
+        function getSelectedCartItems() {
+            const selectedCheckboxes = document.querySelectorAll('.cart-item-checkbox:checked');
+            const selectedItemIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.itemId));
+            return cartItems.filter(item => selectedItemIds.includes(item.id));
+        }
+
+        // 收藏夹管理模态框的 查看收藏夹项目
         function viewCartItem(itemId) {
             const item = cartItems.find(i => i.id === itemId);
             if (!item) return;
 
-            // 将收藏夹数据设置为当前筛选结果
-            filteredData = [...item.data];
-            currentPage = 1;
-            updateStatistics();
-            renderTable();
+            // 显示收藏夹详情模态框
+            showCartDetailModal(item);
+        }
 
-            // 关闭收藏夹模态框
-            closeSpecificModal('cartModal');
+        // 显示收藏夹详情模态框
+        function showCartDetailModal(item) {
+            // 设置基本信息
+            document.getElementById('cartDetailFilter').textContent = item.filterDescription;
+            document.getElementById('cartDetailCount').textContent = item.dataCount;
+            document.getElementById('cartDetailTime').textContent = item.saveTime;
 
-            alert(`已加载收藏夹项目，共 ${item.dataCount} 条数据`);
+            // 渲染详情表格
+            renderCartDetailTable(item.data);
+
+            // 显示模态框
+            document.getElementById('cartDetailModal').style.display = 'block';
+        }
+
+        // 渲染收藏夹详情表格
+        function renderCartDetailTable(data) {
+            const tbody = document.getElementById('cartDetailTableBody');
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="19" style="text-align: center; color: #666;">暂无数据</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+
+            data.forEach(problem => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${problem.id || ''}</td>
+                    <td>${problem.full_model || ''}</td>
+                    <td>${problem.big_species || ''}</td>
+                    <td>${problem.small_species || ''}</td>
+                    <td>${problem.sample_stage || ''}</td>
+                    <td>${problem.version || ''}</td>
+                    <td>${problem.test_platform || ''}</td>
+                    <td>${problem.test_device || ''}</td>
+                    <td>${problem.other_device || ''}</td>
+                    <td class="problem-desc" title="${problem.problem || ''}">${problem.problem || ''}</td>
+                    <td>${problem.problemCategory || ''}</td>
+                    <td>${problem.defect_level || ''}</td>
+                    <td>${problem.current_status || ''}</td>
+                    <td>${problem.tester || ''}</td>
+                    <td>${problem.dqe || ''}</td>
+                    <td>${problem.responsibleDepartment || ''}</td>
+                    <td>${problem.green_union_dqe || ''}</td>
+                    <td>${problem.green_union_rd || ''}</td>
+                    <td>${problem.created_at || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
         // 删除收藏夹项目
@@ -2692,16 +3613,21 @@
 
         // 合并收藏夹数据
         function mergeCartData() {
-            if (cartItems.length === 0) {
-                alert('收藏夹为空，无法合并数据！');
+            const selectedItems = getSelectedCartItems();
+            
+            if (selectedItems.length === 0) {
+                showToast('请先选择要合并的收藏夹项目！', 'warning');
                 return;
             }
 
-            // 合并所有收藏夹项目的数据
+            console.log('选中的收藏夹项目:', selectedItems);
+
+            // 合并选中的收藏夹项目的数据
             mergedData = [];
             const idSet = new Set(); // 用于去重
 
-            cartItems.forEach(item => {
+            selectedItems.forEach(item => {
+                console.log(`处理收藏夹项目 ${item.id}:`, item.data.length, '条数据');
                 item.data.forEach(problem => {
                     if (!idSet.has(problem.id)) {
                         idSet.add(problem.id);
@@ -2710,23 +3636,45 @@
                 });
             });
 
-            // 显示合并数据
-            showMergedData();
+            console.log('合并后的数据:', mergedData.length, '条');
+
+            // 显示合并数据，传递选中的项目数量
+            showMergedData(selectedItems.length);
+            showToast(`已合并 ${selectedItems.length} 个收藏夹项目，共 ${mergedData.length} 条数据`, 'success');
         }
 
         // 显示合并数据
-        function showMergedData() {
+        function showMergedData(selectedCount = 0) {
             const section = document.getElementById('mergedDataSection');
             const totalCount = mergedData.length;
             const uniqueCount = mergedData.length; // 已经去重了
 
-            document.getElementById('mergedTotalCount').textContent = totalCount;
-            document.getElementById('mergedUniqueCount').textContent = uniqueCount;
+            console.log('显示合并数据:', {
+                selectedCount: selectedCount,
+                totalCount: totalCount,
+                mergedDataLength: mergedData.length
+            });
+
+            // 先隐藏，然后显示，确保刷新
+            section.style.display = 'none';
+            
+            // 更新统计信息，显示选中的项目数量
+            const statsElement = document.querySelector('.merged-stats');
+            if (statsElement) {
+                statsElement.innerHTML = `
+                    <span>选中项目: <strong>${selectedCount}</strong></span>
+                    <span>总数据量: <strong>${totalCount}</strong></span>
+                    <span>去重后: <strong>${uniqueCount}</strong></span>
+                `;
+            }
 
             // 渲染合并数据表格
             renderMergedDataTable();
 
-            section.style.display = 'block';
+            // 强制重新显示
+            setTimeout(() => {
+                section.style.display = 'block';
+            }, 10);
         }
 
         // 隐藏合并数据
@@ -2739,7 +3687,18 @@
             const tbody = document.getElementById('mergedDataTableBody');
             tbody.innerHTML = '';
 
-            mergedData.forEach(problem => {
+            console.log('渲染合并数据表格，数据条数:', mergedData.length);
+
+            if (mergedData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="19" style="text-align: center; color: #666;">没有数据</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+
+            mergedData.forEach((problem, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${problem.id}</td>
@@ -2756,30 +3715,34 @@
                     <td>${problem.defect_level || ''}</td>
                     <td>${normalizeStatus(problem.current_status)}</td>
                     <td>${problem.tester || ''}</td>
-                    <td>${problem.dqe_responsible || ''}</td>
+                    <td>${problem.dqe || ''}</td>
                     <td>${problem.responsibleDepartment || ''}</td>
-                    <td>${problem.dqe_reply || ''}</td>
-                    <td>${problem.rd_reply || ''}</td>
+                    <td>${problem.green_union_dqe || ''}</td>
+                    <td>${problem.green_union_rd || ''}</td>
                     <td>${problem.created_at ? problem.created_at.substring(0, 10) : ''}</td>
                 `;
                 tbody.appendChild(row);
             });
+
+            console.log('合并数据表格渲染完成，实际渲染行数:', tbody.children.length);
         }
 
         // 导出收藏夹数据
         function exportCartData() {
-            if (cartItems.length === 0) {
-                alert('收藏夹为空，无法导出数据！');
+            const selectedItems = getSelectedCartItems();
+            
+            if (selectedItems.length === 0) {
+                showToast('请先选择要导出的收藏夹项目！', 'warning');
                 return;
             }
 
             showLoading();
 
-            // 直接复制合并显示的逻辑
+            // 合并选中的收藏夹项目的数据
             const exportMergedData = [];
             const idSet = new Set(); // 用于去重
 
-            cartItems.forEach(item => {
+            selectedItems.forEach(item => {
                 item.data.forEach(problem => {
                     if (!idSet.has(problem.id)) {
                         idSet.add(problem.id);
@@ -2819,11 +3782,11 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                alert(`成功导出收藏夹合并数据，共 ${exportMergedData.length} 条记录！`);
+                showToast(`成功导出 ${selectedItems.length} 个收藏夹项目，共 ${exportMergedData.length} 条记录！`, 'success');
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('导出时发生错误');
+                showToast('导出时发生错误', 'error');
             })
             .finally(() => {
                 hideLoading();

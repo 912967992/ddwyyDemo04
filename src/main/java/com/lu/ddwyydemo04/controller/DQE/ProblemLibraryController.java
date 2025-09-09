@@ -59,7 +59,6 @@ public class ProblemLibraryController {
     public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> filters) {
         try {
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
-            System.out.println("filters:"+filters);
             Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
 
             Map<String, Object> response = new HashMap<>();
@@ -114,6 +113,7 @@ public class ProblemLibraryController {
     public ResponseEntity<byte[]> exportProblems(@RequestBody Map<String, Object> filters) {
         try {
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
+            System.out.println("problems:"+problems);
 
             // 创建Excel文件
             ByteArrayOutputStream outputStream = createExcelFile(problems);
@@ -449,10 +449,10 @@ public class ProblemLibraryController {
                 createCell(row, 11, item.get("defect_level"), centeredStyle);
                 createCell(row, 12, item.get("current_status"), centeredStyle);
                 createCell(row, 13, item.get("tester"), centeredStyle);
-                createCell(row, 14, item.get("dqe_responsible"), centeredStyle);
+                createCell(row, 14, item.get("dqe"), centeredStyle);
                 createCell(row, 15, item.get("responsibleDepartment"), centeredStyle);
-                createCell(row, 16, item.get("dqe_reply"), centeredStyle);
-                createCell(row, 17, item.get("rd_reply"), centeredStyle);
+                createCell(row, 16, item.get("green_union_dqe"), centeredStyle);
+                createCell(row, 17, item.get("green_union_rd"), centeredStyle);
                 createCell(row, 18, item.get("created_at"), centeredStyle);
 
                 rowNum++;
