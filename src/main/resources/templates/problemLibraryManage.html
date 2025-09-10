@@ -453,6 +453,30 @@
             color: #333 !important;
         }
 
+        /* 头部操作按钮样式 */
+        .header-action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-action-buttons .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        /* 搜索和重置按钮样式 */
+        .search-reset-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .search-reset-buttons .btn {
+            padding: 10px 20px;
+        }
+
         /* 收藏夹控制按钮样式 */
         .cart-controls {
             display: flex;
@@ -561,6 +585,19 @@
                 <span id="currentUser"></span>
                 <span id="currentRole"></span>
                 <span id="cacheStatus" class="cache-status" style="font-size: 12px; color: #666; margin-left: 10px;"></span>
+            </div>
+            
+            <!-- 操作按钮组 -->
+            <div class="header-action-buttons">
+                <button id="addToCartBtn" class="btn btn-warning">
+                    <i class="fas fa-shopping-cart"></i> 加入收藏夹
+                </button>
+                <button id="exportBtn" class="btn btn-success">
+                    <i class="fas fa-download"></i> 导出筛选结果
+                </button>
+                <button id="showCartBtn" class="btn btn-info">
+                    <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
+                </button>
             </div>
         </div>
     </div>
@@ -706,22 +743,13 @@
             </div>
 
 
-            <!-- 操作按钮 -->
-            <div class="action-buttons">
+            <!-- 搜索和重置按钮 -->
+            <div class="search-reset-buttons">
                 <button id="searchBtn" class="btn btn-primary">
                     <i class="fas fa-search"></i> 搜索
                 </button>
                 <button id="resetBtn" class="btn btn-secondary">
                     <i class="fas fa-undo"></i> 重置
-                </button>
-                <button id="addToCartBtn" class="btn btn-warning">
-                    <i class="fas fa-shopping-cart"></i> 加入收藏夹
-                </button>
-                <button id="exportBtn" class="btn btn-success">
-                    <i class="fas fa-download"></i> 导出筛选结果
-                </button>
-                <button id="showCartBtn" class="btn btn-info">
-                    <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
             </div>
                 </div>
@@ -1661,12 +1689,12 @@
                     if (isCacheValid(parsedCache.lastUpdated)) {
                         // 恢复缓存到内存
                         speciesCache = parsedCache;
-                        console.log('缓存已从localStorage恢复');
+                        // console.log('缓存已从localStorage恢复');
 
                         // 从缓存加载选项到下拉框
                         loadOptionsFromCache();
                     } else {
-                        console.log('localStorage中的缓存已过期');
+                        // console.log('localStorage中的缓存已过期');
                     }
                 }
             } catch (e) {
@@ -1678,68 +1706,68 @@
             // 加载大类选项
             if (speciesCache.bigSpecies && speciesCache.bigSpecies.length > 0) {
                 updateSelectOptions('bigSpeciesFilter', speciesCache.bigSpecies);
-                console.log('大类选项已从缓存加载');
+                // console.log('大类选项已从缓存加载');
             }
 
             // 加载小类选项
             if (speciesCache.smallSpecies && speciesCache.smallSpecies.length > 0) {
                 updateSelectOptions('smallSpeciesFilter', speciesCache.smallSpecies);
-                console.log('小类选项已从缓存加载');
+                // console.log('小类选项已从缓存加载');
             }
 
             // 加载样品阶段选项
             if (speciesCache.sampleStage && speciesCache.sampleStage.length > 0) {
                 updateSelectOptions('sampleStageFilter', speciesCache.sampleStage);
-                console.log('样品阶段选项已从缓存加载');
+                // console.log('样品阶段选项已从缓存加载');
             }
 
             // 加载完整编码选项
             if (speciesCache.fullModel && speciesCache.fullModel.length > 0) {
                 updateSelectOptions('fullModelFilter', speciesCache.fullModel);
-                console.log('完整编码选项已从缓存加载');
+                // console.log('完整编码选项已从缓存加载');
             }
 
             // 加载版本选项
             if (speciesCache.version && speciesCache.version.length > 0) {
                 updateSelectOptions('versionFilter', speciesCache.version);
-                console.log('版本选项已从缓存加载');
+                // console.log('版本选项已从缓存加载');
             }
 
             // 加载问题类别选项（三级结构）
             if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
                 // 对于三级结构，我们不需要直接更新下拉框选项
                 // 因为三级结构是通过配置文件动态生成的
-                console.log('问题类别选项已从缓存加载（三级结构）');
+                // console.log('问题类别选项已从缓存加载（三级结构）');
             }
 
             // 加载测试人员选项
             if (speciesCache.tester && speciesCache.tester.length > 0) {
                 updateSelectOptions('testerFilter', speciesCache.tester);
-                console.log('测试人员选项已从缓存加载');
+                // console.log('测试人员选项已从缓存加载');
             }
 
             // 加载责任部门选项
             if (speciesCache.responsibleDepartment && speciesCache.responsibleDepartment.length > 0) {
                 updateSelectOptions('responsibleDepartmentFilter', speciesCache.responsibleDepartment);
-                console.log('责任部门选项已从缓存加载');
+                // console.log('责任部门选项已从缓存加载');
             }
 
             // 加载测试平台选项
             if (speciesCache.testPlatform && speciesCache.testPlatform.length > 0) {
                 updateSelectOptions('testPlatformFilter', speciesCache.testPlatform);
-                console.log('测试平台选项已从缓存加载');
+                // console.log('测试平台选项已从缓存加载');
             }
 
             // 加载显示设备选项
             if (speciesCache.testDevice && speciesCache.testDevice.length > 0) {
                 updateSelectOptions('testDeviceFilter', speciesCache.testDevice);
-                console.log('显示设备选项已从缓存加载');
+                // console.log('显示设备选项已从缓存加载');
             }
 
             // 加载DQE负责人选项
             if (speciesCache.dqe && speciesCache.dqe.length > 0) {
                 updateSelectOptions('dqeFilter', speciesCache.dqe);
-                console.log('DQE负责人选项已从缓存加载');
+                // console.log('DQE负责人选项已从缓存加载');
             }
         }
 
@@ -1777,7 +1805,7 @@
 
             // 如果问题类别缓存为空或过期，自动从数据库获取
             if (!speciesCache.problemCategory || speciesCache.problemCategory.length === 0) {
-                console.log('问题类别缓存为空，自动从数据库获取');
+                // console.log('问题类别缓存为空，自动从数据库获取');
                 fetchSpeciesOptionsFromServer('problemCategory');
             } else {
                 // 如果缓存存在，默认设置为数据库按钮激活（因为缓存数据来自数据库）
@@ -1792,7 +1820,7 @@
             const paginationContainer = document.querySelector('.pagination-container');
             if (paginationContainer) {
                 paginationContainer.style.display = 'flex';
-                console.log('分页控件已显示');
+                // console.log('分页控件已显示');
             } else {
                 console.error('找不到分页控件');
             }
@@ -1818,7 +1846,7 @@
                         optionElement.textContent = option.text;
                         level1Select.appendChild(optionElement);
                     });
-                    console.log('问题类别一级选项已从缓存加载，共', level1Options.length, '个选项');
+                    // console.log('问题类别一级选项已从缓存加载，共', level1Options.length, '个选项');
                 } else if (typeof getLevel1Categories === 'function') {
                     // 从配置文件加载
                     const level1Options = getLevel1Categories();
@@ -1828,9 +1856,9 @@
                         optionElement.textContent = option.text;
                         level1Select.appendChild(optionElement);
                     });
-                    console.log('问题类别一级选项已从配置文件加载，共', level1Options.length, '个选项');
+                    // console.log('问题类别一级选项已从配置文件加载，共', level1Options.length, '个选项');
                 } else {
-                    console.log('问题类别选项暂时为空，等待数据库数据加载');
+                    // console.log('问题类别选项暂时为空，等待数据库数据加载');
                 }
             }
 
@@ -1869,7 +1897,7 @@
                 }
             });
 
-            console.log('三级问题类别筛选器初始化完成');
+            // console.log('三级问题类别筛选器初始化完成');
         }
 
         // 初始化问题类别手动输入功能
@@ -2149,83 +2177,218 @@
 
         // 确认手动输入的问题类别
         function confirmCategoryInput(level, inputValue) {
-            if (!inputValue.trim()) return;
+            // console.log('=== 手动输入确认 ===');
+            // console.log('输入级别:', level);
+            // console.log('输入值:', inputValue);
+            // console.log('输入值类型:', typeof inputValue);
+            // console.log('输入值长度:', inputValue ? inputValue.length : 'undefined');
+            
+            if (!inputValue.trim()) {
+                // console.log('输入值为空，退出');
+                return;
+            }
 
             const levelNum = parseInt(level);
             const selectId = `problemCategoryLevel${levelNum}Filter`;
             const select = document.getElementById(selectId);
             
-            if (!select) return;
+            if (!select) {
+                // console.log('找不到选择框:', selectId);
+                return;
+            }
+
+            const trimmedValue = inputValue.trim();
+            // console.log('处理后的值:', trimmedValue);
+            
+            // 检查该值是否已存在于下拉框中
+            const existingOption = select.querySelector(`option[value="${trimmedValue}"]`);
+            if (!existingOption) {
+                // console.log('值不存在于下拉框中，添加新选项');
+                // 如果不存在，则添加新选项
+                const newOption = document.createElement('option');
+                newOption.value = trimmedValue;
+                newOption.textContent = trimmedValue;
+                select.appendChild(newOption);
+                // console.log('已添加新选项:', trimmedValue);
+            } else {
+                // console.log('值已存在于下拉框中');
+            }
 
             // 设置选中的值
-            select.value = inputValue.trim();
+            select.value = trimmedValue;
+            // console.log('设置选中值:', trimmedValue);
             
             // 触发级联更新
             if (levelNum === 1) {
+                // console.log('触发二级分类更新');
                 updateLevel2Options();
             } else if (levelNum === 2) {
+                // console.log('触发三级分类更新');
                 updateLevel3Options();
             }
 
             // 触发筛选更新
             applyFilters();
+            // console.log('=== 手动输入确认完成 ===');
         }
 
         // 从缓存数据中提取一级分类选项
         function extractLevel1FromCache(cachedData) {
+            // console.log('=== 开始提取一级分类 ===');
+            // console.log('问题类别全部原始数据:', cachedData);
+            // console.log('数据类型:', typeof cachedData, '数组长度:', cachedData ? cachedData.length : 'undefined');
+            
             const level1Set = new Set();
-            cachedData.forEach(item => {
-                if (item && item.includes('-')) {
-                    const parts = item.split('-');
-                    if (parts.length >= 1) {
-                        level1Set.add(parts[0]);
+            cachedData.forEach((item, index) => {
+                // console.log(`处理第${index}项:`, item, '类型:', typeof item);
+                if (item && item.trim() !== '') {
+                    if (item.includes('-')) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx
+                        const parts = item.split('-');
+                        // console.log('分割后的部分:', parts);
+                        if (parts.length >= 1 && parts[0].trim() !== '') {
+                            const level1Value = parts[0].trim();
+                            level1Set.add(level1Value);
+                            // console.log('✓ 添加有分隔符的一级分类:', level1Value);
+                        }
+                    } else {
+                        // 处理无分隔符的格式：ccc
+                        const level1Value = item.trim();
+                        level1Set.add(level1Value);
+                        // console.log('✓ 添加无分隔符的一级分类:', level1Value);
                     }
+                } else {
+                    // console.log('✗ 跳过空项:', item);
                 }
             });
             
-            return Array.from(level1Set).map(item => ({
+            const result = Array.from(level1Set).map(item => ({
                 value: item,
                 text: item
             }));
+            // console.log('=== 一级分类提取完成 ===');
+            // console.log('找到的一级分类:', result);
+            // console.log('一级分类数量:', result.length);
+            return result;
         }
 
         // 从缓存数据中提取二级分类选项
         function extractLevel2FromCache(cachedData, level1) {
+            // console.log('=== 开始提取二级分类 ===');
+            // console.log('问题类别全部原始数据:', cachedData);
+            // console.log('数据类型:', typeof cachedData, '数组长度:', cachedData ? cachedData.length : 'undefined');
+            // console.log('选中的一级分类:', level1);
+            
             const level2Set = new Set();
-            cachedData.forEach(item => {
-                if (item && item.startsWith(level1 + '-')) {
-                    const parts = item.split('-');
-                    if (parts.length >= 2 && parts[1] && parts[1].trim() !== '') {
-                        // 确保二级分类不为空
-                        level2Set.add(parts[1]);
+            const searchPrefix = level1 + '-';
+            // console.log('搜索前缀:', searchPrefix);
+            
+            cachedData.forEach((item, index) => {
+                // console.log(`\n--- 检查第${index}项 ---`);
+                // console.log('原始项目:', item, '类型:', typeof item);
+                
+                if (item && item.trim() !== '') {
+                    const trimmedItem = item.trim();
+                    // console.log('处理后的项目:', trimmedItem);
+                    // console.log('是否包含分隔符:', trimmedItem.includes('-'));
+                    // console.log('是否以前缀开头:', trimmedItem.startsWith(searchPrefix));
+                    
+                    if (trimmedItem.includes('-') && trimmedItem.startsWith(searchPrefix)) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx
+                        const parts = trimmedItem.split('-');
+                        // console.log('分割后的部分:', parts);
+                        // console.log('分割后长度:', parts.length);
+                        
+                        if (parts.length >= 2 && parts[1] && parts[1].trim() !== '') {
+                            const level2Value = parts[1].trim();
+                            level2Set.add(level2Value);
+                            // console.log('✓ 添加二级分类:', level2Value);
+                        } else {
+                            // console.log('✗ 分割后第二部分为空或不存在');
+                        }
+                    } else if (!trimmedItem.includes('-') && trimmedItem === level1) {
+                        // 处理无分隔符的格式：如果是一级分类本身，则没有二级分类
+                        // console.log('○ 无分隔符的一级分类，跳过二级分类提取');
+                    } else {
+                        // console.log('✗ 项目不匹配一级分类');
+                        // console.log('  - 项目值:', trimmedItem);
+                        // console.log('  - 是否包含分隔符:', trimmedItem.includes('-'));
+                        // console.log('  - 是否以前缀开头:', trimmedItem.startsWith(searchPrefix));
+                        // console.log('  - 期望的前缀:', searchPrefix);
                     }
+                } else {
+                    // console.log('✗ 项目为空或无效:', item);
                 }
             });
             
-            return Array.from(level2Set).map(item => ({
+            const result = Array.from(level2Set).map(item => ({
                 value: item,
                 text: item
             }));
+            // console.log('=== 二级分类提取完成 ===');
+            // console.log('找到的二级分类:', result);
+            // console.log('二级分类数量:', result.length);
+            return result;
         }
 
         // 从缓存数据中提取三级分类选项
         function extractLevel3FromCache(cachedData, level1, level2) {
+            // console.log('=== 开始提取三级分类 ===');
+            // console.log('问题类别全部原始数据:', cachedData);
+            // console.log('数据类型:', typeof cachedData, '数组长度:', cachedData ? cachedData.length : 'undefined');
+            // console.log('选中的一级分类:', level1);
+            // console.log('选中的二级分类:', level2);
+            
             const level3Set = new Set();
             const prefix = level1 + '-' + level2 + '-';
-            cachedData.forEach(item => {
-                if (item && item.startsWith(prefix)) {
-                    const parts = item.split('-');
-                    if (parts.length >= 3 && parts[2] && parts[2].trim() !== '') {
-                        // 确保三级分类不为空
-                        level3Set.add(parts[2]);
+            // console.log('搜索前缀:', prefix);
+            
+            cachedData.forEach((item, index) => {
+                // console.log(`\n--- 检查第${index}项 ---`);
+                // console.log('原始项目:', item, '类型:', typeof item);
+                
+                if (item && item.trim() !== '') {
+                    const trimmedItem = item.trim();
+                    // console.log('处理后的项目:', trimmedItem);
+                    // console.log('是否包含分隔符:', trimmedItem.includes('-'));
+                    // console.log('是否以前缀开头:', trimmedItem.startsWith(prefix));
+                    
+                    if (trimmedItem.includes('-') && trimmedItem.startsWith(prefix)) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx
+                        const parts = trimmedItem.split('-');
+                        // console.log('分割后的部分:', parts);
+                        // console.log('分割后长度:', parts.length);
+                        
+                        if (parts.length >= 3 && parts[2] && parts[2].trim() !== '') {
+                            const level3Value = parts[2].trim();
+                            level3Set.add(level3Value);
+                            // console.log('✓ 添加三级分类:', level3Value);
+                        } else {
+                            // console.log('✗ 分割后第三部分为空或不存在');
+                        }
+                    } else if (!trimmedItem.includes('-') && trimmedItem === level1) {
+                        // 处理无分隔符的格式：如果是一级分类本身，则没有三级分类
+                        // console.log('○ 无分隔符的一级分类，跳过三级分类提取');
+                    } else {
+                        // console.log('✗ 项目不匹配二级分类');
+                        // console.log('  - 项目值:', trimmedItem);
+                        // console.log('  - 是否包含分隔符:', trimmedItem.includes('-'));
+                        // console.log('  - 是否以前缀开头:', trimmedItem.startsWith(prefix));
+                        // console.log('  - 期望的前缀:', prefix);
                     }
+                } else {
+                    // console.log('✗ 项目为空或无效:', item);
                 }
             });
             
-            return Array.from(level3Set).map(item => ({
+            const result = Array.from(level3Set).map(item => ({
                 value: item,
                 text: item
             }));
+            // console.log('=== 三级分类提取完成 ===');
+            // console.log('找到的三级分类:', result);
+            // console.log('三级分类数量:', result.length);
+            return result;
         }
 
         // 更新二级下拉框选项
@@ -2247,7 +2410,10 @@
                 
                 // 优先从缓存数据中提取二级分类
                 if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                    // console.log('从缓存提取二级分类，缓存数据:', speciesCache.problemCategory);
+                    // console.log('选中的一级分类:', selectedLevel1);
                     level2Options = extractLevel2FromCache(speciesCache.problemCategory, selectedLevel1);
+                    // console.log('提取的二级分类选项:', level2Options);
                 } else if (typeof getLevel2Categories === 'function') {
                     // 从配置文件获取
                     level2Options = getLevel2Categories(selectedLevel1);
@@ -3480,7 +3646,7 @@
             document.getElementById('pageJumpInput').max = totalPages;
 
             // 调试信息
-            console.log(`分页信息: 总记录数=${totalRecords}, 总页数=${totalPages}, 当前页=${currentPage}, 每页=${pageSize}`);
+            // console.log(`分页信息: 总记录数=${totalRecords}, 总页数=${totalPages}, 当前页=${currentPage}, 每页=${pageSize}`);
         }
 
         // 切换页面
@@ -3634,6 +3800,42 @@
             fetchSpeciesOptionsFromServer(speciesType);
         }
 
+        // 检查和清理问题类别数据
+        function validateProblemCategoryData(data) {
+            // console.log('=== 验证问题类别数据 ===');
+            // console.log('原始数据:', data);
+            
+            if (!Array.isArray(data)) {
+                // console.log('数据不是数组格式');
+                return [];
+            }
+            
+            const validData = [];
+            const invalidData = [];
+            
+            data.forEach((item, index) => {
+                if (typeof item === 'string' && item.trim() !== '') {
+                    const trimmedItem = item.trim();
+                    // 检查是否包含可疑的字符或格式
+                    if (trimmedItem.includes('底P') || trimmedItem.includes('连接异常')) {
+                        // console.log(`发现可疑数据 [${index}]:`, trimmedItem);
+                        invalidData.push(trimmedItem);
+                    } else {
+                        validData.push(trimmedItem);
+                    }
+                } else {
+                    // console.log(`发现无效数据 [${index}]:`, item);
+                    invalidData.push(item);
+                }
+            });
+            
+            // console.log('有效数据:', validData);
+            // console.log('无效/可疑数据:', invalidData);
+            // console.log('=== 数据验证完成 ===');
+            
+            return validData;
+        }
+
         // 从服务器获取选项
         function fetchSpeciesOptionsFromServer(speciesType) {
             showLoading();
@@ -3647,14 +3849,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // console.log(data.data)
+                    // console.log('服务器返回的原始数据:', data.data);
+                    
+                    // 验证和清理问题类别数据
+                    const validatedProblemCategory = validateProblemCategoryData(data.data.problemCategory);
+                    
                     // 更新缓存（同时更新所有选项，因为服务器返回的是完整数据）
                     setCachedSpeciesOptions('bigSpecies', data.data.bigSpecies);
                     setCachedSpeciesOptions('smallSpecies', data.data.smallSpecies);
                     setCachedSpeciesOptions('sampleStage', data.data.sampleStage);
                     setCachedSpeciesOptions('fullModel', data.data.fullModel);
                     setCachedSpeciesOptions('version', data.data.version);
-                    setCachedSpeciesOptions('problemCategory', data.data.problemCategory);
+                    setCachedSpeciesOptions('problemCategory', validatedProblemCategory);
                     setCachedSpeciesOptions('tester', data.data.tester);
                     setCachedSpeciesOptions('responsibleDepartment', data.data.responsibleDepartment);
                     setCachedSpeciesOptions('testPlatform', data.data.testPlatform);
@@ -3762,16 +3968,16 @@
 
         // 从配置文件刷新问题类别选项（三级结构）
         function refreshProblemCategoryFromConfig() {
-            console.log('开始从配置文件刷新问题类别...');
-            console.log('检查配置文件函数可用性:');
-            console.log('- getAllProblemCategories:', typeof getAllProblemCategories);
-            console.log('- getLevel1Categories:', typeof getLevel1Categories);
-            console.log('- getLevel2Categories:', typeof getLevel2Categories);
-            console.log('- getLevel3Categories:', typeof getLevel3Categories);
+            // console.log('开始从配置文件刷新问题类别...');
+            // console.log('检查配置文件函数可用性:');
+            // console.log('- getAllProblemCategories:', typeof getAllProblemCategories);
+            // console.log('- getLevel1Categories:', typeof getLevel1Categories);
+            // console.log('- getLevel2Categories:', typeof getLevel2Categories);
+            // console.log('- getLevel3Categories:', typeof getLevel3Categories);
             
             // 清空问题类别缓存，强制从配置文件加载
             speciesCache.problemCategory = [];
-            console.log('已清空问题类别缓存');
+            // console.log('已清空问题类别缓存');
             
             // 检查配置文件函数是否可用
             if (typeof getAllProblemCategories !== 'function') {
@@ -3781,12 +3987,12 @@
             
             // 收集所有选项值用于缓存
             const allOptions = getAllProblemCategories();
-            console.log('从配置文件获取到', allOptions.length, '个问题类别选项');
-            console.log('配置文件选项示例:', allOptions.slice(0, 5));
+            // console.log('从配置文件获取到', allOptions.length, '个问题类别选项');
+            // console.log('配置文件选项示例:', allOptions.slice(0, 5));
             
             // 将配置文件选项保存到缓存
             setCachedSpeciesOptions('problemCategory', allOptions);
-            console.log('配置文件选项已保存到缓存');
+            // console.log('配置文件选项已保存到缓存');
             
             // 重新初始化三级问题类别筛选器
             initProblemCategoryFilter();
@@ -4371,14 +4577,14 @@
                 return;
             }
 
-            console.log('选中的收藏夹项目:', selectedItems);
+            // console.log('选中的收藏夹项目:', selectedItems);
 
             // 合并选中的收藏夹项目的数据
             mergedData = [];
             const idSet = new Set(); // 用于去重
 
             selectedItems.forEach(item => {
-                console.log(`处理收藏夹项目 ${item.id}:`, item.data.length, '条数据');
+                // console.log(`处理收藏夹项目 ${item.id}:`, item.data.length, '条数据');
                 item.data.forEach(problem => {
                     if (!idSet.has(problem.id)) {
                         idSet.add(problem.id);
@@ -4387,7 +4593,7 @@
                 });
             });
 
-            console.log('合并后的数据:', mergedData.length, '条');
+            // console.log('合并后的数据:', mergedData.length, '条');
 
             // 显示合并数据，传递选中的项目数量
             showMergedData(selectedItems.length);
@@ -4400,11 +4606,11 @@
             const totalCount = mergedData.length;
             const uniqueCount = mergedData.length; // 已经去重了
 
-            console.log('显示合并数据:', {
-                selectedCount: selectedCount,
-                totalCount: totalCount,
-                mergedDataLength: mergedData.length
-            });
+            // console.log('显示合并数据:', {
+            //     selectedCount: selectedCount,
+            //     totalCount: totalCount,
+            //     mergedDataLength: mergedData.length
+            // });
 
             // 先隐藏，然后显示，确保刷新
             section.style.display = 'none';
@@ -4438,7 +4644,7 @@
             const tbody = document.getElementById('mergedDataTableBody');
             tbody.innerHTML = '';
 
-            console.log('渲染合并数据表格，数据条数:', mergedData.length);
+            // console.log('渲染合并数据表格，数据条数:', mergedData.length);
 
             if (mergedData.length === 0) {
                 const row = document.createElement('tr');
@@ -4475,7 +4681,7 @@
                 tbody.appendChild(row);
             });
 
-            console.log('合并数据表格渲染完成，实际渲染行数:', tbody.children.length);
+            // console.log('合并数据表格渲染完成，实际渲染行数:', tbody.children.length);
         }
 
         // 导出收藏夹数据
