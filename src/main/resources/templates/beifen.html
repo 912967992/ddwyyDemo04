@@ -249,6 +249,130 @@
       color: #333 !important;
     }
 
+    /* 问题类别输入组样式 */
+    .category-input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .category-select, .category-input {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .category-select:focus, .category-input:focus {
+      border-color: #80bdff;
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .toggle-input-btn {
+      margin-left: 8px;
+      padding: 6px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      color: #495057;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-input-btn:hover {
+      background-color: #e9ecef;
+      border-color: #adb5bd;
+    }
+
+    .toggle-input-btn.active {
+      background-color: #007bff;
+      border-color: #007bff;
+      color: #fff;
+    }
+
+    .category-input {
+      display: none;
+    }
+
+    .category-input.show {
+      display: block;
+    }
+
+    .category-select.hide {
+      display: none;
+    }
+
+    /* 输入框与建议框容器 */
+    .input-with-suggestions {
+      position: relative;
+      flex: 1;
+    }
+
+    /* 建议下拉框样式 */
+    .suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ced4da;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .suggestions-dropdown.show {
+      display: block;
+    }
+
+    .suggestion-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.15s ease-in-out;
+      font-size: 14px;
+    }
+
+    .suggestion-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .suggestion-item.highlighted {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item .suggestion-text {
+      display: block;
+    }
+
+    .suggestion-item .suggestion-hint {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+
+    .suggestion-item.highlighted .suggestion-hint {
+      color: #e3f2fd;
+    }
+
     /* 合并数据展示区域样式 */
     .merged-data-section {
       margin-top: 20px;
@@ -608,15 +732,45 @@
           <label>问题类别:</label>
           <div class="filter-input-group">
             <div class="three-level-selects-vertical">
-              <select id="problemCategoryLevel1Filter">
-                <option value="">全部</option>
-              </select>
-              <select id="problemCategoryLevel2Filter">
-                <option value="">全部</option>
-              </select>
-              <select id="problemCategoryLevel3Filter">
-                <option value="">全部</option>
-              </select>
+              <!-- 一级问题类别 -->
+              <div class="category-input-group">
+                <select id="problemCategoryLevel1Filter" class="category-select">
+                  <option value="">全部</option>
+                </select>
+                <div class="input-with-suggestions">
+                  <input type="text" id="problemCategoryLevel1Input" class="category-input" placeholder="手动输入一级类别" style="display: none;">
+                  <div id="problemCategoryLevel1Suggestions" class="suggestions-dropdown" style="display: none;"></div>
+                </div>
+                <button type="button" class="toggle-input-btn" data-target="problemCategoryLevel1Input" title="切换手动输入">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+              <!-- 二级问题类别 -->
+              <div class="category-input-group">
+                <select id="problemCategoryLevel2Filter" class="category-select">
+                  <option value="">全部</option>
+                </select>
+                <div class="input-with-suggestions">
+                  <input type="text" id="problemCategoryLevel2Input" class="category-input" placeholder="手动输入二级类别" style="display: none;">
+                  <div id="problemCategoryLevel2Suggestions" class="suggestions-dropdown" style="display: none;"></div>
+                </div>
+                <button type="button" class="toggle-input-btn" data-target="problemCategoryLevel2Input" title="切换手动输入">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+              <!-- 三级问题类别 -->
+              <div class="category-input-group">
+                <select id="problemCategoryLevel3Filter" class="category-select">
+                  <option value="">全部</option>
+                </select>
+                <div class="input-with-suggestions">
+                  <input type="text" id="problemCategoryLevel3Input" class="category-input" placeholder="手动输入三级类别" style="display: none;">
+                  <div id="problemCategoryLevel3Suggestions" class="suggestions-dropdown" style="display: none;"></div>
+                </div>
+                <button type="button" class="toggle-input-btn" data-target="problemCategoryLevel3Input" title="切换手动输入">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
             </div>
             <div class="button-group">
               <button id="refreshProblemCategoryBtn" class="btn btn-sm btn-outline-primary" title="从数据库刷新问题类别选项">
@@ -1701,7 +1855,320 @@
       level2Select.setAttribute('data-listener-added', 'true');
     }
 
+    // 初始化手动输入功能
+    initCategoryInputHandlers();
+
+    // 添加全局点击事件，隐藏所有建议框
+    document.addEventListener('click', function(e) {
+      // 检查点击是否在建议框或输入框内
+      if (!e.target.closest('.input-with-suggestions') && !e.target.closest('.toggle-input-btn')) {
+        // 隐藏所有建议框
+        document.querySelectorAll('.suggestions-dropdown').forEach(suggestions => {
+          hideSuggestions(suggestions);
+        });
+      }
+    });
+
     console.log('三级问题类别筛选器初始化完成');
+  }
+
+  // 初始化问题类别手动输入功能
+  function initCategoryInputHandlers() {
+    // 为所有切换按钮添加事件监听器
+    document.querySelectorAll('.toggle-input-btn').forEach(btn => {
+      if (!btn.hasAttribute('data-listener-added')) {
+        btn.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const targetInput = document.getElementById(targetId);
+          const targetSelect = this.parentElement.querySelector('.category-select');
+          const level = targetId.replace('problemCategoryLevel', '').replace('Input', '');
+          const suggestionsId = `problemCategoryLevel${level}Suggestions`;
+          const suggestions = document.getElementById(suggestionsId);
+
+          if (targetInput && targetSelect) {
+            // 切换显示状态
+            if (targetInput.style.display === 'none') {
+              // 显示输入框，隐藏下拉框
+              targetInput.style.display = 'block';
+              targetSelect.style.display = 'none';
+              this.classList.add('active');
+              this.innerHTML = '<i class="fas fa-list"></i>';
+              this.title = '切换下拉选择';
+
+              // 清空输入框和建议框
+              targetInput.value = '';
+              if (suggestions) {
+                hideSuggestions(suggestions);
+              }
+
+              // 聚焦到输入框
+              setTimeout(() => targetInput.focus(), 100);
+            } else {
+              // 显示下拉框，隐藏输入框
+              targetInput.style.display = 'none';
+              targetSelect.style.display = 'block';
+              this.classList.remove('active');
+              this.innerHTML = '<i class="fas fa-edit"></i>';
+              this.title = '切换手动输入';
+
+              // 清空输入框和建议框
+              targetInput.value = '';
+              if (suggestions) {
+                hideSuggestions(suggestions);
+              }
+            }
+          }
+        });
+        btn.setAttribute('data-listener-added', 'true');
+      }
+    });
+
+    // 为所有输入框添加事件监听器
+    document.querySelectorAll('.category-input').forEach(input => {
+      if (!input.hasAttribute('data-listener-added')) {
+        const level = input.id.replace('problemCategoryLevel', '').replace('Input', '');
+        const suggestionsId = `problemCategoryLevel${level}Suggestions`;
+        const suggestions = document.getElementById(suggestionsId);
+
+        // 输入事件 - 实时搜索
+        input.addEventListener('input', function() {
+          searchCategoryOptions(level, this.value);
+        });
+
+        // 键盘事件 - 导航和选择
+        input.addEventListener('keydown', function(e) {
+          handleInputKeydown(e, this, suggestions, level);
+        });
+
+        // 失去焦点事件 - 延迟隐藏建议框
+        input.addEventListener('blur', function() {
+          setTimeout(() => {
+            hideSuggestions(suggestions);
+            const level = this.id.replace('problemCategoryLevel', '').replace('Input', '');
+            if (this.value.trim()) {
+              confirmCategoryInput(level, this.value);
+            }
+          }, 200);
+        });
+
+        // 获得焦点事件 - 重新显示建议
+        input.addEventListener('focus', function() {
+          if (this.value.trim()) {
+            searchCategoryOptions(level, this.value);
+          }
+        });
+
+        input.setAttribute('data-listener-added', 'true');
+      }
+    });
+  }
+
+  // 搜索问题类别选项
+  function searchCategoryOptions(level, searchText) {
+    const levelNum = parseInt(level);
+    const inputId = `problemCategoryLevel${levelNum}Input`;
+    const suggestionsId = `problemCategoryLevel${levelNum}Suggestions`;
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+
+    if (!input || !suggestions) return;
+
+    // 清空之前的建议
+    suggestions.innerHTML = '';
+    suggestions.style.display = 'none';
+
+    if (!searchText.trim()) {
+      return;
+    }
+
+    // 获取所有可用的选项
+    let allOptions = [];
+    if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+      allOptions = speciesCache.problemCategory;
+    } else if (typeof getAllProblemCategories === 'function') {
+      allOptions = getAllProblemCategories();
+    }
+
+    // 根据级别和搜索文本过滤选项
+    const filteredOptions = filterCategoryOptionsByLevel(allOptions, levelNum, searchText);
+
+    if (filteredOptions.length > 0) {
+      // 显示建议下拉框
+      showSuggestions(suggestions, filteredOptions, input, levelNum);
+    }
+  }
+
+  // 根据级别过滤问题类别选项
+  function filterCategoryOptionsByLevel(allOptions, level, searchText) {
+    const results = [];
+    const searchLower = searchText.toLowerCase();
+
+    allOptions.forEach(option => {
+      const parts = option.split('-');
+      if (parts.length >= level) {
+        const targetPart = parts[level - 1];
+        if (targetPart && targetPart.toLowerCase().includes(searchLower)) {
+          results.push({
+            value: targetPart,
+            text: targetPart,
+            fullValue: option
+          });
+        }
+      }
+    });
+
+    return results;
+  }
+
+  // 显示建议下拉框
+  function showSuggestions(suggestions, options, input, level) {
+    // 清空之前的建议
+    suggestions.innerHTML = '';
+
+    // 限制显示的建议数量
+    const maxSuggestions = 10;
+    const limitedOptions = options.slice(0, maxSuggestions);
+
+    limitedOptions.forEach((option, index) => {
+      const suggestionItem = document.createElement('div');
+      suggestionItem.className = 'suggestion-item';
+      suggestionItem.setAttribute('data-index', index);
+      suggestionItem.setAttribute('data-value', option.value);
+      suggestionItem.setAttribute('data-full-value', option.fullValue);
+
+      // 高亮匹配的文本
+      const highlightedText = highlightMatch(option.text, input.value);
+      suggestionItem.innerHTML = `
+                    <span class="suggestion-text">${highlightedText}</span>
+                    ${option.fullValue ? `<span class="suggestion-hint">${option.fullValue}</span>` : ''}
+                `;
+
+      // 点击事件
+      suggestionItem.addEventListener('click', function() {
+        selectSuggestion(input, option.value, level);
+        hideSuggestions(suggestions);
+      });
+
+      suggestions.appendChild(suggestionItem);
+    });
+
+    // 显示建议框
+    suggestions.style.display = 'block';
+    suggestions.classList.add('show');
+  }
+
+  // 高亮匹配的文本
+  function highlightMatch(text, searchText) {
+    if (!searchText) return text;
+
+    const regex = new RegExp(`(${searchText})`, 'gi');
+    return text.replace(regex, '<strong>$1</strong>');
+  }
+
+  // 选择建议项
+  function selectSuggestion(input, value, level) {
+    input.value = value;
+
+    // 触发确认输入
+    confirmCategoryInput(level, value);
+  }
+
+  // 隐藏建议下拉框
+  function hideSuggestions(suggestions) {
+    suggestions.style.display = 'none';
+    suggestions.classList.remove('show');
+    suggestions.innerHTML = '';
+  }
+
+  // 处理输入框键盘事件
+  function handleInputKeydown(e, input, suggestions, level) {
+    const suggestionItems = suggestions.querySelectorAll('.suggestion-item');
+    const highlightedItem = suggestions.querySelector('.suggestion-item.highlighted');
+
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (suggestionItems.length > 0) {
+          if (highlightedItem) {
+            // 移除当前高亮
+            highlightedItem.classList.remove('highlighted');
+            // 高亮下一个项目
+            const nextIndex = parseInt(highlightedItem.getAttribute('data-index')) + 1;
+            if (nextIndex < suggestionItems.length) {
+              suggestionItems[nextIndex].classList.add('highlighted');
+            } else {
+              suggestionItems[0].classList.add('highlighted');
+            }
+          } else {
+            // 高亮第一个项目
+            suggestionItems[0].classList.add('highlighted');
+          }
+        }
+        break;
+
+      case 'ArrowUp':
+        e.preventDefault();
+        if (suggestionItems.length > 0) {
+          if (highlightedItem) {
+            // 移除当前高亮
+            highlightedItem.classList.remove('highlighted');
+            // 高亮上一个项目
+            const prevIndex = parseInt(highlightedItem.getAttribute('data-index')) - 1;
+            if (prevIndex >= 0) {
+              suggestionItems[prevIndex].classList.add('highlighted');
+            } else {
+              suggestionItems[suggestionItems.length - 1].classList.add('highlighted');
+            }
+          } else {
+            // 高亮最后一个项目
+            suggestionItems[suggestionItems.length - 1].classList.add('highlighted');
+          }
+        }
+        break;
+
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedItem) {
+          // 选择高亮的项目
+          const value = highlightedItem.getAttribute('data-value');
+          selectSuggestion(input, value, level);
+          hideSuggestions(suggestions);
+        } else if (input.value.trim()) {
+          // 确认当前输入
+          confirmCategoryInput(level, input.value);
+          hideSuggestions(suggestions);
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        hideSuggestions(suggestions);
+        break;
+    }
+  }
+
+  // 确认手动输入的问题类别
+  function confirmCategoryInput(level, inputValue) {
+    if (!inputValue.trim()) return;
+
+    const levelNum = parseInt(level);
+    const selectId = `problemCategoryLevel${levelNum}Filter`;
+    const select = document.getElementById(selectId);
+
+    if (!select) return;
+
+    // 设置选中的值
+    select.value = inputValue.trim();
+
+    // 触发级联更新
+    if (levelNum === 1) {
+      updateLevel2Options();
+    } else if (levelNum === 2) {
+      updateLevel3Options();
+    }
+
+    // 触发筛选更新
+    applyFilters();
   }
 
   // 从缓存数据中提取一级分类选项
@@ -1799,6 +2266,12 @@
         level2Select.innerHTML = '<option value="">无二级分类</option>';
       }
     }
+
+    // 如果二级输入框是显示状态，清空它
+    const level2Input = document.getElementById('problemCategoryLevel2Input');
+    if (level2Input && level2Input.style.display !== 'none') {
+      level2Input.value = '';
+    }
   }
 
   // 更新三级下拉框选项
@@ -1838,6 +2311,12 @@
         // 没有三级选项，显示提示信息
         level3Select.innerHTML = '<option value="">无三级分类</option>';
       }
+    }
+
+    // 如果三级输入框是显示状态，清空它
+    const level3Input = document.getElementById('problemCategoryLevel3Input');
+    if (level3Input && level3Input.style.display !== 'none') {
+      level3Input.value = '';
     }
   }
 
@@ -2115,9 +2594,25 @@
 
   // 生成问题类别搜索关键字
   function generateProblemCategorySearchKeyword() {
-    const level1 = document.getElementById('problemCategoryLevel1Filter').value;
-    const level2 = document.getElementById('problemCategoryLevel2Filter').value;
-    const level3 = document.getElementById('problemCategoryLevel3Filter').value;
+    // 获取下拉框的值
+    let level1 = document.getElementById('problemCategoryLevel1Filter').value;
+    let level2 = document.getElementById('problemCategoryLevel2Filter').value;
+    let level3 = document.getElementById('problemCategoryLevel3Filter').value;
+
+    // 检查是否有手动输入的值，如果有则优先使用手动输入的值
+    const level1Input = document.getElementById('problemCategoryLevel1Input');
+    const level2Input = document.getElementById('problemCategoryLevel2Input');
+    const level3Input = document.getElementById('problemCategoryLevel3Input');
+
+    if (level1Input && level1Input.style.display !== 'none' && level1Input.value.trim()) {
+      level1 = level1Input.value.trim();
+    }
+    if (level2Input && level2Input.style.display !== 'none' && level2Input.value.trim()) {
+      level2 = level2Input.value.trim();
+    }
+    if (level3Input && level3Input.style.display !== 'none' && level3Input.value.trim()) {
+      level3 = level3Input.value.trim();
+    }
 
     if (typeof generateSearchKeyword === 'function') {
       return generateSearchKeyword(level1, level2, level3);
@@ -2126,13 +2621,7 @@
     // 备用方案：手动生成关键字
     let keyword = '';
     if (level1) {
-      // 从配置中获取一级分类的显示名称
-      if (typeof problemCategories !== 'undefined' && problemCategories[level1]) {
-        keyword = problemCategories[level1].groupName;
-      } else {
-        keyword = level1;
-      }
-
+      keyword = level1;
       if (level2) {
         keyword += '-' + level2;
         if (level3) {
@@ -2210,6 +2699,15 @@
     document.getElementById('problemCategoryLevel1Filter').value = '';
     document.getElementById('problemCategoryLevel2Filter').value = '';
     document.getElementById('problemCategoryLevel3Filter').value = '';
+
+    // 清空手动输入框
+    const level1Input = document.getElementById('problemCategoryLevel1Input');
+    const level2Input = document.getElementById('problemCategoryLevel2Input');
+    const level3Input = document.getElementById('problemCategoryLevel3Input');
+
+    if (level1Input) level1Input.value = '';
+    if (level2Input) level2Input.value = '';
+    if (level3Input) level3Input.value = '';
 
     // 清空二级和三级下拉框选项
     updateLevel2Options();
