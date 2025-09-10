@@ -14,7 +14,7 @@
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
     <!-- 引入问题类别配置 -->
     <script src="/js/problemCategories.js"></script>
-    
+
     <!-- 自定义提示框样式 -->
     <style>
         .custom-toast {
@@ -444,8 +444,11 @@
     <!-- 筛选和操作区域 -->
     <div class="filter-section">
         <div class="filter-container">
-            <!-- 基础筛选 -->
-            <div class="filter-row">
+            <!-- 筛选器主容器（平行布局） -->
+            <div class="filters-main-container">
+                <!-- 基础筛选器（左侧） -->
+                <div class="basic-filters-container">
+                    <div class="filter-row">
                 <div class="filter-group">
                     <label>完整编码:</label>
                     <select id="fullModelFilter">
@@ -491,22 +494,6 @@
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
-                <div class="filter-group">
-                    <label>问题类别:</label>
-                    <div class="filter-input-group">
-                        <select id="problemCategoryFilter">
-                            <option value="">全部</option>
-                        </select>
-                        <div class="button-group">
-                            <button id="refreshProblemCategoryBtn" class="btn btn-sm btn-outline-primary" title="从数据库刷新问题类别选项">
-                                <i class="fas fa-database"></i>
-                            </button>
-                            <button id="refreshProblemCategoryConfigBtn" class="btn btn-sm btn-outline-secondary" title="从配置文件刷新问题类别选项">
-                                <i class="fas fa-file-code"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="filter-row">
@@ -548,23 +535,6 @@
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
-            </div>
-
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>提交时间:</label>
-                    <input type="date" id="startDateFilter">
-                    <span>至</span>
-                    <input type="date" id="endDateFilter">
-                </div>
-                <div class="filter-group">
-                    <label>DQE负责人:</label>
-                    <input type="text" id="dqeFilter" placeholder="输入DQE负责人">
-                </div>
-                <div class="filter-group">
-                    <label>问题描述:</label>
-                    <input type="text" id="problemFilter" placeholder="输入问题关键词">
-                </div>
                 <div class="filter-group">
                     <label>测试平台:</label>
                     <select id="testPlatformFilter">
@@ -577,6 +547,25 @@
             </div>
 
             <div class="filter-row">
+                <div class="filter-group">
+                    <label>提交时间:</label>
+                    <input type="date" id="startDateFilter">
+                    <span>至</span>
+                    <input type="date" id="endDateFilter">
+                </div>
+                <div class="filter-group">
+                    <label>DQE负责人:</label>
+                    <select id="dqeFilter">
+                        <option value="">全部</option>
+                    </select>
+                    <button id="refreshDqeBtn" class="btn btn-sm btn-outline-info" title="刷新DQE负责人选项（从服务器获取最新数据）">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <label>问题描述:</label>
+                    <input type="text" id="problemFilter" placeholder="输入问题关键词">
+                </div>
                 <div class="filter-group">
                     <label>显示设备:</label>
                     <select id="testDeviceFilter">
@@ -591,6 +580,7 @@
                     <input type="text" id="otherDeviceFilter" placeholder="输入其他设备">
                 </div>
             </div>
+
 
             <!-- 操作按钮 -->
             <div class="action-buttons">
@@ -609,6 +599,36 @@
                 <button id="showCartBtn" class="btn btn-info">
                     <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
+            </div>
+                </div>
+
+                <!-- 问题类别筛选器（右侧） -->
+                <div class="problem-category-filter-container">
+                    <div class="filter-group problem-category-group">
+                        <label>问题类别:</label>
+                        <div class="filter-input-group">
+                            <div class="three-level-selects-vertical">
+                                <select id="problemCategoryLevel1Filter">
+                                    <option value="">全部</option>
+                                </select>
+                                <select id="problemCategoryLevel2Filter">
+                                    <option value="">全部</option>
+                                </select>
+                                <select id="problemCategoryLevel3Filter">
+                                    <option value="">全部</option>
+                                </select>
+                            </div>
+                            <div class="button-group">
+                                <button id="refreshProblemCategoryBtn" class="btn btn-sm btn-outline-primary" title="从数据库刷新问题类别选项">
+                                    <i class="fas fa-database"></i>
+                                </button>
+                                <button id="refreshProblemCategoryConfigBtn" class="btn btn-sm btn-outline-secondary" title="从配置文件刷新问题类别选项">
+                                    <i class="fas fa-file-code"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1278,7 +1298,7 @@
                         <span id="cartDetailTime" class="detail-value"></span>
                     </div>
                 </div>
-                
+
                 <div class="cart-detail-table-container">
                     <table id="cartDetailTable" class="data-table">
                         <thead>
@@ -1531,10 +1551,11 @@
                 console.log('版本选项已从缓存加载');
             }
 
-            // 加载问题类别选项
+            // 加载问题类别选项（三级结构）
             if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
-                updateSelectOptions('problemCategoryFilter', speciesCache.problemCategory);
-                console.log('问题类别选项已从缓存加载');
+                // 对于三级结构，我们不需要直接更新下拉框选项
+                // 因为三级结构是通过配置文件动态生成的
+                console.log('问题类别选项已从缓存加载（三级结构）');
             }
 
             // 加载测试人员选项
@@ -1560,6 +1581,12 @@
                 updateSelectOptions('testDeviceFilter', speciesCache.testDevice);
                 console.log('显示设备选项已从缓存加载');
             }
+
+            // 加载DQE负责人选项
+            if (speciesCache.dqe && speciesCache.dqe.length > 0) {
+                updateSelectOptions('dqeFilter', speciesCache.dqe);
+                console.log('DQE负责人选项已从缓存加载');
+            }
         }
 
         function updateCacheStatusDisplay() {
@@ -1584,15 +1611,24 @@
             // 检查用户权限
             checkUserPermission();
 
-            // 初始化问题类别筛选器
-            initProblemCategoryFilter();
-
             // 初始化事件监听器
             initEventListeners();
 
             // 初始化缓存状态显示
             loadCacheFromStorage();
             updateCacheStatusDisplay();
+
+            // 初始化问题类别筛选器（在缓存加载后）
+            initProblemCategoryFilter();
+
+            // 如果问题类别缓存为空或过期，自动从数据库获取
+            if (!speciesCache.problemCategory || speciesCache.problemCategory.length === 0) {
+                console.log('问题类别缓存为空，自动从数据库获取');
+                fetchSpeciesOptionsFromServer('problemCategory');
+            } else {
+                // 如果缓存存在，默认设置为数据库按钮激活（因为缓存数据来自数据库）
+                setProblemCategoryButtonActive('database');
+            }
 
             // 初始化购物车
             loadCartFromStorage();
@@ -1611,42 +1647,198 @@
             loadProblemData();
         });
 
-        // 初始化问题类别筛选器
+        // 初始化问题类别筛选器（三级结构）
         function initProblemCategoryFilter() {
-            // 注释掉原来的配置文件方法，现在使用缓存系统
-            /*
-            const filterSelect = document.getElementById('problemCategoryFilter');
-            if (!filterSelect) return;
-
-            // 清空现有选项（保留"全部"选项）
-            filterSelect.innerHTML = '<option value="">全部</option>';
-
-            // 使用配置文件生成选项
-            if (typeof generateFilterProblemCategorySelect === 'function') {
-                const optionsHtml = generateFilterProblemCategorySelect();
-                // 提取option标签
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = optionsHtml;
-                const options = tempDiv.querySelectorAll('option:not(:first-child)');
-                const optgroups = tempDiv.querySelectorAll('optgroup');
-
-                // 添加optgroup和option
-                optgroups.forEach(optgroup => {
-                    const newOptgroup = document.createElement('optgroup');
-                    newOptgroup.label = optgroup.label;
-                    optgroup.querySelectorAll('option').forEach(option => {
-                        const newOption = document.createElement('option');
-                        newOption.value = option.value;
-                        newOption.textContent = option.textContent;
-                        newOptgroup.appendChild(newOption);
+            // 初始化一级下拉框
+            const level1Select = document.getElementById('problemCategoryLevel1Filter');
+            if (level1Select) {
+                level1Select.innerHTML = '<option value="">全部</option>';
+                
+                // 优先从缓存加载，如果没有缓存则从配置文件加载
+                if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                    // 从缓存数据中提取一级分类
+                    const level1Options = extractLevel1FromCache(speciesCache.problemCategory);
+                    level1Options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        level1Select.appendChild(optionElement);
                     });
-                    filterSelect.appendChild(newOptgroup);
-                });
+                    console.log('问题类别一级选项已从缓存加载，共', level1Options.length, '个选项');
+                } else if (typeof getLevel1Categories === 'function') {
+                    // 从配置文件加载
+                    const level1Options = getLevel1Categories();
+                    level1Options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        level1Select.appendChild(optionElement);
+                    });
+                    console.log('问题类别一级选项已从配置文件加载，共', level1Options.length, '个选项');
+                } else {
+                    console.log('问题类别选项暂时为空，等待数据库数据加载');
+                }
             }
-            */
 
-            // 现在使用缓存系统，在loadOptionsFromCache中处理
-            console.log('问题类别筛选器初始化完成，将使用缓存系统');
+            // 初始化二级和三级下拉框
+            const level2Select = document.getElementById('problemCategoryLevel2Filter');
+            const level3Select = document.getElementById('problemCategoryLevel3Filter');
+            if (level2Select) level2Select.innerHTML = '<option value="">全部</option>';
+            if (level3Select) level3Select.innerHTML = '<option value="">全部</option>';
+
+            // 添加级联事件监听器（避免重复添加）
+            if (level1Select && !level1Select.hasAttribute('data-listener-added')) {
+                level1Select.addEventListener('change', function() {
+                    updateLevel2Options();
+                });
+                level1Select.setAttribute('data-listener-added', 'true');
+            }
+
+            if (level2Select && !level2Select.hasAttribute('data-listener-added')) {
+                level2Select.addEventListener('change', function() {
+                    updateLevel3Options();
+                });
+                level2Select.setAttribute('data-listener-added', 'true');
+            }
+
+            console.log('三级问题类别筛选器初始化完成');
+        }
+
+        // 从缓存数据中提取一级分类选项
+        function extractLevel1FromCache(cachedData) {
+            const level1Set = new Set();
+            cachedData.forEach(item => {
+                if (item && item.includes('-')) {
+                    const parts = item.split('-');
+                    if (parts.length >= 1) {
+                        level1Set.add(parts[0]);
+                    }
+                }
+            });
+            
+            return Array.from(level1Set).map(item => ({
+                value: item,
+                text: item
+            }));
+        }
+
+        // 从缓存数据中提取二级分类选项
+        function extractLevel2FromCache(cachedData, level1) {
+            const level2Set = new Set();
+            cachedData.forEach(item => {
+                if (item && item.startsWith(level1 + '-')) {
+                    const parts = item.split('-');
+                    if (parts.length >= 2 && parts[1] && parts[1].trim() !== '') {
+                        // 确保二级分类不为空
+                        level2Set.add(parts[1]);
+                    }
+                }
+            });
+            
+            return Array.from(level2Set).map(item => ({
+                value: item,
+                text: item
+            }));
+        }
+
+        // 从缓存数据中提取三级分类选项
+        function extractLevel3FromCache(cachedData, level1, level2) {
+            const level3Set = new Set();
+            const prefix = level1 + '-' + level2 + '-';
+            cachedData.forEach(item => {
+                if (item && item.startsWith(prefix)) {
+                    const parts = item.split('-');
+                    if (parts.length >= 3 && parts[2] && parts[2].trim() !== '') {
+                        // 确保三级分类不为空
+                        level3Set.add(parts[2]);
+                    }
+                }
+            });
+            
+            return Array.from(level3Set).map(item => ({
+                value: item,
+                text: item
+            }));
+        }
+
+        // 更新二级下拉框选项
+        function updateLevel2Options() {
+            const level1Select = document.getElementById('problemCategoryLevel1Filter');
+            const level2Select = document.getElementById('problemCategoryLevel2Filter');
+            const level3Select = document.getElementById('problemCategoryLevel3Filter');
+            
+            if (!level1Select || !level2Select || !level3Select) return;
+
+            const selectedLevel1 = level1Select.value;
+            
+            // 清空二级和三级下拉框
+            level2Select.innerHTML = '<option value="">全部</option>';
+            level3Select.innerHTML = '<option value="">全部</option>';
+
+            if (selectedLevel1) {
+                let level2Options = [];
+                
+                // 优先从缓存数据中提取二级分类
+                if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                    level2Options = extractLevel2FromCache(speciesCache.problemCategory, selectedLevel1);
+                } else if (typeof getLevel2Categories === 'function') {
+                    // 从配置文件获取
+                    level2Options = getLevel2Categories(selectedLevel1);
+                }
+                
+                if (level2Options.length > 0) {
+                    // 有二级选项，正常添加
+                    level2Options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        level2Select.appendChild(optionElement);
+                    });
+                } else {
+                    // 没有二级选项，显示提示信息
+                    level2Select.innerHTML = '<option value="">无二级分类</option>';
+                }
+            }
+        }
+
+        // 更新三级下拉框选项
+        function updateLevel3Options() {
+            const level1Select = document.getElementById('problemCategoryLevel1Filter');
+            const level2Select = document.getElementById('problemCategoryLevel2Filter');
+            const level3Select = document.getElementById('problemCategoryLevel3Filter');
+            
+            if (!level1Select || !level2Select || !level3Select) return;
+
+            const selectedLevel1 = level1Select.value;
+            const selectedLevel2 = level2Select.value;
+            
+            // 清空三级下拉框
+            level3Select.innerHTML = '<option value="">全部</option>';
+
+            if (selectedLevel1 && selectedLevel2) {
+                let level3Options = [];
+                
+                // 优先从缓存数据中提取三级分类
+                if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                    level3Options = extractLevel3FromCache(speciesCache.problemCategory, selectedLevel1, selectedLevel2);
+                } else if (typeof getLevel3Categories === 'function') {
+                    // 从配置文件获取
+                    level3Options = getLevel3Categories(selectedLevel1, selectedLevel2);
+                }
+                
+                if (level3Options.length > 0) {
+                    // 有三级选项，正常添加
+                    level3Options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        level3Select.appendChild(optionElement);
+                    });
+                } else {
+                    // 没有三级选项，显示提示信息
+                    level3Select.innerHTML = '<option value="">无三级分类</option>';
+                }
+            }
         }
 
         // 检查用户权限
@@ -1776,6 +1968,11 @@
                 refreshSingleSpeciesOptions('testPlatform');
             });
 
+            // 刷新DQE负责人按钮
+            document.getElementById('refreshDqeBtn').addEventListener('click', function() {
+                refreshSingleSpeciesOptions('dqe');
+            });
+
             // 刷新显示设备按钮
             document.getElementById('refreshTestDeviceBtn').addEventListener('click', function() {
                 refreshSingleSpeciesOptions('testDevice');
@@ -1861,10 +2058,10 @@
             // 提示框事件监听器
             const toast = document.getElementById('customToast');
             const toastClose = document.getElementById('toastClose');
-            
+
             // 点击关闭按钮
             toastClose.addEventListener('click', hideToast);
-            
+
             // 点击提示框外部关闭
             toast.addEventListener('click', function(event) {
                 if (event.target === toast) {
@@ -1889,7 +2086,7 @@
 
             // 使用searchProblems接口，传入空的筛选条件来获取所有数据
             const filters = {};
-            
+
             fetch('/problemLibrary/searchProblems', {
                 method: 'POST',
                 headers: {
@@ -1916,9 +2113,43 @@
             });
         }
 
+        // 生成问题类别搜索关键字
+        function generateProblemCategorySearchKeyword() {
+            const level1 = document.getElementById('problemCategoryLevel1Filter').value;
+            const level2 = document.getElementById('problemCategoryLevel2Filter').value;
+            const level3 = document.getElementById('problemCategoryLevel3Filter').value;
+            
+            if (typeof generateSearchKeyword === 'function') {
+                return generateSearchKeyword(level1, level2, level3);
+            }
+            
+            // 备用方案：手动生成关键字
+            let keyword = '';
+            if (level1) {
+                // 从配置中获取一级分类的显示名称
+                if (typeof problemCategories !== 'undefined' && problemCategories[level1]) {
+                    keyword = problemCategories[level1].groupName;
+                } else {
+                    keyword = level1;
+                }
+                
+                if (level2) {
+                    keyword += '-' + level2;
+                    if (level3) {
+                        keyword += '-' + level3;
+                    }
+                }
+            }
+            
+            return keyword;
+        }
+
         // 搜索问题点
         function searchProblems() {
             showLoading();
+
+            // 生成问题类别搜索关键字
+            const problemCategoryKeyword = generateProblemCategorySearchKeyword();
 
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
@@ -1926,7 +2157,7 @@
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
                 smallSpecies: document.getElementById('smallSpeciesFilter').value,
-                problemCategory: document.getElementById('problemCategoryFilter').value,
+                problemCategory: problemCategoryKeyword,
                 defectLevel: document.getElementById('defectLevelFilter').value,
                 currentStatus: document.getElementById('currentStatusFilter').value,
                 tester: document.getElementById('testerFilter').value,
@@ -1974,7 +2205,15 @@
             document.getElementById('versionFilter').value = '';
             document.getElementById('bigSpeciesFilter').value = '';
             document.getElementById('smallSpeciesFilter').value = '';
-            document.getElementById('problemCategoryFilter').value = '';
+            
+            // 重置三级问题类别筛选器
+            document.getElementById('problemCategoryLevel1Filter').value = '';
+            document.getElementById('problemCategoryLevel2Filter').value = '';
+            document.getElementById('problemCategoryLevel3Filter').value = '';
+            
+            // 清空二级和三级下拉框选项
+            updateLevel2Options();
+            
             document.getElementById('defectLevelFilter').value = '';
             document.getElementById('currentStatusFilter').value = '';
             document.getElementById('testerFilter').value = '';
@@ -2006,7 +2245,7 @@
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
                 smallSpecies: document.getElementById('smallSpeciesFilter').value,
-                problemCategory: document.getElementById('problemCategoryFilter').value,
+                problemCategory: generateProblemCategorySearchKeyword(),
                 defectLevel: document.getElementById('defectLevelFilter').value,
                 currentStatus: document.getElementById('currentStatusFilter').value,
                 tester: document.getElementById('testerFilter').value,
@@ -2103,10 +2342,10 @@
             document.getElementById('detailTestDevice').textContent = problem.test_device || '';
             document.getElementById('detailOtherDevice').textContent = problem.other_device || '';
             document.getElementById('detailProblem').textContent = problem.problem || '';
-            
+
             // 显示问题图片
             displayProblemImages(problem.problem_image_or_video);
-            
+
             document.getElementById('detailProblemCategory').textContent = problem.problemCategory || '';
             document.getElementById('detailDefectLevel').textContent = problem.defect_level || '';
             document.getElementById('detailCurrentStatus').textContent = normalizeStatus(problem.current_status);
@@ -2191,7 +2430,7 @@
             try {
                 // 处理图片路径数据
                 let imageUrls = [];
-                
+
                 // 如果是JSON字符串，尝试解析
                 if (imageData.startsWith('[') || imageData.startsWith('{')) {
                     try {
@@ -2205,7 +2444,7 @@
                         console.warn('解析图片JSON数据失败:', e);
                     }
                 }
-                
+
                 // 如果解析失败或不是JSON，尝试按逗号分割
                 if (imageUrls.length === 0) {
                     imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
@@ -2223,21 +2462,21 @@
                 imageUrls.forEach((imagePath, index) => {
                     const imageItem = document.createElement('div');
                     imageItem.className = 'image-item';
-                    
+
                     const img = document.createElement('img');
-                    
+
                     // 处理图片路径：如果是相对路径，直接使用；如果是绝对路径，也直接使用
                     let imageUrl = imagePath;
-                    
+
                     // 确保路径以/开头（服务器相对路径）
                     if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
                         imageUrl = '/' + imagePath;
                     }
-                    
+
                     img.src = imageUrl;
                     img.alt = `问题图片 ${index + 1}`;
                     img.title = `点击查看大图 - ${imagePath}`;
-                    
+
                     // 添加点击事件，可以放大查看
                     img.addEventListener('click', function() {
                         showImageModal(imageUrl, index + 1, imageUrls.map(path => {
@@ -2247,7 +2486,7 @@
                             return path;
                         }));
                     });
-                    
+
                     // 添加错误处理
                     img.addEventListener('error', function() {
                         this.style.display = 'none';
@@ -2256,7 +2495,7 @@
                         errorDiv.textContent = `图片加载失败: ${imagePath}`;
                         imageItem.appendChild(errorDiv);
                     });
-                    
+
                     imageItem.appendChild(img);
                     gallery.appendChild(imageItem);
                 });
@@ -2294,13 +2533,13 @@
                     </div>
                 </div>
             `;
-            
+
             document.body.appendChild(modal);
             modal.style.display = 'block';
-            
+
             // 初始化图片缩放功能
             initImageZoom(modal);
-            
+
             // 点击模态框外部关闭
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
@@ -2320,10 +2559,10 @@
             // 鼠标滚轮缩放
             img.addEventListener('wheel', function(e) {
                 e.preventDefault();
-                
+
                 const delta = e.deltaY > 0 ? -0.1 : 0.1;
                 const newScale = Math.max(0.1, Math.min(5, scale + delta));
-                
+
                 if (newScale !== scale) {
                     scale = newScale;
                     updateImageTransform();
@@ -2333,7 +2572,7 @@
             // 鼠标点击切换缩放
             img.addEventListener('click', function(e) {
                 e.stopPropagation();
-                
+
                 if (scale === 1) {
                     scale = 2;
                     img.style.cursor = 'zoom-out';
@@ -2343,7 +2582,7 @@
                     translateY = 0;
                     img.style.cursor = 'zoom-in';
                 }
-                
+
                 updateImageTransform();
             });
 
@@ -2407,27 +2646,27 @@
         // 切换图片
         function switchImage(newIndex, totalCount) {
             if (newIndex < 0 || newIndex >= totalCount) return;
-            
+
             const modal = document.querySelector('.modal[style*="z-index: 10001"]');
             if (modal) {
                 const img = modal.querySelector('#modalImage');
                 const allUrls = Array.from(document.querySelectorAll('.image-item img')).map(img => img.src);
                 img.src = allUrls[newIndex];
-                
+
                 // 重置缩放状态
                 img.style.transform = 'scale(1) translate(0px, 0px)';
                 img.style.cursor = 'zoom-in';
-                
+
                 // 更新标题
                 const title = modal.querySelector('h2');
                 title.textContent = `问题图片查看 (${newIndex + 1}/${totalCount})`;
-                
+
                 // 更新按钮状态
                 const prevBtn = modal.querySelector('button[onclick*="上一张"]');
                 const nextBtn = modal.querySelector('button[onclick*="下一张"]');
                 if (prevBtn) prevBtn.disabled = newIndex <= 0;
                 if (nextBtn) nextBtn.disabled = newIndex >= totalCount - 1;
-                
+
                 // 重新初始化缩放功能
                 initImageZoom(modal);
             }
@@ -2453,12 +2692,12 @@
             document.getElementById('editDefectLevel').value = problem.defect_level || '';
             document.getElementById('editCurrentStatus').value = normalizeStatus(problem.current_status);
             document.getElementById('editProblem').value = problem.problem || '';
-            
+
             // 初始化问题图片字段
             const imageField = document.getElementById('editProblemImage');
             imageField.value = problem.problem_image_or_video || '';
             updateImagePreview();
-            
+
             document.getElementById('editReproductionMethod').value = problem.reproduction_method || '';
             document.getElementById('editRecoveryMethod').value = problem.recovery_method || '';
             document.getElementById('editReproductionProbability').value = problem.reproduction_probability || '';
@@ -2478,21 +2717,21 @@
         function updateImagePreview() {
             const imageField = document.getElementById('editProblemImage');
             const previewContainer = document.getElementById('editImagePreview');
-            
+
             if (!imageField || !previewContainer) return;
-            
+
             const imageData = imageField.value.trim();
             previewContainer.innerHTML = '';
-            
+
             if (!imageData) {
                 previewContainer.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无图片预览</div>';
                 return;
             }
-            
+
             try {
                 // 解析图片路径
                 let imageUrls = [];
-                
+
                 // 如果是JSON字符串，尝试解析
                 if (imageData.startsWith('[') || imageData.startsWith('{')) {
                     try {
@@ -2506,37 +2745,37 @@
                         console.warn('解析图片JSON数据失败:', e);
                     }
                 }
-                
+
                 // 如果解析失败或不是JSON，尝试按逗号分割
                 if (imageUrls.length === 0) {
                     imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
                 }
-                
+
                 if (imageUrls.length === 0) {
                     previewContainer.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无有效图片路径</div>';
                     return;
                 }
-                
+
                 // 创建预览画廊
                 const gallery = document.createElement('div');
                 gallery.className = 'preview-gallery';
-                
+
                 imageUrls.forEach((imagePath, index) => {
                     const previewItem = document.createElement('div');
                     previewItem.className = 'preview-item';
-                    
+
                     const img = document.createElement('img');
                     let imageUrl = imagePath;
-                    
+
                     // 确保路径以/开头（服务器相对路径）
                     if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
                         imageUrl = '/' + imagePath;
                     }
-                    
+
                     img.src = imageUrl;
                     img.alt = `预览图片 ${index + 1}`;
                     img.title = imagePath;
-                    
+
                     // 添加点击事件，可以放大查看
                     img.addEventListener('click', function() {
                         showImageModal(imageUrl, index + 1, imageUrls.map(path => {
@@ -2546,7 +2785,7 @@
                             return path;
                         }));
                     });
-                    
+
                     // 添加错误处理
                     img.addEventListener('error', function() {
                         this.style.display = 'none';
@@ -2557,7 +2796,7 @@
                         errorDiv.textContent = '加载失败';
                         previewItem.appendChild(errorDiv);
                     });
-                    
+
                     // 添加删除按钮
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-btn';
@@ -2567,12 +2806,12 @@
                         e.stopPropagation();
                         removeImageFromEdit(index);
                     });
-                    
+
                     previewItem.appendChild(img);
                     previewItem.appendChild(removeBtn);
                     gallery.appendChild(previewItem);
                 });
-                
+
                 previewContainer.appendChild(gallery);
             } catch (error) {
                 console.error('处理图片预览时发生错误:', error);
@@ -2584,12 +2823,12 @@
         function removeImageFromEdit(index) {
             const imageField = document.getElementById('editProblemImage');
             const imageData = imageField.value.trim();
-            
+
             if (!imageData) return;
-            
+
             try {
                 let imageUrls = [];
-                
+
                 // 解析图片路径
                 if (imageData.startsWith('[') || imageData.startsWith('{')) {
                     try {
@@ -2603,18 +2842,18 @@
                         console.warn('解析图片JSON数据失败:', e);
                     }
                 }
-                
+
                 if (imageUrls.length === 0) {
                     imageUrls = imageData.split(',').map(url => url.trim()).filter(url => url.length > 0);
                 }
-                
+
                 // 删除指定索引的图片
                 if (index >= 0 && index < imageUrls.length) {
                     imageUrls.splice(index, 1);
-                    
+
                     // 更新字段值
                     imageField.value = imageUrls.join(',');
-                    
+
                     // 更新预览
                     updateImagePreview();
                 }
@@ -2922,6 +3161,7 @@
                     setCachedSpeciesOptions('responsibleDepartment', data.data.responsibleDepartment);
                     setCachedSpeciesOptions('testPlatform', data.data.testPlatform);
                     setCachedSpeciesOptions('testDevice', data.data.testDevice);
+                    setCachedSpeciesOptions('dqe', data.data.dqe);
 
                     // 更新对应的下拉框
                     if (speciesType === 'bigSpecies') {
@@ -2940,8 +3180,11 @@
                         updateSelectOptions('versionFilter', data.data.version);
                         showToast('版本选项已刷新并缓存', 'success');
                     } else if (speciesType === 'problemCategory') {
-                        updateSelectOptions('problemCategoryFilter', data.data.problemCategory);
-                        showToast('问题类别选项已刷新并缓存', 'success');
+                        // 重新初始化三级问题类别筛选器
+                        initProblemCategoryFilter();
+                        // 设置数据库按钮为激活状态
+                        setProblemCategoryButtonActive('database');
+                        showToast('问题类别选项已从数据库刷新并缓存', 'success');
                     } else if (speciesType === 'tester') {
                         updateSelectOptions('testerFilter', data.data.tester);
                         showToast('测试人员选项已刷新并缓存', 'success');
@@ -2954,6 +3197,9 @@
                     } else if (speciesType === 'testDevice') {
                         updateSelectOptions('testDeviceFilter', data.data.testDevice);
                         showToast('显示设备选项已刷新并缓存', 'success');
+                    } else if (speciesType === 'dqe') {
+                        updateSelectOptions('dqeFilter', data.data.dqe);
+                        showToast('DQE负责人选项已刷新并缓存', 'success');
                     }
                 } else {
                     showToast('刷新失败: ' + data.message, 'error');
@@ -2996,54 +3242,61 @@
             }
         }
 
-        // 从配置文件刷新问题类别选项
-        function refreshProblemCategoryFromConfig() {
-            const filterSelect = document.getElementById('problemCategoryFilter');
-            if (!filterSelect) return;
-
-            // 保存当前选中的值
-            const currentValue = filterSelect.value;
-
-            // 清空现有选项（保留"全部"选项）
-            filterSelect.innerHTML = '<option value="">全部</option>';
-
-            // 使用配置文件生成选项
-            if (typeof generateFilterProblemCategorySelect === 'function') {
-                const optionsHtml = generateFilterProblemCategorySelect();
-                // 提取option标签
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = optionsHtml;
-                const optgroups = tempDiv.querySelectorAll('optgroup');
-
-                // 收集所有选项值用于缓存
-                const allOptions = [];
-
-                // 添加optgroup和option
-                optgroups.forEach(optgroup => {
-                    const newOptgroup = document.createElement('optgroup');
-                    newOptgroup.label = optgroup.label;
-                    optgroup.querySelectorAll('option').forEach(option => {
-                        const newOption = document.createElement('option');
-                        newOption.value = option.value;
-                        newOption.textContent = option.textContent;
-                        newOptgroup.appendChild(newOption);
-                        allOptions.push(option.value);
-                    });
-                    filterSelect.appendChild(newOptgroup);
-                });
-
-                // 将配置文件选项保存到缓存
-                setCachedSpeciesOptions('problemCategory', allOptions);
-
-                // 尝试恢复之前选中的值
-                if (currentValue && Array.from(filterSelect.options).some(option => option.value === currentValue)) {
-                    filterSelect.value = currentValue;
-                }
-
-                alert('问题类别选项已从配置文件刷新并缓存');
-            } else {
-                alert('配置文件函数不可用，请检查problemCategories.js是否正确加载');
+        // 设置问题类别按钮激活状态
+        function setProblemCategoryButtonActive(source) {
+            const dbBtn = document.getElementById('refreshProblemCategoryBtn');
+            const configBtn = document.getElementById('refreshProblemCategoryConfigBtn');
+            
+            if (source === 'database') {
+                // 数据库按钮激活
+                dbBtn.classList.remove('btn-outline-primary');
+                dbBtn.classList.add('btn-primary');
+                configBtn.classList.remove('btn-secondary');
+                configBtn.classList.add('btn-outline-secondary');
+            } else if (source === 'config') {
+                // 配置文件按钮激活
+                configBtn.classList.remove('btn-outline-secondary');
+                configBtn.classList.add('btn-secondary');
+                dbBtn.classList.remove('btn-primary');
+                dbBtn.classList.add('btn-outline-primary');
             }
+        }
+
+        // 从配置文件刷新问题类别选项（三级结构）
+        function refreshProblemCategoryFromConfig() {
+            console.log('开始从配置文件刷新问题类别...');
+            console.log('检查配置文件函数可用性:');
+            console.log('- getAllProblemCategories:', typeof getAllProblemCategories);
+            console.log('- getLevel1Categories:', typeof getLevel1Categories);
+            console.log('- getLevel2Categories:', typeof getLevel2Categories);
+            console.log('- getLevel3Categories:', typeof getLevel3Categories);
+            
+            // 清空问题类别缓存，强制从配置文件加载
+            speciesCache.problemCategory = [];
+            console.log('已清空问题类别缓存');
+            
+            // 检查配置文件函数是否可用
+            if (typeof getAllProblemCategories !== 'function') {
+                showToast('配置文件函数不可用，请检查problemCategories.js是否正确加载', 'error');
+                return;
+            }
+            
+            // 收集所有选项值用于缓存
+            const allOptions = getAllProblemCategories();
+            console.log('从配置文件获取到', allOptions.length, '个问题类别选项');
+            console.log('配置文件选项示例:', allOptions.slice(0, 5));
+            
+            // 将配置文件选项保存到缓存
+            setCachedSpeciesOptions('problemCategory', allOptions);
+            console.log('配置文件选项已保存到缓存');
+            
+            // 重新初始化三级问题类别筛选器
+            initProblemCategoryFilter();
+            
+            // 设置配置文件按钮为激活状态
+            setProblemCategoryButtonActive('config');
+            
+            showToast('问题类别选项已从配置文件刷新并缓存，共' + allOptions.length + '个选项', 'success');
         }
 
         // 进入编辑模式
@@ -3232,10 +3485,10 @@
             const toast = document.getElementById('customToast');
             const messageEl = document.getElementById('toastMessage');
             const iconEl = toast.querySelector('.toast-icon i');
-            
+
             // 设置消息内容
             messageEl.textContent = message;
-            
+
             // 设置图标和样式
             toast.className = 'custom-toast ' + type;
             switch(type) {
@@ -3252,10 +3505,10 @@
                     iconEl.className = 'fas fa-info-circle';
                     break;
             }
-            
+
             // 显示提示框
             toast.classList.add('show');
-            
+
             // 自动隐藏
             if (duration > 0) {
                 setTimeout(() => {
@@ -3410,7 +3663,7 @@
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
                 smallSpecies: document.getElementById('smallSpeciesFilter').value,
-                problemCategory: document.getElementById('problemCategoryFilter').value,
+                problemCategory: generateProblemCategorySearchKeyword(),
                 defectLevel: document.getElementById('defectLevelFilter').value,
                 currentStatus: document.getElementById('currentStatusFilter').value,
                 tester: document.getElementById('testerFilter').value,
@@ -3493,7 +3746,7 @@
         function toggleSelectAllCartItems() {
             const selectAllCheckbox = document.getElementById('selectAllCartItems');
             const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
-            
+
             itemCheckboxes.forEach(checkbox => {
                 checkbox.checked = selectAllCheckbox.checked;
             });
@@ -3504,7 +3757,7 @@
             const selectAllCheckbox = document.getElementById('selectAllCartItems');
             const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
             const checkedCount = document.querySelectorAll('.cart-item-checkbox:checked').length;
-            
+
             if (checkedCount === 0) {
                 selectAllCheckbox.checked = false;
                 selectAllCheckbox.indeterminate = false;
@@ -3614,7 +3867,7 @@
         // 合并收藏夹数据
         function mergeCartData() {
             const selectedItems = getSelectedCartItems();
-            
+
             if (selectedItems.length === 0) {
                 showToast('请先选择要合并的收藏夹项目！', 'warning');
                 return;
@@ -3657,7 +3910,7 @@
 
             // 先隐藏，然后显示，确保刷新
             section.style.display = 'none';
-            
+
             // 更新统计信息，显示选中的项目数量
             const statsElement = document.querySelector('.merged-stats');
             if (statsElement) {
@@ -3730,7 +3983,7 @@
         // 导出收藏夹数据
         function exportCartData() {
             const selectedItems = getSelectedCartItems();
-            
+
             if (selectedItems.length === 0) {
                 showToast('请先选择要导出的收藏夹项目！', 'warning');
                 return;

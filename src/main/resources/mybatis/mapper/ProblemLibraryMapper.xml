@@ -136,7 +136,7 @@
             AND s.small_species LIKE CONCAT('%', #{filters.smallSpecies}, '%')
         </if>
         <if test="filters.problemCategory != null and filters.problemCategory != ''">
-            AND t.problemCategory = #{filters.problemCategory}
+            AND t.problemCategory LIKE CONCAT('%', #{filters.problemCategory}, '%')
         </if>
         <if test="filters.defectLevel != null and filters.defectLevel != ''">
             AND t.defect_level = #{filters.defectLevel}
@@ -323,7 +323,7 @@
         LIMIT 1
     </select>
 
-    <!-- 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备选项（只获取最新版本） -->
+    <!-- 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备DQE负责人选项（只获取最新版本） -->
     <select id="getSpeciesOptions" resultType="map">
         SELECT 
             (SELECT GROUP_CONCAT(DISTINCT COALESCE(s.big_species, '空值') ORDER BY s.big_species SEPARATOR ',') 
@@ -406,7 +406,15 @@
                  SELECT sample_id, MAX(history_id) as max_history_id
                  FROM test_issues
                  GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as testDevice
+             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as testDevice,
+            (SELECT GROUP_CONCAT(DISTINCT COALESCE(s.sample_DQE, '空值') ORDER BY s.sample_DQE SEPARATOR ',') 
+             FROM samples s
+             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+             INNER JOIN (
+                 SELECT sample_id, MAX(history_id) as max_history_id
+                 FROM test_issues
+                 GROUP BY sample_id
+             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as dqe
     </select>
 
 </mapper>

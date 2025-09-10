@@ -62,17 +62,19 @@ body {
 
 .filter-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-wrap: nowrap;
+    gap: 12px;
     margin-bottom: 15px;
     align-items: end;
+    justify-content: space-between;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 140px;
     flex: 1;
+    max-width: 200px;
 }
 
 .filter-group label {
@@ -84,24 +86,45 @@ body {
 
 .filter-group input,
 .filter-group select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 10px 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-group input:focus,
 .filter-group select:focus {
     outline: none;
-    border-color: #2ba245;
-    box-shadow: 0 0 0 2px rgba(43, 162, 69, 0.25);
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.filter-group input:hover,
+.filter-group select:hover {
+    border-color: #adb5bd;
 }
 
 .filter-group span {
-    margin: 0 5px;
-    font-weight: bold;
-    color: #666;
+    margin: 0 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+    align-self: center;
+}
+
+/* 日期输入框特殊样式 */
+.filter-group input[type="date"] {
+    min-width: 140px;
+    max-width: 160px;
+}
+
+/* 文本输入框样式 */
+.filter-group input[type="text"] {
+    min-width: 150px;
 }
 
 /* 问题类别特殊布局 */
@@ -111,28 +134,205 @@ body {
     gap: 8px;
 }
 
+/* 筛选器主容器（水平铺平布局） */
+.filters-main-container {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+
+/* 问题类别筛选器独立容器 */
+.problem-category-filter-container {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 300px; /* 固定宽度300px */
+    min-height: 200px;
+}
+
+/* 基础筛选器容器 */
+.basic-filters-container {
+    flex: 1; /* 占据剩余空间，约为问题类别容器的2倍 */
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.basic-filters-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #28a745, #17a2b8, #ffc107, #6f42c1);
+}
+
+.problem-category-filter-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #007bff, #28a745, #ffc107, #dc3545);
+}
+
+.problem-category-group {
+    margin: 0;
+    min-width: auto;
+    flex: none;
+}
+
+.problem-category-group label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 15px;
+    display: block;
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* 三级问题类别下拉框布局（水平排列） */
+.filter-input-group .three-level-selects {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.filter-input-group .three-level-selects select {
+    flex: 1;
+    min-width: 140px;
+    max-width: 220px;
+    padding: 10px 12px;
+    border: 2px solid #ced4da;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-input-group .three-level-selects select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.filter-input-group .three-level-selects select:first-child {
+    min-width: 160px;
+    border-color: #28a745;
+}
+
+.filter-input-group .three-level-selects select:nth-child(2) {
+    border-color: #ffc107;
+}
+
+.filter-input-group .three-level-selects select:last-child {
+    min-width: 120px;
+    border-color: #dc3545;
+}
+
+/* 三级问题类别下拉框布局（垂直排列） */
+.filter-input-group .three-level-selects-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.filter-input-group .three-level-selects-vertical select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ced4da;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+    min-height: 45px;
+}
+
+.filter-input-group .three-level-selects-vertical select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.filter-input-group .three-level-selects-vertical select:first-child {
+    border-color: #28a745;
+}
+
+.filter-input-group .three-level-selects-vertical select:nth-child(2) {
+    border-color: #ffc107;
+}
+
+.filter-input-group .three-level-selects-vertical select:last-child {
+    border-color: #dc3545;
+}
+
+/* 问题类别按钮组样式 */
+.problem-category-group .button-group {
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.problem-category-group .button-group .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 8px;
+    min-width: 50px;
+    height: 40px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.problem-category-group .button-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 .button-group {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     justify-content: flex-start;
+    margin-top: 8px;
 }
 
 .button-group .btn {
-    padding: 6px 10px;
+    padding: 8px 12px;
     font-size: 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.3s ease;
-    border-width: 1px;
-    min-width: 32px;
-    height: 32px;
+    border-width: 2px;
+    min-width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 500;
 }
 
 .button-group .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.button-group .btn:active {
+    transform: translateY(0);
 }
 
 .button-group .btn-outline-primary {
@@ -772,6 +972,20 @@ body {
     
     .filter-group {
         min-width: 100%;
+        max-width: 100%;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .button-group .btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-width: 32px;
+        height: 32px;
     }
     
     .button-group {
@@ -787,6 +1001,61 @@ body {
     
     .action-buttons {
         justify-content: center;
+    }
+    
+    /* 筛选器主容器响应式设计 */
+    .filters-main-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .problem-category-filter-container {
+        flex: none;
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 0;
+    }
+    
+    .basic-filters-container {
+        flex: none;
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .filter-input-group .three-level-selects {
+        gap: 8px;
+    }
+    
+    .filter-input-group .three-level-selects select {
+        min-width: 120px;
+        max-width: 180px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .filter-input-group .three-level-selects select:first-child {
+        min-width: 140px;
+    }
+    
+    .filter-input-group .three-level-selects select:last-child {
+        min-width: 100px;
+    }
+    
+    /* 垂直排列的响应式设计 */
+    .filter-input-group .three-level-selects-vertical {
+        gap: 8px;
+    }
+    
+    .filter-input-group .three-level-selects-vertical select {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .problem-category-group .button-group .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        min-width: 36px;
+        height: 32px;
     }
     
     .stats-container {

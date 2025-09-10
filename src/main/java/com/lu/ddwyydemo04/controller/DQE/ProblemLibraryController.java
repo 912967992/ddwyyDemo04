@@ -59,6 +59,7 @@ public class ProblemLibraryController {
     public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> filters) {
         try {
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
+            System.out.println("filters:1"+filters);
             Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
 
             Map<String, Object> response = new HashMap<>();

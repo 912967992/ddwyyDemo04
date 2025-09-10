@@ -140,8 +140,8 @@ public class ProblemLibraryService {
     }
 
     /**
-     * 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备选项
-     * @return 包含大类、小类、样品阶段、完整编码、版本、问题类别、测试人员、责任部门、测试平台和显示设备选项的Map
+     * 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备DQE负责人选项
+     * @return 包含大类、小类、样品阶段、完整编码、版本、问题类别、测试人员、责任部门、测试平台、显示设备和DQE负责人选项的Map
      */
     public Map<String, List<String>> getSpeciesOptions() {
         Map<String, Object> rawData = problemLibraryDao.getSpeciesOptions();
@@ -245,6 +245,19 @@ public class ProblemLibraryService {
             result.put("testDevice", testDeviceList);
         } else {
             result.put("testDevice", new java.util.ArrayList<>());
+        }
+        
+        // 处理DQE负责人选项
+        String dqeStr = (String) rawData.get("dqe");
+        if (dqeStr != null && !dqeStr.isEmpty()) {
+            List<String> dqeList = java.util.Arrays.asList(dqeStr.split(","));
+            // 将"空值"转换为空字符串，用于前端显示和筛选
+            dqeList = dqeList.stream()
+                .map(value -> "空值".equals(value) ? "" : value)
+                .collect(java.util.stream.Collectors.toList());
+            result.put("dqe", dqeList);
+        } else {
+            result.put("dqe", new java.util.ArrayList<>());
         }
         
         return result;
