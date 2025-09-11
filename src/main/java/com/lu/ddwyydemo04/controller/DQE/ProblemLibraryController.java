@@ -26,31 +26,7 @@ public class ProblemLibraryController {
     @Autowired
     private ProblemLibraryService problemLibraryService;
 
-    /**
-     * 获取所有问题点
-     */
-    @GetMapping("/getProblems")
-    public ResponseEntity<Map<String, Object>> getProblems() {
-        try {
-            List<TestIssues> problems = problemLibraryService.getAllProblems();
-            Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", problems);
-            response.put("total", stats.get("total"));
-            response.put("open", stats.get("open"));
-            response.put("inProgress", stats.get("inProgress"));
-            response.put("resolved", stats.get("resolved"));
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "获取问题点数据失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
 
     /**
      * 搜索问题点
@@ -59,7 +35,7 @@ public class ProblemLibraryController {
     public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> filters) {
         try {
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
-            System.out.println("filters:1"+filters);
+//            System.out.println("filters:1"+filters);
             Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
 
             Map<String, Object> response = new HashMap<>();

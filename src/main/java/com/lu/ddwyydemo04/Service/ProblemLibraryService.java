@@ -16,13 +16,6 @@ public class ProblemLibraryService {
     @Autowired
     private ProblemLibraryDao problemLibraryDao;
 
-    /**
-     * 获取所有问题点
-     * @return 问题点列表
-     */
-    public List<TestIssues> getAllProblems() {
-        return problemLibraryDao.getAllProblems();
-    }
 
     /**
      * 根据条件搜索问题点
@@ -71,14 +64,7 @@ public class ProblemLibraryService {
         return problemLibraryDao.getProblemById(id);
     }
 
-    /**
-     * 统计问题点数量
-     * @param filters 筛选条件
-     * @return 数量
-     */
-    public int countProblems(Map<String, Object> filters) {
-        return problemLibraryDao.countProblems(filters);
-    }
+
 
     /**
      * 获取问题点统计信息

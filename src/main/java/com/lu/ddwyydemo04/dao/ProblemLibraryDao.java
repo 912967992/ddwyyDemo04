@@ -10,11 +10,6 @@ import java.util.Map;
 @Repository
 public interface ProblemLibraryDao {
 
-    /**
-     * 获取所有问题点
-     * @return 问题点列表
-     */
-    List<TestIssues> getAllProblems();
 
     /**
      * 根据条件搜索问题点
@@ -37,12 +32,7 @@ public interface ProblemLibraryDao {
      */
     TestIssues getProblemById(@Param("id") Long id);
 
-    /**
-     * 统计问题点数量
-     * @param filters 筛选条件
-     * @return 数量
-     */
-    int countProblems(@Param("filters") Map<String, Object> filters);
+
 
     /**
      * 获取指定sample_id的历史版本

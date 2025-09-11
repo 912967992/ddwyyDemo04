@@ -2,65 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lu.ddwyydemo04.dao.ProblemLibraryDao">
 
-    <!-- 获取所有问题点（只显示最新版本，history_id最大的） -->
-    <select id="getAllProblems" resultType="TestIssues">
-        SELECT 
-            t.id,
-            s.full_model,
-            s.big_species,
-            s.small_species,
-            s.sample_category as sample_stage,
-            s.version,
-            t.chip_solution,
-            t.test_platform,
-            t.test_device,
-            t.other_device,
-            t.problem,
-            t.problemCategory,
-            t.problem_image_or_video,
-            t.problem_time,
-            t.reproduction_method,
-            t.recovery_method,
-            t.reproduction_probability,
-            t.defect_level,
-            t.current_status,
-            t.comparison_with_previous,
-            t.tester,
-            t.dqe_and_development_confirm,
-            t.improvement_plan,
-            t.responsible_person,
-            t.post_improvement_risk,
-            t.next_version_regression_test,
-            t.remark,
-            s.finish_time as created_at,
-            t.history_id,
-            t.sample_id,
-            t.created_by,
-            t.dqe_confirm,
-            t.dqe_review_at,
-            t.dqe,
-            t.rd_confirm,
-            t.rd_review_at,
-            t.rd,
-            t.modifier,
-            t.modify_at,
-            t.responsibleDepartment,
-            t.sku,
-            t.green_union_dqe,
-            t.green_union_rd,
-            t.solution_provider,
-            t.supplier,
-            t.review_conclusion,
-            t.test_Overseas
-        FROM test_issues t
-        INNER JOIN samples s ON t.sample_id = s.sample_id
-        INNER JOIN (
-            SELECT sample_id, MAX(history_id) as max_history_id
-            FROM test_issues
-            GROUP BY sample_id
-        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
-        ORDER BY s.finish_time DESC
-    </select>
 
     <!-- 根据条件搜索问题点（只显示最新版本，history_id最大的） -->
     <select id="searchProblems" resultType="TestIssues" parameterType="map">
@@ -235,78 +176,6 @@
         SELECT * FROM test_issues WHERE id = #{id}
     </select>
 
-    <!-- 统计问题点数量 -->
-    <select id="countProblems" resultType="int" parameterType="map">
-        SELECT COUNT(DISTINCT t.sample_id) FROM test_issues t
-        INNER JOIN samples s ON t.sample_id = s.sample_id
-        INNER JOIN (
-            SELECT sample_id, MAX(history_id) as max_history_id
-            FROM test_issues
-            GROUP BY sample_id
-        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
-        WHERE 1=1
-        <if test="filters.fullModel != null and filters.fullModel != ''">
-            AND s.full_model LIKE CONCAT('%', #{filters.fullModel}, '%')
-        </if>
-        <if test="filters.sampleStage != null and filters.sampleStage != ''">
-            AND LOWER(s.sample_category) LIKE CONCAT('%', LOWER(#{filters.sampleStage}), '%')
-        </if>
-        <if test="filters.version != null and filters.version != ''">
-            AND s.version LIKE CONCAT('%', #{filters.version}, '%')
-        </if>
-        <if test="filters.bigSpecies != null and filters.bigSpecies != ''">
-            AND s.big_species LIKE CONCAT('%', #{filters.bigSpecies}, '%')
-        </if>
-        <if test="filters.smallSpecies != null and filters.smallSpecies != ''">
-            AND s.small_species LIKE CONCAT('%', #{filters.smallSpecies}, '%')
-        </if>
-        <if test="filters.problemCategory != null and filters.problemCategory != ''">
-            AND t.problemCategory = #{filters.problemCategory}
-        </if>
-        <if test="filters.defectLevel != null and filters.defectLevel != ''">
-            AND t.defect_level = #{filters.defectLevel}
-        </if>
-        <if test="filters.currentStatus != null and filters.currentStatus != ''">
-            <choose>
-                <when test="filters.currentStatusCompatible != null and filters.currentStatusCompatible != ''">
-                    AND t.current_status IN 
-                    <foreach item="status" collection="filters.currentStatusCompatible.split(',')" open="(" separator="," close=")">
-                        #{status}
-                    </foreach>
-                </when>
-                <otherwise>
-                    AND t.current_status = #{filters.currentStatus}
-                </otherwise>
-            </choose>
-        </if>
-        <if test="filters.tester != null and filters.tester != ''">
-            AND t.tester LIKE CONCAT('%', #{filters.tester}, '%')
-        </if>
-        <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
-            AND t.responsibleDepartment = #{filters.responsibleDepartment}
-        </if>
-        <if test="filters.dqe != null and filters.dqe != ''">
-            AND t.dqe LIKE CONCAT('%', #{filters.dqe}, '%')
-        </if>
-        <if test="filters.problem != null and filters.problem != ''">
-            AND t.problem LIKE CONCAT('%', #{filters.problem}, '%')
-        </if>
-        <if test="filters.testPlatform != null and filters.testPlatform != ''">
-            AND t.test_platform LIKE CONCAT('%', #{filters.testPlatform}, '%')
-        </if>
-        <if test="filters.testDevice != null and filters.testDevice != ''">
-            AND t.test_device LIKE CONCAT('%', #{filters.testDevice}, '%')
-        </if>
-        <if test="filters.otherDevice != null and filters.otherDevice != ''">
-            AND t.other_device LIKE CONCAT('%', #{filters.otherDevice}, '%')
-        </if>
-        <if test="filters.startDate != null and filters.startDate != ''">
-            AND s.finish_time >= #{filters.startDate}
-        </if>
-        <if test="filters.endDate != null and filters.endDate != ''">
-            AND s.finish_time &lt;= CONCAT(#{filters.endDate}, ' 23:59:59')
-        </if>
-    </select>
 
     <!-- 获取指定sample_id的历史版本，按history_id降序排列 -->
     <select id="getHistoryVersions" resultType="TestIssues">
@@ -323,98 +192,229 @@
         LIMIT 1
     </select>
 
+    <!-- 获取最大历史版本的问题类别列表 -->
+    <select id="getProblemCategories" resultType="string">
+        SELECT DISTINCT ti.problemCategory 
+        FROM test_issues ti
+        INNER JOIN (
+            SELECT sample_id, MAX(history_id) as max_history_id
+            FROM test_issues
+            GROUP BY sample_id
+        ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+        WHERE ti.problemCategory IS NOT NULL AND ti.problemCategory != ''
+        ORDER BY ti.problemCategory
+    </select>
+
+    <!-- 测试查询：验证问题类别查询的一致性 -->
+    <select id="testProblemCategoriesConsistency" resultType="map">
+        SELECT 
+            (SELECT COUNT(DISTINCT ti.problemCategory) 
+             FROM test_issues ti
+             INNER JOIN (
+                 SELECT sample_id, MAX(history_id) as max_history_id
+                 FROM test_issues
+                 GROUP BY sample_id
+             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+             WHERE ti.problemCategory IS NOT NULL AND ti.problemCategory != '') as count1,
+            (SELECT COUNT(DISTINCT ti.problemCategory) 
+             FROM test_issues ti
+             INNER JOIN (
+                 SELECT sample_id, MAX(history_id) as max_history_id
+                 FROM test_issues
+                 GROUP BY sample_id
+             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+             WHERE ti.problemCategory IS NOT NULL AND ti.problemCategory != '') as count2,
+            (SELECT GROUP_CONCAT(DISTINCT ti.problemCategory ORDER BY ti.problemCategory SEPARATOR '|') 
+             FROM test_issues ti
+             INNER JOIN (
+                 SELECT sample_id, MAX(history_id) as max_history_id
+                 FROM test_issues
+                 GROUP BY sample_id
+             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+             WHERE ti.problemCategory IS NOT NULL AND ti.problemCategory != '') as problemCategories
+    </select>
+
     <!-- 获取大类小类样品阶段完整编码版本问题类别测试人员责任部门测试平台显示设备DQE负责人选项（只获取最新版本） -->
     <select id="getSpeciesOptions" resultType="map">
-        SELECT 
-            (SELECT GROUP_CONCAT(DISTINCT COALESCE(s.big_species, '空值') ORDER BY s.big_species SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as bigSpecies,
-            (SELECT GROUP_CONCAT(DISTINCT COALESCE(s.small_species, '空值') ORDER BY s.small_species SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as smallSpecies,
-            (SELECT GROUP_CONCAT(DISTINCT s.sample_category ORDER BY s.sample_category SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE s.sample_category IS NOT NULL AND s.sample_category != '') as sampleStage,
-            (SELECT GROUP_CONCAT(DISTINCT s.full_model ORDER BY s.full_model SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE s.full_model IS NOT NULL AND s.full_model != '') as fullModel,
-            (SELECT GROUP_CONCAT(DISTINCT s.version ORDER BY s.version SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE s.version IS NOT NULL AND s.version != '') as version,
-            (SELECT GROUP_CONCAT(DISTINCT ti.problemCategory ORDER BY ti.problemCategory SEPARATOR ',') 
-             FROM test_issues ti
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE ti.problemCategory IS NOT NULL AND ti.problemCategory != '') as problemCategory,
-            (SELECT GROUP_CONCAT(DISTINCT ti.tester ORDER BY ti.tester SEPARATOR ',') 
-             FROM test_issues ti
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE ti.tester IS NOT NULL AND ti.tester != '') as tester,
-            (SELECT GROUP_CONCAT(DISTINCT ti.responsibleDepartment ORDER BY ti.responsibleDepartment SEPARATOR ',') 
-             FROM test_issues ti
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-             WHERE ti.responsibleDepartment IS NOT NULL AND ti.responsibleDepartment != '') as responsibleDepartment,
-            (SELECT GROUP_CONCAT(DISTINCT COALESCE(ti.test_platform, '空值') ORDER BY ti.test_platform SEPARATOR ',') 
-             FROM test_issues ti
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as testPlatform,
-            (SELECT GROUP_CONCAT(DISTINCT COALESCE(ti.test_device, '空值') ORDER BY ti.test_device SEPARATOR ',') 
-             FROM test_issues ti
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as testDevice,
-            (SELECT GROUP_CONCAT(DISTINCT COALESCE(s.sample_DQE, '空值') ORDER BY s.sample_DQE SEPARATOR ',') 
-             FROM samples s
-             INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
-             INNER JOIN (
-                 SELECT sample_id, MAX(history_id) as max_history_id
-                 FROM test_issues
-                 GROUP BY sample_id
-             ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id) as dqe
+        SELECT
+            (SELECT GROUP_CONCAT(
+                            big_species
+                            ORDER BY count DESC, big_species
+                            SEPARATOR ','
+                    ) as bigSpecies
+             FROM (
+                      SELECT COALESCE(s.big_species, '空值') as big_species, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      GROUP BY s.big_species
+                  ) as ranked_bigSpecies) as bigSpecies,
+            (SELECT GROUP_CONCAT(
+                            small_species
+                            ORDER BY count DESC, small_species
+                            SEPARATOR ','
+                    ) as smallSpecies
+             FROM (
+                      SELECT COALESCE(s.small_species, '空值') as small_species, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      GROUP BY s.small_species
+                  ) as ranked_smallSpecies) as smallSpecies,
+            (SELECT GROUP_CONCAT(
+                            sample_category
+                            ORDER BY count DESC, sample_category
+                            SEPARATOR ','
+                    ) as sampleStage
+             FROM (
+                      SELECT s.sample_category, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.sample_category IS NOT NULL AND s.sample_category != ''
+                      GROUP BY s.sample_category
+                  ) as ranked_sampleStage) as sampleStage,
+            (SELECT GROUP_CONCAT(
+                            full_model
+                            ORDER BY count DESC, full_model
+                            SEPARATOR ','
+                    ) as fullModel
+             FROM (
+                      SELECT s.full_model, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.full_model IS NOT NULL AND s.full_model != ''
+                      GROUP BY s.full_model
+                  ) as ranked_fullModel) as fullModel,
+            (SELECT GROUP_CONCAT(
+                            version
+                            ORDER BY count DESC, version
+                            SEPARATOR ','
+                    ) as version
+             FROM (
+                      SELECT s.version, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.version IS NOT NULL AND s.version != ''
+                      GROUP BY s.version
+                  ) as ranked_version) as version,
+            (SELECT GROUP_CONCAT(
+                            problemCategory
+                            ORDER BY count DESC, problemCategory
+                            SEPARATOR ','
+                    ) as problemCategories
+             FROM (
+                      SELECT problemCategory, COUNT(*) as count
+                      FROM test_issues
+                      WHERE history_id IN (
+                          SELECT MAX(history_id)
+                          FROM test_issues
+                          GROUP BY sample_id
+                      )
+                        AND problemCategory IS NOT NULL
+                        AND problemCategory != ''
+                      GROUP BY problemCategory
+                  ) as ranked_categories) as problemCategory,
+            (SELECT GROUP_CONCAT(
+                            tester
+                            ORDER BY count DESC, tester
+                            SEPARATOR ','
+                    ) as tester
+             FROM (
+                      SELECT ti.tester, COUNT(*) as count
+                      FROM test_issues ti
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE ti.tester IS NOT NULL AND ti.tester != ''
+                      GROUP BY ti.tester
+                  ) as ranked_tester) as tester,
+            (SELECT GROUP_CONCAT(
+                            responsibleDepartment
+                            ORDER BY count DESC, responsibleDepartment
+                            SEPARATOR ','
+                    ) as responsibleDepartment
+             FROM (
+                      SELECT ti.responsibleDepartment, COUNT(*) as count
+                      FROM test_issues ti
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE ti.responsibleDepartment IS NOT NULL AND ti.responsibleDepartment != ''
+                      GROUP BY ti.responsibleDepartment
+                  ) as ranked_responsibleDepartment) as responsibleDepartment,
+            (SELECT GROUP_CONCAT(
+                            test_platform
+                            ORDER BY count DESC, test_platform
+                            SEPARATOR ','
+                    ) as testPlatform
+             FROM (
+                      SELECT COALESCE(ti.test_platform, '空值') as test_platform, COUNT(*) as count
+                      FROM test_issues ti
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      GROUP BY ti.test_platform
+                  ) as ranked_testPlatform) as testPlatform,
+            (SELECT GROUP_CONCAT(
+                            test_device
+                            ORDER BY count DESC, test_device
+                            SEPARATOR ','
+                    ) as testDevice
+             FROM (
+                      SELECT COALESCE(ti.test_device, '空值') as test_device, COUNT(*) as count
+                      FROM test_issues ti
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      GROUP BY ti.test_device
+                  ) as ranked_testDevice) as testDevice,
+            (SELECT GROUP_CONCAT(
+                            sample_DQE
+                            ORDER BY count DESC, sample_DQE
+                            SEPARATOR ','
+                    ) as dqe
+             FROM (
+                      SELECT COALESCE(s.sample_DQE, '空值') as sample_DQE, COUNT(*) as count
+                      FROM samples s
+                               INNER JOIN test_issues ti ON s.sample_id = ti.sample_id
+                               INNER JOIN (
+                          SELECT sample_id, MAX(history_id) as max_history_id
+                          FROM test_issues
+                          GROUP BY sample_id
+                      ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      GROUP BY s.sample_DQE
+                  ) as ranked_dqe) as dqe
     </select>
 
 </mapper>
