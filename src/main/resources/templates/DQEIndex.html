@@ -411,9 +411,28 @@
         }
 
         function checkProblemLibraryPermission() {
-            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿'];
+            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
             if (allowedUsers.includes(username)) {
-                location.href = '/problemLibraryManage';
+                // 检查是否在钉钉环境中
+                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+                const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+                if (isDingTalk) {
+                    dd.openLink({
+                        url: url,
+                        success: function() {
+                            console.log('成功打开问题点库管理页面');
+                        },
+                        fail: function(err) {
+                            alert('打开页面失败：' + JSON.stringify(err));
+                            console.error('dd.openLink fail:', err);
+                        }
+                    });
+                } else {
+                    // 非钉钉环境使用普通跳转
+                    window.location.href = url;
+                }
             } else {
                 alert("您无权限进入问题点库管理页面");
             }
@@ -461,8 +480,8 @@
 
             // 检查是否在钉钉环境中
             const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-            // const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            const url = 'http://e888ccd6.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            const url = 'http://219.134.191.195:64000/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const url = 'http://e888ccd6.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
             if (isDingTalk) {
                 dd.openLink({
@@ -830,11 +849,45 @@
     });
 
     function redirectToPage() {
-        if (job === 'projectLeader') {
-            location.href = '/ProjectLeaderMoudle?dd_orientation=landscape';
-        } else {
-            location.href = '/problemMoudle?dd_orientation=landscape';
+        if (!username) {
+            alert("请先输入用户名！");
+            return;
         }
+        
+        if (!job) {
+            alert("请先选择角色！");
+            return;
+        }
+
+        // 检查是否在钉钉环境中
+        const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+        
+        let url;
+        if (job === 'projectLeader') {
+            url = 'http://219.134.191.195:64000/ProjectLeaderMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // url = 'http://e888ccd6.natappfree.cc/ProjectLeaderMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        } else {
+            url = 'http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // url = 'http://e888ccd6.natappfree.cc/problemMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        }
+
+        if (isDingTalk) {
+            dd.openLink({
+                url: url,
+                success: function() {
+                    console.log('成功打开DQE研发审核页面');
+                },
+                fail: function(err) {
+                    alert('打开页面失败：' + JSON.stringify(err));
+                    console.error('dd.openLink fail:', err);
+                }
+            });
+        } else {
+            // 非钉钉环境使用普通跳转
+            window.location.href = url;
+        }
+
+
     }
 
     const indexTitle = document.getElementById('indexTitle');

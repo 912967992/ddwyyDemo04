@@ -2488,10 +2488,28 @@
             }
         }
 
+        // 解析URL参数
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
         // 检查用户权限
         function checkUserPermission() {
-            currentUser = localStorage.getItem('username');
-            currentRole = localStorage.getItem('job');
+            // 优先从URL参数获取用户信息，其次从localStorage获取
+            const urlUsername = getUrlParameter('username');
+            const urlJob = getUrlParameter('job');
+            
+            currentUser = urlUsername || localStorage.getItem('username');
+            currentRole = urlJob || localStorage.getItem('job');
+
+            // 如果URL参数存在，更新localStorage
+            if (urlUsername) {
+                localStorage.setItem('username', urlUsername);
+            }
+            if (urlJob) {
+                localStorage.setItem('job', urlJob);
+            }
 
             if (!currentUser || !currentRole) {
                 alert('请先登录并选择角色！');
