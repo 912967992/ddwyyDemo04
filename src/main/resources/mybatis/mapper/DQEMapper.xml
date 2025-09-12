@@ -919,6 +919,110 @@
           AND ei.sample_actual_id != ''
     </update>
 
+    <!-- 获取排期时间分布数据 -->
+    <select id="getScheduleDistributionData" resultType="java.util.Map">
+        SELECT 
+            CASE 
+                WHEN ei.schedule_start_date IS NOT NULL AND ei.schedule_end_date IS NOT NULL THEN '有完整排期时间'
+                WHEN ei.schedule_start_date IS NOT NULL AND ei.schedule_end_date IS NULL THEN '只有开始时间'
+                WHEN ei.schedule_start_date IS NULL AND ei.schedule_end_date IS NOT NULL THEN '只有结束时间'
+                ELSE '无排期时间'
+            END as schedule_status,
+            COUNT(*) as count
+        FROM electric_info ei
+        WHERE ei.isCancel = 0
+        GROUP BY 
+            CASE 
+                WHEN ei.schedule_start_date IS NOT NULL AND ei.schedule_end_date IS NOT NULL THEN '有完整排期时间'
+                WHEN ei.schedule_start_date IS NOT NULL AND ei.schedule_end_date IS NULL THEN '只有开始时间'
+                WHEN ei.schedule_start_date IS NULL AND ei.schedule_end_date IS NOT NULL THEN '只有结束时间'
+                ELSE '无排期时间'
+            END
+        ORDER BY count DESC
+    </select>
 
+    <!-- 获取排期详情数据 -->
+    <select id="getScheduleDetails" resultType="java.util.Map">
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_name,
+            ei.sample_category,
+            ei.sample_model,
+            ei.version,
+            ei.sample_leader,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.sampleRecognizeResult,
+            ei.rd_sampleRecognizeResult,
+            ei.tester,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.testDuration,
+            ei.remark,
+            ei.waitSample_classify,
+            ei.high_frequency,
+            ei.sample_frequency,
+            ei.sample_quantity,
+            -- 获取物料编码
+            (
+                SELECT GROUP_CONCAT(
+                               CONCAT(mi.materialCode, '-', mi.sample_frequency)
+                               ORDER BY mi.sample_frequency, mi.materialCode
+                               SEPARATOR ','
+                       )
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+                  AND mi.materialCode IS NOT NULL
+                  AND mi.materialCode != ''
+            ) as materialCode,
+            -- 获取DQE负责人和研发负责人
+            CASE 
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+                THEN (
+                    SELECT s.sample_DQE 
+                    FROM samples s 
+                    WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                    LIMIT 1
+                )
+                ELSE NULL 
+            END as dqe_leader,
+            CASE 
+                WHEN ei.sample_actual_id IS NOT NULL AND ei.sample_actual_id != '' 
+                THEN (
+                    SELECT s.sample_Developer 
+                    FROM samples s 
+                    WHERE s.sample_id = SUBSTRING_INDEX(ei.sample_actual_id, ',', 1)
+                    LIMIT 1
+                )
+                ELSE NULL 
+            END as rd_leader
+        FROM electric_info ei
+        WHERE ei.isCancel = 0
+        <choose>
+            <when test="scheduleStatus == '有完整排期时间'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.schedule_end_date IS NOT NULL
+            </when>
+            <when test="scheduleStatus == '只有开始时间'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.schedule_end_date IS NULL
+            </when>
+            <when test="scheduleStatus == '只有结束时间'">
+                AND ei.schedule_start_date IS NULL 
+                AND ei.schedule_end_date IS NOT NULL
+            </when>
+            <when test="scheduleStatus == '无排期时间'">
+                AND ei.schedule_start_date IS NULL 
+                AND ei.schedule_end_date IS NULL
+            </when>
+        </choose>
+        ORDER BY ei.create_time DESC
+    </select>
 
 </mapper>

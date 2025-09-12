@@ -7,6 +7,7 @@ import org.apache.ibatis.javassist.tools.rmi.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,6 +95,26 @@ public class DQEIndexService {
     // 获取研发个人电气项目数据
     public List<Map<String, Object>> getRdElectricProjectData(String username) {
         return dqeDao.getRdElectricProjectData(username);
+    }
+
+    // 获取排期时间分布数据
+    public Map<String, Object> getScheduleDistributionData() {
+        List<Map<String, Object>> rawData = dqeDao.getScheduleDistributionData();
+        Map<String, Object> result = new HashMap<>();
+        
+        // 将查询结果转换为前端需要的格式
+        for (Map<String, Object> item : rawData) {
+            String status = (String) item.get("schedule_status");
+            Object count = item.get("count");
+            result.put(status, count);
+        }
+        
+        return result;
+    }
+
+    // 获取排期详情数据
+    public List<Map<String, Object>> getScheduleDetails(String scheduleStatus) {
+        return dqeDao.getScheduleDetails(scheduleStatus);
     }
 
 }

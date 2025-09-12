@@ -406,7 +406,7 @@ public class DQEIndexController {
 
     @GetMapping("/rdDashboard")
     public String rdDashboard(@RequestParam(required = false) String username) {
-        System.out.println("username:"+username);
+//        System.out.println("username:"+username);
         if (username != null && !username.isEmpty()) {
             try {
                 String encodedUsername = java.net.URLEncoder.encode(username, "UTF-8");
@@ -519,6 +519,50 @@ public class DQEIndexController {
             e.printStackTrace();
             result.put("success", false);
             result.put("error", "获取研发电气项目数据时出错: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    // 获取排期时间分布数据（项目专员数据看板）
+    @GetMapping("/DQEIndex/getScheduleDistributionData")
+    @ResponseBody
+    public Map<String, Object> getScheduleDistributionData() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 调用服务层获取排期时间分布数据
+            Map<String, Object> distributionData = dqeIndexService.getScheduleDistributionData();
+            
+            result.put("success", true);
+            result.put("data", distributionData);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取排期时间分布数据时出错: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    // 获取排期详情数据
+    @GetMapping("/DQEIndex/getScheduleDetails")
+    @ResponseBody
+    public Map<String, Object> getScheduleDetails(@RequestParam String scheduleStatus) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 调用服务层获取排期详情数据
+            List<Map<String, Object>> detailsData = dqeIndexService.getScheduleDetails(scheduleStatus);
+            
+            result.put("success", true);
+            result.put("data", detailsData);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "获取排期详情数据时出错: " + e.getMessage());
         }
 
         return result;
