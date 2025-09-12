@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQE数据看板</title>
+    <title id="pageTitle">数据看板</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     <style>
         body {
@@ -315,7 +315,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>主管级别以上数据看板</h1>
+        <h1 id="dashboardTitle">数据看板</h1>
         <p>研发质量管理系统 - 电气测试项目数据展示</p>
 
         <!-- 提单时间过滤器 -->
@@ -406,8 +406,39 @@
     let filteredData = [];
     let originalProjectData = []; // 保存原始数据
 
+    // 根据job参数设置页面标题和角色信息
+    function initializeRoleBasedContent() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const job = urlParams.get('job') || 'manager';
+        
+        const roleConfig = {
+            'DQE': {
+                title: 'DQE数据看板',
+                dashboardTitle: 'DQE数据看板'
+            },
+            'rd': {
+                title: '研发数据看板', 
+                dashboardTitle: '研发数据看板'
+            },
+            'manager': {
+                title: '管理数据看板',
+                dashboardTitle: '主管级别以上数据看板'
+            }
+        };
+        
+        const config = roleConfig[job] || roleConfig['manager'];
+        
+        // 设置页面标题
+        document.getElementById('pageTitle').textContent = config.title;
+        document.getElementById('dashboardTitle').textContent = config.dashboardTitle;
+        
+        // 存储当前角色信息，供其他功能使用
+        window.currentRole = job;
+    }
+
     // 页面加载完成后获取数据
     document.addEventListener('DOMContentLoaded', function() {
+        initializeRoleBasedContent();
         loadProjectData();
     });
 
@@ -845,10 +876,6 @@
                             <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">📊 自定义图表管理</span>
                             <span style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; font-weight: 500;">${savedChartsList.length}个图表</span>
                         </h4>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="refreshSavedCharts()" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">🔄 刷新</button>
-                            <button onclick="exportAllCharts()" style="background: #28a745; border: 1px solid #28a745; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">📤 导出全部</button>
-                        </div>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
                 `;
@@ -915,22 +942,6 @@
                                          onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'"
                                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)'">
                                      👁️ 查看图表
-                                 </button>
-                                 <button onclick="editSavedChart('${chartKey}', ${savedChart.id})" 
-                                         style="background: #ffc107; border: none; color: #212529; padding: 10px 12px; border-radius: 8px; 
-                                                font-size: 13px; cursor: pointer; transition: all 0.2s;"
-                                         onmouseover="this.style.background='#ffb300'; this.style.transform='translateY(-1px)'"
-                                         onmouseout="this.style.background='#ffc107'; this.style.transform='translateY(0)'"
-                                         title="编辑图表">
-                                     ✏️
-                                 </button>
-                                 <button onclick="duplicateSavedChart('${chartKey}', ${savedChart.id})" 
-                                         style="background: #17a2b8; border: none; color: white; padding: 10px 12px; border-radius: 8px; 
-                                                font-size: 13px; cursor: pointer; transition: all 0.2s;"
-                                         onmouseover="this.style.background='#138496'; this.style.transform='translateY(-1px)'"
-                                         onmouseout="this.style.background='#17a2b8'; this.style.transform='translateY(0)'"
-                                         title="复制图表">
-                                     📋
                                  </button>
                                  <button onclick="removeSavedChart('${chartKey}', ${savedChart.id})" 
                                          style="background: #dc3545; border: none; color: white; padding: 10px 12px; border-radius: 8px; 
@@ -1317,21 +1328,44 @@
         const displayArea = document.getElementById('chartDisplayArea');
         if (!displayArea) return;
 
+        // 获取图表数据
+        const chartData = getChartDataFromSavedChart(savedChart, window.currentProjects);
+        
+        // 应用数据限制
+        const limitedData = applyDataLimit(chartData, window.currentDisplayLimit || 10);
+
         const chartHTML = `
             <div style="width: 100%; height: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h4 style="color: #333; margin: 0; font-size: 18px;">${savedChart.title}</h4>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="zoom-btn" onclick="zoomChart('customChart_${chartId}', -1)" title="缩小">−</button>
-                        <button class="zoom-btn" onclick="zoomChart('customChart_${chartId}', 1)" title="放大">+</button>
-                        <button class="zoom-btn" onclick="toggleChartType('customChart_${chartId}', '${JSON.stringify(getChartDataFromSavedChart(savedChart, window.currentProjects)).replace(/"/g, '&quot;')}')" title="切换图表类型">📊</button>
-                                </div>
-                            </div>
-                <div id="customChart_${chartId}" style="height: 450px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
-                    ${generateSavedChart(savedChart, window.currentProjects, `customChart_${chartId}`)}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1;">${savedChart.title}</h4>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <!-- 图表控制按钮 -->
+                        <div style="display: flex; gap: 8px; background: white; padding: 8px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <button class="zoom-btn" onclick="zoomChart('customChart_${chartId}', -1)" title="缩小" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
+                            <button class="zoom-btn" onclick="zoomChart('customChart_${chartId}', 1)" title="放大" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">+</button>
+                            <button class="zoom-btn" onclick="toggleChartType('customChart_${chartId}', '${JSON.stringify(limitedData).replace(/"/g, '&quot;')}')" title="切换图表类型" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📊</button>
+                        </div>
+                        <!-- 数据组数控制 -->
+                        <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <span style="font-size: 12px; color: #666; font-weight: 500;">数据组数:</span>
+                            <select id="chartDisplayLimit" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; transition: all 0.2s;" onchange="updateChartDisplayLimit()" onmouseover="this.style.borderColor='#007bff'" onmouseout="this.style.borderColor='#ddd'">
+                                <option value="10" ${window.currentDisplayLimit === 10 ? 'selected' : ''}>前10组</option>
+                                <option value="20" ${window.currentDisplayLimit === 20 ? 'selected' : ''}>前20组</option>
+                                <option value="50" ${window.currentDisplayLimit === 50 ? 'selected' : ''}>前50组</option>
+                                <option value="0" ${window.currentDisplayLimit === 0 ? 'selected' : ''}>全部数据</option>
+                            </select>
+                            <span id="currentDataCount" style="font-size: 12px; color: #007bff; font-weight: 600; min-width: 40px; text-align: center;">${window.currentDisplayLimit === 0 ? `全部(${Object.keys(chartData).length})` : (Object.keys(limitedData).length < Object.keys(chartData).length ? `${Object.keys(limitedData).length}/${Object.keys(chartData).length}...` : `${Object.keys(limitedData).length}/${Object.keys(chartData).length}`)}</span>
+                            <button onclick="toggleDisplayMode()" style="background: #007bff; border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s;" title="快速切换显示模式" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+                                🔄
+                            </button>
                         </div>
                     </div>
-                `;
+                </div>
+                <div id="customChart_${chartId}" style="height: 450px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    ${savedChart.chartType === 'pie' ? createPieChart(limitedData, `customChart_${chartId}`) : createBarChart(limitedData, `customChart_${chartId}`)}
+                </div>
+            </div>
+        `;
 
         displayArea.innerHTML = chartHTML;
 
@@ -1345,9 +1379,112 @@
 
     // 从保存的图表配置中获取数据
     function getChartDataFromSavedChart(savedChart, projects) {
-        // 这里需要根据savedChart的配置重新计算数据
-        // 暂时返回空对象，实际实现需要根据具体的图表类型来处理
-        return {};
+        if (!savedChart || !projects) return {};
+        
+        // 统计数据
+        const stats = {};
+        projects.forEach(project => {
+            let value = project[savedChart.fieldName];
+
+            // 处理不同类型的值（与generateDynamicChart中的逻辑一致）
+            if (value === null || value === undefined || value === '') {
+                value = '未设置';
+            } else if (savedChart.fieldName === 'scheduleDays') {
+                value = isNaN(value) ? '未设置' : value + '天';
+            } else if (savedChart.fieldName === 'testDuration') {
+                value = isNaN(value) ? '未设置' : value + '小时';
+            } else if (savedChart.fieldName === 'sample_frequency') {
+                value = isNaN(value) ? '未设置' : value + '次';
+            } else if (savedChart.fieldName === 'isUsed') {
+                value = value === 1 ? '已用' : value === 0 ? '未用' : '未设置';
+            } else if (savedChart.fieldName === 'isCancel') {
+                value = value === 1 ? '已作废' : value === 0 ? '未作废' : '未设置';
+            } else if (savedChart.fieldName === 'high_frequency') {
+                value = value === '1' || value === 1 ? '是' : value === '0' || value === 0 ? '否' : value || '未设置';
+            } else if (savedChart.fieldName.includes('date') || savedChart.fieldName.includes('time') || savedChart.fieldName === 'reportReviewTime') {
+                if (value && value !== '未设置') {
+                    try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                            value = date.toLocaleDateString('zh-CN');
+                        }
+                    } catch (e) {
+                        value = '无效日期';
+                    }
+                }
+            } else if (savedChart.fieldName === 'priority') {
+                if (value && value.trim() !== '') {
+                    value = value.trim();
+                } else {
+                    value = '未设置';
+                }
+            } else if (savedChart.fieldName === 'schedule') {
+                if (value !== null && value !== undefined && value !== '') {
+                    const progressMap = {
+                        '0': '未开始',
+                        '1': '进行中',
+                        '2': '已完成未确认',
+                        '3': '报告确认闭环'
+                    };
+                    value = progressMap[value.toString()] || `进度${value}`;
+                } else {
+                    value = '未设置';
+                }
+            } else if (savedChart.fieldName === 'sample_type') {
+                if (value && value.trim() !== '') {
+                    value = value.trim();
+                } else {
+                    value = '未设置';
+                }
+            }
+
+            stats[value] = (stats[value] || 0) + 1;
+        });
+
+        // 排序并取前N个
+        let sortedStats;
+        
+        // 检查是否为时间字段，如果是则按时间顺序排序
+        if (savedChart.fieldName.includes('date') || savedChart.fieldName.includes('time') || savedChart.fieldName === 'reportReviewTime') {
+            // 对时间字段按时间顺序排序（从早到晚）
+            sortedStats = Object.entries(stats)
+                .filter(([key]) => key !== '未设置' && key !== '无效日期') // 先过滤掉特殊值
+                .sort((a, b) => {
+                    // 尝试解析日期进行比较
+                    try {
+                        const dateA = new Date(a[0]);
+                        const dateB = new Date(b[0]);
+                        if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                            return dateA - dateB; // 按时间从早到晚排序
+                        }
+                        return a[0].localeCompare(b[0]); // 如果解析失败，按字符串排序
+                    } catch (e) {
+                        return a[0].localeCompare(b[0]);
+                    }
+                })
+                .slice(0, savedChart.topN);
+            
+            // 如果有特殊值，添加到末尾
+            if (stats['未设置']) {
+                sortedStats.push(['未设置', stats['未设置']]);
+            }
+            if (stats['无效日期']) {
+                sortedStats.push(['无效日期', stats['无效日期']]);
+            }
+        } else {
+            // 非时间字段按值从高到低排序
+            sortedStats = Object.entries(stats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, savedChart.topN);
+        }
+
+        // 重新构建统计数据
+        const finalStats = {};
+        sortedStats.forEach(([key, value]) => {
+            finalStats[key] = value;
+        });
+
+        return finalStats;
     }
 
     // 显示模态框数据列表
@@ -1737,7 +1874,7 @@
                               text-anchor="${textAnchor}"
                               dominant-baseline="${dominantBaseline}"
                               fill="white"
-                              font-size="16"
+                              font-size="12"
                               font-weight="bold"
                               stroke="gray"
                               style="pointer-events: none; font-family: 'Microsoft YaHei', Arial, sans-serif;">
@@ -1755,7 +1892,7 @@
                               text-anchor="middle"
                               dominant-baseline="middle"
                               fill="white"
-                              font-size="16"
+                              font-size="12"
                               font-weight="bold"
                               stroke="black"
                               stroke-width="1"
@@ -1882,6 +2019,114 @@
         }
         
         chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建折线图
+    function createLineChart(data, containerId) {
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+        const maxValue = Math.max(...values);
+        const colors = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'];
+
+        if (labels.length === 0) return '<p style="text-align: center; color: #666;">暂无数据</p>';
+
+        // 创建标签和值的配对数组，并按值从高到低排序
+        const sortedData = labels.map((label, index) => ({
+            label: label,
+            value: values[index],
+            color: colors[index % colors.length]
+        })).sort((a, b) => b.value - a.value);
+
+        // 折线图参数
+        const chartWidth = 400;
+        const chartHeight = 250;
+        const padding = 40;
+        const plotWidth = chartWidth - 2 * padding;
+        const plotHeight = chartHeight - 2 * padding;
+
+        // 检查是否为保存的图表，如果是则添加点击事件
+        const isSavedChart = containerId.startsWith('savedChart_');
+        const clickEvent = isSavedChart ? `onclick="handleSavedChartClick('${containerId}', event)"` : '';
+
+        let chartHTML = `
+            <div style="position: relative; width: ${chartWidth}px; height: ${chartHeight}px; margin: 0 auto;">
+                <svg width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}">
+                    <!-- 背景网格线 -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" opacity="0.3"/>
+                    
+                    <!-- Y轴标签 -->
+                    <g font-family="Arial, sans-serif" font-size="12" fill="#666">
+                        ${Array.from({length: 6}, (_, i) => {
+                            const value = (maxValue / 5) * (5 - i);
+                            const y = padding + (plotHeight / 5) * i;
+                            return `<text x="${padding - 10}" y="${y + 4}" text-anchor="end">${Math.round(value)}</text>`;
+                        }).join('')}
+                    </g>
+                    
+                    <!-- X轴标签 -->
+                    <g font-family="Arial, sans-serif" font-size="12" fill="#666">
+                        ${sortedData.map((item, index) => {
+                            const x = padding + (plotWidth / (sortedData.length - 1)) * index;
+                            const label = item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label;
+                            return `<text x="${x}" y="${chartHeight - padding + 20}" text-anchor="middle">${label}</text>`;
+                        }).join('')}
+                    </g>
+                    
+                    <!-- 坐标轴 -->
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${chartHeight - padding}" stroke="#333" stroke-width="2"/>
+                    <line x1="${padding}" y1="${chartHeight - padding}" x2="${chartWidth - padding}" y2="${chartHeight - padding}" stroke="#333" stroke-width="2"/>
+                    
+                    <!-- 折线路径 -->
+                    <path d="${sortedData.map((item, index) => {
+                        const x = padding + (plotWidth / (sortedData.length - 1)) * index;
+                        const y = chartHeight - padding - (item.value / maxValue) * plotHeight;
+                        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+                    }).join(' ')}" 
+                          fill="none" 
+                          stroke="#36A2EB" 
+                          stroke-width="3" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round"/>
+                    
+                    <!-- 数据点 -->
+                    ${sortedData.map((item, index) => {
+                        const x = padding + (plotWidth / (sortedData.length - 1)) * index;
+                        const y = chartHeight - padding - (item.value / maxValue) * plotHeight;
+                        return `<circle cx="${x}" cy="${y}" r="6" fill="#36A2EB" stroke="white" stroke-width="2" 
+                                style="cursor: pointer; transition: all 0.2s ease;"
+                                data-label="${item.label}"
+                                data-value="${item.value}"
+                                onmouseover="this.style.r='8'; this.style.fill='#FF6384'"
+                                onmouseout="this.style.r='6'; this.style.fill='#36A2EB'"
+                                ${clickEvent}/>`;
+                    }).join('')}
+                </svg>
+            </div>
+        `;
+
+        // 检查是否需要显示省略号
+        const originalData = window.currentChartConfigs ? 
+            window.currentChartConfigs.find(c => c.id === containerId)?.data : null;
+        const hasMoreData = originalData && Object.keys(originalData).length > sortedData.length;
+        
+        if (hasMoreData) {
+            chartHTML += `
+                <div style="margin-top: 15px; text-align: center;">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; background: #f8f9fa; padding: 8px 16px; border-radius: 20px; border: 1px solid #e9ecef; color: #6c757d; font-size: 12px;">
+                        <span>⋯</span>
+                        <span>还有 ${Object.keys(originalData).length - sortedData.length} 组数据未显示</span>
+                        <span>⋯</span>
+                    </div>
+                </div>
+            `;
+        }
+
         return chartHTML;
     }
 
@@ -2391,7 +2636,7 @@
         const svg = chartContainer.querySelector('svg');
         const flexContainer = chartContainer.querySelector('div[style*="display: flex"]');
 
-        // 如果是柱状图，禁用放大缩小按钮
+        // 如果是柱状图，禁用放大缩小按钮（折线图和饼图都支持缩放）
         if (flexContainer && !svg) {
             if (zoomOutBtn) {
                 zoomOutBtn.disabled = true;
@@ -2885,7 +3130,7 @@
         }
     }
 
-    // 切换图表类型（柱状图/饼状图）
+    // 切换图表类型（柱状图/饼状图/折线图）
     function toggleChartType(chartId, dataJson) {
         try {
             const data = JSON.parse(dataJson);
@@ -2900,18 +3145,47 @@
             // 检查当前图表类型
             const currentChart = chartContainer.querySelector('svg, div[style*="display: flex"]');
             const isCurrentlyBar = currentChart && currentChart.style.display === 'flex';
+            const isCurrentlyPie = currentChart && currentChart.tagName === 'svg' && currentChart.querySelector('path[id^="segment_"]');
+            const isCurrentlyLine = currentChart && currentChart.tagName === 'svg' && currentChart.querySelector('path[stroke="#36A2EB"]');
+
+            // 确定下一个图表类型
+            let nextChartType;
+            let nextIcon;
+            let nextTitle;
 
             if (isCurrentlyBar) {
                 // 当前是柱状图，切换到饼状图
-                chartContainer.innerHTML = createPieChart(limitedData, chartId);
-                toggleBtn.innerHTML = '🍕';
-                toggleBtn.title = '切换到柱状图';
+                nextChartType = 'pie';
+                nextIcon = '🍕';
+                nextTitle = '切换到折线图';
+            } else if (isCurrentlyPie) {
+                // 当前是饼状图，切换到折线图
+                nextChartType = 'line';
+                nextIcon = '📈';
+                nextTitle = '切换到柱状图';
             } else {
-                // 当前是饼状图，切换到柱状图
-                chartContainer.innerHTML = createBarChart(limitedData, chartId);
-                toggleBtn.innerHTML = '📊';
-                toggleBtn.title = '切换到饼状图';
+                // 当前是折线图或其他，切换到柱状图
+                nextChartType = 'bar';
+                nextIcon = '📊';
+                nextTitle = '切换到饼状图';
             }
+
+            // 根据下一个图表类型创建图表
+            switch (nextChartType) {
+                case 'bar':
+                    chartContainer.innerHTML = createBarChart(limitedData, chartId);
+                    break;
+                case 'pie':
+                    chartContainer.innerHTML = createPieChart(limitedData, chartId);
+                    break;
+                case 'line':
+                    chartContainer.innerHTML = createLineChart(limitedData, chartId);
+                    break;
+            }
+
+            // 更新按钮图标和提示
+            toggleBtn.innerHTML = nextIcon;
+            toggleBtn.title = nextTitle;
 
             // 重新绑定点击事件（因为重新生成了HTML）
             bindChartClickEvents(chartId);
@@ -3644,9 +3918,14 @@
                 localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
             }
 
-            // 刷新页面显示
-            const currentStatus = window.currentChartStatus || 'total';
-            showProjectDetails(currentStatus);
+            // 重新加载图表管理界面
+            const currentTitle = window.currentChartTitle;
+            const currentProjects = window.currentProjectsForChart;
+            const currentStatus = window.currentChartStatus;
+            
+            if (currentTitle && currentProjects) {
+                showModalCharts(currentTitle, currentProjects, currentStatus);
+            }
         }
     }
 
@@ -4036,104 +4315,9 @@
         }
     }
 
-    // 刷新保存的图表列表
-    function refreshSavedCharts() {
-        // 重新加载当前模态框
-        const currentTitle = window.currentChartTitle;
-        const currentProjects = window.currentProjectsForChart;
-        const currentStatus = window.currentChartStatus;
-        
-        if (currentTitle && currentProjects) {
-            showModalCharts(currentTitle, currentProjects, currentStatus);
-        }
-    }
 
-    // 导出所有图表
-    function exportAllCharts() {
-        const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
-        const chartKey = `${window.currentChartTitle}_${window.currentChartStatus}`;
-        const savedChartsList = savedCharts[chartKey];
-        
-        if (!savedChartsList || savedChartsList.length === 0) {
-            alert('没有可导出的图表！');
-            return;
-        }
 
-        // 创建导出数据
-        const exportData = savedChartsList.map(chart => ({
-            '图表标题': chart.title,
-            '字段名称': chart.fieldLabel,
-            '图表类型': getChartTypeName(chart.chartType),
-            '显示数量': chart.topN,
-            '创建时间': chart.createTime || '未知'
-        }));
 
-        // 转换为CSV格式
-        const csvContent = convertToCSV(exportData);
-        
-        // 下载文件
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `自定义图表列表_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // 编辑保存的图表
-    function editSavedChart(chartKey, chartId) {
-        const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
-        const savedChartsList = savedCharts[chartKey];
-        const savedChart = savedChartsList.find(chart => chart.id === chartId);
-        
-        if (!savedChart) {
-            alert('图表不存在！');
-            return;
-        }
-
-        // 填充编辑表单
-        document.getElementById('fieldSelector').value = savedChart.fieldName;
-        document.getElementById('chartTypeSelector').value = savedChart.chartType;
-        document.getElementById('topNSelector').value = savedChart.topN;
-
-        // 生成图表预览
-        generateDynamicChart();
-
-        // 显示编辑提示
-        alert('图表配置已加载，您可以修改后重新保存！');
-    }
-
-    // 复制保存的图表
-    function duplicateSavedChart(chartKey, chartId) {
-        const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
-        const savedChartsList = savedCharts[chartKey];
-        const savedChart = savedChartsList.find(chart => chart.id === chartId);
-        
-        if (!savedChart) {
-            alert('图表不存在！');
-            return;
-        }
-
-        // 创建副本
-        const duplicatedChart = {
-            ...savedChart,
-            id: Date.now(),
-            title: savedChart.title + ' (副本)',
-            createTime: new Date().toLocaleString('zh-CN')
-        };
-
-        // 添加到列表
-        savedChartsList.push(duplicatedChart);
-        savedCharts[chartKey] = savedChartsList;
-        localStorage.setItem('savedProjectCharts', JSON.stringify(savedCharts));
-
-        // 刷新显示
-        refreshSavedCharts();
-        alert('图表已复制！');
-    }
 
     // 转换为CSV格式
     function convertToCSV(data) {
@@ -4444,9 +4628,6 @@
                         <span>📚</span>
                         已保存的图表
                     </h4>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="refreshSavedCharts()" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">🔄 刷新</button>
-                    </div>
                 </div>
                 <div id="savedChartsList" style="max-height: 300px; overflow-y: auto; padding-right: 8px;">
                     <!-- 动态填充已保存的图表 -->

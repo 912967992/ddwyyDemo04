@@ -405,8 +405,18 @@ public class DQEIndexController {
     }
 
     @GetMapping("/rdDashboard")
-    public String rdDashboard() {
-        return "rdDashboard";
+    public String rdDashboard(@RequestParam(required = false) String username) {
+        System.out.println("username:"+username);
+        if (username != null && !username.isEmpty()) {
+            try {
+                String encodedUsername = java.net.URLEncoder.encode(username, "UTF-8");
+                return "redirect:/managerboard?job=rd&username=" + encodedUsername;
+            } catch (Exception e) {
+                System.err.println("编码username失败: " + e.getMessage());
+                return "redirect:/managerboard?job=rd";
+            }
+        }
+        return "redirect:/managerboard?job=rd";
     }
 
     @GetMapping("/manager")
@@ -421,8 +431,18 @@ public class DQEIndexController {
 
     // DQE个人数据看板
     @GetMapping("/dqeDashboard")
-    public String dqeDashboard() {
-        return "dqeDashboard";
+    public String dqeDashboard(@RequestParam(required = false) String username) {
+        System.out.println("username:"+username);
+        if (username != null && !username.isEmpty()) {
+            try {
+                String encodedUsername = java.net.URLEncoder.encode(username, "UTF-8");
+                return "redirect:/managerboard?job=DQE&username=" + encodedUsername;
+            } catch (Exception e) {
+                System.err.println("编码username失败: " + e.getMessage());
+                return "redirect:/managerboard?job=DQE";
+            }
+        }
+        return "redirect:/managerboard?job=DQE";
     }
 
     // 研发个人数据看板
