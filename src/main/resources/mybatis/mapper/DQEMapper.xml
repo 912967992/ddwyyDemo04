@@ -718,6 +718,7 @@
             ei.high_frequency,
             ei.sample_frequency,
             ei.sample_quantity,
+            ei.changeRecord,
                 -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
                 (
                     SELECT GROUP_CONCAT(
@@ -785,6 +786,7 @@
             ei.high_frequency,
             ei.sample_frequency,
             ei.sample_quantity,
+            ei.changeRecord,
             -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
             (
                 SELECT GROUP_CONCAT(
@@ -860,6 +862,7 @@
             ei.high_frequency,
             ei.sample_frequency,
             ei.sample_quantity,
+            ei.changeRecord,
             -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
             (
                 SELECT GROUP_CONCAT(
@@ -969,6 +972,7 @@
             ei.high_frequency,
             ei.sample_frequency,
             ei.sample_quantity,
+            ei.changeRecord,
             -- 获取物料编码
             (
                 SELECT GROUP_CONCAT(
@@ -1020,6 +1024,39 @@
             <when test="scheduleStatus == '无排期时间'">
                 AND ei.schedule_start_date IS NULL 
                 AND ei.schedule_end_date IS NULL
+            </when>
+            <when test="scheduleStatus == '1天内开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) &lt;= 1
+            </when>
+            <when test="scheduleStatus == '2-3天开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) BETWEEN 2 AND 3
+            </when>
+            <when test="scheduleStatus == '4-7天开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) BETWEEN 4 AND 7
+            </when>
+            <when test="scheduleStatus == '8-15天开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) BETWEEN 8 AND 15
+            </when>
+            <when test="scheduleStatus == '16-30天开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) BETWEEN 16 AND 30
+            </when>
+            <when test="scheduleStatus == '30天以上开始排期'">
+                AND ei.schedule_start_date IS NOT NULL 
+                AND ei.create_time IS NOT NULL
+                AND DATEDIFF(DATE(ei.schedule_start_date), DATE(ei.create_time)) > 30
+            </when>
+            <when test="scheduleStatus == '无排期开始时间'">
+                AND ei.schedule_start_date IS NULL
             </when>
         </choose>
         ORDER BY ei.create_time DESC

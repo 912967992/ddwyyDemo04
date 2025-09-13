@@ -603,6 +603,9 @@
                 if (data.success) {
                     specialistProjectData = data.data;
                     console.log('项目专员数据看板加载了', specialistProjectData.length, '个项目数据');
+                    
+                    // 数据加载完成后，自动点击第一个菜单项
+                    autoClickFirstMenuItem();
                 } else {
                     console.error('获取项目数据失败:', data.error);
                     specialistProjectData = [];
@@ -612,6 +615,14 @@
                 console.error('API调用失败:', error);
                 specialistProjectData = [];
             });
+    }
+    
+    // 自动点击第一个菜单项
+    function autoClickFirstMenuItem() {
+        const firstMenuItem = document.getElementById('menu-schedule-distribution');
+        if (firstMenuItem) {
+            firstMenuItem.click();
+        }
     }
 
     // 初始化项目专员导航菜单
@@ -623,6 +634,13 @@
                 icon: '📅',
                 description: '查看项目排期时间完整性分布',
                 action: 'loadScheduleDistributionData'
+            },
+            {
+                id: 'schedule-days-distribution',
+                title: '排期天数分布',
+                icon: '📆',
+                description: '查看项目排期天数分布情况',
+                action: 'loadScheduleDaysDistributionData'
             },
             {
                 id: 'project-status',
@@ -721,14 +739,6 @@
 
             menuContainer.appendChild(menuItem);
         });
-
-        // 默认选中第一个菜单项
-        if (menuItems.length > 0) {
-            const firstMenuItem = document.getElementById(`menu-${menuItems[0].id}`);
-            if (firstMenuItem) {
-                firstMenuItem.click();
-            }
-        }
     }
 
     // 加载排期时间分布数据
@@ -745,31 +755,109 @@
         renderSpecialistChart('排期时间分布', distribution, 'schedule');
     }
 
+    // 加载排期天数分布数据
+    function loadScheduleDaysDistributionData() {
+        showSpecialistLoading('排期天数分布');
+        
+        if (specialistProjectData.length === 0) {
+            showSpecialistError('排期天数分布', '项目数据未加载完成，请稍后重试');
+            return;
+        }
+        
+        // 基于项目数据计算排期天数分布
+        const distribution = calculateScheduleDaysDistribution(specialistProjectData);
+        renderSpecialistChart('排期天数分布', distribution, 'scheduleDays');
+    }
+
     // 计算排期时间分布
     function calculateScheduleDistribution(projects) {
         const distribution = {
-            '有完整排期时间': 0,
-            '只有开始时间': 0,
-            '只有结束时间': 0,
-            '无排期时间': 0
+            '1天内开始排期': 0,
+            '2-3天开始排期': 0,
+            '4-7天开始排期': 0,
+            '8-15天开始排期': 0,
+            '16-30天开始排期': 0,
+            '30天以上开始排期': 0,
+            '无排期开始时间': 0
         };
         
         projects.forEach(project => {
             const hasStartDate = project.schedule_start_date && project.schedule_start_date.trim() !== '';
-            const hasEndDate = project.schedule_end_date && project.schedule_end_date.trim() !== '';
+            const createTime = project.create_time;
             
-            if (hasStartDate && hasEndDate) {
-                distribution['有完整排期时间']++;
-            } else if (hasStartDate && !hasEndDate) {
-                distribution['只有开始时间']++;
-            } else if (!hasStartDate && hasEndDate) {
-                distribution['只有结束时间']++;
+            if (!hasStartDate) {
+                // 没有排期开始时间的数据
+                distribution['无排期开始时间']++;
             } else {
-                distribution['无排期时间']++;
+                // 有排期开始时间的数据：计算从创建时间到排期开始时间的天数
+                if (createTime) {
+                    try {
+                        const createDate = new Date(createTime);
+                        createDate.setHours(0, 0, 0, 0);
+                        
+                        const startDate = new Date(project.schedule_start_date);
+                        startDate.setHours(0, 0, 0, 0);
+                        
+                        const timeDiff = startDate.getTime() - createDate.getTime();
+                        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                        
+                        if (daysDiff <= 1) {
+                            distribution['1天内开始排期']++;
+                        } else if (daysDiff <= 3) {
+                            distribution['2-3天开始排期']++;
+                        } else if (daysDiff <= 7) {
+                            distribution['4-7天开始排期']++;
+                        } else if (daysDiff <= 15) {
+                            distribution['8-15天开始排期']++;
+                        } else if (daysDiff <= 30) {
+                            distribution['16-30天开始排期']++;
+                        } else {
+                            distribution['30天以上开始排期']++;
+                        }
+                    } catch (e) {
+                        distribution['无排期开始时间']++;
+                    }
+                } else {
+                    distribution['无排期开始时间']++;
+                }
             }
         });
         
         return distribution;
+    }
+
+    // 计算排期天数分布
+    function calculateScheduleDaysDistribution(projects) {
+        const distribution = {};
+        
+        projects.forEach(project => {
+            const scheduleDays = project.scheduleDays;
+            
+            if (scheduleDays && !isNaN(scheduleDays) && scheduleDays > 0) {
+                // 将排期天数转换为字符串作为键
+                const daysKey = `${scheduleDays}天`;
+                distribution[daysKey] = (distribution[daysKey] || 0) + 1;
+            } else {
+                // 没有排期天数或无效数据
+                distribution['未设置'] = (distribution['未设置'] || 0) + 1;
+            }
+        });
+        
+        // 对天数进行排序，确保图表显示有序
+        const sortedEntries = Object.entries(distribution).sort(([a], [b]) => {
+            if (a === '未设置') return 1;
+            if (b === '未设置') return -1;
+            
+            const aDays = parseInt(a.replace('天', ''));
+            const bDays = parseInt(b.replace('天', ''));
+            
+            if (isNaN(aDays)) return 1;
+            if (isNaN(bDays)) return -1;
+            
+            return aDays - bDays;
+        });
+        
+        return Object.fromEntries(sortedEntries);
     }
 
     // 显示加载状态
@@ -939,6 +1027,9 @@
             case 'schedule':
                 showScheduleDetails(category);
                 break;
+            case 'scheduleDays':
+                showScheduleDaysDetails(category);
+                break;
             case 'status':
                 showProjectStatusDetails(category);
                 break;
@@ -957,6 +1048,23 @@
             default:
                 alert('详情查看功能开发中...');
         }
+    }
+
+    // 显示排期天数详情
+    function showScheduleDaysDetails(daysCategory) {
+        const filteredProjects = specialistProjectData.filter(project => {
+            const scheduleDays = project.scheduleDays;
+            
+            if (daysCategory === '未设置') {
+                return !scheduleDays || isNaN(scheduleDays) || scheduleDays <= 0;
+            } else {
+                // 解析天数，如 "5天" -> 5
+                const expectedDays = parseInt(daysCategory.replace('天', ''));
+                return scheduleDays && !isNaN(scheduleDays) && scheduleDays === expectedDays;
+            }
+        });
+        
+        showSpecialistDetailsModal(`${daysCategory}排期项目详情`, filteredProjects);
     }
 
     // 显示项目状态详情
@@ -1077,6 +1185,7 @@
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">版本</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">项目负责人</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">当前进度</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期天数</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期开始时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期结束时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">实际开始时间</th>
@@ -1089,6 +1198,33 @@
 
         projects.forEach((project, index) => {
             const rowStyle = index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;';
+            
+            // 计算当前进度状态
+            const hasActualStart = project.actual_start_time && project.actual_start_time.trim() !== '';
+            const hasActualFinish = project.actual_finish_time && project.actual_finish_time.trim() !== '';
+            const hasRecognizeResult = project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '';
+            
+            let progressStatus = '未开始';
+            let statusColor = '#ffc107'; // 默认颜色
+            
+            if (!hasActualStart) {
+                progressStatus = '未开始';
+                statusColor = '#ffc107'; // 黄色
+            } else if (hasActualStart && !hasActualFinish) {
+                progressStatus = '进行中';
+                statusColor = '#17a2b8'; // 蓝色
+            } else if (hasActualFinish && !hasRecognizeResult) {
+                progressStatus = '已完成待确认';
+                statusColor = '#a72828'; // 红色
+            } else if (hasRecognizeResult) {
+                progressStatus = '已确认';
+                statusColor = '#28a745'; // 绿色
+            }
+            
+            // 格式化排期天数
+            const scheduleDays = project.scheduleDays;
+            const scheduleDaysDisplay = scheduleDays && !isNaN(scheduleDays) && scheduleDays > 0 ? `${scheduleDays}天` : '未设置';
+            
             tableHTML += `
                 <tr style="${rowStyle} border-bottom: 1px solid #dee2e6;">
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; font-weight: 500; color: #333;">${project.sample_id || '-'}</td>
@@ -1097,7 +1233,10 @@
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_model || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.version || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_leader || '-'}</td>
-                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">
+                        <span style="color: ${statusColor}; font-weight: bold;">${progressStatus}</span>
+                    </td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333; text-align: center;">${scheduleDaysDisplay}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_start_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_end_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.actual_start_time || '-'}</td>
@@ -1143,6 +1282,9 @@
         switch(chartType) {
             case 'schedule':
                 loadScheduleDistributionData();
+                break;
+            case 'scheduleDays':
+                loadScheduleDaysDistributionData();
                 break;
             case 'status':
                 loadProjectStatusData();
@@ -1339,6 +1481,32 @@
         lockPageScroll();
     }
 
+    // 解析第一次排期时间
+    function getFirstScheduleTime(changeRecord) {
+        if (!changeRecord || changeRecord.trim() === '') {
+            return '-';
+        }
+        
+        try {
+            const firstRecord = changeRecord.split('|')[0];
+            if (firstRecord && firstRecord.trim() !== '') {
+                const parts = firstRecord.trim().split('#');
+                if (parts.length >= 4) {
+                    // 取第四个"#"的值，也就是update_time字段
+                    const updateTime = parts[3];
+                    if (updateTime && updateTime !== 'null' && updateTime.trim() !== '') {
+                        return updateTime;
+                    }
+                }
+            }
+        } catch (e) {
+            // 解析失败，返回默认值
+            console.error('解析changeRecord失败:', e, changeRecord);
+        }
+        
+        return '-';
+    }
+
     // 创建排期详情表格
     function createScheduleDetailsTable(projects) {
         if (!projects || projects.length === 0) {
@@ -1357,6 +1525,8 @@
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">版本</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">项目负责人</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">当前进度</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">接单时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">第一次排期时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期开始时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期结束时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">实际开始时间</th>
@@ -1369,6 +1539,13 @@
 
         projects.forEach((project, index) => {
             const rowStyle = index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;';
+            
+            // 调试信息
+            if (project.changeRecord) {
+                console.log('项目', project.sample_id, '的changeRecord:', project.changeRecord);
+                console.log('解析结果:', getFirstScheduleTime(project.changeRecord));
+            }
+            
             tableHTML += `
                 <tr style="${rowStyle} border-bottom: 1px solid #dee2e6;">
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; font-weight: 500; color: #333;">${project.sample_id || '-'}</td>
@@ -1378,6 +1555,8 @@
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.version || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_leader || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${formatDateTime(project.create_time) || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${getFirstScheduleTime(project.changeRecord)}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_start_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_end_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.actual_start_time || '-'}</td>

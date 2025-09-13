@@ -438,6 +438,9 @@
   let filteredData = [];
   let originalProjectData = []; // 保存原始数据
 
+  // 项目专员数据看板专用数据
+  let specialistProjectData = []; // 存储所有项目数据用于统计
+
   // 根据job参数设置页面标题和角色信息
   function initializeRoleBasedContent() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -579,6 +582,9 @@
 
     // 初始化导航菜单
     initSpecialistMenu();
+
+    // 加载所有项目数据
+    loadAllProjectData();
   }
 
   // 关闭项目专员数据看板模态框
@@ -586,6 +592,36 @@
     const modal = document.getElementById('specialistModal');
     if (modal) {
       modal.remove();
+    }
+  }
+
+  // 加载所有项目数据
+  function loadAllProjectData() {
+    fetch('/DQEIndex/getElectricProjectData')
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                specialistProjectData = data.data;
+                console.log('项目专员数据看板加载了', specialistProjectData.length, '个项目数据');
+
+                // 数据加载完成后，自动点击第一个菜单项
+                autoClickFirstMenuItem();
+              } else {
+                console.error('获取项目数据失败:', data.error);
+                specialistProjectData = [];
+              }
+            })
+            .catch(error => {
+              console.error('API调用失败:', error);
+              specialistProjectData = [];
+            });
+  }
+
+  // 自动点击第一个菜单项
+  function autoClickFirstMenuItem() {
+    const firstMenuItem = document.getElementById('menu-schedule-distribution');
+    if (firstMenuItem) {
+      firstMenuItem.click();
     }
   }
 
@@ -696,35 +732,77 @@
 
       menuContainer.appendChild(menuItem);
     });
-
-    // 默认选中第一个菜单项
-    if (menuItems.length > 0) {
-      const firstMenuItem = document.getElementById(`menu-${menuItems[0].id}`);
-      if (firstMenuItem) {
-        firstMenuItem.click();
-      }
-    }
   }
 
   // 加载排期时间分布数据
   function loadScheduleDistributionData() {
     showSpecialistLoading('排期时间分布');
 
-    // 调用后端接口获取排期时间分布数据
-    fetch('/DQEIndex/getScheduleDistributionData')
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                renderSpecialistChart('排期时间分布', data.data, 'schedule');
-              } else {
-                console.error('获取排期时间分布数据失败:', data.error);
-                showSpecialistError('排期时间分布', data.error);
-              }
-            })
-            .catch(error => {
-              console.error('API调用失败:', error);
-              showSpecialistError('排期时间分布', '网络请求失败');
-            });
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('排期时间分布', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    // 基于项目数据计算排期时间分布
+    const distribution = calculateScheduleDistribution(specialistProjectData);
+    renderSpecialistChart('排期时间分布', distribution, 'schedule');
+  }
+
+  // 计算排期时间分布
+  function calculateScheduleDistribution(projects) {
+    const distribution = {
+      '1天内开始排期': 0,
+      '2-3天开始排期': 0,
+      '4-7天开始排期': 0,
+      '8-15天开始排期': 0,
+      '16-30天开始排期': 0,
+      '30天以上开始排期': 0,
+      '无排期开始时间': 0
+    };
+
+    projects.forEach(project => {
+      const hasStartDate = project.schedule_start_date && project.schedule_start_date.trim() !== '';
+      const createTime = project.create_time;
+
+      if (!hasStartDate) {
+        // 没有排期开始时间的数据
+        distribution['无排期开始时间']++;
+      } else {
+        // 有排期开始时间的数据：计算从创建时间到排期开始时间的天数
+        if (createTime) {
+          try {
+            const createDate = new Date(createTime);
+            createDate.setHours(0, 0, 0, 0);
+
+            const startDate = new Date(project.schedule_start_date);
+            startDate.setHours(0, 0, 0, 0);
+
+            const timeDiff = startDate.getTime() - createDate.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            if (daysDiff <= 1) {
+              distribution['1天内开始排期']++;
+            } else if (daysDiff <= 3) {
+              distribution['2-3天开始排期']++;
+            } else if (daysDiff <= 7) {
+              distribution['4-7天开始排期']++;
+            } else if (daysDiff <= 15) {
+              distribution['8-15天开始排期']++;
+            } else if (daysDiff <= 30) {
+              distribution['16-30天开始排期']++;
+            } else {
+              distribution['30天以上开始排期']++;
+            }
+          } catch (e) {
+            distribution['无排期开始时间']++;
+          }
+        } else {
+          distribution['无排期开始时间']++;
+        }
+      }
+    });
+
+    return distribution;
   }
 
   // 显示加载状态
@@ -829,75 +907,62 @@
   // 其他数据加载函数
   function loadProjectStatusData() {
     showSpecialistLoading('项目状态分布');
-    // 模拟数据，实际应该调用后端接口
-    setTimeout(() => {
-      const mockData = {
-        '未开始': 15,
-        '进行中': 28,
-        '已完成未确认': 12,
-        '已确认': 8
-      };
-      renderSpecialistChart('项目状态分布', mockData, 'status');
-    }, 1000);
+
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('项目状态分布', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    const distribution = calculateProjectStatusDistribution(specialistProjectData);
+    renderSpecialistChart('项目状态分布', distribution, 'status');
   }
 
   function loadCategoryDistributionData() {
     showSpecialistLoading('样品类别分布');
-    // 模拟数据，实际应该调用后端接口
-    setTimeout(() => {
-      const mockData = {
-        '耳机': 25,
-        '音箱': 18,
-        '充电器': 12,
-        '数据线': 8,
-        '其他': 5
-      };
-      renderSpecialistChart('样品类别分布', mockData, 'category');
-    }, 1000);
+
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('样品类别分布', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    const distribution = calculateCategoryDistribution(specialistProjectData);
+    renderSpecialistChart('样品类别分布', distribution, 'category');
   }
 
   function loadPriorityDistributionData() {
     showSpecialistLoading('优先级分布');
-    // 模拟数据，实际应该调用后端接口
-    setTimeout(() => {
-      const mockData = {
-        '高': 12,
-        '中': 35,
-        '低': 16
-      };
-      renderSpecialistChart('优先级分布', mockData, 'priority');
-    }, 1000);
+
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('优先级分布', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    const distribution = calculatePriorityDistribution(specialistProjectData);
+    renderSpecialistChart('优先级分布', distribution, 'priority');
   }
 
   function loadTesterDistributionData() {
     showSpecialistLoading('测试员分布');
-    // 模拟数据，实际应该调用后端接口
-    setTimeout(() => {
-      const mockData = {
-        '张三': 15,
-        '李四': 12,
-        '王五': 18,
-        '赵六': 8,
-        '未分配': 5
-      };
-      renderSpecialistChart('测试员分布', mockData, 'tester');
-    }, 1000);
+
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('测试员分布', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    const distribution = calculateTesterDistribution(specialistProjectData);
+    renderSpecialistChart('测试员分布', distribution, 'tester');
   }
 
   function loadMonthlyTrendData() {
     showSpecialistLoading('月度趋势');
-    // 模拟数据，实际应该调用后端接口
-    setTimeout(() => {
-      const mockData = {
-        '2024-01': 8,
-        '2024-02': 12,
-        '2024-03': 15,
-        '2024-04': 18,
-        '2024-05': 22,
-        '2024-06': 25
-      };
-      renderSpecialistChart('月度趋势', mockData, 'monthly');
-    }, 1000);
+
+    if (specialistProjectData.length === 0) {
+      showSpecialistError('月度趋势', '项目数据未加载完成，请稍后重试');
+      return;
+    }
+
+    const distribution = calculateMonthlyTrend(specialistProjectData);
+    renderSpecialistChart('月度趋势', distribution, 'monthly');
   }
 
   // 显示项目专员详情
@@ -927,26 +992,184 @@
     }
   }
 
-  // 其他详情查看函数（模拟实现）
+  // 显示项目状态详情
   function showProjectStatusDetails(status) {
-    alert(`查看${status}状态的项目详情功能开发中...`);
+    const filteredProjects = specialistProjectData.filter(project => {
+      const hasActualStart = project.actual_start_time && project.actual_start_time.trim() !== '';
+      const hasActualFinish = project.actual_finish_time && project.actual_finish_time.trim() !== '';
+      const hasRecognizeResult = project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '';
+
+      if (status === '未开始') return !hasActualStart;
+      if (status === '进行中') return hasActualStart && !hasActualFinish;
+      if (status === '已完成未确认') return hasActualFinish && !hasRecognizeResult;
+      if (status === '已确认') return hasRecognizeResult;
+      return false;
+    });
+
+    showSpecialistDetailsModal(`${status}项目详情`, filteredProjects);
   }
 
+  // 显示样品类别详情
   function showCategoryDetails(category) {
-    alert(`查看${category}类别的项目详情功能开发中...`);
+    const filteredProjects = specialistProjectData.filter(project => {
+      const projectCategory = project.sample_category || '未分类';
+      return projectCategory === category;
+    });
+
+    showSpecialistDetailsModal(`${category}类别项目详情`, filteredProjects);
   }
 
+  // 显示优先级详情
   function showPriorityDetails(priority) {
-    alert(`查看${priority}优先级的项目详情功能开发中...`);
+    const filteredProjects = specialistProjectData.filter(project => {
+      const projectPriority = project.priority || '';
+      if (priority === '高') return projectPriority.includes('高') || projectPriority.includes('紧急');
+      if (priority === '中') return projectPriority.includes('中') || projectPriority.includes('普通');
+      if (priority === '低') return projectPriority.includes('低') || projectPriority.includes('一般');
+      if (priority === '未设置') return !projectPriority || projectPriority.trim() === '';
+      return false;
+    });
+
+    showSpecialistDetailsModal(`${priority}优先级项目详情`, filteredProjects);
   }
 
+  // 显示测试员详情
   function showTesterDetails(tester) {
-    alert(`查看${tester}负责的项目详情功能开发中...`);
+    const filteredProjects = specialistProjectData.filter(project => {
+      const projectTester = project.tester || '未分配';
+      return projectTester === tester;
+    });
+
+    showSpecialistDetailsModal(`${tester}负责的项目详情`, filteredProjects);
   }
 
+  // 显示月度详情
   function showMonthlyDetails(month) {
-    alert(`查看${month}月份的项目详情功能开发中...`);
+    const filteredProjects = specialistProjectData.filter(project => {
+      if (project.create_time) {
+        const date = new Date(project.create_time);
+        const year = date.getFullYear();
+        const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+        const key = `${year}-${monthStr}`;
+        return key === month;
+      }
+      return false;
+    });
+
+    showSpecialistDetailsModal(`${month}月份项目详情`, filteredProjects);
   }
+
+  // 显示项目专员详情模态框
+  function showSpecialistDetailsModal(title, projects) {
+    // 创建模态框
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'specialistDetailsModal';
+    modal.style.display = 'block';
+
+    modal.innerHTML = `
+            <div class="modal-content" style="max-width: 1400px; width: 95%;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; border-radius: 20px 20px 0 0; border: none;">
+                    <h3 style="margin: 0; font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 28px;">📋</span>
+                        ${title} (${projects.length}个项目)
+                    </h3>
+                    <span class="close" onclick="closeSpecialistDetailsModal()" style="color: white; font-size: 28px; font-weight: bold; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 30px; height: calc(100vh - 200px); overflow-y: auto;">
+                    <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="exportSpecialistDetailsExcel('${title}')" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">📊 导出Excel</button>
+                        <button onclick="refreshSpecialistDetails('${title}')" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">🔄 刷新数据</button>
+                    </div>
+                    <div id="specialistDetailsContent">
+                        ${createSpecialistDetailsTable(projects)}
+                    </div>
+                </div>
+            </div>
+        `;
+
+    document.body.appendChild(modal);
+    lockPageScroll();
+  }
+
+  // 创建项目专员详情表格
+  function createSpecialistDetailsTable(projects) {
+    if (!projects || projects.length === 0) {
+      return '<div style="text-align: center; padding: 50px; color: #666;">暂无项目数据</div>';
+    }
+
+    let tableHTML = `
+            <div style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">样品编号</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">样品名称</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">样品类别</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">样品型号</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">版本</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">项目负责人</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">当前进度</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期开始时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期结束时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">实际开始时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">实际完成时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333;">备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+    projects.forEach((project, index) => {
+      const rowStyle = index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;';
+      tableHTML += `
+                <tr style="${rowStyle} border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; font-weight: 500; color: #333;">${project.sample_id || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_name || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_category || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_model || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.version || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_leader || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_start_date || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_end_date || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.actual_start_time || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.actual_finish_time || '-'}</td>
+                    <td style="padding: 12px; color: #333;">${project.remark || '-'}</td>
+                </tr>
+            `;
+    });
+
+    tableHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+    return tableHTML;
+  }
+
+  // 关闭项目专员详情模态框
+  function closeSpecialistDetailsModal() {
+    const modal = document.getElementById('specialistDetailsModal');
+    if (modal) {
+      modal.remove();
+      unlockPageScroll();
+    }
+  }
+
+  // 刷新项目专员详情
+  function refreshSpecialistDetails(title) {
+    // 重新加载数据
+    loadAllProjectData();
+    alert('数据已刷新，请重新选择查看');
+  }
+
+  // 导出项目专员详情Excel
+  function exportSpecialistDetailsExcel(title) {
+    alert(`${title}Excel导出功能开发中...`);
+  }
+
 
   // 刷新项目专员图表
   function refreshSpecialistChart(chartType) {
@@ -975,6 +1198,115 @@
   // 导出项目专员数据
   function exportSpecialistData(chartType) {
     alert(`${chartType}数据导出功能开发中...`);
+  }
+
+  // 计算项目状态分布
+  function calculateProjectStatusDistribution(projects) {
+    const distribution = {
+      '未开始': 0,
+      '进行中': 0,
+      '已完成未确认': 0,
+      '已确认': 0
+    };
+
+    projects.forEach(project => {
+      const hasActualStart = project.actual_start_time && project.actual_start_time.trim() !== '';
+      const hasActualFinish = project.actual_finish_time && project.actual_finish_time.trim() !== '';
+      const hasRecognizeResult = project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '';
+
+      if (!hasActualStart) {
+        distribution['未开始']++;
+      } else if (hasActualStart && !hasActualFinish) {
+        distribution['进行中']++;
+      } else if (hasActualFinish && !hasRecognizeResult) {
+        distribution['已完成未确认']++;
+      } else if (hasRecognizeResult) {
+        distribution['已确认']++;
+      }
+    });
+
+    return distribution;
+  }
+
+  // 计算样品类别分布
+  function calculateCategoryDistribution(projects) {
+    const distribution = {};
+
+    projects.forEach(project => {
+      const category = project.sample_category || '未分类';
+      distribution[category] = (distribution[category] || 0) + 1;
+    });
+
+    // 按数量排序
+    const sortedEntries = Object.entries(distribution)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 10); // 只显示前10个类别
+
+    return Object.fromEntries(sortedEntries);
+  }
+
+  // 计算优先级分布
+  function calculatePriorityDistribution(projects) {
+    const distribution = {
+      '高': 0,
+      '中': 0,
+      '低': 0,
+      '未设置': 0
+    };
+
+    projects.forEach(project => {
+      const priority = project.priority || '';
+      if (priority.includes('高') || priority.includes('紧急')) {
+        distribution['高']++;
+      } else if (priority.includes('中') || priority.includes('普通')) {
+        distribution['中']++;
+      } else if (priority.includes('低') || priority.includes('一般')) {
+        distribution['低']++;
+      } else {
+        distribution['未设置']++;
+      }
+    });
+
+    return distribution;
+  }
+
+  // 计算测试员分布
+  function calculateTesterDistribution(projects) {
+    const distribution = {};
+
+    projects.forEach(project => {
+      const tester = project.tester || '未分配';
+      distribution[tester] = (distribution[tester] || 0) + 1;
+    });
+
+    // 按数量排序，只显示前10个测试员
+    const sortedEntries = Object.entries(distribution)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 10);
+
+    return Object.fromEntries(sortedEntries);
+  }
+
+  // 计算月度趋势
+  function calculateMonthlyTrend(projects) {
+    const distribution = {};
+
+    projects.forEach(project => {
+      if (project.create_time) {
+        const date = new Date(project.create_time);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const key = `${year}-${month}`;
+        distribution[key] = (distribution[key] || 0) + 1;
+      }
+    });
+
+    // 按月份排序
+    const sortedEntries = Object.entries(distribution)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .slice(-12); // 只显示最近12个月
+
+    return Object.fromEntries(sortedEntries);
   }
 
   // 刷新排期图表
@@ -1040,6 +1372,32 @@
     lockPageScroll();
   }
 
+  // 解析第一次排期时间
+  function getFirstScheduleTime(changeRecord) {
+    if (!changeRecord || changeRecord.trim() === '') {
+      return '-';
+    }
+
+    try {
+      const firstRecord = changeRecord.split('|')[0];
+      if (firstRecord && firstRecord.trim() !== '') {
+        const parts = firstRecord.trim().split('#');
+        if (parts.length >= 4) {
+          // 取第四个"#"的值，也就是update_time字段
+          const updateTime = parts[3];
+          if (updateTime && updateTime !== 'null' && updateTime.trim() !== '') {
+            return updateTime;
+          }
+        }
+      }
+    } catch (e) {
+      // 解析失败，返回默认值
+      console.error('解析changeRecord失败:', e, changeRecord);
+    }
+
+    return '-';
+  }
+
   // 创建排期详情表格
   function createScheduleDetailsTable(projects) {
     if (!projects || projects.length === 0) {
@@ -1058,6 +1416,8 @@
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">版本</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">项目负责人</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">当前进度</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">接单时间</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">第一次排期时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期开始时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">排期结束时间</th>
                             <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #dee2e6;">实际开始时间</th>
@@ -1070,6 +1430,13 @@
 
     projects.forEach((project, index) => {
       const rowStyle = index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;';
+
+      // 调试信息
+      if (project.changeRecord) {
+        console.log('项目', project.sample_id, '的changeRecord:', project.changeRecord);
+        console.log('解析结果:', getFirstScheduleTime(project.changeRecord));
+      }
+
       tableHTML += `
                 <tr style="${rowStyle} border-bottom: 1px solid #dee2e6;">
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; font-weight: 500; color: #333;">${project.sample_id || '-'}</td>
@@ -1079,6 +1446,8 @@
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.version || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.sample_leader || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${formatDateTime(project.create_time) || '-'}</td>
+                    <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${getFirstScheduleTime(project.changeRecord)}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_start_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.schedule_end_date || '-'}</td>
                     <td style="padding: 12px; border-right: 1px solid #dee2e6; color: #333;">${project.actual_start_time || '-'}</td>

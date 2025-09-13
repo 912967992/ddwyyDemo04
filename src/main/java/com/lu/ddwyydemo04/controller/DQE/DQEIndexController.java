@@ -551,14 +551,14 @@ public class DQEIndexController {
     @ResponseBody
     public Map<String, Object> getScheduleDetails(@RequestParam String scheduleStatus) {
         Map<String, Object> result = new HashMap<>();
-        
+
         try {
             // 调用服务层获取排期详情数据
             List<Map<String, Object>> detailsData = dqeIndexService.getScheduleDetails(scheduleStatus);
             
             result.put("success", true);
             result.put("data", detailsData);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             result.put("success", false);
