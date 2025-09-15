@@ -633,49 +633,64 @@
                 title: '排期时间分布',
                 icon: '📅',
                 description: '查看项目排期时间完整性分布',
-                action: 'loadScheduleDistributionData'
+                action: 'loadScheduleDistributionData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'schedule-days-distribution',
                 title: '排期天数分布',
                 icon: '📆',
                 description: '查看项目排期天数分布情况',
-                action: 'loadScheduleDaysDistributionData'
+                action: 'loadScheduleDaysDistributionData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'project-status',
                 title: '项目状态分布',
                 icon: '📊',
                 description: '查看项目当前状态分布情况',
-                action: 'loadProjectStatusData'
+                action: 'loadProjectStatusData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'category-distribution',
                 title: '样品类别分布',
                 icon: '🏷️',
                 description: '查看不同样品类别的项目分布',
-                action: 'loadCategoryDistributionData'
+                action: 'loadCategoryDistributionData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'priority-distribution',
                 title: '优先级分布',
                 icon: '⭐',
                 description: '查看项目优先级分布情况',
-                action: 'loadPriorityDistributionData'
+                action: 'loadPriorityDistributionData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'tester-distribution',
                 title: '测试员分布',
                 icon: '👨‍💻',
                 description: '查看测试员负责项目分布',
-                action: 'loadTesterDistributionData'
+                action: 'loadTesterDistributionData',
+                hasMonthlyAnalysis: true
             },
             {
                 id: 'monthly-trend',
                 title: '月度趋势',
                 icon: '📈',
                 description: '查看项目创建月度趋势',
-                action: 'loadMonthlyTrendData'
+                action: 'loadMonthlyTrendData',
+                hasMonthlyAnalysis: false
+            },
+            {
+                id: 'monthly-analysis',
+                title: '月度分析总览',
+                icon: '📊',
+                description: '查看各维度月度对比分析',
+                action: 'loadMonthlyAnalysisOverview',
+                hasMonthlyAnalysis: false
             }
         ];
 
@@ -703,6 +718,7 @@
                     <div style="flex: 1;">
                         <div style="font-weight: 600; color: #333; font-size: 14px; margin-bottom: 4px;">${item.title}</div>
                         <div style="font-size: 12px; color: #666; line-height: 1.3;">${item.description}</div>
+                        ${item.hasMonthlyAnalysis ? '<div style="font-size: 10px; color: #667eea; margin-top: 2px;">📊 支持月度分析</div>' : ''}
                     </div>
                 </div>
             `;
@@ -897,15 +913,24 @@
             return;
         }
 
+        // 检查是否支持月度分析
+        const supportsMonthlyAnalysis = ['schedule', 'scheduleDays', 'status', 'category', 'priority', 'tester'].includes(chartType);
+
         // 创建图表HTML
         const chartHTML = `
             <div style="width: 100%; height: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1;">${title}统计</h4>
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <div style="display: flex; gap: 8px; background: white; padding: 8px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <button onclick="refreshSpecialistChart('${chartType}')" title="刷新图表" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">🔄</button>
-                            <button onclick="exportSpecialistData('${chartType}')" title="导出数据" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📊</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1; min-width: 200px;">${title}统计</h4>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        ${supportsMonthlyAnalysis ? `
+                            <div style="display: flex; gap: 4px; background: white; padding: 6px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <button onclick="showMonthlyAnalysis('${chartType}')" title="月度分析" style="background: #ff6b6b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📊 月度</button>
+                                <button onclick="showTrendAnalysis('${chartType}')" title="趋势分析" style="background: #4ecdc4; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📈 趋势</button>
+                            </div>
+                        ` : ''}
+                        <div style="display: flex; gap: 4px; background: white; padding: 6px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <button onclick="refreshSpecialistChart('${chartType}')" title="刷新图表" style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔄</button>
+                            <button onclick="exportSpecialistData('${chartType}')" title="导出数据" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📊</button>
                         </div>
                     </div>
                 </div>
@@ -1416,6 +1441,939 @@
             .slice(-12); // 只显示最近12个月
         
         return Object.fromEntries(sortedEntries);
+    }
+
+    // 计算月度分析数据
+    function calculateMonthlyAnalysis(projects, chartType) {
+        const monthlyData = {};
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        
+        // 获取最近12个月的数据
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(currentYear, currentMonth - 1 - i, 1);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const monthKey = `${year}-${month}`;
+            
+            monthlyData[monthKey] = {
+                total: 0,
+                distribution: {}
+            };
+        }
+        
+        // 根据图表类型计算分布
+        projects.forEach(project => {
+            if (!project.create_time) return;
+            
+            const projectDate = new Date(project.create_time);
+            const year = projectDate.getFullYear();
+            const month = String(projectDate.getMonth() + 1).padStart(2, '0');
+            const monthKey = `${year}-${month}`;
+            
+            if (monthlyData[monthKey]) {
+                monthlyData[monthKey].total++;
+                
+                let category = '';
+                switch(chartType) {
+                    case 'schedule':
+                        category = calculateScheduleCategory(project);
+                        break;
+                    case 'scheduleDays':
+                        category = calculateScheduleDaysCategory(project);
+                        break;
+                    case 'status':
+                        category = calculateStatusCategory(project);
+                        break;
+                    case 'category':
+                        category = project.sample_category || '未分类';
+                        break;
+                    case 'priority':
+                        category = calculatePriorityCategory(project);
+                        break;
+                    case 'tester':
+                        category = project.tester || '未指定';
+                        break;
+                }
+                
+                if (category) {
+                    monthlyData[monthKey].distribution[category] = (monthlyData[monthKey].distribution[category] || 0) + 1;
+                }
+            }
+        });
+        
+        return monthlyData;
+    }
+
+    // 计算排期时间分类
+    function calculateScheduleCategory(project) {
+        const hasStartDate = project.schedule_start_date && project.schedule_start_date.trim() !== '';
+        const createTime = project.create_time;
+        
+        if (!hasStartDate) {
+            return '无排期开始时间';
+        } else if (createTime) {
+            try {
+                const createDate = new Date(createTime);
+                createDate.setHours(0, 0, 0, 0);
+                
+                const startDate = new Date(project.schedule_start_date);
+                startDate.setHours(0, 0, 0, 0);
+                
+                const diffDays = Math.ceil((startDate - createDate) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays <= 1) return '1天内开始排期';
+                if (diffDays <= 3) return '2-3天开始排期';
+                if (diffDays <= 7) return '4-7天开始排期';
+                if (diffDays <= 15) return '8-15天开始排期';
+                if (diffDays <= 30) return '16-30天开始排期';
+                return '30天以上开始排期';
+            } catch (e) {
+                return '无排期开始时间';
+            }
+        }
+        return '无排期开始时间';
+    }
+
+    // 计算排期天数分类
+    function calculateScheduleDaysCategory(project) {
+        const scheduleDays = project.scheduleDays;
+        if (scheduleDays && !isNaN(scheduleDays) && scheduleDays > 0) {
+            return `${scheduleDays}天`;
+        }
+        return '未设置';
+    }
+
+    // 计算项目状态分类
+    function calculateStatusCategory(project) {
+        const hasActualStart = project.actual_start_time && project.actual_start_time.trim() !== '';
+        const hasActualFinish = project.actual_finish_time && project.actual_finish_time.trim() !== '';
+        const hasRecognizeResult = project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '';
+        
+        if (!hasActualStart) return '未开始';
+        if (hasActualStart && !hasActualFinish) return '进行中';
+        if (hasActualFinish && !hasRecognizeResult) return '已完成未确认';
+        if (hasRecognizeResult) return '已确认';
+        return '未开始';
+    }
+
+    // 计算优先级分类
+    function calculatePriorityCategory(project) {
+        const priority = project.priority || '';
+        if (priority.includes('高') || priority.includes('紧急')) return '高';
+        if (priority.includes('中') || priority.includes('普通')) return '中';
+        if (priority.includes('低') || priority.includes('一般')) return '低';
+        return '未设置';
+    }
+
+    // 计算同比环比数据
+    function calculateComparisonData(monthlyData) {
+        const months = Object.keys(monthlyData).sort();
+        const comparisonData = {};
+        
+        months.forEach((month, index) => {
+            const currentData = monthlyData[month];
+            const prevMonth = months[index - 1];
+            const prevYearMonth = getPreviousYearMonth(month);
+            
+            comparisonData[month] = {
+                ...currentData,
+                monthOverMonth: prevMonth ? calculateGrowthRate(monthlyData[prevMonth].total, currentData.total) : 0,
+                yearOverYear: monthlyData[prevYearMonth] ? calculateGrowthRate(monthlyData[prevYearMonth].total, currentData.total) : 0
+            };
+        });
+        
+        return comparisonData;
+    }
+
+    // 获取去年同期月份
+    function getPreviousYearMonth(monthKey) {
+        const [year, month] = monthKey.split('-');
+        const prevYear = parseInt(year) - 1;
+        return `${prevYear}-${month}`;
+    }
+
+    // 计算增长率
+    function calculateGrowthRate(previous, current) {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous * 100).toFixed(1);
+    }
+
+    // 计算各分类的月度分析数据
+    function calculateCategoryMonthlyAnalysis(monthlyData) {
+        const months = Object.keys(monthlyData).sort();
+        const categoryAnalysis = {};
+        
+        // 收集所有分类
+        const allCategories = new Set();
+        months.forEach(month => {
+            Object.keys(monthlyData[month].distribution).forEach(category => {
+                allCategories.add(category);
+            });
+        });
+        
+        // 为每个分类计算月度数据
+        allCategories.forEach(category => {
+            categoryAnalysis[category] = {
+                monthlyData: {},
+                trend: 'stable',
+                growthRate: 0,
+                peakMonth: '',
+                totalCount: 0
+            };
+            
+            let monthlyValues = [];
+            months.forEach(month => {
+                const value = monthlyData[month].distribution[category] || 0;
+                categoryAnalysis[category].monthlyData[month] = value;
+                monthlyValues.push(value);
+                categoryAnalysis[category].totalCount += value;
+            });
+            
+            // 计算趋势
+            if (monthlyValues.length >= 2) {
+                const firstHalf = monthlyValues.slice(0, Math.floor(monthlyValues.length / 2));
+                const secondHalf = monthlyValues.slice(Math.floor(monthlyValues.length / 2));
+                const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+                const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+                
+                if (secondAvg > firstAvg * 1.1) {
+                    categoryAnalysis[category].trend = 'rising';
+                } else if (secondAvg < firstAvg * 0.9) {
+                    categoryAnalysis[category].trend = 'declining';
+                }
+                
+                // 计算总体增长率
+                const firstValue = monthlyValues[0];
+                const lastValue = monthlyValues[monthlyValues.length - 1];
+                categoryAnalysis[category].growthRate = calculateGrowthRate(firstValue, lastValue);
+            }
+            
+            // 找到峰值月份
+            const maxValue = Math.max(...monthlyValues);
+            const peakIndex = monthlyValues.indexOf(maxValue);
+            if (peakIndex !== -1) {
+                categoryAnalysis[category].peakMonth = months[peakIndex];
+            }
+        });
+        
+        return categoryAnalysis;
+    }
+
+    // 显示分类分析
+    function showCategoryAnalysis(chartType) {
+        const container = document.getElementById('specialistChartContainer');
+        
+        if (specialistProjectData.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">暂无数据</div>
+                    <div style="font-size: 14px;">项目数据未加载完成，请稍后重试</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const monthlyData = calculateMonthlyAnalysis(specialistProjectData, chartType);
+        const categoryAnalysis = calculateCategoryMonthlyAnalysis(monthlyData);
+        const chartTitle = getChartTitle(chartType);
+        
+        container.innerHTML = `
+            <div style="width: 100%; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1; min-width: 200px;">${chartTitle} - 分类分析</h4>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="showMonthlyAnalysis('${chartType}')" title="月度分析" style="background: #ff6b6b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📊 月度</button>
+                        <button onclick="showTrendAnalysis('${chartType}')" title="趋势分析" style="background: #4ecdc4; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📈 趋势</button>
+                        <button onclick="refreshSpecialistChart('${chartType}')" title="返回原图" style="background: #6c757d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔙 返回</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 80px);">
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📊 各分类趋势概览</h5>
+                        ${createCategoryOverviewChart(categoryAnalysis)}
+                    </div>
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📈 分类增长率排名</h5>
+                        ${createCategoryGrowthRanking(categoryAnalysis)}
+                    </div>
+                </div>
+                <div style="margin-top: 20px; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">🔍 各分类详细月度变化</h5>
+                    ${createDetailedCategoryAnalysis(categoryAnalysis, monthlyData)}
+                </div>
+            </div>
+        `;
+    }
+
+    // 显示月度分析
+    function showMonthlyAnalysis(chartType) {
+        const container = document.getElementById('specialistChartContainer');
+        
+        if (specialistProjectData.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">暂无数据</div>
+                    <div style="font-size: 14px;">项目数据未加载完成，请稍后重试</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const monthlyData = calculateMonthlyAnalysis(specialistProjectData, chartType);
+        const comparisonData = calculateComparisonData(monthlyData);
+        const categoryAnalysis = calculateCategoryMonthlyAnalysis(monthlyData);
+        
+        const chartTitle = getChartTitle(chartType);
+        
+        container.innerHTML = `
+            <div style="width: 100%; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1; min-width: 200px;">${chartTitle} - 月度分析</h4>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="showTrendAnalysis('${chartType}')" title="趋势分析" style="background: #4ecdc4; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📈 趋势</button>
+                        <button onclick="showCategoryAnalysis('${chartType}')" title="分类分析" style="background: #ff9f43; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔍 分类</button>
+                        <button onclick="refreshSpecialistChart('${chartType}')" title="返回原图" style="background: #6c757d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔙 返回</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 80px);">
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📊 月度总量趋势</h5>
+                        ${createMonthlyTrendChart(comparisonData)}
+                    </div>
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📈 同比环比分析</h5>
+                        ${createComparisonChart(comparisonData)}
+                    </div>
+                </div>
+                <div style="margin-top: 20px; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">🔍 各分类月度变化趋势</h5>
+                    ${createCategoryTrendAnalysis(categoryAnalysis)}
+                </div>
+            </div>
+        `;
+    }
+
+    // 显示趋势分析
+    function showTrendAnalysis(chartType) {
+        const container = document.getElementById('specialistChartContainer');
+        
+        if (specialistProjectData.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">暂无数据</div>
+                    <div style="font-size: 14px;">项目数据未加载完成，请稍后重试</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const monthlyData = calculateMonthlyAnalysis(specialistProjectData, chartType);
+        const chartTitle = getChartTitle(chartType);
+        
+        container.innerHTML = `
+            <div style="width: 100%; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1; min-width: 200px;">${chartTitle} - 趋势分析</h4>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="showMonthlyAnalysis('${chartType}')" title="月度分析" style="background: #ff6b6b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">📊 月度</button>
+                        <button onclick="refreshSpecialistChart('${chartType}')" title="返回原图" style="background: #6c757d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔙 返回</button>
+                    </div>
+                </div>
+                <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: calc(100% - 80px);">
+                    <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📈 各维度趋势热力图</h5>
+                    ${createTrendHeatmap(monthlyData, chartType)}
+                </div>
+            </div>
+        `;
+    }
+
+    // 获取图表标题
+    function getChartTitle(chartType) {
+        const titles = {
+            'schedule': '排期时间分布',
+            'scheduleDays': '排期天数分布',
+            'status': '项目状态分布',
+            'category': '样品类别分布',
+            'priority': '优先级分布',
+            'tester': '测试员分布'
+        };
+        return titles[chartType] || '数据分布';
+    }
+
+    // 创建月度趋势图表
+    function createMonthlyTrendChart(comparisonData) {
+        const months = Object.keys(comparisonData).sort();
+        const totals = months.map(month => comparisonData[month].total);
+        const maxTotal = Math.max(...totals);
+        
+        let chartHTML = '<div style="height: 300px; display: flex; align-items: end; gap: 8px; padding: 20px 0;">';
+        
+        months.forEach((month, index) => {
+            const height = (comparisonData[month].total / maxTotal) * 250;
+            const monthLabel = month.substring(5); // 只显示月份
+            const isCurrentMonth = index === months.length - 1;
+            
+            chartHTML += `
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                    <div style="
+                        width: 100%; 
+                        height: ${height}px; 
+                        background: ${isCurrentMonth ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)'};
+                        border-radius: 4px 4px 0 0;
+                        position: relative;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    " 
+                    onmouseover="this.style.transform='scale(1.05)'" 
+                    onmouseout="this.style.transform='scale(1)'"
+                    title="${month}: ${comparisonData[month].total}个项目">
+                        <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; color: #333;">
+                            ${comparisonData[month].total}
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 11px; color: #666; font-weight: 500;">
+                        ${monthLabel}月
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建同比环比分析图表
+    function createComparisonChart(comparisonData) {
+        const months = Object.keys(comparisonData).sort();
+        
+        let chartHTML = '<div style="height: 300px; overflow-y: auto;">';
+        
+        months.forEach(month => {
+            const data = comparisonData[month];
+            const monthLabel = month.substring(5);
+            const momRate = parseFloat(data.monthOverMonth);
+            const yoyRate = parseFloat(data.yearOverYear);
+            
+            chartHTML += `
+                <div style="
+                    background: #f8f9fa; 
+                    border-radius: 8px; 
+                    padding: 15px; 
+                    margin-bottom: 10px; 
+                    border-left: 4px solid #667eea;
+                    transition: all 0.3s ease;
+                " 
+                onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(5px)'" 
+                onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div style="font-weight: 600; color: #333; font-size: 14px;">${monthLabel}月</div>
+                        <div style="font-weight: bold; color: #667eea; font-size: 16px;">${data.total}个项目</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">环比上月</div>
+                            <div style="font-size: 18px; font-weight: bold; color: ${momRate >= 0 ? '#28a745' : '#dc3545'};">
+                                ${momRate >= 0 ? '+' : ''}${momRate}%
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">同比去年</div>
+                            <div style="font-size: 18px; font-weight: bold; color: ${yoyRate >= 0 ? '#28a745' : '#dc3545'};">
+                                ${yoyRate >= 0 ? '+' : ''}${yoyRate}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建趋势热力图
+    function createTrendHeatmap(monthlyData, chartType) {
+        const months = Object.keys(monthlyData).sort();
+        const allCategories = new Set();
+        
+        // 收集所有分类
+        months.forEach(month => {
+            Object.keys(monthlyData[month].distribution).forEach(category => {
+                allCategories.add(category);
+            });
+        });
+        
+        const categories = Array.from(allCategories);
+        const maxValue = Math.max(...months.map(month => 
+            Math.max(...Object.values(monthlyData[month].distribution))
+        ));
+        
+        let chartHTML = `
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #dee2e6; font-weight: 600;">分类</th>
+        `;
+        
+        months.forEach(month => {
+            const monthLabel = month.substring(5);
+            chartHTML += `<th style="padding: 10px; text-align: center; border: 1px solid #dee2e6; font-weight: 600;">${monthLabel}月</th>`;
+        });
+        
+        chartHTML += '</tr></thead><tbody>';
+        
+        categories.forEach(category => {
+            chartHTML += `<tr>`;
+            chartHTML += `<td style="padding: 10px; border: 1px solid #dee2e6; font-weight: 500;">${category}</td>`;
+            
+            months.forEach(month => {
+                const value = monthlyData[month].distribution[category] || 0;
+                const intensity = maxValue > 0 ? value / maxValue : 0;
+                const color = getHeatmapColor(intensity);
+                
+                chartHTML += `
+                    <td style="
+                        padding: 10px; 
+                        text-align: center; 
+                        border: 1px solid #dee2e6; 
+                        background: ${color};
+                        color: ${intensity > 0.5 ? 'white' : '#333'};
+                        font-weight: bold;
+                    " title="${month}: ${value}个项目">
+                        ${value}
+                    </td>
+                `;
+            });
+            
+            chartHTML += '</tr>';
+        });
+        
+        chartHTML += '</tbody></table></div>';
+        return chartHTML;
+    }
+
+    // 获取热力图颜色
+    function getHeatmapColor(intensity) {
+        if (intensity === 0) return '#f8f9fa';
+        if (intensity <= 0.2) return '#d4edda';
+        if (intensity <= 0.4) return '#c3e6cb';
+        if (intensity <= 0.6) return '#a3d9a4';
+        if (intensity <= 0.8) return '#7dd87d';
+        return '#28a745';
+    }
+
+    // 加载月度分析总览
+    function loadMonthlyAnalysisOverview() {
+        showSpecialistLoading('月度分析总览');
+        
+        if (specialistProjectData.length === 0) {
+            showSpecialistError('月度分析总览', '项目数据未加载完成，请稍后重试');
+            return;
+        }
+        
+        const container = document.getElementById('specialistChartContainer');
+        
+        // 计算各维度的月度数据
+        const dimensions = ['schedule', 'scheduleDays', 'status', 'category', 'priority', 'tester'];
+        const monthlyAnalysisData = {};
+        
+        dimensions.forEach(dimension => {
+            monthlyAnalysisData[dimension] = calculateMonthlyAnalysis(specialistProjectData, dimension);
+        });
+        
+        container.innerHTML = `
+            <div style="width: 100%; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h4 style="color: #333; margin: 0; font-size: 18px; flex: 1; min-width: 200px;">📊 月度分析总览</h4>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="refreshSpecialistChart('monthly-analysis')" title="刷新数据" style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🔄 刷新</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 80px);">
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📈 各维度月度趋势对比</h5>
+                        ${createOverviewTrendChart(monthlyAnalysisData)}
+                    </div>
+                    <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px;">📊 最近3个月数据对比</h5>
+                        ${createRecentMonthsComparison(monthlyAnalysisData)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 创建总览趋势图表
+    function createOverviewTrendChart(monthlyAnalysisData) {
+        const months = Object.keys(monthlyAnalysisData.schedule).sort();
+        const dimensions = [
+            { key: 'schedule', name: '排期时间', color: '#667eea' },
+            { key: 'scheduleDays', name: '排期天数', color: '#4ecdc4' },
+            { key: 'status', name: '项目状态', color: '#ff6b6b' },
+            { key: 'category', name: '样品类别', color: '#feca57' },
+            { key: 'priority', name: '优先级', color: '#48dbfb' },
+            { key: 'tester', name: '测试员', color: '#ff9ff3' }
+        ];
+        
+        let chartHTML = '<div style="height: 400px; overflow-y: auto;">';
+        
+        dimensions.forEach(dimension => {
+            const data = monthlyAnalysisData[dimension.key];
+            const totals = months.map(month => data[month].total);
+            const maxTotal = Math.max(...totals);
+            
+            chartHTML += `
+                <div style="margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h6 style="margin: 0; color: #333; font-size: 14px; font-weight: 600;">${dimension.name}</h6>
+                        <div style="font-size: 12px; color: #666;">总计: ${totals.reduce((a, b) => a + b, 0)}个项目</div>
+                    </div>
+                    <div style="display: flex; align-items: end; gap: 4px; height: 60px;">
+            `;
+            
+            months.forEach((month, index) => {
+                const height = maxTotal > 0 ? (data[month].total / maxTotal) * 50 : 0;
+                const monthLabel = month.substring(5);
+                
+                chartHTML += `
+                    <div style="
+                        flex: 1; 
+                        height: ${height}px; 
+                        background: ${dimension.color}; 
+                        border-radius: 2px 2px 0 0;
+                        position: relative;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    " 
+                    onmouseover="this.style.opacity='0.8'" 
+                    onmouseout="this.style.opacity='1'"
+                    title="${month}: ${data[month].total}个项目">
+                        <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; color: #333; white-space: nowrap;">
+                            ${data[month].total}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHTML += `
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 10px; color: #666;">
+                        <span>${months[0].substring(5)}月</span>
+                        <span>${months[months.length-1].substring(5)}月</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建最近3个月对比
+    function createRecentMonthsComparison(monthlyAnalysisData) {
+        const months = Object.keys(monthlyAnalysisData.schedule).sort();
+        const recentMonths = months.slice(-3);
+        
+        let chartHTML = '<div style="height: 400px; overflow-y: auto;">';
+        
+        recentMonths.forEach(month => {
+            const monthLabel = month.substring(5);
+            const monthData = {};
+            
+            Object.keys(monthlyAnalysisData).forEach(dimension => {
+                monthData[dimension] = monthlyAnalysisData[dimension][month].total;
+            });
+            
+            const totalProjects = Object.values(monthData).reduce((a, b) => a + b, 0);
+            
+            chartHTML += `
+                <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h6 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">${monthLabel}月</h6>
+                        <div style="font-size: 14px; color: #667eea; font-weight: bold;">总计: ${totalProjects}个项目</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            `;
+            
+            const dimensions = [
+                { key: 'schedule', name: '排期时间', color: '#667eea' },
+                { key: 'scheduleDays', name: '排期天数', color: '#4ecdc4' },
+                { key: 'status', name: '项目状态', color: '#ff6b6b' },
+                { key: 'category', name: '样品类别', color: '#feca57' },
+                { key: 'priority', name: '优先级', color: '#48dbfb' },
+                { key: 'tester', name: '测试员', color: '#ff9ff3' }
+            ];
+            
+            dimensions.forEach(dimension => {
+                const value = monthData[dimension.key] || 0;
+                const percentage = totalProjects > 0 ? ((value / totalProjects) * 100).toFixed(1) : 0;
+                
+                chartHTML += `
+                    <div style="text-align: center; padding: 10px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">${dimension.name}</div>
+                        <div style="font-size: 18px; font-weight: bold; color: ${dimension.color}; margin-bottom: 3px;">${value}</div>
+                        <div style="font-size: 10px; color: #999;">${percentage}%</div>
+                    </div>
+                `;
+            });
+            
+            chartHTML += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建分类趋势分析图表
+    function createCategoryTrendAnalysis(categoryAnalysis) {
+        const categories = Object.keys(categoryAnalysis);
+        const months = Object.keys(categoryAnalysis[categories[0]]?.monthlyData || {}).sort();
+        
+        let chartHTML = '<div style="height: 400px; overflow-y: auto;">';
+        
+        categories.forEach(category => {
+            const data = categoryAnalysis[category];
+            const monthlyValues = months.map(month => data.monthlyData[month] || 0);
+            const maxValue = Math.max(...monthlyValues);
+            const trendIcon = data.trend === 'rising' ? '📈' : data.trend === 'declining' ? '📉' : '➡️';
+            const trendColor = data.trend === 'rising' ? '#28a745' : data.trend === 'declining' ? '#dc3545' : '#6c757d';
+            
+            chartHTML += `
+                <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${trendColor};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">${trendIcon}</span>
+                            <h6 style="margin: 0; color: #333; font-size: 14px; font-weight: 600;">${category}</h6>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div style="font-size: 12px; color: #666;">总计: ${data.totalCount}</div>
+                            <div style="font-size: 12px; color: ${trendColor}; font-weight: bold;">
+                                增长率: ${data.growthRate >= 0 ? '+' : ''}${data.growthRate}%
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: end; gap: 3px; height: 40px; margin-bottom: 8px;">
+            `;
+            
+            monthlyValues.forEach((value, index) => {
+                const height = maxValue > 0 ? (value / maxValue) * 35 : 0;
+                const monthLabel = months[index].substring(5);
+                
+                chartHTML += `
+                    <div style="
+                        flex: 1; 
+                        height: ${height}px; 
+                        background: ${trendColor}; 
+                        border-radius: 2px 2px 0 0;
+                        position: relative;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    " 
+                    onmouseover="this.style.opacity='0.8'" 
+                    onmouseout="this.style.opacity='1'"
+                    title="${months[index]}: ${value}个项目">
+                        <div style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: bold; color: #333; white-space: nowrap;">
+                            ${value}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHTML += `
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #666;">
+                        <span>${months[0].substring(5)}月</span>
+                        <span>峰值: ${data.peakMonth.substring(5)}月</span>
+                        <span>${months[months.length-1].substring(5)}月</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建分类概览图表
+    function createCategoryOverviewChart(categoryAnalysis) {
+        const categories = Object.keys(categoryAnalysis);
+        
+        let chartHTML = '<div style="height: 400px; overflow-y: auto;">';
+        
+        categories.forEach(category => {
+            const data = categoryAnalysis[category];
+            const trendIcon = data.trend === 'rising' ? '📈' : data.trend === 'declining' ? '📉' : '➡️';
+            const trendColor = data.trend === 'rising' ? '#28a745' : data.trend === 'declining' ? '#dc3545' : '#6c757d';
+            
+            chartHTML += `
+                <div style="
+                    margin-bottom: 15px; 
+                    padding: 15px; 
+                    background: white; 
+                    border-radius: 8px; 
+                    border-left: 4px solid ${trendColor};
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    transition: all 0.3s ease;
+                " 
+                onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.15)'" 
+                onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 18px;">${trendIcon}</span>
+                            <h6 style="margin: 0; color: #333; font-size: 14px; font-weight: 600;">${category}</h6>
+                        </div>
+                        <div style="font-size: 16px; font-weight: bold; color: ${trendColor};">
+                            ${data.totalCount}
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 12px;">
+                        <div style="text-align: center; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="color: #666; margin-bottom: 2px;">增长率</div>
+                            <div style="font-weight: bold; color: ${trendColor};">
+                                ${data.growthRate >= 0 ? '+' : ''}${data.growthRate}%
+                            </div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="color: #666; margin-bottom: 2px;">峰值月份</div>
+                            <div style="font-weight: bold; color: #333;">
+                                ${data.peakMonth ? data.peakMonth.substring(5) + '月' : '-'}
+                            </div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="color: #666; margin-bottom: 2px;">趋势</div>
+                            <div style="font-weight: bold; color: ${trendColor};">
+                                ${data.trend === 'rising' ? '上升' : data.trend === 'declining' ? '下降' : '稳定'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建分类增长率排名
+    function createCategoryGrowthRanking(categoryAnalysis) {
+        const categories = Object.keys(categoryAnalysis);
+        const sortedCategories = categories.sort((a, b) => 
+            parseFloat(categoryAnalysis[b].growthRate) - parseFloat(categoryAnalysis[a].growthRate)
+        );
+        
+        let chartHTML = '<div style="height: 400px; overflow-y: auto;">';
+        
+        sortedCategories.forEach((category, index) => {
+            const data = categoryAnalysis[category];
+            const growthRate = parseFloat(data.growthRate);
+            const rankColor = index < 3 ? '#ff6b6b' : index < 6 ? '#ffa726' : '#66bb6a';
+            const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🔸';
+            
+            chartHTML += `
+                <div style="
+                    margin-bottom: 12px; 
+                    padding: 12px; 
+                    background: white; 
+                    border-radius: 8px; 
+                    border-left: 4px solid ${rankColor};
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    transition: all 0.3s ease;
+                " 
+                onmouseover="this.style.transform='translateX(3px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" 
+                onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">${rankIcon}</span>
+                            <div>
+                                <div style="font-weight: 600; color: #333; font-size: 14px;">${category}</div>
+                                <div style="font-size: 12px; color: #666;">总计: ${data.totalCount}个项目</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 18px; font-weight: bold; color: ${rankColor};">
+                                ${growthRate >= 0 ? '+' : ''}${growthRate}%
+                            </div>
+                            <div style="font-size: 10px; color: #666;">第${index + 1}名</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        chartHTML += '</div>';
+        return chartHTML;
+    }
+
+    // 创建详细分类分析
+    function createDetailedCategoryAnalysis(categoryAnalysis, monthlyData) {
+        const categories = Object.keys(categoryAnalysis);
+        const months = Object.keys(monthlyData).sort();
+        
+        let chartHTML = `
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6; font-weight: 600; position: sticky; left: 0; background: #f8f9fa;">分类</th>
+        `;
+        
+        months.forEach(month => {
+            const monthLabel = month.substring(5);
+            chartHTML += `<th style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: 600;">${monthLabel}月</th>`;
+        });
+        
+        chartHTML += `
+                            <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: 600;">总计</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: 600;">增长率</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: 600;">趋势</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        categories.forEach(category => {
+            const data = categoryAnalysis[category];
+            const trendIcon = data.trend === 'rising' ? '📈' : data.trend === 'declining' ? '📉' : '➡️';
+            const trendColor = data.trend === 'rising' ? '#28a745' : data.trend === 'declining' ? '#dc3545' : '#6c757d';
+            
+            chartHTML += `<tr style="border-bottom: 1px solid #dee2e6;">`;
+            chartHTML += `<td style="padding: 12px; border: 1px solid #dee2e6; font-weight: 500; position: sticky; left: 0; background: white;">${category}</td>`;
+            
+            months.forEach(month => {
+                const value = data.monthlyData[month] || 0;
+                chartHTML += `
+                    <td style="
+                        padding: 12px; 
+                        text-align: center; 
+                        border: 1px solid #dee2e6; 
+                        font-weight: bold;
+                    ">
+                        ${value}
+                    </td>
+                `;
+            });
+            
+            chartHTML += `
+                <td style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: bold; color: #667eea;">
+                    ${data.totalCount}
+                </td>
+                <td style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: bold; color: ${trendColor};">
+                    ${data.growthRate >= 0 ? '+' : ''}${data.growthRate}%
+                </td>
+                <td style="padding: 12px; text-align: center; border: 1px solid #dee2e6; font-weight: bold; color: ${trendColor};">
+                    ${trendIcon}
+                </td>
+            </tr>`;
+        });
+        
+        chartHTML += '</tbody></table></div>';
+        return chartHTML;
     }
 
     // 刷新排期图表

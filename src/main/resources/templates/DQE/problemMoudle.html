@@ -396,9 +396,24 @@
     let globalFormData ;
 
 
-    let username = localStorage.getItem("username");
-    let job = localStorage.getItem("job");
+    // 获取 URL 参数的方法
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // 先从URL参数获取用户信息，如果没有则从localStorage获取
+    let username = getQueryParam("username") || localStorage.getItem("username");
+    let job = getQueryParam("job") || localStorage.getItem("job");
     const corp_id = localStorage.getItem('corp_id');
+
+    // 如果从URL参数获取到用户信息，则存储到localStorage
+    if (getQueryParam("username")) {
+        localStorage.setItem("username", username);
+    }
+    if (getQueryParam("job")) {
+        localStorage.setItem("job", job);
+    }
 
     if(job === "manager"){
         // 这里是为了让manager级别的人能像DQE那样看到东西
@@ -529,12 +544,6 @@
 
 
     $(document).ready(function() {
-        // 获取 URL 参数的方法
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
         readyConfig();
 
         currentPage = 1;
@@ -740,9 +749,6 @@
         const isElectricId = getQueryParam("isElectricId");
 
         if (sampleId) {
-
-            username = getQueryParam("username");
-            job = getQueryParam("job");
             // if (job === "DQE" || job === "RD") {
             if ( job === "RD") {
                 job = job.toLowerCase();
