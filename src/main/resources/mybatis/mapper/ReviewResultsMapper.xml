@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.ReviewResultsDao">
+
+    <!-- 结果映射 -->
+    <resultMap id="ReviewResultsMap" type="com.lu.ddwyydemo04.pojo.ReviewResults">
+        <id property="id" column="id"/>
+        <result property="testDate" column="test_date"/>
+        <result property="majorCode" column="major_code"/>
+        <result property="minorCode" column="minor_code"/>
+        <result property="projectPhase" column="project_phase"/>
+        <result property="version" column="version"/>
+        <result property="problemProcess" column="problem_process"/>
+        <result property="problemLevel" column="problem_level"/>
+        <result property="developmentMethod" column="development_method"/>
+        <result property="supplier" column="supplier"/>
+        <result property="solutionProvider" column="solution_provider"/>
+        <result property="problemPoint" column="problem_point"/>
+        <result property="problemReason" column="problem_reason"/>
+        <result property="improvementMeasures" column="improvement_measures"/>
+        <result property="isPreventable" column="is_preventable"/>
+        <result property="responsibleDepartment" column="responsible_department"/>
+        <result property="plannedCompletionTime" column="planned_completion_time"/>
+        <result property="actualCompletionTime" column="actual_completion_time"/>
+        <result property="delayDays" column="delay_days"/>
+        <result property="problemStatus" column="problem_status"/>
+        <result property="problemTag1" column="problem_tag1"/>
+        <result property="problemTag2" column="problem_tag2"/>
+        <result property="preventionNotes" column="prevention_notes"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <!-- 插入评审结果数据 -->
+    <insert id="insert" parameterType="com.lu.ddwyydemo04.pojo.ReviewResults" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reviewResults (
+            test_date, major_code, minor_code, project_phase, version,
+            problem_process, problem_level, development_method, supplier, solution_provider,
+            problem_point, problem_reason, improvement_measures, is_preventable, responsible_department,
+            planned_completion_time, actual_completion_time, delay_days, problem_status,
+            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time
+        ) VALUES (
+            #{testDate}, #{majorCode}, #{minorCode}, #{projectPhase}, #{version},
+            #{problemProcess}, #{problemLevel}, #{developmentMethod}, #{supplier}, #{solutionProvider},
+            #{problemPoint}, #{problemReason}, #{improvementMeasures}, #{isPreventable}, #{responsibleDepartment},
+            #{plannedCompletionTime}, #{actualCompletionTime}, #{delayDays}, #{problemStatus},
+            #{problemTag1}, #{problemTag2}, #{preventionNotes}, #{createdTime}, #{updatedTime}
+        )
+    </insert>
+
+    <!-- 根据大编码、小编码、项目阶段、版本、供应商查询是否存在记录 -->
+    <select id="findExistingRecord" resultType="java.lang.Long">
+        SELECT id FROM reviewResults 
+        WHERE major_code = #{majorCode} 
+        AND minor_code = #{minorCode} 
+        AND project_phase = #{projectPhase} 
+        AND version = #{version} 
+        AND supplier = #{supplier}
+    </select>
+
+    <!-- 更新评审结果数据 -->
+    <update id="update" parameterType="com.lu.ddwyydemo04.pojo.ReviewResults">
+        UPDATE reviewResults SET 
+            test_date = #{testDate},
+            major_code = #{majorCode},
+            minor_code = #{minorCode},
+            project_phase = #{projectPhase},
+            version = #{version},
+            problem_process = #{problemProcess},
+            problem_level = #{problemLevel},
+            development_method = #{developmentMethod},
+            supplier = #{supplier},
+            solution_provider = #{solutionProvider},
+            problem_point = #{problemPoint},
+            problem_reason = #{problemReason},
+            improvement_measures = #{improvementMeasures},
+            is_preventable = #{isPreventable},
+            responsible_department = #{responsibleDepartment},
+            planned_completion_time = #{plannedCompletionTime},
+            actual_completion_time = #{actualCompletionTime},
+            delay_days = #{delayDays},
+            problem_status = #{problemStatus},
+            problem_tag1 = #{problemTag1},
+            problem_tag2 = #{problemTag2},
+            prevention_notes = #{preventionNotes},
+            updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量插入评审结果数据 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO reviewResults (
+            test_date, major_code, minor_code, project_phase, version,
+            problem_process, problem_level, development_method, supplier, solution_provider,
+            problem_point, problem_reason, improvement_measures, is_preventable, responsible_department,
+            planned_completion_time, actual_completion_time, delay_days, problem_status,
+            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.testDate}, #{item.majorCode}, #{item.minorCode}, #{item.projectPhase}, #{item.version},
+                #{item.problemProcess}, #{item.problemLevel}, #{item.developmentMethod}, #{item.supplier}, #{item.solutionProvider},
+                #{item.problemPoint}, #{item.problemReason}, #{item.improvementMeasures}, #{item.isPreventable}, #{item.responsibleDepartment},
+                #{item.plannedCompletionTime}, #{item.actualCompletionTime}, #{item.delayDays}, #{item.problemStatus},
+                #{item.problemTag1}, #{item.problemTag2}, #{item.preventionNotes}, #{item.createdTime}, #{item.updatedTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据ID删除评审结果 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM reviewResults WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID查询评审结果 -->
+    <select id="findById" parameterType="java.lang.Long" resultMap="ReviewResultsMap">
+        SELECT * FROM reviewResults WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有评审结果 -->
+    <select id="findAll" resultMap="ReviewResultsMap">
+        SELECT * FROM reviewResults ORDER BY created_time DESC
+    </select>
+
+</mapper>

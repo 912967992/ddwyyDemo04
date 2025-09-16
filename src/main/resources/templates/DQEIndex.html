@@ -350,6 +350,7 @@
         <div class="grid-container">
             <div class="module highlighted" onclick="redirectToPage()">DQE/研发<br>审核</div>
             <div class="module highlighted" onclick="checkProblemLibraryPermission()">问题点库<br>管理</div>
+            <div class="module highlighted" onclick="goToReviewResult()">评审结果<br>页面</div>
             <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
             <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
             <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
@@ -464,6 +465,46 @@
             } else {
                 alert("您无权限进入该页面");
             }
+        }
+
+        // 跳转到评审结果页面
+        function goToReviewResult() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+            
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+
+            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
+            if (allowedUsers.includes(username)) {
+                // 检查是否在钉钉环境中
+                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+                const url = 'http://219.134.191.195:64000/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // const url = 'http://e888ccd6.natappfree.cc/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+                if (isDingTalk) {
+                    dd.openLink({
+                        url: url,
+                        success: function() {
+                            console.log('成功打开问题点库管理页面');
+                        },
+                        fail: function(err) {
+                            alert('打开页面失败：' + JSON.stringify(err));
+                            console.error('dd.openLink fail:', err);
+                        }
+                    });
+                } else {
+                    // 非钉钉环境使用普通跳转
+                    window.location.href = url;
+                }
+            } else {
+                alert("您无权限进入问题点库管理页面");
+            }
+
         }
 
         // 根据角色跳转到不同的数据看板页面
