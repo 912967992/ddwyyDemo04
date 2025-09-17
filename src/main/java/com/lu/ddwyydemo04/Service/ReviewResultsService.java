@@ -25,6 +25,28 @@ public class ReviewResultsService {
     private ReviewResultsDao reviewResultsDao;
 
     /**
+     * 获取所有评审结果数据
+     * @return 评审结果列表
+     */
+    public List<ReviewResults> getAllReviewResults() {
+        List<ReviewResults> results = reviewResultsDao.findAll();
+        System.out.println("Service层获取到的数据量: " + (results != null ? results.size() : 0));
+        if (results != null && !results.isEmpty()) {
+            System.out.println("第一条数据: " + results.get(0).getMajorCode() + " - " + results.get(0).getMinorCode());
+        }
+        return results;
+    }
+
+    /**
+     * 根据ID获取评审结果
+     * @param id 评审结果ID
+     * @return 评审结果对象
+     */
+    public ReviewResults getReviewResultById(Long id) {
+        return reviewResultsDao.findById(id);
+    }
+
+    /**
      * 导入Excel文件并解析评审结果数据
      * @param file Excel文件
      * @return 导入结果统计
@@ -62,7 +84,8 @@ public class ReviewResultsService {
                         reviewResult.getMinorCode(),
                         reviewResult.getProjectPhase(),
                         reviewResult.getVersion(),
-                        reviewResult.getSupplier()
+                        reviewResult.getSupplier(),
+                        reviewResult.getProblemPoint()
                     );
 
                     if (existingId != null) {
@@ -149,6 +172,7 @@ public class ReviewResultsService {
         System.out.println("项目阶段列: " + columnMapping.projectPhaseIndex);
         System.out.println("版本列: " + columnMapping.versionIndex);
         System.out.println("供应商列: " + columnMapping.supplierIndex);
+        System.out.println("问题点列: " + columnMapping.problemPointIndex);
         
         // 从第二行开始解析数据
         for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -162,9 +186,37 @@ public class ReviewResultsService {
                     System.out.println("成功解析第" + (rowIndex + 1) + "行数据: " + 
                         "大编码=" + reviewResult.getMajorCode() + 
                         ", 小编码=" + reviewResult.getMinorCode() + 
-                        ", 项目阶段=" + reviewResult.getProjectPhase());
+                        ", 项目阶段=" + reviewResult.getProjectPhase() + 
+                        ", 问题点=" + reviewResult.getProblemPoint());
                 } else {
-                    System.out.println("跳过第" + (rowIndex + 1) + "行数据（必填字段为空）");
+                    // 创建一个临时对象来获取缺失字段信息
+                    ReviewResults tempResult = new ReviewResults();
+                    tempResult.setTestDate(getCellValueAsDate(getCellSafely(row, columnMapping.testDateIndex)));
+                    tempResult.setMajorCode(getCellValueAsString(getCellSafely(row, columnMapping.majorCodeIndex)));
+                    tempResult.setMinorCode(getCellValueAsString(getCellSafely(row, columnMapping.minorCodeIndex)));
+                    tempResult.setProjectPhase(getCellValueAsString(getCellSafely(row, columnMapping.projectPhaseIndex)));
+                    tempResult.setVersion(getCellValueAsString(getCellSafely(row, columnMapping.versionIndex)));
+                    tempResult.setSupplier(getCellValueAsString(getCellSafely(row, columnMapping.supplierIndex)));
+                    
+                    // 检查具体缺失的字段
+                    StringBuilder missingFields = new StringBuilder();
+                    if (tempResult.getMajorCode() == null || tempResult.getMajorCode().trim().isEmpty()) {
+                        missingFields.append("大编码 ");
+                    }
+                    if (tempResult.getMinorCode() == null || tempResult.getMinorCode().trim().isEmpty()) {
+                        missingFields.append("小编码 ");
+                    }
+                    if (tempResult.getProjectPhase() == null || tempResult.getProjectPhase().trim().isEmpty()) {
+                        missingFields.append("项目阶段 ");
+                    }
+                    if (tempResult.getVersion() == null || tempResult.getVersion().trim().isEmpty()) {
+                        missingFields.append("版本 ");
+                    }
+                    if (tempResult.getSupplier() == null || tempResult.getSupplier().trim().isEmpty()) {
+                        missingFields.append("供应商 ");
+                    }
+                    
+                    System.out.println("跳过第" + (rowIndex + 1) + "行数据（缺失必填字段: " + missingFields.toString().trim() + "）");
                 }
             } catch (Exception e) {
                 System.err.println("解析第" + (rowIndex + 1) + "行数据时出错: " + e.getMessage());
@@ -274,11 +326,27 @@ public class ReviewResultsService {
         reviewResult.setPreventionNotes(getCellValueAsString(getCellSafely(row, mapping.preventionNotesIndex)));
         
         // 检查必填字段
-        if (reviewResult.getMajorCode() == null || reviewResult.getMajorCode().trim().isEmpty() ||
-            reviewResult.getMinorCode() == null || reviewResult.getMinorCode().trim().isEmpty() ||
-            reviewResult.getProjectPhase() == null || reviewResult.getProjectPhase().trim().isEmpty() ||
-            reviewResult.getVersion() == null || reviewResult.getVersion().trim().isEmpty() ||
-            reviewResult.getSupplier() == null || reviewResult.getSupplier().trim().isEmpty()) {
+        StringBuilder missingFields = new StringBuilder();
+        
+        if (reviewResult.getMajorCode() == null || reviewResult.getMajorCode().trim().isEmpty()) {
+            missingFields.append("大编码 ");
+        }
+        if (reviewResult.getMinorCode() == null || reviewResult.getMinorCode().trim().isEmpty()) {
+            missingFields.append("小编码 ");
+        }
+        if (reviewResult.getProjectPhase() == null || reviewResult.getProjectPhase().trim().isEmpty()) {
+            missingFields.append("项目阶段 ");
+        }
+        if (reviewResult.getVersion() == null || reviewResult.getVersion().trim().isEmpty()) {
+            missingFields.append("版本 ");
+        }
+        if (reviewResult.getSupplier() == null || reviewResult.getSupplier().trim().isEmpty()) {
+            missingFields.append("供应商 ");
+        }
+        
+        if (missingFields.length() > 0) {
+            // 将缺失字段信息存储到对象中，供调用方使用
+            reviewResult.setPreventionNotes("缺失必填字段: " + missingFields.toString().trim());
             return null; // 跳过必填字段为空的记录
         }
         

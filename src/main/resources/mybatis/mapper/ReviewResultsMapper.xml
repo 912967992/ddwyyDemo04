@@ -48,7 +48,7 @@
         )
     </insert>
 
-    <!-- 根据大编码、小编码、项目阶段、版本、供应商查询是否存在记录 -->
+    <!-- 根据大编码、小编码、项目阶段、版本、供应商、问题点查询是否存在记录 -->
     <select id="findExistingRecord" resultType="java.lang.Long">
         SELECT id FROM reviewResults 
         WHERE major_code = #{majorCode} 
@@ -56,6 +56,7 @@
         AND project_phase = #{projectPhase} 
         AND version = #{version} 
         AND supplier = #{supplier}
+        AND problem_point = #{problemPoint}
     </select>
 
     <!-- 更新评审结果数据 -->
@@ -123,3 +124,4 @@
     </select>
 
 </mapper>
+

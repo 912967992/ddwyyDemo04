@@ -20,19 +20,21 @@ public interface ReviewResultsDao {
     int insert(ReviewResults reviewResults);
 
     /**
-     * 根据大编码、小编码、项目阶段、版本、供应商查询是否存在记录
+     * 根据大编码、小编码、项目阶段、版本、供应商、问题点查询是否存在记录
      * @param majorCode 大编码
      * @param minorCode 小编码
      * @param projectPhase 项目阶段
      * @param version 版本
      * @param supplier 供应商
+     * @param problemPoint 问题点
      * @return 存在的记录ID，如果不存在返回null
      */
     Long findExistingRecord(@Param("majorCode") String majorCode, 
                            @Param("minorCode") String minorCode, 
                            @Param("projectPhase") String projectPhase, 
                            @Param("version") String version, 
-                           @Param("supplier") String supplier);
+                           @Param("supplier") String supplier,
+                           @Param("problemPoint") String problemPoint);
 
     /**
      * 更新评审结果数据

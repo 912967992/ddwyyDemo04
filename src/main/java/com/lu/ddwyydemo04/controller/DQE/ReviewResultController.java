@@ -1,14 +1,26 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
 import com.lu.ddwyydemo04.Service.ReviewResultsService;
+import com.lu.ddwyydemo04.pojo.ReviewResults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 评审结果页面控制器
@@ -48,20 +60,96 @@ public class ReviewResultController {
             @RequestParam String job,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String sampleId,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String reviewer,
-            @RequestParam(required = false) String reviewDate) {
+            @RequestParam(required = false) String majorCode,
+            @RequestParam(required = false) String minorCode,
+            @RequestParam(required = false) String projectPhase,
+            @RequestParam(required = false) String version,
+            @RequestParam(required = false) String supplier,
+            @RequestParam(required = false) String problemProcess,
+            @RequestParam(required = false) String problemLevel,
+            @RequestParam(required = false) String developmentMethod,
+            @RequestParam(required = false) String solutionProvider,
+            @RequestParam(required = false) String isPreventable,
+            @RequestParam(required = false) String problemStatus,
+            @RequestParam(required = false) String responsibleDepartment,
+            @RequestParam(required = false) String problemPoint,
+            @RequestParam(required = false) String problemTag1,
+            @RequestParam(required = false) String problemTag2,
+            @RequestParam(required = false) String problemReason,
+            @RequestParam(required = false) String improvementMeasures,
+            @RequestParam(required = false) String delayDays,
+            @RequestParam(required = false) String preventionNotes,
+            @RequestParam(required = false) String plannedStartDate,
+            @RequestParam(required = false) String plannedEndDate,
+            @RequestParam(required = false) String actualStartDate,
+            @RequestParam(required = false) String actualEndDate) {
 
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // TODO: 这里将来会调用Service层获取真实数据
-            // 目前返回模拟数据用于测试
-            List<Map<String, Object>> mockData = generateMockReviewResults();
-
+            // 调用Service层获取真实数据
+            List<ReviewResults> allData = reviewResultsService.getAllReviewResults();
+            System.out.println("从数据库获取的总数据量: " + allData.size());
+            
             // 应用筛选条件
-            List<Map<String, Object>> filteredData = applyFilters(mockData, sampleId, status, reviewer, reviewDate);
+            List<ReviewResults> filteredData = allData.stream()
+                .filter(item -> majorCode == null || majorCode.isEmpty() || 
+                    (item.getMajorCode() != null && item.getMajorCode().toLowerCase().contains(majorCode.toLowerCase())))
+                .filter(item -> minorCode == null || minorCode.isEmpty() || 
+                    (item.getMinorCode() != null && item.getMinorCode().toLowerCase().contains(minorCode.toLowerCase())))
+                .filter(item -> projectPhase == null || projectPhase.isEmpty() || 
+                    (item.getProjectPhase() != null && item.getProjectPhase().toLowerCase().contains(projectPhase.toLowerCase())))
+                .filter(item -> version == null || version.isEmpty() || 
+                    (item.getVersion() != null && item.getVersion().toLowerCase().contains(version.toLowerCase())))
+                .filter(item -> supplier == null || supplier.isEmpty() || 
+                    (item.getSupplier() != null && item.getSupplier().toLowerCase().contains(supplier.toLowerCase())))
+                .filter(item -> problemProcess == null || problemProcess.isEmpty() || 
+                    (item.getProblemProcess() != null && item.getProblemProcess().toLowerCase().contains(problemProcess.toLowerCase())))
+                .filter(item -> problemLevel == null || problemLevel.isEmpty() || 
+                    (item.getProblemLevel() != null && item.getProblemLevel().equals(problemLevel)))
+                .filter(item -> developmentMethod == null || developmentMethod.isEmpty() || 
+                    (item.getDevelopmentMethod() != null && item.getDevelopmentMethod().toLowerCase().contains(developmentMethod.toLowerCase())))
+                .filter(item -> solutionProvider == null || solutionProvider.isEmpty() || 
+                    (item.getSolutionProvider() != null && item.getSolutionProvider().toLowerCase().contains(solutionProvider.toLowerCase())))
+                .filter(item -> isPreventable == null || isPreventable.isEmpty() || 
+                    (item.getIsPreventable() != null && item.getIsPreventable().equals(isPreventable)))
+                .filter(item -> problemStatus == null || problemStatus.isEmpty() || 
+                    (item.getProblemStatus() != null && isProblemStatusMatch(item.getProblemStatus(), problemStatus)))
+                .filter(item -> responsibleDepartment == null || responsibleDepartment.isEmpty() || 
+                    (item.getResponsibleDepartment() != null && item.getResponsibleDepartment().toLowerCase().contains(responsibleDepartment.toLowerCase())))
+                .filter(item -> problemPoint == null || problemPoint.isEmpty() || 
+                    (item.getProblemPoint() != null && item.getProblemPoint().toLowerCase().contains(problemPoint.toLowerCase())))
+                .filter(item -> problemTag1 == null || problemTag1.isEmpty() || 
+                    (item.getProblemTag1() != null && item.getProblemTag1().toLowerCase().contains(problemTag1.toLowerCase())))
+                .filter(item -> problemTag2 == null || problemTag2.isEmpty() || 
+                    (item.getProblemTag2() != null && item.getProblemTag2().toLowerCase().contains(problemTag2.toLowerCase())))
+                .filter(item -> problemReason == null || problemReason.isEmpty() || 
+                    (item.getProblemReason() != null && item.getProblemReason().toLowerCase().contains(problemReason.toLowerCase())))
+                .filter(item -> improvementMeasures == null || improvementMeasures.isEmpty() || 
+                    (item.getImprovementMeasures() != null && item.getImprovementMeasures().toLowerCase().contains(improvementMeasures.toLowerCase())))
+                .filter(item -> delayDays == null || delayDays.isEmpty() || 
+                    (item.getDelayDays() != null && item.getDelayDays().toString().equals(delayDays)))
+                .filter(item -> preventionNotes == null || preventionNotes.isEmpty() || 
+                    (item.getPreventionNotes() != null && item.getPreventionNotes().toLowerCase().contains(preventionNotes.toLowerCase())))
+                .filter(item -> plannedStartDate == null || plannedStartDate.isEmpty() || 
+                    (item.getPlannedCompletionTime() != null && !item.getPlannedCompletionTime().toLocalDate().isBefore(LocalDate.parse(plannedStartDate))))
+                .filter(item -> plannedEndDate == null || plannedEndDate.isEmpty() || 
+                    (item.getPlannedCompletionTime() != null && !item.getPlannedCompletionTime().toLocalDate().isAfter(LocalDate.parse(plannedEndDate))))
+                .filter(item -> actualStartDate == null || actualStartDate.isEmpty() || 
+                    (item.getActualCompletionTime() != null && !item.getActualCompletionTime().toLocalDate().isBefore(LocalDate.parse(actualStartDate))))
+                .filter(item -> actualEndDate == null || actualEndDate.isEmpty() || 
+                    (item.getActualCompletionTime() != null && !item.getActualCompletionTime().toLocalDate().isAfter(LocalDate.parse(actualEndDate))))
+                .collect(Collectors.toList());
+
+            System.out.println("筛选后的数据量: " + filteredData.size());
+            System.out.println("筛选条件: majorCode=" + majorCode + ", minorCode=" + minorCode + ", projectPhase=" + projectPhase);
+            System.out.println("其他筛选条件: problemProcess=" + problemProcess + ", problemLevel=" + problemLevel + ", developmentMethod=" + developmentMethod);
+            System.out.println("更多筛选条件: solutionProvider=" + solutionProvider + ", isPreventable=" + isPreventable + ", problemStatus=" + problemStatus);
+            System.out.println("剩余筛选条件: responsibleDepartment=" + responsibleDepartment + ", problemPoint=" + problemPoint + ", problemTag1=" + problemTag1);
+            System.out.println("新增筛选条件: problemTag2=" + problemTag2 + ", problemReason=" + problemReason + ", improvementMeasures=" + improvementMeasures);
+            System.out.println("更多筛选条件: delayDays=" + delayDays + ", preventionNotes=" + preventionNotes);
+            System.out.println("预计完成日期筛选条件: plannedStartDate=" + plannedStartDate + ", plannedEndDate=" + plannedEndDate);
+            System.out.println("实际完成日期筛选条件: actualStartDate=" + actualStartDate + ", actualEndDate=" + actualEndDate);
 
             // 分页处理
             int total = filteredData.size();
@@ -69,7 +157,14 @@ public class ReviewResultController {
             int startIndex = (page - 1) * size;
             int endIndex = Math.min(startIndex + size, total);
 
-            List<Map<String, Object>> pageData = filteredData.subList(startIndex, endIndex);
+            System.out.println("分页信息: total=" + total + ", page=" + page + ", size=" + size + ", startIndex=" + startIndex + ", endIndex=" + endIndex);
+
+            List<ReviewResults> pageData;
+            if (total == 0) {
+                pageData = new ArrayList<>();
+            } else {
+                pageData = filteredData.subList(startIndex, endIndex);
+            }
 
             result.put("success", true);
             result.put("data", pageData);
@@ -102,11 +197,16 @@ public class ReviewResultController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // TODO: 这里将来会调用Service层获取真实数据
-            Map<String, Object> reviewDetail = generateMockReviewDetail(id);
-
-            result.put("success", true);
-            result.put("data", reviewDetail);
+            // 调用Service层获取真实数据
+            ReviewResults reviewDetail = reviewResultsService.getReviewResultById(id);
+            
+            if (reviewDetail != null) {
+                result.put("success", true);
+                result.put("data", reviewDetail);
+            } else {
+                result.put("success", false);
+                result.put("error", "未找到指定的评审结果");
+            }
 
             return ResponseEntity.ok(result);
 
@@ -317,15 +417,13 @@ public class ReviewResultController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // TODO: 这里将来会实现真实的导出功能
-            // 目前返回模拟数据
-            List<Map<String, Object>> mockData = generateMockReviewResults();
-            List<Map<String, Object>> filteredData = applyFilters(mockData, sampleId, status, reviewer, reviewDate);
-
+            // 调用Service层获取真实数据
+            List<ReviewResults> allData = reviewResultsService.getAllReviewResults();
+            
             result.put("success", true);
-            result.put("message", "导出功能开发中，当前返回筛选后的数据");
-            result.put("data", filteredData);
-            result.put("total", filteredData.size());
+            result.put("message", "导出功能开发中，当前返回所有数据");
+            result.put("data", allData);
+            result.put("total", allData.size());
 
             return ResponseEntity.ok(result);
 
@@ -337,75 +435,120 @@ public class ReviewResultController {
     }
 
     /**
-     * 生成模拟评审结果数据
-     * @return 模拟数据列表
+     * 下载评审结果导入模板
+     * @return 模板文件信息
      */
-    private List<Map<String, Object>> generateMockReviewResults() {
-        List<Map<String, Object>> mockData = new ArrayList<>();
-        String[] statuses = {"待评审", "已通过", "已拒绝"};
-        String[] reviewers = {"张三", "李四", "王五", "赵六", "钱七", "孙八", "周九", "吴十"};
-
-        for (int i = 1; i <= 50; i++) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", (long) i);
-            item.put("sampleId", "SAMPLE" + String.format("%04d", i));
-            item.put("status", statuses[i % statuses.length]);
-            item.put("reviewer", reviewers[i % reviewers.length]);
-            item.put("reviewDate", "2024-" + String.format("%02d", (i % 12) + 1) + "-" + String.format("%02d", (i % 28) + 1));
-            item.put("reviewComment", "这是第" + i + "个样品的评审意见，评审内容详细描述...");
-            item.put("createTime", new Date());
-            item.put("updateTime", new Date());
-            mockData.add(item);
+    @GetMapping("/reviewResult/downloadTemplate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> downloadTemplate() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 从application.yml中获取模板路径
+            String templatePath = "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
+            Path file = Paths.get(templatePath);
+            
+            System.out.println("尝试下载模板文件，路径: " + templatePath);
+            System.out.println("文件是否存在: " + Files.exists(file));
+            
+            if (!Files.exists(file)) {
+                // 如果模板文件不存在，返回提示信息
+                result.put("success", false);
+                result.put("message", "模板文件不存在，请先创建模板文件");
+                result.put("templatePath", templatePath);
+                result.put("instructions", "请将评审结果导入模板.xlsx文件放到以下路径：" + templatePath);
+                return ResponseEntity.ok(result);
+            }
+            
+            // 如果文件存在，返回文件信息
+            result.put("success", true);
+            result.put("message", "模板文件存在，可以下载");
+            result.put("templatePath", templatePath);
+            result.put("fileSize", Files.size(file));
+            result.put("downloadUrl", "/reviewResult/downloadTemplateFile");
+            
+            return ResponseEntity.ok(result);
+                    
+        } catch (Exception e) {
+            System.err.println("检查模板文件时发生错误: " + e.getMessage());
+            e.printStackTrace();
+            
+            result.put("success", false);
+            result.put("message", "检查模板文件时发生错误: " + e.getMessage());
+            result.put("templatePath", "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx");
+            return ResponseEntity.ok(result);
         }
-
-        return mockData;
+    }
+    
+    /**
+     * 实际下载模板文件
+     * @return 模板文件
+     */
+    @GetMapping("/reviewResult/downloadTemplateFile")
+    public ResponseEntity<Resource> downloadTemplateFile() {
+        try {
+            String templatePath = "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
+            Path file = Paths.get(templatePath);
+            
+            if (!Files.exists(file)) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Resource resource = new UrlResource(file.toUri());
+            
+            // 对中文文件名进行URL编码
+            String filename = "评审结果导入模板.xlsx";
+            String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString());
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, 
+                        "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encodedFilename)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
-     * 生成模拟评审详情数据
-     * @param id 评审结果ID
-     * @return 模拟详情数据
+     * 问题状态匹配方法，支持大小写不敏感和closed/close兼容
+     * @param dbStatus 数据库中的状态
+     * @param filterStatus 筛选条件中的状态
+     * @return 是否匹配
      */
-    private Map<String, Object> generateMockReviewDetail(Long id) {
-        Map<String, Object> detail = new HashMap<>();
-        detail.put("id", id);
-        detail.put("sampleId", "SAMPLE" + String.format("%04d", id.intValue()));
-        detail.put("status", "已通过");
-        detail.put("reviewer", "张三");
-        detail.put("reviewDate", "2024-01-15");
-        detail.put("reviewComment", "样品质量良好，符合要求，建议通过。");
-        detail.put("createTime", new Date());
-        detail.put("updateTime", new Date());
-        detail.put("attachments", Arrays.asList("attachment1.jpg", "attachment2.pdf"));
-        detail.put("history", Arrays.asList(
-            "2024-01-15 10:30 张三 提交评审",
-            "2024-01-15 11:00 李四 审核通过"
-        ));
-
-        return detail;
+    private boolean isProblemStatusMatch(String dbStatus, String filterStatus) {
+        if (dbStatus == null || filterStatus == null) {
+            return false;
+        }
+        
+        String dbStatusLower = dbStatus.toLowerCase().trim();
+        String filterStatusLower = filterStatus.toLowerCase().trim();
+        
+        // 直接匹配
+        if (dbStatusLower.equals(filterStatusLower)) {
+            return true;
+        }
+        
+        // 特殊处理：closed 和 close 的兼容
+        if (filterStatusLower.equals("closed")) {
+            return dbStatusLower.equals("closed") || dbStatusLower.equals("close");
+        }
+        if (filterStatusLower.equals("close")) {
+            return dbStatusLower.equals("closed") || dbStatusLower.equals("close");
+        }
+        
+        // 特殊处理：open 的大小写兼容
+        if (filterStatusLower.equals("open")) {
+            return dbStatusLower.equals("open");
+        }
+        
+        // 特殊处理：follow up 的兼容
+        if (filterStatusLower.equals("follow up")) {
+            return dbStatusLower.equals("follow up") || dbStatusLower.equals("followup") || dbStatusLower.equals("follow-up");
+        }
+        
+        return false;
     }
 
-    /**
-     * 应用筛选条件
-     * @param data 原始数据
-     * @param sampleId 样品ID筛选
-     * @param status 状态筛选
-     * @param reviewer 评审人筛选
-     * @param reviewDate 评审日期筛选
-     * @return 筛选后的数据
-     */
-    private List<Map<String, Object>> applyFilters(List<Map<String, Object>> data,
-                                                   String sampleId, String status,
-                                                   String reviewer, String reviewDate) {
-        return data.stream()
-                .filter(item -> sampleId == null || sampleId.trim().isEmpty() ||
-                        item.get("sampleId").toString().toLowerCase().contains(sampleId.toLowerCase()))
-                .filter(item -> status == null || status.trim().isEmpty() ||
-                        item.get("status").toString().equals(status))
-                .filter(item -> reviewer == null || reviewer.trim().isEmpty() ||
-                        item.get("reviewer").toString().toLowerCase().contains(reviewer.toLowerCase()))
-                .filter(item -> reviewDate == null || reviewDate.trim().isEmpty() ||
-                        item.get("reviewDate").toString().equals(reviewDate))
-                .collect(ArrayList::new, (list, item) -> list.add(item), ArrayList::addAll);
-    }
 }
