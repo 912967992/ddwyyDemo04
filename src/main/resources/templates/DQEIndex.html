@@ -412,30 +412,50 @@
         }
 
         function checkProblemLibraryPermission() {
-            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
-            if (allowedUsers.includes(username)) {
-                // 检查是否在钉钉环境中
-                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-                const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-                // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
+            // if (allowedUsers.includes(username)) {
+            //     // 检查是否在钉钉环境中
+            //     const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            //     const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            //     // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            //
+            //     if (isDingTalk) {
+            //         dd.openLink({
+            //             url: url,
+            //             success: function() {
+            //                 console.log('成功打开问题点库管理页面');
+            //             },
+            //             fail: function(err) {
+            //                 alert('打开页面失败：' + JSON.stringify(err));
+            //                 console.error('dd.openLink fail:', err);
+            //             }
+            //         });
+            //     } else {
+            //         // 非钉钉环境使用普通跳转
+            //         window.location.href = url;
+            //     }
+            // } else {
+            //     alert("您无权限进入问题点库管理页面");
+            // }
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
-                if (isDingTalk) {
-                    dd.openLink({
-                        url: url,
-                        success: function() {
-                            console.log('成功打开问题点库管理页面');
-                        },
-                        fail: function(err) {
-                            alert('打开页面失败：' + JSON.stringify(err));
-                            console.error('dd.openLink fail:', err);
-                        }
-                    });
-                } else {
-                    // 非钉钉环境使用普通跳转
-                    window.location.href = url;
-                }
+            if (isDingTalk) {
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开问题点库管理页面');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
             } else {
-                alert("您无权限进入问题点库管理页面");
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
             }
         }
 
@@ -479,8 +499,8 @@
                 return;
             }
 
-            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
-            if (allowedUsers.includes(username)) {
+            // 只检查角色是否为DQE
+            if (job === 'DQE') {
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
                 const url = 'http://219.134.191.195:64000/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
@@ -502,7 +522,7 @@
                     window.location.href = url;
                 }
             } else {
-                alert("您无权限进入问题点库管理页面");
+                alert("只有DQE角色才能进入问题点库管理页面");
             }
 
         }

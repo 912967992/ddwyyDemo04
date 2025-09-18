@@ -14,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.nio.file.Path;
@@ -79,17 +80,15 @@ public class ReviewResultController {
             @RequestParam(required = false) String improvementMeasures,
             @RequestParam(required = false) String delayDays,
             @RequestParam(required = false) String preventionNotes,
-            @RequestParam(required = false) String plannedStartDate,
-            @RequestParam(required = false) String plannedEndDate,
-            @RequestParam(required = false) String actualStartDate,
-            @RequestParam(required = false) String actualEndDate) {
+            @RequestParam(required = false) String testStartDate,
+            @RequestParam(required = false) String testEndDate) {
 
         Map<String, Object> result = new HashMap<>();
 
         try {
             // 调用Service层获取真实数据
             List<ReviewResults> allData = reviewResultsService.getAllReviewResults();
-            System.out.println("从数据库获取的总数据量: " + allData.size());
+//            System.out.println("从数据库获取的总数据量: " + allData.size());
             
             // 应用筛选条件
             List<ReviewResults> filteredData = allData.stream()
@@ -131,25 +130,20 @@ public class ReviewResultController {
                     (item.getDelayDays() != null && item.getDelayDays().toString().equals(delayDays)))
                 .filter(item -> preventionNotes == null || preventionNotes.isEmpty() || 
                     (item.getPreventionNotes() != null && item.getPreventionNotes().toLowerCase().contains(preventionNotes.toLowerCase())))
-                .filter(item -> plannedStartDate == null || plannedStartDate.isEmpty() || 
-                    (item.getPlannedCompletionTime() != null && !item.getPlannedCompletionTime().toLocalDate().isBefore(LocalDate.parse(plannedStartDate))))
-                .filter(item -> plannedEndDate == null || plannedEndDate.isEmpty() || 
-                    (item.getPlannedCompletionTime() != null && !item.getPlannedCompletionTime().toLocalDate().isAfter(LocalDate.parse(plannedEndDate))))
-                .filter(item -> actualStartDate == null || actualStartDate.isEmpty() || 
-                    (item.getActualCompletionTime() != null && !item.getActualCompletionTime().toLocalDate().isBefore(LocalDate.parse(actualStartDate))))
-                .filter(item -> actualEndDate == null || actualEndDate.isEmpty() || 
-                    (item.getActualCompletionTime() != null && !item.getActualCompletionTime().toLocalDate().isAfter(LocalDate.parse(actualEndDate))))
+                .filter(item -> testStartDate == null || testStartDate.isEmpty() || 
+                    (item.getTestDate() != null && !item.getTestDate().isBefore(LocalDate.parse(testStartDate))))
+                .filter(item -> testEndDate == null || testEndDate.isEmpty() || 
+                    (item.getTestDate() != null && !item.getTestDate().isAfter(LocalDate.parse(testEndDate))))
                 .collect(Collectors.toList());
 
-            System.out.println("筛选后的数据量: " + filteredData.size());
-            System.out.println("筛选条件: majorCode=" + majorCode + ", minorCode=" + minorCode + ", projectPhase=" + projectPhase);
-            System.out.println("其他筛选条件: problemProcess=" + problemProcess + ", problemLevel=" + problemLevel + ", developmentMethod=" + developmentMethod);
-            System.out.println("更多筛选条件: solutionProvider=" + solutionProvider + ", isPreventable=" + isPreventable + ", problemStatus=" + problemStatus);
-            System.out.println("剩余筛选条件: responsibleDepartment=" + responsibleDepartment + ", problemPoint=" + problemPoint + ", problemTag1=" + problemTag1);
-            System.out.println("新增筛选条件: problemTag2=" + problemTag2 + ", problemReason=" + problemReason + ", improvementMeasures=" + improvementMeasures);
-            System.out.println("更多筛选条件: delayDays=" + delayDays + ", preventionNotes=" + preventionNotes);
-            System.out.println("预计完成日期筛选条件: plannedStartDate=" + plannedStartDate + ", plannedEndDate=" + plannedEndDate);
-            System.out.println("实际完成日期筛选条件: actualStartDate=" + actualStartDate + ", actualEndDate=" + actualEndDate);
+//            System.out.println("筛选后的数据量: " + filteredData.size());
+//            System.out.println("筛选条件: majorCode=" + majorCode + ", minorCode=" + minorCode + ", projectPhase=" + projectPhase);
+//            System.out.println("其他筛选条件: problemProcess=" + problemProcess + ", problemLevel=" + problemLevel + ", developmentMethod=" + developmentMethod);
+//            System.out.println("更多筛选条件: solutionProvider=" + solutionProvider + ", isPreventable=" + isPreventable + ", problemStatus=" + problemStatus);
+//            System.out.println("剩余筛选条件: responsibleDepartment=" + responsibleDepartment + ", problemPoint=" + problemPoint + ", problemTag1=" + problemTag1);
+//            System.out.println("新增筛选条件: problemTag2=" + problemTag2 + ", problemReason=" + problemReason + ", improvementMeasures=" + improvementMeasures);
+//            System.out.println("更多筛选条件: delayDays=" + delayDays + ", preventionNotes=" + preventionNotes);
+//            System.out.println("测试日期筛选条件: testStartDate=" + testStartDate + ", testEndDate=" + testEndDate);
 
             // 分页处理
             int total = filteredData.size();
@@ -157,7 +151,7 @@ public class ReviewResultController {
             int startIndex = (page - 1) * size;
             int endIndex = Math.min(startIndex + size, total);
 
-            System.out.println("分页信息: total=" + total + ", page=" + page + ", size=" + size + ", startIndex=" + startIndex + ", endIndex=" + endIndex);
+//            System.out.println("分页信息: total=" + total + ", page=" + page + ", size=" + size + ", startIndex=" + startIndex + ", endIndex=" + endIndex);
 
             List<ReviewResults> pageData;
             if (total == 0) {
@@ -311,6 +305,152 @@ public class ReviewResultController {
     }
 
     /**
+     * 更新评审结果详情
+     * @param requestData 评审结果详情数据
+     * @return 更新结果
+     */
+    @PostMapping("/reviewResult/update")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateReviewDetail(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取请求参数
+            Long id = Long.valueOf(requestData.get("id").toString());
+            
+            // 参数验证
+            if (id == null) {
+                result.put("success", false);
+                result.put("message", "评审结果ID不能为空");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 先查询现有记录
+            ReviewResults existingReview = reviewResultsService.getReviewResultById(id);
+            if (existingReview == null) {
+                result.put("success", false);
+                result.put("message", "未找到指定的评审结果记录");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 更新字段
+            updateReviewFields(existingReview, requestData);
+
+            // 调用Service层更新数据库
+            boolean updateSuccess = reviewResultsService.updateReviewResult(existingReview);
+            
+            if (updateSuccess) {
+                result.put("success", true);
+                result.put("message", "评审结果详情更新成功");
+                result.put("data", existingReview);
+            } else {
+                result.put("success", false);
+                result.put("message", "数据库更新失败");
+            }
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "更新评审结果详情失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 更新评审结果字段
+     * @param review 评审结果对象
+     * @param requestData 请求数据
+     */
+    private void updateReviewFields(ReviewResults review, Map<String, Object> requestData) {
+        // 更新基本信息
+        if (requestData.get("testDate") != null) {
+            String testDateStr = requestData.get("testDate").toString();
+            if (!testDateStr.isEmpty()) {
+                review.setTestDate(LocalDate.parse(testDateStr));
+            }
+        }
+        if (requestData.get("majorCode") != null) {
+            review.setMajorCode(requestData.get("majorCode").toString());
+        }
+        if (requestData.get("minorCode") != null) {
+            review.setMinorCode(requestData.get("minorCode").toString());
+        }
+        if (requestData.get("projectPhase") != null) {
+            review.setProjectPhase(requestData.get("projectPhase").toString());
+        }
+        if (requestData.get("version") != null) {
+            review.setVersion(requestData.get("version").toString());
+        }
+        if (requestData.get("problemProcess") != null) {
+            review.setProblemProcess(requestData.get("problemProcess").toString());
+        }
+        if (requestData.get("problemLevel") != null) {
+            review.setProblemLevel(requestData.get("problemLevel").toString());
+        }
+        if (requestData.get("developmentMethod") != null) {
+            review.setDevelopmentMethod(requestData.get("developmentMethod").toString());
+        }
+        if (requestData.get("supplier") != null) {
+            review.setSupplier(requestData.get("supplier").toString());
+        }
+        if (requestData.get("solutionProvider") != null) {
+            review.setSolutionProvider(requestData.get("solutionProvider").toString());
+        }
+
+        // 更新问题信息
+        if (requestData.get("problemPoint") != null) {
+            review.setProblemPoint(requestData.get("problemPoint").toString());
+        }
+        if (requestData.get("problemReason") != null) {
+            review.setProblemReason(requestData.get("problemReason").toString());
+        }
+        if (requestData.get("improvementMeasures") != null) {
+            review.setImprovementMeasures(requestData.get("improvementMeasures").toString());
+        }
+        if (requestData.get("isPreventable") != null) {
+            review.setIsPreventable(requestData.get("isPreventable").toString());
+        }
+        if (requestData.get("responsibleDepartment") != null) {
+            review.setResponsibleDepartment(requestData.get("responsibleDepartment").toString());
+        }
+
+        // 更新时间信息
+        if (requestData.get("plannedCompletionTime") != null) {
+            String plannedTimeStr = requestData.get("plannedCompletionTime").toString();
+            if (!plannedTimeStr.isEmpty()) {
+                review.setPlannedCompletionTime(LocalDateTime.parse(plannedTimeStr + "T00:00:00"));
+            }
+        }
+        if (requestData.get("actualCompletionTime") != null) {
+            String actualTimeStr = requestData.get("actualCompletionTime").toString();
+            if (!actualTimeStr.isEmpty()) {
+                review.setActualCompletionTime(LocalDateTime.parse(actualTimeStr + "T00:00:00"));
+            }
+        }
+        if (requestData.get("delayDays") != null) {
+            String delayDaysStr = requestData.get("delayDays").toString();
+            if (!delayDaysStr.isEmpty()) {
+                review.setDelayDays(Integer.valueOf(delayDaysStr));
+            }
+        }
+        if (requestData.get("problemStatus") != null) {
+            review.setProblemStatus(requestData.get("problemStatus").toString());
+        }
+
+        // 更新其他信息
+        if (requestData.get("problemTag1") != null) {
+            review.setProblemTag1(requestData.get("problemTag1").toString());
+        }
+        if (requestData.get("problemTag2") != null) {
+            review.setProblemTag2(requestData.get("problemTag2").toString());
+        }
+        if (requestData.get("preventionNotes") != null) {
+            review.setPreventionNotes(requestData.get("preventionNotes").toString());
+        }
+    }
+
+    /**
      * 删除评审结果
      * @param id 评审结果ID
      * @param username 用户名
@@ -342,6 +482,86 @@ public class ReviewResultController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "删除评审结果失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 批量删除选中的评审结果
+     * @param requestData 包含要删除的ID列表
+     * @return 删除结果
+     */
+    @PostMapping("/reviewResult/deleteSelected")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteSelectedReviewResults(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取要删除的ID列表
+            @SuppressWarnings("unchecked")
+            List<Long> ids = (List<Long>) requestData.get("ids");
+            
+            // 参数验证
+            if (ids == null || ids.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "请选择要删除的数据");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 调用Service层批量删除
+            int deletedCount = reviewResultsService.deleteReviewResultsByIds(ids);
+            
+            result.put("success", true);
+            result.put("message", "批量删除成功");
+            result.put("deletedCount", deletedCount);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "批量删除失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 新增评审结果
+     * @param requestData 评审结果数据
+     * @return 新增结果
+     */
+    @PostMapping("/reviewResult/add")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addReviewResult(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 创建新的评审结果对象
+            ReviewResults newReview = new ReviewResults();
+            
+            // 设置创建时间
+            newReview.setCreatedTime(LocalDateTime.now());
+            newReview.setUpdatedTime(LocalDateTime.now());
+            
+            // 更新字段
+            updateReviewFields(newReview, requestData);
+
+            // 调用Service层插入数据
+            int insertResult = reviewResultsService.insertReviewResult(newReview);
+            
+            if (insertResult > 0) {
+                result.put("success", true);
+                result.put("message", "评审结果新增成功");
+                result.put("data", newReview);
+            } else {
+                result.put("success", false);
+                result.put("message", "数据库插入失败");
+            }
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "新增评审结果失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }

@@ -58,6 +58,13 @@ public interface ReviewResultsDao {
     int deleteById(@Param("id") Long id);
 
     /**
+     * 批量删除评审结果
+     * @param ids ID列表
+     * @return 影响行数
+     */
+    int deleteByIds(@Param("ids") List<Long> ids);
+
+    /**
      * 根据ID查询评审结果
      * @param id 记录ID
      * @return 评审结果对象

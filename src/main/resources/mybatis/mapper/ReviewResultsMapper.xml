@@ -113,6 +113,14 @@
         DELETE FROM reviewResults WHERE id = #{id}
     </delete>
 
+    <!-- 批量删除评审结果 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM reviewResults WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
     <!-- 根据ID查询评审结果 -->
     <select id="findById" parameterType="java.lang.Long" resultMap="ReviewResultsMap">
         SELECT * FROM reviewResults WHERE id = #{id}

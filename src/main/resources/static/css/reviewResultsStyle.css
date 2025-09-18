@@ -401,12 +401,12 @@ body {
 }
 
 .btn-success {
-    background-color: #28a745;
+    background-color: #8183ec;
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #218838;
+    background-color: #8183ec;
     transform: translateY(-1px);
 }
 

@@ -208,6 +208,105 @@
             font-size: 11px;
         }
 
+        /* 评审结果详情编辑模式样式 */
+        .detail-content {
+            padding: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .detail-section h3 {
+            margin-bottom: 20px;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-item label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .detail-item span,
+        .detail-item .problem-desc {
+            color: #333;
+            padding: 8px 12px;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            word-break: break-word;
+        }
+
+        .detail-item .problem-desc {
+            min-height: 60px;
+            white-space: pre-wrap;
+        }
+
+        /* 编辑模式样式 */
+        .detail-item input,
+        .detail-item textarea,
+        .detail-item select {
+            padding: 8px 12px;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .detail-item input:focus,
+        .detail-item textarea:focus,
+        .detail-item select:focus {
+            outline: 0;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .detail-item textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .detail-item select {
+            cursor: pointer;
+        }
+
+        /* 编辑状态下的只读字段样式 */
+        .detail-item.readonly span,
+        .detail-item.readonly .problem-desc {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
         /* 收藏夹模态框样式修复 */
         .cart-items-container {
             margin-top: 20px;
@@ -374,27 +473,87 @@
             font-size: 13px;
         }
 
+        /* 新增数据按钮自定义样式 */
+        #addNewBtn {
+            background: linear-gradient(135deg, #052efa, #20c997);
+            border: none;
+            color: white;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #addNewBtn:hover {
+            background: linear-gradient(135deg, #052efa, #1ea085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
+
+        #addNewBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+
+        /* 删除选中数据按钮自定义样式 */
+        #deleteSelectedBtn {
+            background: linear-gradient(135deg, #dc3545, #d03ce7);
+            border: none;
+            color: white;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #deleteSelectedBtn:hover {
+            background: linear-gradient(135deg, #c82333, #d03ce7);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        #deleteSelectedBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        /* 查看收藏夹按钮自定义样式 */
+        #showCartBtn {
+            background: linear-gradient(135deg, #f5c800, #495057);
+            border: none;
+            color: white;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #showCartBtn:hover {
+            background: linear-gradient(135deg, #f5c800, #3d4043);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+        }
+
+        #showCartBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+        }
+
         /* 导入按钮样式 */
         .header-left .btn {
             padding: 10px 20px;
             font-size: 14px;
             font-weight: 500;
-            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            background: linear-gradient(135deg, #28a745, #20c997);
             border: none;
             color: white;
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
             transition: all 0.3s ease;
         }
 
         .header-left .btn:hover {
-            background: linear-gradient(135deg, #c82333, #d63031);
+            background: linear-gradient(135deg, #218838, #1ea085);
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
         }
 
         .header-left .btn:active {
             transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
         }
 
         /* 导入模态框样式 */
@@ -646,30 +805,59 @@
             color: #333 !important;
         }
 
-        /* 过滤器容器样式 */
-        .filter-section {
-            display: flex;
+        /* 主控制区域样式 */
+        .main-control-section {
+            display: grid;
+            grid-template-columns: 400px 1fr; /* 左侧固定宽度，右侧占据剩余空间 */
             gap: 20px;
-            align-items: flex-start;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 600px; /* 设置固定最小高度 */
         }
 
+        /* 数据表格区域样式 */
+        .table-section {
+            margin-top: 20px; /* 添加顶部间距 */
+            margin-bottom: 20px; /* 添加底部间距 */
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 整体页面布局优化 */
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+
         .filter-container {
-            margin-left: 0;
-            margin-right: auto;
-            width: 50%;
-            max-width: 50%;
-            box-sizing: border-box;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* 填满网格单元格 */
+            overflow-y: auto; /* 如果内容过多，允许滚动 */
+            min-width: 0; /* 防止内容溢出 */
         }
 
         /* 图表容器样式 */
         .chart-container {
-            width: 50%;
             background: #ffffff;
-            border: 1px solid #e9ecef;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* 填满网格单元格 */
+            min-width: 0; /* 防止内容溢出 */
         }
 
         .chart-header {
@@ -746,12 +934,14 @@
 
         .chart-canvas-container {
             position: relative;
-            height: 400px;
+            flex: 1; /* 占据剩余空间 */
             width: 100%;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 450px; /* 增加最小高度，利用更大空间 */
+            max-height: 600px; /* 增加最大高度，充分利用空间 */
         }
 
         .chart-canvas {
@@ -759,6 +949,38 @@
             max-height: 100%;
             width: 100% !important;
             height: 100% !important;
+        }
+
+        /* 响应式设计 - 确保在不同缩放级别下布局一致 */
+        @media (max-width: 1000px) {
+            .main-control-section {
+                grid-template-columns: 350px 1fr; /* 稍微缩小左侧宽度 */
+            }
+        }
+
+        @media (max-width: 800px) {
+            .main-control-section {
+                grid-template-columns: 1fr; /* 在小屏幕上改为单列 */
+                min-height: auto; /* 在小屏幕上允许高度自适应 */
+            }
+            
+            .filter-container,
+            .chart-container {
+                height: auto; /* 在小屏幕上允许高度自适应 */
+            }
+        }
+
+        /* 超小屏幕优化 */
+        @media (max-width: 768px) {
+            .main-control-section {
+                padding: 15px;
+                gap: 15px;
+            }
+            
+            .filter-container,
+            .chart-container {
+                padding: 15px;
+            }
         }
 
         .no-data-message {
@@ -907,13 +1129,19 @@
 
             <!-- 其他操作按钮组 -->
             <div class="header-action-buttons">
+                <button id="addNewBtn" class="btn btn-success">
+                    <i class="fas fa-plus"></i> 新增数据
+                </button>
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
+                </button>
+                <button id="deleteSelectedBtn" class="btn btn-warning">
+                    <i class="fas fa-trash"></i> 删除选中数据
                 </button>
                 <button id="addToCartBtn" class="btn btn-warning">
                     <i class="fas fa-shopping-cart"></i> 加入收藏夹
                 </button>
-                <button id="showCartBtn" class="btn btn-info">
+                <button id="showCartBtn" class="btn btn-secondary">
                     <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
             </div>
@@ -969,7 +1197,7 @@
 </div>
 
 <!-- 筛选和操作区域 -->
-<div class="filter-section">
+<div class="main-control-section">
     <div class="filter-container">
         <!-- 筛选器主容器（平行布局） -->
         <div class="filters-main-container">
@@ -1000,96 +1228,10 @@
 
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>问题工序:</label>
-                        <input type="text" id="problemProcessFilter" placeholder="输入问题工序">
-                    </div>
-                    <div class="filter-group">
-                        <label>问题等级:</label>
-                        <select id="problemLevelFilter">
-                            <option value="">全部</option>
-                            <option value="S">S</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>开发方式:</label>
-                        <input type="text" id="developmentMethodFilter" placeholder="输入开发方式">
-                    </div>
-                    <div class="filter-group">
-                        <label>方案商:</label>
-                        <input type="text" id="solutionProviderFilter" placeholder="输入方案商">
-                    </div>
-                    <div class="filter-group">
-                        <label>是否可预防:</label>
-                        <select id="isPreventableFilter">
-                            <option value="">全部</option>
-                            <option value="是">是</option>
-                            <option value="否">否</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>问题状态:</label>
-                        <select id="problemStatusFilter">
-                            <option value="">全部</option>
-                            <option value="Open">Open</option>
-                            <option value="Closed">Closed</option>
-                            <option value="Follow up">Follow up</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>责任部门:</label>
-                        <input type="text" id="responsibleDepartmentFilter" placeholder="输入责任部门">
-                    </div>
-                    <div class="filter-group">
-                        <label>问题点:</label>
-                        <input type="text" id="problemPointFilter" placeholder="输入问题点关键词">
-                    </div>
-                    <div class="filter-group">
-                        <label>Delay天数:</label>
-                        <input type="number" id="delayDaysFilter" placeholder="输入Delay天数" min="0">
-                    </div>
-                    <div class="filter-group">
-                        <label>问题打标1:</label>
-                        <input type="text" id="problemTag1Filter" placeholder="输入问题打标1">
-                    </div>
-                </div>
-
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>问题打标2:</label>
-                        <input type="text" id="problemTag2Filter" placeholder="输入问题打标2">
-                    </div>
-                    <div class="filter-group">
-                        <label>问题原因:</label>
-                        <input type="text" id="problemReasonFilter" placeholder="输入问题原因关键词">
-                    </div>
-                    <div class="filter-group">
-                        <label>改善对策:</label>
-                        <input type="text" id="improvementMeasuresFilter" placeholder="输入改善对策关键词">
-                    </div>
-                    <div class="filter-group">
-                        <label>预防备注:</label>
-                        <input type="text" id="preventionNotesFilter" placeholder="输入预防备注关键词">
-                    </div>
-                    <div class="filter-group">
-                        <label>预计完成日期:</label>
-                        <input type="date" id="plannedStartDateFilter">
+                        <label>测试日期:</label>
+                        <input type="date" id="testStartDateFilter">
                         <span>至</span>
-                        <input type="date" id="plannedEndDateFilter">
-                    </div>
-                </div>
-
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>实际完成日期:</label>
-                        <input type="date" id="actualStartDateFilter">
-                        <span>至</span>
-                        <input type="date" id="actualEndDateFilter">
+                        <input type="date" id="testEndDateFilter">
                     </div>
                 </div>
 
@@ -1163,7 +1305,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- 数据表格区域 -->
     <div class="table-section">
@@ -1244,7 +1385,7 @@
 <div id="reviewDetailModal" class="modal">
     <div class="modal-content large-modal">
         <div class="modal-header">
-            <h2>评审结果详情</h2>
+            <h2 id="reviewModalTitle">评审结果详情</h2>
             <span class="close">&times;</span>
         </div>
         <div class="modal-body">
@@ -1371,7 +1512,10 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button id="closeDetailModal" class="btn btn-secondary">关闭</button>
+            <button id="editReviewBtn" class="btn btn-primary" style="display: none;">编辑</button>
+            <button id="saveReviewBtn" class="btn btn-success" style="display: none;">保存</button>
+            <button id="cancelEditReviewBtn" class="btn btn-secondary" style="display: none;">取消</button>
+            <button id="closeReviewDetailModal" class="btn btn-secondary">关闭</button>
         </div>
     </div>
 </div>
@@ -1632,7 +1776,7 @@
             <button id="editProblemBtn" class="btn btn-primary" style="display: none;">编辑</button>
             <button id="saveDetailBtn" class="btn btn-success" style="display: none;">保存</button>
             <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;">取消</button>
-            <button id="closeDetailModal" class="btn btn-secondary">关闭</button>
+            <button id="closeProblemDetailModal" class="btn btn-secondary">关闭</button>
         </div>
     </div>
 </div>
@@ -2135,6 +2279,7 @@
     }
     let totalPages = 1;
     let allData = [];
+    let currentEditingReviewId = null;
     let filteredData = [];
     let isSuperAdmin = false; // 是否为超级管理员
 
@@ -2492,11 +2637,7 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'problemProcessFilter', 'problemLevelFilter', 'developmentMethodFilter', 'solutionProviderFilter',
-            'isPreventableFilter', 'problemStatusFilter', 'responsibleDepartmentFilter', 'problemPointFilter',
-            'problemTag1Filter', 'problemTag2Filter', 'problemReasonFilter', 'improvementMeasuresFilter',
-            'delayDaysFilter', 'preventionNotesFilter', 'plannedStartDateFilter', 'plannedEndDateFilter',
-            'actualStartDateFilter', 'actualEndDateFilter'
+            'testStartDateFilter', 'testEndDateFilter'
         ];
 
         // 为所有过滤器输入框添加键盘事件监听器
@@ -2777,10 +2918,7 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'problemProcessFilter', 'developmentMethodFilter', 'solutionProviderFilter',
-            'responsibleDepartmentFilter', 'problemPointFilter', 'problemTag1Filter', 'problemTag2Filter',
-            'problemReasonFilter', 'improvementMeasuresFilter', 'delayDaysFilter', 'preventionNotesFilter',
-            'plannedStartDateFilter', 'plannedEndDateFilter', 'actualStartDateFilter', 'actualEndDateFilter'
+            'testStartDateFilter', 'testEndDateFilter'
         ];
 
         filterInputs.forEach(inputId => {
@@ -2912,8 +3050,14 @@
             }
         }
 
+        // 新增数据按钮
+        document.getElementById('addNewBtn').addEventListener('click', showAddNewModal);
+
         // 导出按钮
         document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
+
+        // 删除选中数据按钮
+        document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedData);
 
         // 加入收藏夹按钮
         document.getElementById('addToCartBtn').addEventListener('click', addToCart);
@@ -2974,10 +3118,21 @@
         // 关闭历史版本模态框
         document.getElementById('closeHistoryModal').addEventListener('click', closeModal);
 
-        // 关闭详情模态框
-        document.getElementById('closeDetailModal').addEventListener('click', function() {
+        // 关闭评审结果详情模态框
+        document.getElementById('closeReviewDetailModal').addEventListener('click', function() {
+            resetReviewEditMode();
+            document.getElementById('reviewDetailModal').style.display = 'none';
+        });
+
+        // 关闭问题点详情模态框
+        document.getElementById('closeProblemDetailModal').addEventListener('click', function() {
             closeSpecificModal('problemDetailModal');
         });
+
+        // 评审结果编辑相关事件监听器
+        document.getElementById('editReviewBtn').addEventListener('click', enterReviewEditMode);
+        document.getElementById('saveReviewBtn').addEventListener('click', saveReviewEdit);
+        document.getElementById('cancelEditReviewBtn').addEventListener('click', cancelReviewEdit);
 
         // 详情模态框编辑按钮
         document.getElementById('editProblemBtn').addEventListener('click', function() {
@@ -2998,6 +3153,10 @@
                 // 找到最近的模态框并关闭
                 const modal = event.target.closest('.modal');
                 if (modal) {
+                    // 如果是评审结果详情模态框，需要重置编辑状态
+                    if (modal.id === 'reviewDetailModal') {
+                        resetReviewEditMode();
+                    }
                     modal.style.display = 'none';
                 }
                 return;
@@ -3005,6 +3164,10 @@
 
             // 处理点击模态框外部关闭
             if (event.target.classList.contains('modal')) {
+                // 如果是评审结果详情模态框，需要重置编辑状态
+                if (event.target.id === 'reviewDetailModal') {
+                    resetReviewEditMode();
+                }
                 // 只关闭被点击的模态框
                 event.target.style.display = 'none';
                 return;
@@ -3054,48 +3217,16 @@
         const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
         const version = document.getElementById('versionFilter').value.trim();
         const supplier = document.getElementById('supplierFilter').value.trim();
-        const problemProcess = document.getElementById('problemProcessFilter').value.trim();
-        const problemLevel = document.getElementById('problemLevelFilter').value;
-        const developmentMethod = document.getElementById('developmentMethodFilter').value.trim();
-        const solutionProvider = document.getElementById('solutionProviderFilter').value.trim();
-        const isPreventable = document.getElementById('isPreventableFilter').value;
-        const problemStatus = document.getElementById('problemStatusFilter').value;
-        const responsibleDepartment = document.getElementById('responsibleDepartmentFilter').value.trim();
-        const problemPoint = document.getElementById('problemPointFilter').value.trim();
-        const problemTag1 = document.getElementById('problemTag1Filter').value.trim();
-        const problemTag2 = document.getElementById('problemTag2Filter').value.trim();
-        const problemReason = document.getElementById('problemReasonFilter').value.trim();
-        const improvementMeasures = document.getElementById('improvementMeasuresFilter').value.trim();
-        const delayDays = document.getElementById('delayDaysFilter').value.trim();
-        const preventionNotes = document.getElementById('preventionNotesFilter').value.trim();
-        const plannedStartDate = document.getElementById('plannedStartDateFilter').value;
-        const plannedEndDate = document.getElementById('plannedEndDateFilter').value;
-        const actualStartDate = document.getElementById('actualStartDateFilter').value;
-        const actualEndDate = document.getElementById('actualEndDateFilter').value;
+        const testStartDate = document.getElementById('testStartDateFilter').value;
+        const testEndDate = document.getElementById('testEndDateFilter').value;
 
         if (majorCode) params.append('majorCode', majorCode);
         if (minorCode) params.append('minorCode', minorCode);
         if (projectPhase) params.append('projectPhase', projectPhase);
         if (version) params.append('version', version);
         if (supplier) params.append('supplier', supplier);
-        if (problemProcess) params.append('problemProcess', problemProcess);
-        if (problemLevel) params.append('problemLevel', problemLevel);
-        if (developmentMethod) params.append('developmentMethod', developmentMethod);
-        if (solutionProvider) params.append('solutionProvider', solutionProvider);
-        if (isPreventable) params.append('isPreventable', isPreventable);
-        if (problemStatus) params.append('problemStatus', problemStatus);
-        if (responsibleDepartment) params.append('responsibleDepartment', responsibleDepartment);
-        if (problemPoint) params.append('problemPoint', problemPoint);
-        if (problemTag1) params.append('problemTag1', problemTag1);
-        if (problemTag2) params.append('problemTag2', problemTag2);
-        if (problemReason) params.append('problemReason', problemReason);
-        if (improvementMeasures) params.append('improvementMeasures', improvementMeasures);
-        if (delayDays) params.append('delayDays', delayDays);
-        if (preventionNotes) params.append('preventionNotes', preventionNotes);
-        if (plannedStartDate) params.append('plannedStartDate', plannedStartDate);
-        if (plannedEndDate) params.append('plannedEndDate', plannedEndDate);
-        if (actualStartDate) params.append('actualStartDate', actualStartDate);
-        if (actualEndDate) params.append('actualEndDate', actualEndDate);
+        if (testStartDate) params.append('testStartDate', testStartDate);
+        if (testEndDate) params.append('testEndDate', testEndDate);
 
         console.log('发送的查询参数:', params.toString());
 
@@ -3144,24 +3275,8 @@
         document.getElementById('projectPhaseFilter').value = '';
         document.getElementById('versionFilter').value = '';
         document.getElementById('supplierFilter').value = '';
-        document.getElementById('problemProcessFilter').value = '';
-        document.getElementById('problemLevelFilter').value = '';
-        document.getElementById('developmentMethodFilter').value = '';
-        document.getElementById('solutionProviderFilter').value = '';
-        document.getElementById('isPreventableFilter').value = '';
-        document.getElementById('problemStatusFilter').value = '';
-        document.getElementById('responsibleDepartmentFilter').value = '';
-        document.getElementById('problemPointFilter').value = '';
-        document.getElementById('problemTag1Filter').value = '';
-        document.getElementById('problemTag2Filter').value = '';
-        document.getElementById('problemReasonFilter').value = '';
-        document.getElementById('improvementMeasuresFilter').value = '';
-        document.getElementById('delayDaysFilter').value = '';
-        document.getElementById('preventionNotesFilter').value = '';
-        document.getElementById('plannedStartDateFilter').value = '';
-        document.getElementById('plannedEndDateFilter').value = '';
-        document.getElementById('actualStartDateFilter').value = '';
-        document.getElementById('actualEndDateFilter').value = '';
+        document.getElementById('testStartDateFilter').value = '';
+        document.getElementById('testEndDateFilter').value = '';
 
         // 重置到第一页并重新加载数据
         currentPage = 1;
@@ -3304,10 +3419,112 @@
             });
     }
 
+    // 删除选中数据
+    function deleteSelectedData() {
+        // 获取选中的行
+        const selectedRows = getSelectedTableRows();
+        
+        if (selectedRows.length === 0) {
+            showToast('请先选择要删除的数据行！', 'warning');
+            return;
+        }
+
+        // 确认删除
+        if (!confirm(`确定要删除选中的 ${selectedRows.length} 条数据吗？此操作不可恢复！`)) {
+            return;
+        }
+
+        showLoading();
+
+        // 提取要删除的ID列表
+        const idsToDelete = selectedRows.map(row => row.id);
+
+        // 发送删除请求
+        fetch('/reviewResult/deleteSelected', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids: idsToDelete
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('删除失败');
+            }
+        })
+        .then(result => {
+            if (result.success) {
+                showToast(`成功删除 ${result.deletedCount} 条数据！`, 'success');
+                // 重新加载数据
+                loadReviewData();
+            } else {
+                throw new Error(result.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('删除错误:', error);
+            showToast('删除时发生错误: ' + error.message, 'error');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+
+    // 显示新增模态框
+    function showAddNewModal() {
+        // 重置编辑状态
+        resetReviewEditMode();
+        
+        // 设置模态框标题
+        document.getElementById('reviewModalTitle').textContent = '新增评审结果';
+        
+        // 清空所有字段
+        clearReviewDetailFields();
+        
+        // 直接进入编辑模式
+        enterReviewEditMode();
+        
+        // 显示模态框
+        document.getElementById('reviewDetailModal').style.display = 'block';
+    }
+
+    // 清空评审结果详情字段
+    function clearReviewDetailFields() {
+        // 清空所有显示字段
+        const fields = [
+            'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase', 'detailVersion',
+            'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod', 'detailSupplier',
+            'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason', 'detailImprovementMeasures',
+            'detailIsPreventable', 'detailResponsibleDepartment', 'detailPlannedCompletionTime',
+            'detailActualCompletionTime', 'detailDelayDays', 'detailProblemStatus', 'detailProblemTag1',
+            'detailProblemTag2', 'detailPreventionNotes', 'detailCreatedTime', 'detailUpdatedTime'
+        ];
+        
+        fields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.textContent = '-';
+            }
+        });
+    }
+
     // 显示评审结果详情
     function showReviewDetail(reviewId) {
         const review = filteredData.find(r => r.id === reviewId);
         if (!review) return;
+
+        // 先重置编辑状态（防止之前的状态影响）
+        resetReviewEditMode();
+        
+        // 设置模态框标题
+        document.getElementById('reviewModalTitle').textContent = '评审结果详情';
+
+        // 存储当前编辑的评审结果ID
+        currentEditingReviewId = reviewId;
 
         // 填充详情数据
         document.getElementById('detailTestDate').textContent = review.testDate || '-';
@@ -3335,9 +3552,271 @@
         document.getElementById('detailCreatedTime').textContent = review.createdTime || '-';
         document.getElementById('detailUpdatedTime').textContent = review.updatedTime || '-';
 
+        // 显示编辑按钮，隐藏保存和取消按钮
+        document.getElementById('editReviewBtn').style.display = 'inline-block';
+        document.getElementById('saveReviewBtn').style.display = 'none';
+        document.getElementById('cancelEditReviewBtn').style.display = 'none';
+
         // 显示模态框
         document.getElementById('reviewDetailModal').style.display = 'block';
     }
+
+    // 进入编辑模式
+    function enterReviewEditMode() {
+        // 隐藏编辑按钮，显示保存和取消按钮
+        document.getElementById('editReviewBtn').style.display = 'none';
+        document.getElementById('saveReviewBtn').style.display = 'inline-block';
+        document.getElementById('cancelEditReviewBtn').style.display = 'inline-block';
+
+        // 将只读字段转换为可编辑字段
+        convertToEditMode();
+    }
+
+    // 退出编辑模式
+    function exitReviewEditMode() {
+        // 显示编辑按钮，隐藏保存和取消按钮
+        document.getElementById('editReviewBtn').style.display = 'inline-block';
+        document.getElementById('saveReviewBtn').style.display = 'none';
+        document.getElementById('cancelEditReviewBtn').style.display = 'none';
+
+        // 将可编辑字段转换回只读字段
+        convertToReadMode();
+    }
+
+    // 转换为编辑模式
+    function convertToEditMode() {
+        const fieldMappings = [
+            { id: 'detailTestDate', type: 'date' },
+            { id: 'detailMajorCode', type: 'text' },
+            { id: 'detailMinorCode', type: 'text' },
+            { id: 'detailProjectPhase', type: 'text' },
+            { id: 'detailVersion', type: 'text' },
+            { id: 'detailProblemProcess', type: 'text' },
+            { id: 'detailProblemLevel', type: 'select', options: ['高', '中', '低'] },
+            { id: 'detailDevelopmentMethod', type: 'text' },
+            { id: 'detailSupplier', type: 'text' },
+            { id: 'detailSolutionProvider', type: 'text' },
+            { id: 'detailProblemPoint', type: 'textarea' },
+            { id: 'detailProblemReason', type: 'textarea' },
+            { id: 'detailImprovementMeasures', type: 'textarea' },
+            { id: 'detailIsPreventable', type: 'select', options: ['是', '否'] },
+            { id: 'detailResponsibleDepartment', type: 'text' },
+            { id: 'detailPlannedCompletionTime', type: 'date' },
+            { id: 'detailActualCompletionTime', type: 'date' },
+            { id: 'detailDelayDays', type: 'number' },
+            { id: 'detailProblemStatus', type: 'select', options: ['待处理', '处理中', '已完成', '已关闭'] },
+            { id: 'detailProblemTag1', type: 'text' },
+            { id: 'detailProblemTag2', type: 'text' },
+            { id: 'detailPreventionNotes', type: 'textarea' }
+        ];
+
+        fieldMappings.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (element) {
+                const parent = element.parentElement;
+                const currentValue = element.textContent === '-' ? '' : element.textContent;
+                
+                // 创建新的输入元素
+                let inputElement;
+                if (field.type === 'textarea') {
+                    inputElement = document.createElement('textarea');
+                    inputElement.rows = 3;
+                } else if (field.type === 'select') {
+                    inputElement = document.createElement('select');
+                    field.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                        inputElement.appendChild(optionElement);
+                    });
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = field.type;
+                }
+                
+                inputElement.id = 'edit' + field.id;
+                inputElement.value = currentValue;
+                inputElement.className = 'form-control';
+                
+                // 替换原元素
+                parent.replaceChild(inputElement, element);
+            }
+        });
+
+        // 设置只读字段（创建时间和更新时间）
+        const readonlyFields = ['detailCreatedTime', 'detailUpdatedTime'];
+        readonlyFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.parentElement.classList.add('readonly');
+            }
+        });
+    }
+
+    // 转换为只读模式
+    function convertToReadMode() {
+        const fieldMappings = [
+            'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase',
+            'detailVersion', 'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod',
+            'detailSupplier', 'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason',
+            'detailImprovementMeasures', 'detailIsPreventable', 'detailResponsibleDepartment',
+            'detailPlannedCompletionTime', 'detailActualCompletionTime', 'detailDelayDays',
+            'detailProblemStatus', 'detailProblemTag1', 'detailProblemTag2', 'detailPreventionNotes'
+        ];
+
+        fieldMappings.forEach(fieldId => {
+            const editElement = document.getElementById('edit' + fieldId);
+            if (editElement) {
+                const parent = editElement.parentElement;
+                const currentValue = editElement.value || '-';
+                
+                // 创建新的显示元素
+                let displayElement;
+                if (fieldId.includes('ProblemPoint') || fieldId.includes('ProblemReason') || 
+                    fieldId.includes('ImprovementMeasures') || fieldId.includes('PreventionNotes')) {
+                    displayElement = document.createElement('div');
+                    displayElement.className = 'problem-desc';
+                } else {
+                    displayElement = document.createElement('span');
+                }
+                
+                displayElement.id = fieldId;
+                displayElement.textContent = currentValue;
+                
+                // 替换编辑元素
+                parent.replaceChild(displayElement, editElement);
+            }
+        });
+
+        // 移除只读字段的样式
+        const readonlyFields = ['detailCreatedTime', 'detailUpdatedTime'];
+        readonlyFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.parentElement.classList.remove('readonly');
+            }
+        });
+    }
+
+    // 保存评审结果编辑
+    function saveReviewEdit() {
+        // 判断是新增还是更新
+        const isNewRecord = !currentEditingReviewId;
+        
+        if (!isNewRecord && !currentEditingReviewId) {
+            showToast('没有找到要编辑的评审结果', 'error');
+            return;
+        }
+
+        // 收集编辑后的数据
+        const editData = {
+            testDate: document.getElementById('editdetailTestDate')?.value || '',
+            majorCode: document.getElementById('editdetailMajorCode')?.value || '',
+            minorCode: document.getElementById('editdetailMinorCode')?.value || '',
+            projectPhase: document.getElementById('editdetailProjectPhase')?.value || '',
+            version: document.getElementById('editdetailVersion')?.value || '',
+            problemProcess: document.getElementById('editdetailProblemProcess')?.value || '',
+            problemLevel: document.getElementById('editdetailProblemLevel')?.value || '',
+            developmentMethod: document.getElementById('editdetailDevelopmentMethod')?.value || '',
+            supplier: document.getElementById('editdetailSupplier')?.value || '',
+            solutionProvider: document.getElementById('editdetailSolutionProvider')?.value || '',
+            problemPoint: document.getElementById('editdetailProblemPoint')?.value || '',
+            problemReason: document.getElementById('editdetailProblemReason')?.value || '',
+            improvementMeasures: document.getElementById('editdetailImprovementMeasures')?.value || '',
+            isPreventable: document.getElementById('editdetailIsPreventable')?.value || '',
+            responsibleDepartment: document.getElementById('editdetailResponsibleDepartment')?.value || '',
+            plannedCompletionTime: document.getElementById('editdetailPlannedCompletionTime')?.value || '',
+            actualCompletionTime: document.getElementById('editdetailActualCompletionTime')?.value || '',
+            delayDays: document.getElementById('editdetailDelayDays')?.value || '',
+            problemStatus: document.getElementById('editdetailProblemStatus')?.value || '',
+            problemTag1: document.getElementById('editdetailProblemTag1')?.value || '',
+            problemTag2: document.getElementById('editdetailProblemTag2')?.value || '',
+            preventionNotes: document.getElementById('editdetailPreventionNotes')?.value || ''
+        };
+
+        // 只有在更新时才添加id字段
+        if (!isNewRecord) {
+            editData.id = currentEditingReviewId;
+        }
+
+        // 显示加载状态
+        showLoading();
+
+        // 根据是新增还是更新选择不同的API
+        const apiUrl = isNewRecord ? '/reviewResult/add' : '/reviewResult/update';
+        const successMessage = isNewRecord ? '评审结果新增成功' : '评审结果更新成功';
+        const errorMessage = isNewRecord ? '新增失败' : '更新失败';
+
+        // 发送请求
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(editData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(successMessage, 'success');
+                
+                if (isNewRecord) {
+                    // 新增成功后，重新加载数据
+                    loadReviewData();
+                } else {
+                    // 更新成功后，更新本地数据
+                    const reviewIndex = filteredData.findIndex(r => r.id === currentEditingReviewId);
+                    if (reviewIndex !== -1) {
+                        Object.assign(filteredData[reviewIndex], editData);
+                    }
+                    // 刷新表格显示
+                    renderTable();
+                }
+                
+                // 退出编辑模式
+                exitReviewEditMode();
+                // 关闭模态框
+                document.getElementById('reviewDetailModal').style.display = 'none';
+            } else {
+                showToast(errorMessage + ': ' + (data.message || '未知错误'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast((isNewRecord ? '新增' : '更新') + '时发生错误', 'error');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+
+    // 取消评审结果编辑
+    function cancelReviewEdit() {
+        // 退出编辑模式
+        exitReviewEditMode();
+        // 重新加载原始数据
+        showReviewDetail(currentEditingReviewId);
+    }
+
+    // 重置评审结果编辑模式（用于模态框关闭时）
+    function resetReviewEditMode() {
+        // 如果当前在编辑模式，先退出编辑模式
+        const editBtn = document.getElementById('editReviewBtn');
+        const saveBtn = document.getElementById('saveReviewBtn');
+        const cancelBtn = document.getElementById('cancelEditReviewBtn');
+        
+        if (editBtn && saveBtn && cancelBtn) {
+            // 检查是否在编辑模式
+            if (saveBtn.style.display !== 'none') {
+                // 在编辑模式，需要重置
+                exitReviewEditMode();
+            }
+        }
+        
+        // 清空当前编辑的评审结果ID
+        currentEditingReviewId = null;
+    }
+
 
     // 显示问题点详情
     function showProblemDetail(problemId) {
@@ -4764,24 +5243,8 @@
             projectPhase: document.getElementById('projectPhaseFilter').value,
             version: document.getElementById('versionFilter').value,
             supplier: document.getElementById('supplierFilter').value,
-            problemProcess: document.getElementById('problemProcessFilter').value,
-            problemLevel: document.getElementById('problemLevelFilter').value,
-            developmentMethod: document.getElementById('developmentMethodFilter').value,
-            solutionProvider: document.getElementById('solutionProviderFilter').value,
-            isPreventable: document.getElementById('isPreventableFilter').value,
-            problemStatus: document.getElementById('problemStatusFilter').value,
-            responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
-            problemPoint: document.getElementById('problemPointFilter').value,
-            delayDays: document.getElementById('delayDaysFilter').value,
-            problemTag1: document.getElementById('problemTag1Filter').value,
-            problemTag2: document.getElementById('problemTag2Filter').value,
-            problemReason: document.getElementById('problemReasonFilter').value,
-            improvementMeasures: document.getElementById('improvementMeasuresFilter').value,
-            preventionNotes: document.getElementById('preventionNotesFilter').value,
-            plannedStartDate: document.getElementById('plannedStartDateFilter').value,
-            plannedEndDate: document.getElementById('plannedEndDateFilter').value,
-            actualStartDate: document.getElementById('actualStartDateFilter').value,
-            actualEndDate: document.getElementById('actualEndDateFilter').value
+            testStartDate: document.getElementById('testStartDateFilter').value,
+            testEndDate: document.getElementById('testEndDateFilter').value
         };
     }
 
@@ -4794,24 +5257,8 @@
         if (filters.projectPhase) descriptions.push(`项目阶段: ${filters.projectPhase}`);
         if (filters.version) descriptions.push(`版本: ${filters.version}`);
         if (filters.supplier) descriptions.push(`供应商: ${filters.supplier}`);
-        if (filters.problemProcess) descriptions.push(`问题工序: ${filters.problemProcess}`);
-        if (filters.problemLevel) descriptions.push(`问题等级: ${filters.problemLevel}`);
-        if (filters.developmentMethod) descriptions.push(`开发方式: ${filters.developmentMethod}`);
-        if (filters.solutionProvider) descriptions.push(`方案商: ${filters.solutionProvider}`);
-        if (filters.isPreventable) descriptions.push(`是否可预防: ${filters.isPreventable}`);
-        if (filters.problemStatus) descriptions.push(`问题状态: ${filters.problemStatus}`);
-        if (filters.responsibleDepartment) descriptions.push(`责任部门: ${filters.responsibleDepartment}`);
-        if (filters.problemPoint) descriptions.push(`问题点: ${filters.problemPoint}`);
-        if (filters.delayDays) descriptions.push(`Delay天数: ${filters.delayDays}`);
-        if (filters.problemTag1) descriptions.push(`问题打标1: ${filters.problemTag1}`);
-        if (filters.problemTag2) descriptions.push(`问题打标2: ${filters.problemTag2}`);
-        if (filters.problemReason) descriptions.push(`问题原因: ${filters.problemReason}`);
-        if (filters.improvementMeasures) descriptions.push(`改善对策: ${filters.improvementMeasures}`);
-        if (filters.preventionNotes) descriptions.push(`预防备注: ${filters.preventionNotes}`);
-        if (filters.plannedStartDate) descriptions.push(`预计开始: ${filters.plannedStartDate}`);
-        if (filters.plannedEndDate) descriptions.push(`预计结束: ${filters.plannedEndDate}`);
-        if (filters.actualStartDate) descriptions.push(`实际开始: ${filters.actualStartDate}`);
-        if (filters.actualEndDate) descriptions.push(`实际结束: ${filters.actualEndDate}`);
+        if (filters.testStartDate) descriptions.push(`测试开始: ${filters.testStartDate}`);
+        if (filters.testEndDate) descriptions.push(`测试结束: ${filters.testEndDate}`);
 
         return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
     }
@@ -4933,24 +5380,8 @@
         if (filters.projectPhase) document.getElementById('projectPhaseFilter').value = filters.projectPhase;
         if (filters.version) document.getElementById('versionFilter').value = filters.version;
         if (filters.supplier) document.getElementById('supplierFilter').value = filters.supplier;
-        if (filters.problemProcess) document.getElementById('problemProcessFilter').value = filters.problemProcess;
-        if (filters.problemLevel) document.getElementById('problemLevelFilter').value = filters.problemLevel;
-        if (filters.developmentMethod) document.getElementById('developmentMethodFilter').value = filters.developmentMethod;
-        if (filters.solutionProvider) document.getElementById('solutionProviderFilter').value = filters.solutionProvider;
-        if (filters.isPreventable) document.getElementById('isPreventableFilter').value = filters.isPreventable;
-        if (filters.problemStatus) document.getElementById('problemStatusFilter').value = filters.problemStatus;
-        if (filters.responsibleDepartment) document.getElementById('responsibleDepartmentFilter').value = filters.responsibleDepartment;
-        if (filters.problemPoint) document.getElementById('problemPointFilter').value = filters.problemPoint;
-        if (filters.delayDays) document.getElementById('delayDaysFilter').value = filters.delayDays;
-        if (filters.problemTag1) document.getElementById('problemTag1Filter').value = filters.problemTag1;
-        if (filters.problemTag2) document.getElementById('problemTag2Filter').value = filters.problemTag2;
-        if (filters.problemReason) document.getElementById('problemReasonFilter').value = filters.problemReason;
-        if (filters.improvementMeasures) document.getElementById('improvementMeasuresFilter').value = filters.improvementMeasures;
-        if (filters.preventionNotes) document.getElementById('preventionNotesFilter').value = filters.preventionNotes;
-        if (filters.plannedStartDate) document.getElementById('plannedStartDateFilter').value = filters.plannedStartDate;
-        if (filters.plannedEndDate) document.getElementById('plannedEndDateFilter').value = filters.plannedEndDate;
-        if (filters.actualStartDate) document.getElementById('actualStartDateFilter').value = filters.actualStartDate;
-        if (filters.actualEndDate) document.getElementById('actualEndDateFilter').value = filters.actualEndDate;
+        if (filters.testStartDate) document.getElementById('testStartDateFilter').value = filters.testStartDate;
+        if (filters.testEndDate) document.getElementById('testEndDateFilter').value = filters.testEndDate;
 
         // 关闭收藏夹详情模态框
         closeSpecificModal('cartDetailModal');
@@ -5712,48 +6143,16 @@
             const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
             const version = document.getElementById('versionFilter').value.trim();
             const supplier = document.getElementById('supplierFilter').value.trim();
-            const problemProcess = document.getElementById('problemProcessFilter').value.trim();
-            const problemLevel = document.getElementById('problemLevelFilter').value;
-            const developmentMethod = document.getElementById('developmentMethodFilter').value.trim();
-            const solutionProvider = document.getElementById('solutionProviderFilter').value.trim();
-            const isPreventable = document.getElementById('isPreventableFilter').value;
-            const problemStatus = document.getElementById('problemStatusFilter').value;
-            const responsibleDepartment = document.getElementById('responsibleDepartmentFilter').value.trim();
-            const problemPoint = document.getElementById('problemPointFilter').value.trim();
-            const problemTag1 = document.getElementById('problemTag1Filter').value.trim();
-            const problemTag2 = document.getElementById('problemTag2Filter').value.trim();
-            const problemReason = document.getElementById('problemReasonFilter').value.trim();
-            const improvementMeasures = document.getElementById('improvementMeasuresFilter').value.trim();
-            const delayDays = document.getElementById('delayDaysFilter').value.trim();
-            const preventionNotes = document.getElementById('preventionNotesFilter').value.trim();
-            const plannedStartDate = document.getElementById('plannedStartDateFilter').value;
-            const plannedEndDate = document.getElementById('plannedEndDateFilter').value;
-            const actualStartDate = document.getElementById('actualStartDateFilter').value;
-            const actualEndDate = document.getElementById('actualEndDateFilter').value;
+            const testStartDate = document.getElementById('testStartDateFilter').value;
+            const testEndDate = document.getElementById('testEndDateFilter').value;
 
             if (majorCode) params.append('majorCode', majorCode);
             if (minorCode) params.append('minorCode', minorCode);
             if (projectPhase) params.append('projectPhase', projectPhase);
             if (version) params.append('version', version);
             if (supplier) params.append('supplier', supplier);
-            if (problemProcess) params.append('problemProcess', problemProcess);
-            if (problemLevel) params.append('problemLevel', problemLevel);
-            if (developmentMethod) params.append('developmentMethod', developmentMethod);
-            if (solutionProvider) params.append('solutionProvider', solutionProvider);
-            if (isPreventable) params.append('isPreventable', isPreventable);
-            if (problemStatus) params.append('problemStatus', problemStatus);
-            if (responsibleDepartment) params.append('responsibleDepartment', responsibleDepartment);
-            if (problemPoint) params.append('problemPoint', problemPoint);
-            if (problemTag1) params.append('problemTag1', problemTag1);
-            if (problemTag2) params.append('problemTag2', problemTag2);
-            if (problemReason) params.append('problemReason', problemReason);
-            if (improvementMeasures) params.append('improvementMeasures', improvementMeasures);
-            if (delayDays) params.append('delayDays', delayDays);
-            if (preventionNotes) params.append('preventionNotes', preventionNotes);
-            if (plannedStartDate) params.append('plannedStartDate', plannedStartDate);
-            if (plannedEndDate) params.append('plannedEndDate', plannedEndDate);
-            if (actualStartDate) params.append('actualStartDate', actualStartDate);
-            if (actualEndDate) params.append('actualEndDate', actualEndDate);
+            if (testStartDate) params.append('testStartDate', testStartDate);
+            if (testEndDate) params.append('testEndDate', testEndDate);
 
             console.log('发送的查询参数（获取所有数据）:', params.toString());
 

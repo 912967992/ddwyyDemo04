@@ -657,4 +657,73 @@ public class ReviewResultsService {
             this.errorCount = errorCount;
         }
     }
+
+    /**
+     * 更新评审结果详情
+     * @param reviewResults 评审结果对象
+     * @return 更新结果
+     */
+    public boolean updateReviewResult(ReviewResults reviewResults) {
+        try {
+            // 设置更新时间
+            reviewResults.setUpdatedTime(LocalDateTime.now());
+            
+            // 调用DAO层更新数据
+            int affectedRows = reviewResultsDao.update(reviewResults);
+            
+            return affectedRows > 0;
+        } catch (Exception e) {
+            System.err.println("更新评审结果失败: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 插入评审结果
+     * @param reviewResults 评审结果对象
+     * @return 插入的记录数
+     */
+    public int insertReviewResult(ReviewResults reviewResults) {
+        try {
+            if (reviewResults == null) {
+                return 0;
+            }
+            
+            // 调用DAO层插入数据
+            int insertCount = reviewResultsDao.insert(reviewResults);
+            
+            System.out.println("插入评审结果: " + (insertCount > 0 ? "成功" : "失败"));
+            
+            return insertCount;
+        } catch (Exception e) {
+            System.err.println("插入评审结果失败: " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * 批量删除评审结果
+     * @param ids 要删除的ID列表
+     * @return 删除的记录数
+     */
+    public int deleteReviewResultsByIds(List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return 0;
+            }
+            
+            // 调用DAO层批量删除
+            int deletedCount = reviewResultsDao.deleteByIds(ids);
+            
+            System.out.println("批量删除评审结果: 请求删除 " + ids.size() + " 条，实际删除 " + deletedCount + " 条");
+            
+            return deletedCount;
+        } catch (Exception e) {
+            System.err.println("批量删除评审结果失败: " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
 }

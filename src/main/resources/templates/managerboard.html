@@ -3639,7 +3639,7 @@
             });
 
             // 应用数据限制
-            const limitedData = applyDataLimit(config.data, window.currentDisplayLimit || 10);
+            const limitedData = applyDataLimit(config.data, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
 
             // 更新数据组数显示
             const dataCountElement = document.getElementById('currentDataCount');
@@ -3691,6 +3691,12 @@
 
             displayArea.innerHTML = chartHTML;
 
+            // 确保select元素的值正确设置
+            const selectElement = document.getElementById('chartDisplayLimit');
+            if (selectElement) {
+                selectElement.value = window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10;
+            }
+
             // 绑定图表事件
             setTimeout(() => {
                 bindChartClickEvents(config.id);
@@ -3713,8 +3719,33 @@
             // 获取图表数据
             const chartData = getChartDataFromSavedChart(savedChart, window.currentProjects);
 
+            // 将自定义图表配置添加到 currentChartConfigs 中，以便 refreshCurrentChart 能够找到
+            const customChartConfig = {
+                id: `customChart_${chartId}`,
+                title: savedChart.title,
+                data: chartData,
+                fieldName: savedChart.fieldName,
+                fieldLabel: savedChart.fieldLabel,
+                chartType: savedChart.chartType,
+                topN: savedChart.topN,
+                icon: '📊'
+            };
+            
+            // 更新 currentChartConfigs，确保自定义图表配置在其中
+            if (!window.currentChartConfigs) {
+                window.currentChartConfigs = [];
+            }
+            
+            // 查找是否已存在相同的自定义图表配置
+            const existingIndex = window.currentChartConfigs.findIndex(c => c.id === `customChart_${chartId}`);
+            if (existingIndex !== -1) {
+                window.currentChartConfigs[existingIndex] = customChartConfig;
+            } else {
+                window.currentChartConfigs.push(customChartConfig);
+            }
+
             // 应用数据限制
-            const limitedData = applyDataLimit(chartData, window.currentDisplayLimit || 10);
+            const limitedData = applyDataLimit(chartData, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
 
             const chartHTML = `
             <div style="width: 100%; height: 100%;">
@@ -3750,6 +3781,12 @@
         `;
 
             displayArea.innerHTML = chartHTML;
+
+            // 确保select元素的值正确设置
+            const selectElement = document.getElementById('chartDisplayLimit');
+            if (selectElement) {
+                selectElement.value = window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10;
+            }
 
             // 绑定图表事件
             setTimeout(() => {
@@ -5522,7 +5559,7 @@
                 if (!chartContainer || !toggleBtn) return;
 
                 // 应用数据限制
-                const limitedData = applyDataLimit(data, window.currentDisplayLimit || 10);
+                const limitedData = applyDataLimit(data, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
 
                 // 检查当前图表类型
                 const currentChart = chartContainer.querySelector('svg, div[style*="display: flex"]');
@@ -6811,10 +6848,14 @@
             }
 
             // 尝试多种方式找到图表元素
-            let currentChartElement = chartDisplayArea.querySelector('[id^="chart"]');
+            let currentChartElement = chartDisplayArea.querySelector('[id^="chart"]:not(#chartDisplayLimit)');
             if (!currentChartElement) {
-                // 尝试查找所有可能的图表容器
-                currentChartElement = chartDisplayArea.querySelector('div[id]');
+                // 尝试查找自定义图表容器
+                currentChartElement = chartDisplayArea.querySelector('[id^="customChart_"]');
+            }
+            if (!currentChartElement) {
+                // 尝试查找所有可能的图表容器，排除控制元素
+                currentChartElement = chartDisplayArea.querySelector('div[id]:not(#chartDisplayLimit):not(#currentDataCount)');
             }
             if (!currentChartElement) {
                 console.log('没有找到当前图表元素');
@@ -6826,27 +6867,98 @@
 
             const config = window.currentChartConfigs.find(c => c.id === currentChartId);
             if (!config) {
+                console.log('没有找到对应的图表配置，当前图表ID:', currentChartId);
+                console.log('可用的图表配置:', window.currentChartConfigs.map(c => c.id));
+                
+                // 如果是自定义图表，尝试从localStorage中获取配置
+                if (currentChartId.startsWith('customChart_')) {
+                    const chartId = currentChartId.replace('customChart_', '');
+                    console.log('尝试从localStorage获取自定义图表配置，chartId:', chartId);
+                    
+                    // 从localStorage中获取自定义图表配置
+                    const savedCharts = JSON.parse(localStorage.getItem('savedProjectCharts') || '{}');
+                    const chartKey = `${window.currentChartTitle}_${window.currentChartStatus}`;
+                    const savedChartsList = savedCharts[chartKey];
+                    const savedChart = savedChartsList ? savedChartsList.find(chart => chart.id == chartId) : null;
+                    
+                    if (savedChart && window.currentProjects) {
+                        console.log('找到自定义图表配置，字段:', savedChart.fieldName);
+                        
+                        // 重新生成数据
+                        const chartData = getChartDataFromSavedChart(savedChart, window.currentProjects);
+                        const limitedData = applyDataLimit(chartData, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
+                        
+                        // 更新数据组数显示
+                        const dataCountElement = document.getElementById('currentDataCount');
+                        if (dataCountElement) {
+                            const totalCount = Object.keys(chartData).length;
+                            const displayCount = Object.keys(limitedData).length;
+                            if (window.currentDisplayLimit === 0) {
+                                dataCountElement.textContent = `全部(${totalCount})`;
+                            } else if (displayCount < totalCount) {
+                                dataCountElement.textContent = `${displayCount}/${totalCount}...`;
+                            } else {
+                                dataCountElement.textContent = `${displayCount}/${totalCount}`;
+                            }
+                        }
+                        
+                        // 检测当前图表类型并重新生成
+                        const svgElement = currentChartElement.querySelector('svg');
+                        const flexElement = currentChartElement.querySelector('div[style*="display: flex"]');
+                        
+                        if (svgElement) {
+                            // 当前是饼图，重新生成饼图
+                            console.log('重新生成自定义饼图');
+                            currentChartElement.innerHTML = createPieChart(limitedData, currentChartId);
+                        } else if (flexElement) {
+                            // 当前是柱状图，重新生成柱状图
+                            console.log('重新生成自定义柱状图');
+                            currentChartElement.innerHTML = createBarChart(limitedData, currentChartId);
+                        } else {
+                            // 默认生成柱状图
+                            console.log('默认生成自定义柱状图');
+                            currentChartElement.innerHTML = createBarChart(limitedData, currentChartId);
+                        }
+                        
+                        // 重新绑定事件
+                        bindChartClickEvents(currentChartId);
+                        bindTooltipEvents(currentChartId);
+                        
+                        console.log('自定义图表刷新完成');
+                        return;
+                    }
+                }
+                
                 console.log('没有找到对应的图表配置，尝试使用第一个配置');
                 // 如果找不到对应的配置，使用第一个配置
                 const firstConfig = window.currentChartConfigs[0];
                 if (firstConfig) {
-                    console.log('使用第一个配置:', firstConfig.title);
-                    // 重新生成整个图表显示区域
-                    const limitedData = applyDataLimit(firstConfig.data, window.currentDisplayLimit || 10);
+                console.log('使用第一个配置:', firstConfig.title);
+                
+                // 检查是否是自定义图表，如果是则重新生成数据
+                let chartData = firstConfig.data;
+                if (firstConfig.fieldName && window.currentProjects) {
+                    // 这是自定义图表，需要重新生成数据
+                    console.log('重新生成自定义图表数据，字段:', firstConfig.fieldName);
+                    chartData = getChartDataFromSavedChart(firstConfig, window.currentProjects);
+                }
+                
+                // 重新生成整个图表显示区域
+                const limitedData = applyDataLimit(chartData, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
 
-                    // 更新数据组数显示
-                    const dataCountElement = document.getElementById('currentDataCount');
-                    if (dataCountElement) {
-                        const totalCount = Object.keys(firstConfig.data).length;
-                        const displayCount = Object.keys(limitedData).length;
-                        if (window.currentDisplayLimit === 0) {
-                            dataCountElement.textContent = `全部(${totalCount})`;
-                        } else if (displayCount < totalCount) {
-                            dataCountElement.textContent = `${displayCount}/${totalCount}...`;
-                        } else {
-                            dataCountElement.textContent = `${displayCount}/${totalCount}`;
-                        }
+                // 更新数据组数显示
+                const dataCountElement = document.getElementById('currentDataCount');
+                if (dataCountElement) {
+                    const totalCount = Object.keys(chartData).length;
+                    const displayCount = Object.keys(limitedData).length;
+                    if (window.currentDisplayLimit === 0) {
+                        dataCountElement.textContent = `全部(${totalCount})`;
+                    } else if (displayCount < totalCount) {
+                        dataCountElement.textContent = `${displayCount}/${totalCount}...`;
+                    } else {
+                        dataCountElement.textContent = `${displayCount}/${totalCount}`;
                     }
+                }
 
                     // 重新生成整个图表HTML
                     const chartHTML = `
@@ -6869,7 +6981,7 @@
                                         <option value="50" ${window.currentDisplayLimit === 50 ? 'selected' : ''}>前50组</option>
                                         <option value="0" ${window.currentDisplayLimit === 0 ? 'selected' : ''}>全部数据</option>
                                     </select>
-                                    <span id="currentDataCount" style="font-size: 12px; color: #007bff; font-weight: 600; min-width: 40px; text-align: center;">${window.currentDisplayLimit === 0 ? `全部(${Object.keys(firstConfig.data).length})` : (Object.keys(limitedData).length < Object.keys(firstConfig.data).length ? `${Object.keys(limitedData).length}/${Object.keys(firstConfig.data).length}...` : `${Object.keys(limitedData).length}/${Object.keys(firstConfig.data).length}`)}</span>
+                                    <span id="currentDataCount" style="font-size: 12px; color: #007bff; font-weight: 600; min-width: 40px; text-align: center;">${window.currentDisplayLimit === 0 ? `全部(${Object.keys(chartData).length})` : (Object.keys(limitedData).length < Object.keys(chartData).length ? `${Object.keys(limitedData).length}/${Object.keys(chartData).length}...` : `${Object.keys(limitedData).length}/${Object.keys(chartData).length}`)}</span>
                                     <button onclick="toggleDisplayMode()" style="background: #007bff; border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s;" title="快速切换显示模式" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
                                         🔄
                                     </button>
@@ -6884,6 +6996,12 @@
 
                     chartDisplayArea.innerHTML = chartHTML;
 
+                    // 确保select元素的值正确设置
+                    const newSelectElement = document.getElementById('chartDisplayLimit');
+                    if (newSelectElement) {
+                        newSelectElement.value = window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10;
+                    }
+
                     // 重新绑定事件
                     bindChartClickEvents(firstConfig.id);
                     bindTooltipEvents(firstConfig.id);
@@ -6895,14 +7013,22 @@
 
             console.log('找到图表配置:', config.title);
 
+            // 检查是否是自定义图表，如果是则重新生成数据
+            let chartData = config.data;
+            if (config.fieldName && window.currentProjects) {
+                // 这是自定义图表，需要重新生成数据
+                console.log('重新生成自定义图表数据，字段:', config.fieldName);
+                chartData = getChartDataFromSavedChart(config, window.currentProjects);
+            }
+
             // 应用数据限制
-            const limitedData = applyDataLimit(config.data, window.currentDisplayLimit || 10);
+            const limitedData = applyDataLimit(chartData, window.currentDisplayLimit !== undefined ? window.currentDisplayLimit : 10);
             console.log('限制后的数据:', limitedData);
 
             // 更新数据组数显示
             const dataCountElement = document.getElementById('currentDataCount');
             if (dataCountElement) {
-                const totalCount = Object.keys(config.data).length;
+                const totalCount = Object.keys(chartData).length;
                 const displayCount = Object.keys(limitedData).length;
                 if (window.currentDisplayLimit === 0) {
                     dataCountElement.textContent = `全部(${totalCount})`;
