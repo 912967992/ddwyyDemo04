@@ -440,6 +440,8 @@
 
     // 项目专员数据看板专用数据
     let specialistProjectData = []; // 存储所有项目数据用于统计
+    let originalSpecialistProjectData = []; // 保存原始数据用于筛选
+    let filteredSpecialistProjectData = []; // 筛选后的数据
 
     // 根据job参数设置页面标题和角色信息
     function initializeRoleBasedContent() {
@@ -568,7 +570,36 @@
                     </div>
                     <!-- 右侧内容区域 -->
                     <div id="specialistContent" style="flex: 1; padding: 30px; overflow-y: auto; background: #ffffff;">
-                        <div id="specialistChartContainer" style="width: 100%; height: 100%; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
+                        <!-- 接单时间筛选器 -->
+                        <div id="specialistFilterContainer" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #333; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                <span>🔍</span>
+                                接单时间筛选
+                            </h4>
+                            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-weight: 500; color: #555; white-space: nowrap;">开始时间:</label>
+                                    <input type="date" id="specialistOrderTimeStart" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-weight: 500; color: #555; white-space: nowrap;">结束时间:</label>
+                                    <input type="date" id="specialistOrderTimeEnd" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button onclick="applySpecialistOrderTimeFilter()" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        应用筛选
+                                    </button>
+                                    <button onclick="resetSpecialistOrderTimeFilter()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(108, 117, 125, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        重置筛选
+                                    </button>
+                                </div>
+                                <div style="margin-left: auto; color: #666; font-size: 13px;">
+                                    <span id="specialistFilterStatus">显示全部数据</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="specialistChartContainer" style="width: 100%; height: calc(100% - 120px); background: white; border-radius: 15px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
                             <div style="text-align: center; padding: 50px; color: #666;">
                                 <div style="font-size: 18px; margin-bottom: 20px;">请选择左侧菜单查看数据图表</div>
                                 <div style="font-size: 14px; color: #999;">点击左侧菜单项开始浏览数据</div>
@@ -602,7 +633,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    specialistProjectData = data.data;
+                    originalSpecialistProjectData = data.data; // 保存原始数据
+                    specialistProjectData = [...originalSpecialistProjectData];
+                    filteredSpecialistProjectData = [...originalSpecialistProjectData];
                     console.log('项目专员数据看板加载了', specialistProjectData.length, '个项目数据');
 
                     // 数据加载完成后，自动点击第一个菜单项
@@ -610,11 +643,15 @@
                 } else {
                     console.error('获取项目数据失败:', data.error);
                     specialistProjectData = [];
+                    originalSpecialistProjectData = [];
+                    filteredSpecialistProjectData = [];
                 }
             })
             .catch(error => {
                 console.error('API调用失败:', error);
                 specialistProjectData = [];
+                originalSpecialistProjectData = [];
+                filteredSpecialistProjectData = [];
             });
     }
 
@@ -623,6 +660,98 @@
         const firstMenuItem = document.getElementById('menu-schedule-distribution');
         if (firstMenuItem) {
             firstMenuItem.click();
+        }
+    }
+
+    // 应用接单时间筛选
+    function applySpecialistOrderTimeFilter() {
+        const startDate = document.getElementById('specialistOrderTimeStart').value;
+        const endDate = document.getElementById('specialistOrderTimeEnd').value;
+
+        if (!startDate && !endDate) {
+            // 如果没有选择日期，显示所有数据
+            specialistProjectData = [...originalSpecialistProjectData];
+            filteredSpecialistProjectData = [...originalSpecialistProjectData];
+            updateSpecialistFilterStatus('显示全部数据');
+        } else {
+            // 筛选数据
+            const filtered = originalSpecialistProjectData.filter(project => {
+                if (!project.create_time) return false;
+
+                const createDate = new Date(project.create_time);
+                let matchesStart = true;
+                let matchesEnd = true;
+
+                if (startDate) {
+                    const start = new Date(startDate);
+                    matchesStart = createDate >= start;
+                }
+
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999); // 结束日期设为当天的最后一秒
+                    matchesEnd = createDate <= end;
+                }
+
+                return matchesStart && matchesEnd;
+            });
+
+            specialistProjectData = [...filtered];
+            filteredSpecialistProjectData = [...filtered];
+            
+            const statusText = startDate && endDate 
+                ? `筛选时间范围: ${startDate} 至 ${endDate} (${filtered.length}条数据)`
+                : startDate 
+                ? `筛选开始时间: ${startDate} 之后 (${filtered.length}条数据)`
+                : `筛选结束时间: ${endDate} 之前 (${filtered.length}条数据)`;
+            updateSpecialistFilterStatus(statusText);
+        }
+
+        // 重新加载当前图表
+        refreshCurrentSpecialistChart();
+    }
+
+    // 重置接单时间筛选
+    function resetSpecialistOrderTimeFilter() {
+        document.getElementById('specialistOrderTimeStart').value = '';
+        document.getElementById('specialistOrderTimeEnd').value = '';
+        
+        specialistProjectData = [...originalSpecialistProjectData];
+        filteredSpecialistProjectData = [...originalSpecialistProjectData];
+        updateSpecialistFilterStatus('显示全部数据');
+        
+        // 重新加载当前图表
+        refreshCurrentSpecialistChart();
+    }
+
+    // 更新筛选状态显示
+    function updateSpecialistFilterStatus(status) {
+        const statusElement = document.getElementById('specialistFilterStatus');
+        if (statusElement) {
+            statusElement.textContent = status;
+        }
+    }
+
+    // 刷新当前图表
+    function refreshCurrentSpecialistChart() {
+        // 获取当前激活的菜单项
+        const activeMenuItem = document.querySelector('.specialist-menu-item[style*="background: linear-gradient"]');
+        if (activeMenuItem) {
+            const menuId = activeMenuItem.id.replace('menu-', '');
+            const menuItems = [
+                { id: 'schedule-distribution', action: 'loadScheduleDistributionData' },
+                { id: 'schedule-days-distribution', action: 'loadScheduleDaysDistributionData' },
+                { id: 'project-status', action: 'loadProjectStatusData' },
+                { id: 'category-distribution', action: 'loadCategoryDistributionData' },
+                { id: 'priority-distribution', action: 'loadPriorityDistributionData' },
+                { id: 'tester-distribution', action: 'loadTesterDistributionData' },
+                { id: 'monthly-trend', action: 'loadMonthlyTrendData' }
+            ];
+            
+            const menuItem = menuItems.find(item => item.id === menuId);
+            if (menuItem && window[menuItem.action]) {
+                window[menuItem.action]();
+            }
         }
     }
 
@@ -759,7 +888,7 @@
             return;
         }
 
-        // 基于项目数据计算排期时间分布
+        // 基于筛选后的项目数据计算排期时间分布
         const distribution = calculateScheduleDistribution(specialistProjectData);
         renderSpecialistChart('排期时间分布', distribution, 'schedule');
     }
@@ -773,7 +902,7 @@
             return;
         }
 
-        // 基于项目数据计算排期天数分布
+        // 基于筛选后的项目数据计算排期天数分布
         const distribution = calculateScheduleDaysDistribution(specialistProjectData);
         renderSpecialistChart('排期开始时间月份分布', distribution, 'scheduleDays');
     }
@@ -968,6 +1097,7 @@
             return;
         }
 
+        // 基于筛选后的项目数据计算项目状态分布
         const distribution = calculateProjectStatusDistribution(specialistProjectData);
         renderSpecialistChart('项目状态分布', distribution, 'status');
     }
@@ -980,6 +1110,7 @@
             return;
         }
 
+        // 基于筛选后的项目数据计算样品类别分布
         const distribution = calculateCategoryDistribution(specialistProjectData);
         renderSpecialistChart('样品类别分布', distribution, 'category');
     }
@@ -992,6 +1123,7 @@
             return;
         }
 
+        // 基于筛选后的项目数据计算优先级分布
         const distribution = calculatePriorityDistribution(specialistProjectData);
         renderSpecialistChart('优先级分布', distribution, 'priority');
     }
@@ -1004,6 +1136,7 @@
             return;
         }
 
+        // 基于筛选后的项目数据计算测试员分布
         const distribution = calculateTesterDistribution(specialistProjectData);
         renderSpecialistChart('测试员分布', distribution, 'tester');
     }
@@ -1016,6 +1149,7 @@
             return;
         }
 
+        // 基于筛选后的项目数据计算月度趋势
         const distribution = calculateMonthlyTrend(specialistProjectData);
         renderSpecialistChart('月度趋势', distribution, 'monthly');
     }
