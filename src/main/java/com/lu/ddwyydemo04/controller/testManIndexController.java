@@ -2217,6 +2217,43 @@ public class testManIndexController {
                     return result;
                 }
 
+                // 检查复现概率不能为空
+                String reproductionProbability = rowMap.get("复现概率");
+                if (reproductionProbability == null || reproductionProbability.trim().isEmpty()) {
+                    result.put("message", "复现概率不能为空，请填写复现概率");
+                    return result;
+                }
+
+                // 检查当前状态必须为open、close、follow up三个其中一个，兼容大小写和close、closed
+                String currentStatus = rowMap.get("当前状态");
+                if (currentStatus == null || currentStatus.trim().isEmpty()) {
+                    result.put("message", "当前状态不能为空，请填写当前状态");
+                    return result;
+                }
+                String normalizedStatus = currentStatus.trim().toLowerCase();
+                if (!normalizedStatus.equals("open") && 
+                    !normalizedStatus.equals("close") && 
+                    !normalizedStatus.equals("closed") && 
+                    !normalizedStatus.equals("follow up")) {
+                    result.put("message", "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus);
+                    return result;
+                }
+
+                // 检查缺陷等级的值必须为S、A、B、C之一，要求必须为大写
+                String defectLevel = rowMap.get("缺陷等级");
+                if (defectLevel == null || defectLevel.trim().isEmpty()) {
+                    result.put("message", "缺陷等级不能为空，请填写缺陷等级");
+                    return result;
+                }
+                String normalizedDefectLevel = defectLevel.trim().toUpperCase();
+                if (!normalizedDefectLevel.equals("S") && 
+                    !normalizedDefectLevel.equals("A") && 
+                    !normalizedDefectLevel.equals("B") && 
+                    !normalizedDefectLevel.equals("C")) {
+                    result.put("message", "缺陷等级必须为S、A、B、C中的一个（大写），当前值：" + defectLevel);
+                    return result;
+                }
+
                 TestIssues issue = convertToTestIssue(rowMap, sampleId, history_id, job);
                 String problem = issue.getProblem();
                 if (problem == null || problem.trim().isEmpty()) continue;
@@ -2467,7 +2504,7 @@ public class testManIndexController {
             "问题类别", "问题", "复现手法", "恢复方法", "复现概率", 
             "缺陷等级", "当前状态", "对比上一版或竞品", "测试人员",
             "DQE&研发确认", "改善对策（研发回复）", "分析责任人", 
-            "改善后风险", "下一版回归测试", "备注"
+            "改善后风险", "下一版回归测试", "备注", "复现概率", "当前状态", "缺陷等级"
         };
         
         // 检查重要字段是否有非空值

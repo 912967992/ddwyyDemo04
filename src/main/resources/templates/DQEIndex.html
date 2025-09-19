@@ -661,7 +661,7 @@
             }
 
             // 只检查角色是否为DQE
-            if (job === 'DQE') {
+            if (job === 'DQE' || job === 'manager') {
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
                 const url = 'http://219.134.191.195:64000/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);

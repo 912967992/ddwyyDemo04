@@ -63,6 +63,8 @@
         AND (#{problemTimeStart} IS NULL OR finish_time >= #{problemTimeStart})
         AND (#{problemTimeEnd} IS NULL OR finish_time &lt; DATE_ADD(#{problemTimeEnd}, INTERVAL 1 DAY))
         AND (#{sample_leader} IS NULL OR sample_leader LIKE CONCAT('%', #{sample_leader}, '%'))
+        -- 限制只查询2025年7月之后创建的数据
+        AND create_time >= '2025-07-01 00:00:00'
         -- 新加的模糊搜索条件
         AND (#{key} IS NULL OR
         sample_id LIKE CONCAT('%', #{key}, '%') OR

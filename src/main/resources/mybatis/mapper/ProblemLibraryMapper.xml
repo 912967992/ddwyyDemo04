@@ -61,6 +61,8 @@
             GROUP BY sample_id
         ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
         WHERE 1=1
+        -- 限制只查询2025年7月之后完成的数据
+        AND s.finish_time >= '2025-07-01 00:00:00'
         <if test="filters.fullModel != null and filters.fullModel != ''">
             AND s.full_model LIKE CONCAT('%', #{filters.fullModel}, '%')
         </if>
