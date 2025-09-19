@@ -253,6 +253,7 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
                       GROUP BY s.big_species
                   ) as ranked_bigSpecies) as bigSpecies,
             (SELECT GROUP_CONCAT(
@@ -269,6 +270,7 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
                       GROUP BY s.small_species
                   ) as ranked_smallSpecies) as smallSpecies,
             (SELECT GROUP_CONCAT(
@@ -285,7 +287,8 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-                      WHERE s.sample_category IS NOT NULL AND s.sample_category != ''
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
+                        AND s.sample_category IS NOT NULL AND s.sample_category != ''
                       GROUP BY s.sample_category
                   ) as ranked_sampleStage) as sampleStage,
             (SELECT GROUP_CONCAT(
@@ -302,7 +305,8 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-                      WHERE s.full_model IS NOT NULL AND s.full_model != ''
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
+                        AND s.full_model IS NOT NULL AND s.full_model != ''
                       GROUP BY s.full_model
                   ) as ranked_fullModel) as fullModel,
             (SELECT GROUP_CONCAT(
@@ -319,7 +323,8 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-                      WHERE s.version IS NOT NULL AND s.version != ''
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
+                        AND s.version IS NOT NULL AND s.version != ''
                       GROUP BY s.version
                   ) as ranked_version) as version,
             (SELECT GROUP_CONCAT(
@@ -328,16 +333,18 @@
                             SEPARATOR ','
                     ) as problemCategories
              FROM (
-                      SELECT problemCategory, COUNT(*) as count
-                      FROM test_issues
-                      WHERE history_id IN (
+                      SELECT ti.problemCategory, COUNT(*) as count
+                      FROM test_issues ti
+                               INNER JOIN samples s ON ti.sample_id = s.sample_id
+                      WHERE ti.history_id IN (
                           SELECT MAX(history_id)
                           FROM test_issues
                           GROUP BY sample_id
                       )
-                        AND problemCategory IS NOT NULL
-                        AND problemCategory != ''
-                      GROUP BY problemCategory
+                        AND s.finish_time >= '2025-07-01 00:00:00'
+                        AND ti.problemCategory IS NOT NULL
+                        AND ti.problemCategory != ''
+                      GROUP BY ti.problemCategory
                   ) as ranked_categories) as problemCategory,
             (SELECT GROUP_CONCAT(
                             tester
@@ -347,12 +354,14 @@
              FROM (
                       SELECT ti.tester, COUNT(*) as count
                       FROM test_issues ti
+                               INNER JOIN samples s ON ti.sample_id = s.sample_id
                                INNER JOIN (
                           SELECT sample_id, MAX(history_id) as max_history_id
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-                      WHERE ti.tester IS NOT NULL AND ti.tester != ''
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
+                        AND ti.tester IS NOT NULL AND ti.tester != ''
                       GROUP BY ti.tester
                   ) as ranked_tester) as tester,
             (SELECT GROUP_CONCAT(
@@ -363,12 +372,14 @@
              FROM (
                       SELECT ti.responsibleDepartment, COUNT(*) as count
                       FROM test_issues ti
+                               INNER JOIN samples s ON ti.sample_id = s.sample_id
                                INNER JOIN (
                           SELECT sample_id, MAX(history_id) as max_history_id
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
-                      WHERE ti.responsibleDepartment IS NOT NULL AND ti.responsibleDepartment != ''
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
+                        AND ti.responsibleDepartment IS NOT NULL AND ti.responsibleDepartment != ''
                       GROUP BY ti.responsibleDepartment
                   ) as ranked_responsibleDepartment) as responsibleDepartment,
             (SELECT GROUP_CONCAT(
@@ -379,11 +390,13 @@
              FROM (
                       SELECT COALESCE(ti.test_platform, '空值') as test_platform, COUNT(*) as count
                       FROM test_issues ti
+                               INNER JOIN samples s ON ti.sample_id = s.sample_id
                                INNER JOIN (
                           SELECT sample_id, MAX(history_id) as max_history_id
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
                       GROUP BY ti.test_platform
                   ) as ranked_testPlatform) as testPlatform,
             (SELECT GROUP_CONCAT(
@@ -394,11 +407,13 @@
              FROM (
                       SELECT COALESCE(ti.test_device, '空值') as test_device, COUNT(*) as count
                       FROM test_issues ti
+                               INNER JOIN samples s ON ti.sample_id = s.sample_id
                                INNER JOIN (
                           SELECT sample_id, MAX(history_id) as max_history_id
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
                       GROUP BY ti.test_device
                   ) as ranked_testDevice) as testDevice,
             (SELECT GROUP_CONCAT(
@@ -415,6 +430,7 @@
                           FROM test_issues
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
+                      WHERE s.finish_time >= '2025-07-01 00:00:00'
                       GROUP BY s.sample_DQE
                   ) as ranked_dqe) as dqe
     </select>
