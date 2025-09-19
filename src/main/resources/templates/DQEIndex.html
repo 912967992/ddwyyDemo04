@@ -136,76 +136,157 @@
 </head>
 <body>
 
-    <div class="title-container">
-        <div class="title" id="indexTitle">主页</div>
-        
-        <!-- 项目统计汇总框 -->
-        <div class="summary-container">
-            <div class="summary-box">
-                <h3>项目统计汇总</h3>
-                <div class="summary-content">
-                    <div class="summary-item">
-                        <span class="summary-label">提单待测试的：</span>
-                        <span class="summary-value clickable" id="ladingBillWaitTest" onclick="showProjectModal('ladingBillWaitTest')">0</span>
+    <!-- 现代化页面头部 -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="title-section">
+                <div class="title-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="title-text">
+                    <h1 id="indexTitle">研发质量管理系统</h1>
+<!--                    <p class="subtitle">智能项目管理与质量监控平台</p>-->
+                </div>
+            </div>
+            
+            <!-- 项目统计汇总卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card primary" onclick="showProjectModal('ladingBillWaitTest')">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
                     </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="ladingBillWaitTest">0</div>
+                        <div class="stat-label">提单待测试</div>
+                    </div>
+                </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">测试进行中的：</span>
-                        <span class="summary-value clickable" id="testing" onclick="showProjectModal('testing')">0</span>
+                <div class="stat-card warning" onclick="showProjectModal('testing')">
+                    <div class="stat-icon">
+                        <i class="fas fa-cogs"></i>
                     </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="testing">0</div>
+                        <div class="stat-label">测试进行中</div>
+                    </div>
+                </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">完成待审核的：</span>
-                        <span class="summary-value clickable" id="recentCount" onclick="showProjectModal('recentCount')">0</span>
+                <div class="stat-card info" onclick="showProjectModal('recentCount')">
+                    <div class="stat-icon">
+                        <i class="fas fa-clipboard-list"></i>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">节点超期项目：</span>
-                        <span class="summary-value clickable" id="overdueCount" onclick="showProjectModal('overdueCount')" style="color: red;">0</span>
+                    <div class="stat-content">
+                        <div class="stat-number" id="recentCount">0</div>
+                        <div class="stat-label">完成待审核</div>
                     </div>
+                </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">报告完成确认了的：</span>
-                        <span class="summary-value clickable" id="closedCount" onclick="showProjectModal('closedCount')" style="color: green;">0</span>
+                <div class="stat-card danger" onclick="showProjectModal('overdueCount')">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="overdueCount">0</div>
+                        <div class="stat-label">节点超期项目</div>
+                    </div>
+                </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">总数：</span>
-                        <span class="summary-value clickable" id="projectCount" onclick="showProjectModal('projectCount')">0</span>
+                <div class="stat-card success" onclick="showProjectModal('closedCount')">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="closedCount">0</div>
+                        <div class="stat-label">报告完成确认</div>
+                    </div>
+                </div>
+
+                <div class="stat-card total" onclick="showProjectModal('projectCount')">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="projectCount">0</div>
+                        <div class="stat-label">项目总数</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 左上角控制面板 -->
+    <!-- 现代化侧边控制面板 -->
     <div class="control-panel">
-<!--        <div class="control-panel-header">-->
-<!--            <h3>控制面板</h3>-->
-<!--        </div>-->
+        <div class="panel-header">
+            <div class="panel-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h3>控制中心</h3>
+        </div>
         
-        <button id="downloadGuidelineBtn" class="download-btn">操作指导书下载</button>
-        
-        <div id="buttonContainer"></div>
-
-        <!-- 角色切换按钮 -->
-        <div id="buttonsDiv">
-            <button id="dqeBtn">DQE</button>
-            <button id="rdBtn">rd</button>
-            <button id="projectBtn">项目</button>
-            <button id="managerBtn">主管级别以上</button>
+        <div class="panel-section">
+            <button id="downloadGuidelineBtn" class="modern-btn primary">
+                <i class="fas fa-download"></i>
+                <span>操作指导书下载</span>
+            </button>
         </div>
 
-        <!-- 用户名输入 -->
-        <div id="usernameDiv">
-            <input type="text" id="usernameInput" placeholder="输入你的名字" />
-            <button id="saveUsernameBtn">保存名字</button>
+        <div id="buttonContainer" class="panel-section"></div>
+
+        <!-- 角色切换区域 -->
+        <div class="panel-section">
+            <h4 class="section-title">角色切换</h4>
+            <div id="buttonsDiv" class="role-buttons">
+                <button id="dqeBtn" class="role-btn">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>DQE</span>
+                </button>
+                <button id="rdBtn" class="role-btn">
+                    <i class="fas fa-code"></i>
+                    <span>研发</span>
+                </button>
+                <button id="projectBtn" class="role-btn">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>项目</span>
+                </button>
+                <button id="managerBtn" class="role-btn">
+                    <i class="fas fa-user-tie"></i>
+                    <span>主管</span>
+                </button>
+            </div>
         </div>
 
-        <!-- 项目查看按钮 -->
-        <div class="project-buttons">
-            <button id="viewOverdueButton">查看超时项目</button>
-            <button id="viewRecentNotificationsButton">查看近期通知项目</button>
-            <button id="setupAgentBtn">设置代理人</button>
+        <!-- 用户信息区域 -->
+        <div class="panel-section">
+            <h4 class="section-title">用户信息</h4>
+            <div id="usernameDiv" class="user-input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="usernameInput" placeholder="输入你的名字" />
+                </div>
+                <button id="saveUsernameBtn" class="modern-btn success">
+                    <i class="fas fa-save"></i>
+                    <span>保存</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 项目管理按钮 -->
+        <div class="panel-section">
+            <h4 class="section-title">项目管理</h4>
+            <div class="project-buttons">
+                <button id="viewOverdueButton" class="modern-btn danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>查看超时项目</span>
+                </button>
+                <button id="viewRecentNotificationsButton" class="modern-btn info">
+                    <i class="fas fa-bell"></i>
+                    <span>查看近期通知</span>
+                </button>
+                <button id="setupAgentBtn" class="modern-btn secondary">
+                    <i class="fas fa-user-friends"></i>
+                    <span>设置代理人</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -342,18 +423,98 @@
 
 
     <div class="main-container">
-        <!-- 数据看板 - 改为使用 module highlighted -->
-        <div class="module highlighted" onclick="goToDashboard()">
-            数据看板
+        <!-- 数据看板 - 改为使用现代化卡片设计 -->
+        <div class="dashboard-card" onclick="goToDashboard()">
+            <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-content">
+                <h3>数据看板</h3>
+                <p>项目统计和数据分析</p>
+            </div>
+            <div class="card-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
         </div>
 
         <div class="grid-container">
-            <div class="module highlighted" onclick="redirectToPage()">DQE/研发<br>审核</div>
-            <div class="module highlighted" onclick="checkProblemLibraryPermission()">问题点库<br>管理</div>
-            <div class="module highlighted" onclick="goToReviewResult()">评审结果<br>页面</div>
-            <div class="module highlighted" onclick="location.href='/labModuleTester'">实验室<br>模块</div>
-            <div class="module highlighted" onclick="goToScheduleBoard()">项目<br>排期</div>
-            <div class="module" onclick="checkAndRedirect()">其他<br>模块</div>
+            <div class="module-card highlighted" onclick="redirectToPage()">
+                <div class="card-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="card-content">
+                    <h3>DQE/研发审核</h3>
+                    <p>质量审核管理</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card highlighted" onclick="checkProblemLibraryPermission()">
+                <div class="card-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="card-content">
+                    <h3>问题点库管理</h3>
+                    <p>问题库维护</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card highlighted" onclick="goToReviewResult()">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>新品质量管理</h3>
+                    <p>质量管控流程</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card highlighted" onclick="location.href='/labModuleTester'">
+                <div class="card-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="card-content">
+                    <h3>实验室模块</h3>
+                    <p>实验测试管理</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card highlighted" onclick="goToScheduleBoard()">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>项目排期</h3>
+                    <p>项目进度管理</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card" onclick="checkAndRedirect()">
+                <div class="card-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="card-content">
+                    <h3>其他模块</h3>
+                    <p>更多功能</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
         </div>
     </div>
 

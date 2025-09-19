@@ -3,6 +3,7 @@ package com.lu.ddwyydemo04.controller.DQE;
 import com.lu.ddwyydemo04.Service.ReviewResultsService;
 import com.lu.ddwyydemo04.pojo.ReviewResults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +30,9 @@ import java.nio.charset.StandardCharsets;
  */
 @Controller
 public class ReviewResultController {
+
+    @Value("${file.storage.templatespath}")
+    private String templatesPath;
 
     @Autowired
     private ReviewResultsService reviewResultsService;
@@ -665,7 +669,7 @@ public class ReviewResultController {
         
         try {
             // 从application.yml中获取模板路径
-            String templatePath = "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
+            String templatePath = templatesPath + "/评审结果导入模板.xlsx";
             Path file = Paths.get(templatePath);
             
             System.out.println("尝试下载模板文件，路径: " + templatePath);
@@ -707,7 +711,7 @@ public class ReviewResultController {
     @GetMapping("/reviewResult/downloadTemplateFile")
     public ResponseEntity<Resource> downloadTemplateFile() {
         try {
-            String templatePath = "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
+            String templatePath = "Z:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
             Path file = Paths.get(templatePath);
             
             if (!Files.exists(file)) {

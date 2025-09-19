@@ -1098,6 +1098,41 @@
                 width: calc(100% - 8px); /* 每行1个 */
             }
         }
+
+        /* 排序按钮样式 */
+        .chart-sort-buttons {
+            display: inline-flex;
+            margin-left: 10px;
+        }
+
+        .chart-sort-buttons .btn {
+            border-radius: 4px;
+            font-size: 12px;
+            padding: 4px 8px;
+            transition: all 0.2s ease;
+        }
+
+        .chart-sort-buttons .btn:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .chart-sort-buttons .btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: 0;
+        }
+
+        .chart-sort-buttons .btn.active {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .chart-sort-buttons .btn:hover:not(.active) {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
     </style>
 </head>
 <body>
@@ -1289,6 +1324,16 @@
             </select>
 
             <button id="generateChartBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="console.log('🔥 生成图表按钮被点击!'); generateChart()">生成图表</button>
+            
+            <!-- 排序按钮组 -->
+            <div class="chart-sort-buttons" role="group">
+                <button id="sortAscBtn" class="btn btn-outline-secondary" onclick="setChartSort('asc')" title="按数值升序排列">
+                    <i class="fas fa-sort-amount-up"></i> 升序
+                </button>
+                <button id="sortDescBtn" class="btn btn-outline-secondary" onclick="setChartSort('desc')" title="按数值降序排列">
+                    <i class="fas fa-sort-amount-down"></i> 降序
+                </button>
+            </div>
         </div>
 
         <div class="chart-canvas-container">
@@ -1876,9 +1921,9 @@
                     <div class="form-group">
                         <label for="editCurrentStatus">当前状态:</label>
                         <select id="editCurrentStatus" name="currentStatus">
-                            <option value="Open">Open</option>
-                            <option value="Closed">Closed</option>
-                            <option value="Follow up">Follow up</option>
+                            <option value="open">open</option>
+                            <option value="close">close</option>
+                            <option value="follow up">follow up</option>
                         </select>
                     </div>
                     <div class="form-group full-width">
@@ -2227,6 +2272,7 @@
     // 图表相关变量
     var currentChart = null;
     var currentChartType = 'bar';
+    var chartSortOrder = 'none'; // 排序状态: 'none', 'asc', 'desc'
     let currentPage = 1;
     let pageSize = 20;
     let totalCount = 0;
@@ -2268,7 +2314,7 @@
         if (groupFieldValue && allData && allData.length > 0) {
             console.log('🚀 开始重新生成图表，类型:', currentChartType);
             try {
-                processChartData(allData, groupFieldValue, currentChartType);
+                processChartData(allData, groupFieldValue, currentChartType, chartSortOrder);
                 console.log('✅ 图表重新生成完成');
             } catch (error) {
                 console.error('❌ 图表重新生成失败:', error);
@@ -2310,15 +2356,38 @@
         const normalized = status.toLowerCase().trim();
         switch (normalized) {
             case 'open':
-                return 'Open';
+                return 'open';
             case 'closed':
             case 'close':
-                return 'Closed';
+                return 'close';
             case 'follow up':
             case 'followup':
-                return 'Follow up';
+                return 'follow up';
             default:
                 return status; // 保持原值
+        }
+    }
+
+    // 格式化日期显示
+    function formatDate(dateString) {
+        if (!dateString || dateString === '-') return '-';
+        
+        try {
+            // 如果是ISO格式的日期时间字符串，提取日期部分
+            if (dateString.includes('T')) {
+                return dateString.split('T')[0];
+            }
+            
+            // 如果是其他格式，尝试解析并格式化
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+            
+            // 如果解析失败，返回原值
+            return dateString;
+        } catch (error) {
+            return dateString;
         }
     }
 
@@ -2840,7 +2909,7 @@
                 if (groupFieldValue && allData && allData.length > 0) {
                     console.log('🚀 开始重新生成图表，类型:', currentChartType);
                     try {
-                        processChartData(allData, groupFieldValue, currentChartType);
+                        processChartData(allData, groupFieldValue, currentChartType, chartSortOrder);
                         console.log('✅ 图表重新生成完成');
                     } catch (error) {
                         console.error('❌ 图表重新生成失败:', error);
@@ -2860,47 +2929,7 @@
         return urlParams.get(name);
     }
 
-    // 检查用户权限
-    function checkUserPermission() {
-        // 优先从URL参数获取用户信息，其次从localStorage获取
-        const urlUsername = getUrlParameter('username');
-        const urlJob = getUrlParameter('job');
 
-        currentUser = urlUsername || localStorage.getItem('username');
-        currentRole = urlJob || localStorage.getItem('job');
-
-        // 如果URL参数存在，更新localStorage
-        if (urlUsername) {
-            localStorage.setItem('username', urlUsername);
-        }
-        if (urlJob) {
-            localStorage.setItem('job', urlJob);
-        }
-
-        if (!currentUser || !currentRole) {
-            alert('请先登录并选择角色！');
-            window.location.href = '/DQEIndex';
-            return;
-        }
-
-        // 检查是否有权限进入问题点库管理页面
-        const allowedUsers = ['邓小英', '邓令章', '卢健', '李良健', '黄家灿'];
-        if (!allowedUsers.includes(currentUser)) {
-            alert('您没有权限进入问题点库管理页面！');
-            window.location.href = '/DQEIndex';
-            return;
-        }
-
-        // 检查是否为超级管理员
-        isSuperAdmin = (currentUser === '卢健' && currentRole === 'manager');
-
-        // 显示用户信息
-        document.getElementById('currentUser').textContent = `用户: ${currentUser}`;
-        document.getElementById('currentRole').textContent = `角色: ${currentRole}`;
-
-        // 根据权限控制界面元素
-        controlEditPermissions();
-    }
 
     // 控制编辑权限
     function controlEditPermissions() {
@@ -3039,6 +3068,12 @@
         // 处理文件选择
         function handleFileSelect(file) {
             if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                // 将文件设置到fileInput中
+                const fileInput = document.getElementById('fileInput');
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
                 document.getElementById('uploadArea').innerHTML = `
                     <i class="fas fa-file-excel" style="color: #28a745;"></i>
                     <p style="color: #28a745; font-weight: 500;">已选择文件: ${file.name}</p>
@@ -3542,8 +3577,8 @@
         document.getElementById('detailImprovementMeasures').textContent = review.improvementMeasures || '-';
         document.getElementById('detailIsPreventable').textContent = review.isPreventable || '-';
         document.getElementById('detailResponsibleDepartment').textContent = review.responsibleDepartment || '-';
-        document.getElementById('detailPlannedCompletionTime').textContent = review.plannedCompletionTime || '-';
-        document.getElementById('detailActualCompletionTime').textContent = review.actualCompletionTime || '-';
+        document.getElementById('detailPlannedCompletionTime').textContent = formatDate(review.plannedCompletionTime);
+        document.getElementById('detailActualCompletionTime').textContent = formatDate(review.actualCompletionTime);
         document.getElementById('detailDelayDays').textContent = review.delayDays || '-';
         document.getElementById('detailProblemStatus').textContent = review.problemStatus || '-';
         document.getElementById('detailProblemTag1').textContent = review.problemTag1 || '-';
@@ -3592,7 +3627,7 @@
             { id: 'detailProjectPhase', type: 'text' },
             { id: 'detailVersion', type: 'text' },
             { id: 'detailProblemProcess', type: 'text' },
-            { id: 'detailProblemLevel', type: 'select', options: ['高', '中', '低'] },
+            { id: 'detailProblemLevel', type: 'select', options: ['S', 'A', 'B', 'C'] },
             { id: 'detailDevelopmentMethod', type: 'text' },
             { id: 'detailSupplier', type: 'text' },
             { id: 'detailSolutionProvider', type: 'text' },
@@ -3604,7 +3639,7 @@
             { id: 'detailPlannedCompletionTime', type: 'date' },
             { id: 'detailActualCompletionTime', type: 'date' },
             { id: 'detailDelayDays', type: 'number' },
-            { id: 'detailProblemStatus', type: 'select', options: ['待处理', '处理中', '已完成', '已关闭'] },
+            { id: 'detailProblemStatus', type: 'select', options: ['open', 'close', 'follow up'] },
             { id: 'detailProblemTag1', type: 'text' },
             { id: 'detailProblemTag2', type: 'text' },
             { id: 'detailPreventionNotes', type: 'textarea' }
@@ -3635,7 +3670,20 @@
                 }
                 
                 inputElement.id = 'edit' + field.id;
-                inputElement.value = currentValue;
+                
+                // 特殊处理日期字段
+                if (field.type === 'date' && currentValue && currentValue !== '-') {
+                    // 将日期转换为HTML date input所需的格式 (YYYY-MM-DD)
+                    const date = new Date(currentValue);
+                    if (!isNaN(date.getTime())) {
+                        inputElement.value = date.toISOString().split('T')[0];
+                    } else {
+                        inputElement.value = currentValue;
+                    }
+                } else {
+                    inputElement.value = currentValue;
+                }
+                
                 inputElement.className = 'form-control';
                 
                 // 替换原元素
@@ -4495,8 +4543,8 @@
                     <td>${review.isPreventable || '-'}</td>
                     <td>${review.responsibleDepartment || '-'}</td>
                     <td><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
-                    <td>${review.plannedCompletionTime || '-'}</td>
-                    <td>${review.actualCompletionTime || '-'}</td>
+                    <td>${formatDate(review.plannedCompletionTime)}</td>
+                    <td>${formatDate(review.actualCompletionTime)}</td>
                     <td>${review.delayDays || '-'}</td>
                     <td class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
@@ -5567,8 +5615,8 @@
                     <td>${review.isPreventable || '-'}</td>
                     <td>${review.responsibleDepartment || '-'}</td>
                     <td><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
-                    <td>${review.plannedCompletionTime || '-'}</td>
-                    <td>${review.actualCompletionTime || '-'}</td>
+                    <td>${formatDate(review.plannedCompletionTime)}</td>
+                    <td>${formatDate(review.actualCompletionTime)}</td>
                     <td>${review.delayDays || '-'}</td>
                     <td class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
@@ -5715,7 +5763,7 @@
         });
 
         // 使用与主图表完全相同的数据处理逻辑
-        return processGroupedDataForChart(data, groupField, chartType);
+        return processGroupedDataForChart(data, groupField, chartType, chartSortOrder);
     }
 
     // 创建合并数据图表 - 使用与主图表完全相同的配置
@@ -5974,6 +6022,37 @@
         }
     }
 
+    // 设置图表排序
+    function setChartSort(sortOrder) {
+        console.log('设置图表排序:', sortOrder);
+        chartSortOrder = sortOrder;
+        
+        // 更新按钮状态
+        const ascBtn = document.getElementById('sortAscBtn');
+        const descBtn = document.getElementById('sortDescBtn');
+        
+        // 重置所有按钮状态
+        ascBtn.classList.remove('active', 'btn-primary');
+        ascBtn.classList.add('btn-outline-secondary');
+        descBtn.classList.remove('active', 'btn-primary');
+        descBtn.classList.add('btn-outline-secondary');
+        
+        // 激活选中的按钮
+        if (sortOrder === 'asc') {
+            ascBtn.classList.remove('btn-outline-secondary');
+            ascBtn.classList.add('btn-primary', 'active');
+        } else if (sortOrder === 'desc') {
+            descBtn.classList.remove('btn-outline-secondary');
+            descBtn.classList.add('btn-primary', 'active');
+        }
+        
+        // 如果已有图表，重新生成
+        if (currentChart) {
+            console.log('重新生成图表以应用排序');
+            generateChart();
+        }
+    }
+
     // 生成图表函数
     function generateChart() {
         console.log('generateChart函数被调用');
@@ -6007,7 +6086,7 @@
         if (allData.length === totalCount && allData.length > 0) {
             console.log('使用现有的allData，数据量:', allData.length);
             try {
-                processChartData(allData, groupField, currentChartType);
+                processChartData(allData, groupField, currentChartType, chartSortOrder);
             } catch (error) {
                 console.error('处理图表数据失败:', error);
                 alert('处理图表数据失败: ' + error.message);
@@ -6021,7 +6100,7 @@
                     console.log('获取到的所有搜索结果数据:', allSearchData);
                     if (allSearchData && allSearchData.length > 0) {
                         try {
-                            processChartData(allSearchData, groupField, currentChartType);
+                            processChartData(allSearchData, groupField, currentChartType, chartSortOrder);
                         } catch (error) {
                             console.error('处理图表数据失败:', error);
                             alert('处理图表数据失败: ' + error.message);
@@ -6046,11 +6125,12 @@
     }
 
     // 处理图表数据的辅助函数
-    function processChartData(data, groupField, chartType) {
+    function processChartData(data, groupField, chartType, sortOrder = 'none') {
         console.log('🔄 processChartData 被调用:', {
             dataLength: data.length,
             groupField: groupField,
-            chartType: chartType
+            chartType: chartType,
+            sortOrder: sortOrder
         });
         
         if (!data || data.length === 0) {
@@ -6069,7 +6149,7 @@
         // 处理数据
         console.log('📊 开始处理分组数据...');
         try {
-            const chartData = processGroupedDataForChart(data, groupField, chartType);
+            const chartData = processGroupedDataForChart(data, groupField, chartType, chartSortOrder);
             console.log('✅ 处理后的图表数据:', chartData);
 
             // 验证处理后的数据
@@ -6257,8 +6337,8 @@
     }
 
     // 处理分组数据用于图表显示
-    function processGroupedDataForChart(data, groupField, chartType) {
-        console.log('开始处理分组图表数据，分组字段:', groupField, '图表类型:', chartType);
+    function processGroupedDataForChart(data, groupField, chartType, sortOrder = 'none') {
+        console.log('开始处理分组图表数据，分组字段:', groupField, '图表类型:', chartType, '排序:', sortOrder);
         console.log('输入数据量:', data.length);
 
         const groupedData = {};
@@ -6316,7 +6396,25 @@
 
         console.log('分组后的数据:', groupedData);
 
-        const labels = Object.keys(groupedData);
+        // 获取所有标签并排序
+        let labels = Object.keys(groupedData);
+        
+        // 根据排序设置对标签进行排序
+        if (sortOrder !== 'none') {
+            labels.sort((a, b) => {
+                const valueA = groupedData[a].total;
+                const valueB = groupedData[b].total;
+                
+                if (sortOrder === 'asc') {
+                    return valueA - valueB;
+                } else if (sortOrder === 'desc') {
+                    return valueB - valueA;
+                }
+                return 0;
+            });
+            console.log('排序后的标签:', labels);
+        }
+        
         const datasets = [];
 
         // 根据图表类型决定显示哪些数据系列

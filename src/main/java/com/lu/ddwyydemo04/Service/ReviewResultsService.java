@@ -165,14 +165,14 @@ public class ReviewResultsService {
         ColumnMapping columnMapping = createColumnMapping(headerRow);
         
         // 打印列映射信息
-        System.out.println("列映射信息:");
-        System.out.println("测试日期列: " + columnMapping.testDateIndex);
-        System.out.println("大编码列: " + columnMapping.majorCodeIndex);
-        System.out.println("小编码列: " + columnMapping.minorCodeIndex);
-        System.out.println("项目阶段列: " + columnMapping.projectPhaseIndex);
-        System.out.println("版本列: " + columnMapping.versionIndex);
-        System.out.println("供应商列: " + columnMapping.supplierIndex);
-        System.out.println("问题点列: " + columnMapping.problemPointIndex);
+//        System.out.println("列映射信息:");
+//        System.out.println("测试日期列: " + columnMapping.testDateIndex);
+//        System.out.println("大编码列: " + columnMapping.majorCodeIndex);
+//        System.out.println("小编码列: " + columnMapping.minorCodeIndex);
+//        System.out.println("项目阶段列: " + columnMapping.projectPhaseIndex);
+//        System.out.println("版本列: " + columnMapping.versionIndex);
+//        System.out.println("供应商列: " + columnMapping.supplierIndex);
+//        System.out.println("问题点列: " + columnMapping.problemPointIndex);
         
         // 从第二行开始解析数据
         for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -183,11 +183,11 @@ public class ReviewResultsService {
                 ReviewResults reviewResult = parseRow(row, columnMapping);
                 if (reviewResult != null) {
                     reviewResultsList.add(reviewResult);
-                    System.out.println("成功解析第" + (rowIndex + 1) + "行数据: " + 
-                        "大编码=" + reviewResult.getMajorCode() + 
-                        ", 小编码=" + reviewResult.getMinorCode() + 
-                        ", 项目阶段=" + reviewResult.getProjectPhase() + 
-                        ", 问题点=" + reviewResult.getProblemPoint());
+//                    System.out.println("成功解析第" + (rowIndex + 1) + "行数据: " +
+//                        "大编码=" + reviewResult.getMajorCode() +
+//                        ", 小编码=" + reviewResult.getMinorCode() +
+//                        ", 项目阶段=" + reviewResult.getProjectPhase() +
+//                        ", 问题点=" + reviewResult.getProblemPoint());
                 } else {
                     // 创建一个临时对象来获取缺失字段信息
                     ReviewResults tempResult = new ReviewResults();
@@ -216,7 +216,7 @@ public class ReviewResultsService {
                         missingFields.append("供应商 ");
                     }
                     
-                    System.out.println("跳过第" + (rowIndex + 1) + "行数据（缺失必填字段: " + missingFields.toString().trim() + "）");
+//                    System.out.println("跳过第" + (rowIndex + 1) + "行数据（缺失必填字段: " + missingFields.toString().trim() + "）");
                 }
             } catch (Exception e) {
                 System.err.println("解析第" + (rowIndex + 1) + "行数据时出错: " + e.getMessage());
