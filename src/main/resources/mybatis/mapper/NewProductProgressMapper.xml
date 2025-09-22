@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.NewProductProgressDao">
+
+    <!-- 结果映射 -->
+    <resultMap id="NewProductProgressMap" type="com.lu.ddwyydemo04.pojo.NewProductProgress">
+        <id property="id" column="id"/>
+        <result property="productCategoryLevel3" column="product_category_level3"/>
+        <result property="priority" column="priority"/>
+        <result property="model" column="model"/>
+        <result property="sku" column="sku"/>
+        <result property="stage" column="stage"/>
+        <result property="productName" column="product_name"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="projectStartTime" column="project_start_time"/>
+        <result property="targetLaunchTime" column="target_launch_time"/>
+        <result property="displayType" column="display_type"/>
+        <result property="productLevel" column="product_level"/>
+        <result property="primarySupplier" column="primary_supplier"/>
+        <result property="leadDqe" column="lead_dqe"/>
+        <result property="electronicRd" column="electronic_rd"/>
+        <result property="status" column="status"/>
+        <result property="designReviewProblem" column="design_review_problem"/>
+        <result property="evtProblem" column="evt_problem"/>
+        <result property="dvtProblem" column="dvt_problem"/>
+        <result property="mainProjectProgress" column="main_project_progress"/>
+        <result property="mainQualityRisks" column="main_quality_risks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <!-- 插入新品进度数据 -->
+    <insert id="insert" parameterType="com.lu.ddwyydemo04.pojo.NewProductProgress" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO new_product_progress_management (
+            product_category_level3, priority, model, sku, stage, product_name, image_url,
+            project_start_time, target_launch_time, display_type, product_level, primary_supplier,
+            lead_dqe, electronic_rd, status, design_review_problem, evt_problem, dvt_problem,
+            main_project_progress, main_quality_risks, create_time, update_time, create_by, update_by, is_deleted
+        ) VALUES (
+            #{productCategoryLevel3}, #{priority}, #{model}, #{sku}, #{stage}, #{productName}, #{imageUrl},
+            #{projectStartTime}, #{targetLaunchTime}, #{displayType}, #{productLevel}, #{primarySupplier},
+            #{leadDqe}, #{electronicRd}, #{status}, #{designReviewProblem}, #{evtProblem}, #{dvtProblem},
+            #{mainProjectProgress}, #{mainQualityRisks}, #{createTime}, #{updateTime}, #{createBy}, #{updateBy}, #{isDeleted}
+        )
+    </insert>
+
+    <!-- 根据SKU查询是否存在记录 -->
+    <select id="findBySku" parameterType="string" resultType="long">
+        SELECT id FROM new_product_progress_management 
+        WHERE sku = #{sku} AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 更新新品进度数据 -->
+    <update id="update" parameterType="com.lu.ddwyydemo04.pojo.NewProductProgress">
+        UPDATE new_product_progress_management SET
+            product_category_level3 = #{productCategoryLevel3},
+            priority = #{priority},
+            model = #{model},
+            sku = #{sku},
+            stage = #{stage},
+            product_name = #{productName},
+            image_url = #{imageUrl},
+            project_start_time = #{projectStartTime},
+            target_launch_time = #{targetLaunchTime},
+            display_type = #{displayType},
+            product_level = #{productLevel},
+            primary_supplier = #{primarySupplier},
+            lead_dqe = #{leadDqe},
+            electronic_rd = #{electronicRd},
+            status = #{status},
+            design_review_problem = #{designReviewProblem},
+            evt_problem = #{evtProblem},
+            dvt_problem = #{dvtProblem},
+            main_project_progress = #{mainProjectProgress},
+            main_quality_risks = #{mainQualityRisks},
+            update_time = #{updateTime},
+            update_by = #{updateBy}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 根据ID查询新品进度 -->
+    <select id="findById" parameterType="long" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 查询所有新品进度数据 -->
+    <select id="findAll" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID列表批量删除新品进度（软删除） -->
+    <update id="deleteByIds">
+        UPDATE new_product_progress_management 
+        SET is_deleted = 1, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 根据ID删除新品进度（软删除） -->
+    <update id="deleteById" parameterType="long">
+        UPDATE new_product_progress_management 
+        SET is_deleted = 1, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据条件查询新品进度数量 -->
+    <select id="countByConditions" resultType="int">
+        SELECT COUNT(*) FROM new_product_progress_management 
+        WHERE is_deleted = 0
+        <if test="productCategory != null and productCategory != ''">
+            AND product_category_level3 LIKE CONCAT('%', #{productCategory}, '%')
+        </if>
+        <if test="priority != null and priority != ''">
+            AND priority LIKE CONCAT('%', #{priority}, '%')
+        </if>
+        <if test="model != null and model != ''">
+            AND model LIKE CONCAT('%', #{model}, '%')
+        </if>
+        <if test="sku != null and sku != ''">
+            AND sku LIKE CONCAT('%', #{sku}, '%')
+        </if>
+        <if test="stage != null and stage != ''">
+            AND stage LIKE CONCAT('%', #{stage}, '%')
+        </if>
+        <if test="productName != null and productName != ''">
+            AND product_name LIKE CONCAT('%', #{productName}, '%')
+        </if>
+        <if test="leadDqe != null and leadDqe != ''">
+            AND lead_dqe LIKE CONCAT('%', #{leadDqe}, '%')
+        </if>
+        <if test="electronicRd != null and electronicRd != ''">
+            AND electronic_rd LIKE CONCAT('%', #{electronicRd}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND status LIKE CONCAT('%', #{status}, '%')
+        </if>
+    </select>
+
+</mapper>

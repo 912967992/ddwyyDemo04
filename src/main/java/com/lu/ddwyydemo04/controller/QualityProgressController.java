@@ -28,7 +28,7 @@ public class QualityProgressController {
      * 新品质量进度管理页面跳转
      * @return 质量进度管理页面视图
      */
-    @GetMapping("/qualityProgress")
+    @GetMapping("/qualityProgressOld")
     public String qualityProgressPage() {
         return "qualityProgress";
     }
@@ -39,7 +39,7 @@ public class QualityProgressController {
      * @param job 角色
      * @return 任务状态统计数据
      */
-    @GetMapping("/qualityProgress/getTaskStats")
+    @GetMapping("/qualityProgressOld/getTaskStats")
     @ResponseBody
     public Map<String, Object> getTaskStats(@RequestParam String username, @RequestParam String job) {
         Map<String, Object> result = new HashMap<>();
@@ -82,7 +82,7 @@ public class QualityProgressController {
      * @param job 角色
      * @return 项目优先级分布数据
      */
-    @GetMapping("/qualityProgress/getPriorityDistribution")
+    @GetMapping("/qualityProgressOld/getPriorityDistribution")
     @ResponseBody
     public Map<String, Object> getPriorityDistribution(@RequestParam String username, @RequestParam String job) {
         Map<String, Object> result = new HashMap<>();
@@ -113,7 +113,7 @@ public class QualityProgressController {
      * @param job 角色
      * @return 各负责人任务状态数据
      */
-    @GetMapping("/qualityProgress/getPersonTaskStats")
+    @GetMapping("/qualityProgressOld/getPersonTaskStats")
     @ResponseBody
     public Map<String, Object> getPersonTaskStats(@RequestParam String username, @RequestParam String job) {
         Map<String, Object> result = new HashMap<>();
@@ -164,7 +164,7 @@ public class QualityProgressController {
      * @param job 角色
      * @return 各项目任务数数据
      */
-    @GetMapping("/qualityProgress/getProjectTaskStats")
+    @GetMapping("/qualityProgressOld/getProjectTaskStats")
     @ResponseBody
     public Map<String, Object> getProjectTaskStats(@RequestParam String username, @RequestParam String job) {
         Map<String, Object> result = new HashMap<>();
