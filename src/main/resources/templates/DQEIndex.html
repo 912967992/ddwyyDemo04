@@ -469,8 +469,21 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div class="card-content">
-                    <h3>新品质量管理</h3>
-                    <p>质量管控流程</p>
+                    <h3>新品质量评价管理</h3>
+                    <p>评审结果相关</p>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            
+            <div class="module-card highlighted" onclick="goToQualityProgress()">
+                <div class="card-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="card-content">
+                    <h3>新品质量进度管理</h3>
+                    <p>任务状态大盘</p>
                 </div>
                 <div class="card-arrow">
                     <i class="fas fa-arrow-right"></i>
@@ -686,6 +699,39 @@
                 alert("只有DQE角色才能进入问题点库管理页面");
             }
 
+        }
+
+        // 跳转到新品质量进度管理页面
+        function goToQualityProgress() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+            
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            const url = 'http://219.134.191.195:64000/qualityProgress?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+            if (isDingTalk) {
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开新品质量进度管理页面');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
+            } else {
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
+            }
         }
 
         // 根据角色跳转到不同的数据看板页面

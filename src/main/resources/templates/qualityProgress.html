@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务状态大盘</title>
+    <!-- 引入字体图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入外部CSS文件 -->
+    <link rel="stylesheet" href="/css/qualityProgressStyle.css">
+    <!-- 引入jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- 引入钉钉JSAPI -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class="top-navbar">
+        <div class="navbar-left">
+            <div class="title-section">
+                <h1 class="main-title">任务状态大盘</h1>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>添加图表</span>
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-filter"></i>
+                    <span>筛选</span>
+                </button>
+                <div class="theme-container">
+                    <button class="action-btn" id="themeBtn">
+                        <i class="fas fa-palette"></i>
+                        <span>主题</span>
+                    </button>
+                    <!-- 主题选择下拉菜单 -->
+                    <div id="themeDropdown" class="theme-dropdown">
+                        <div class="theme-option" data-theme="default">
+                            <div class="theme-preview default-theme"></div>
+                            <span>默认主题</span>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <div class="theme-preview dark-theme"></div>
+                            <span>深色主题</span>
+                        </div>
+                        <div class="theme-option" data-theme="blue">
+                            <div class="theme-preview blue-theme"></div>
+                            <span>蓝色主题</span>
+                        </div>
+                        <div class="theme-option" data-theme="green">
+                            <div class="theme-preview green-theme"></div>
+                            <span>绿色主题</span>
+                        </div>
+                        <div class="theme-option" data-theme="purple">
+                            <div class="theme-preview purple-theme"></div>
+                            <span>紫色主题</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <button class="action-btn">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 第一排：统计卡片 + 任务状态分布 -->
+        <div class="first-row">
+            <!-- 统计卡片 -->
+            <div class="stats-cards">
+                <div class="stat-card completed">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">已完成任务</div>
+                </div>
+                <div class="stat-card in-progress">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">进行中任务</div>
+                </div>
+                <div class="stat-card at-risk">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">有风险任务</div>
+                </div>
+            </div>
+
+            <!-- 任务状态分布饼图 -->
+            <div class="chart-panel task-status-panel">
+                <div class="chart-header">
+                    <h3>任务状态分布</h3>
+                </div>
+                <div class="chart-content">
+                    <canvas id="taskStatusChart"></canvas>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-color completed"></span>
+                            <span>已完成</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color in-progress"></span>
+                            <span>进行中</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color at-risk"></span>
+                            <span>有风险</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color not-started"></span>
+                            <span>未开始</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二排：其他三个图表 -->
+        <div class="second-row">
+            <!-- 项目优先级分布饼图 -->
+            <div class="chart-panel">
+                <div class="chart-header">
+                    <h3>项目优先级分布</h3>
+                </div>
+                <div class="chart-content">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 各负责人任务状态列表 -->
+            <div class="chart-panel">
+                <div class="chart-header">
+                    <h3>各负责人任务状态</h3>
+                </div>
+                <div class="chart-content">
+                    <div class="person-list">
+                        <div class="person-item">
+                            <div class="person-rank">1</div>
+                            <div class="person-avatar completed-avatar">淘</div>
+                            <div class="person-name">淘小二</div>
+                            <div class="person-count">3</div>
+                        </div>
+                        <div class="person-item">
+                            <div class="person-rank">2</div>
+                            <div class="person-avatar in-progress-avatar">猫</div>
+                            <div class="person-name">猫小天</div>
+                            <div class="person-count">3</div>
+                        </div>
+                        <div class="person-item">
+                            <div class="person-rank">3</div>
+                            <div class="person-avatar at-risk-avatar">饿</div>
+                            <div class="person-name">饿小宝</div>
+                            <div class="person-count">3</div>
+                        </div>
+                        <div class="person-item">
+                            <div class="person-rank">4</div>
+                            <div class="person-avatar not-started-avatar">钉</div>
+                            <div class="person-name">钉三多</div>
+                            <div class="person-count">2</div>
+                        </div>
+                        <div class="person-item">
+                            <div class="person-rank">5</div>
+                            <div class="person-avatar completed-avatar">菜</div>
+                            <div class="person-name">菜小鸟</div>
+                            <div class="person-count">2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 各项目任务数柱状图 -->
+            <div class="chart-panel">
+                <div class="chart-header">
+                    <h3>各项目任务数</h3>
+                    <div class="chart-actions">
+                        <button class="action-btn">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <canvas id="projectTaskChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取URL参数
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        const username = getUrlParameter('username') || '用户';
+        const job = getUrlParameter('job') || 'DQE';
+
+        // 全局变量存储图表实例
+        let taskStatusChart = null;
+        let priorityChart = null;
+        let projectTaskChart = null;
+
+        // 页面加载完成后初始化数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
+            initTheme();
+        });
+
+        // 加载所有数据
+        async function loadAllData() {
+            try {
+                // 并行加载所有数据
+                const [taskStats, priorityData, personData, projectData] = await Promise.all([
+                    loadTaskStats(),
+                    loadPriorityDistribution(),
+                    loadPersonTaskStats(),
+                    loadProjectTaskStats()
+                ]);
+
+                // 更新统计卡片
+                updateStatsCards(taskStats);
+                
+                // 初始化图表
+                initTaskStatusChart(taskStats);
+                initPriorityChart(priorityData);
+                initProjectTaskChart(projectData);
+                
+                // 更新负责人列表
+                updatePersonList(personData);
+                
+            } catch (error) {
+                console.error('加载数据时出错:', error);
+                // 如果加载失败，使用默认数据
+                initDefaultData();
+            }
+        }
+
+        // 加载任务统计数据
+        async function loadTaskStats() {
+            const response = await fetch(`/qualityProgress/getTaskStats?username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`);
+            const data = await response.json();
+            return data.success ? data : getDefaultTaskStats();
+        }
+
+        // 加载优先级分布数据
+        async function loadPriorityDistribution() {
+            const response = await fetch(`/qualityProgress/getPriorityDistribution?username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`);
+            const data = await response.json();
+            return data.success ? data.data : getDefaultPriorityData();
+        }
+
+        // 加载负责人任务数据
+        async function loadPersonTaskStats() {
+            const response = await fetch(`/qualityProgress/getPersonTaskStats?username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`);
+            const data = await response.json();
+            return data.success ? data.data : getDefaultPersonData();
+        }
+
+        // 加载项目任务数据
+        async function loadProjectTaskStats() {
+            const response = await fetch(`/qualityProgress/getProjectTaskStats?username=${encodeURIComponent(username)}&job=${encodeURIComponent(job)}`);
+            const data = await response.json();
+            return data.success ? data.data : getDefaultProjectData();
+        }
+
+        // 更新统计卡片
+        function updateStatsCards(taskStats) {
+            document.querySelector('.stat-card.completed .stat-number').textContent = taskStats.completedTasks || 0;
+            document.querySelector('.stat-card.in-progress .stat-number').textContent = taskStats.inProgressTasks || 0;
+            document.querySelector('.stat-card.at-risk .stat-number').textContent = taskStats.atRiskTasks || 0;
+        }
+
+        // 更新负责人列表
+        function updatePersonList(personData) {
+            const personList = document.querySelector('.person-list');
+            personList.innerHTML = '';
+
+            personData.forEach(person => {
+                const personItem = document.createElement('div');
+                personItem.className = 'person-item';
+                
+                const statusClass = getStatusClass(person.status);
+                
+                personItem.innerHTML = `
+                    <div class="person-rank">${person.rank}</div>
+                    <div class="person-avatar ${statusClass}">${person.avatar}</div>
+                    <div class="person-name">${person.name}</div>
+                    <div class="person-count">${person.taskCount}</div>
+                `;
+                
+                personList.appendChild(personItem);
+            });
+        }
+
+        // 获取状态对应的CSS类
+        function getStatusClass(status) {
+            switch(status) {
+                case 'completed': return 'completed-avatar';
+                case 'inProgress': return 'in-progress-avatar';
+                case 'atRisk': return 'at-risk-avatar';
+                case 'notStarted': return 'not-started-avatar';
+                default: return 'completed-avatar';
+            }
+        }
+
+        // 初始化任务状态分布饼图
+        function initTaskStatusChart(taskStats) {
+            const ctx = document.getElementById('taskStatusChart').getContext('2d');
+            
+            if (taskStatusChart) {
+                taskStatusChart.destroy();
+            }
+            
+            taskStatusChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['未开始', '有风险', '已完成', '进行中'],
+                    datasets: [{
+                        data: [
+                            taskStats.notStartedTasks || 0,
+                            taskStats.atRiskTasks || 0,
+                            taskStats.completedTasks || 0,
+                            taskStats.inProgressTasks || 0
+                        ],
+                        backgroundColor: [
+                            '#2E8B57', // 未开始 - 深绿色
+                            '#8B4513', // 有风险 - 深棕色
+                            '#D2691E', // 已完成 - 浅棕色
+                            '#FFA500'  // 进行中 - 浅橙色
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初始化项目优先级分布饼图
+        function initPriorityChart(priorityData) {
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            
+            if (priorityChart) {
+                priorityChart.destroy();
+            }
+            
+            priorityChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['不重要不紧急', '重要且紧急', '紧急不重要', '重要不紧急'],
+                    datasets: [{
+                        data: [
+                            priorityData.notImportantNotUrgent || 0,
+                            priorityData.importantUrgent || 0,
+                            priorityData.urgentNotImportant || 0,
+                            priorityData.importantNotUrgent || 0
+                        ],
+                        backgroundColor: [
+                            '#D2691E', // 不重要不紧急 - 浅棕色
+                            '#2E8B57', // 重要且紧急 - 深绿色
+                            '#FFA500', // 紧急不重要 - 浅橙色
+                            '#228B22'  // 重要不紧急 - 深绿色
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初始化各项目任务数柱状图
+        function initProjectTaskChart(projectData) {
+            const ctx = document.getElementById('projectTaskChart').getContext('2d');
+            
+            if (projectTaskChart) {
+                projectTaskChart.destroy();
+            }
+            
+            const labels = projectData.map(project => project.projectName);
+            const notStartedData = projectData.map(project => project.notStarted);
+            const inProgressData = projectData.map(project => project.inProgress);
+            const atRiskData = projectData.map(project => project.atRisk);
+            const completedData = projectData.map(project => project.completed);
+            
+            projectTaskChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '未开始',
+                            data: notStartedData,
+                            backgroundColor: '#8B4513'
+                        },
+                        {
+                            label: '进行中',
+                            data: inProgressData,
+                            backgroundColor: '#FFA500'
+                        },
+                        {
+                            label: '有风险',
+                            data: atRiskData,
+                            backgroundColor: '#2E8B57'
+                        },
+                        {
+                            label: '已完成',
+                            data: completedData,
+                            backgroundColor: '#90EE90'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            max: 3
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 默认数据
+        function getDefaultTaskStats() {
+            return {
+                completedTasks: 5,
+                inProgressTasks: 8,
+                atRiskTasks: 1,
+                notStartedTasks: 2,
+                totalTasks: 16
+            };
+        }
+
+        function getDefaultPriorityData() {
+            return {
+                importantUrgent: 2,
+                urgentNotImportant: 3,
+                importantNotUrgent: 5,
+                notImportantNotUrgent: 1
+            };
+        }
+
+        function getDefaultPersonData() {
+            return [
+                { rank: 1, name: '淘小二', avatar: '淘', taskCount: 3, status: 'completed' },
+                { rank: 2, name: '猫小天', avatar: '猫', taskCount: 3, status: 'inProgress' },
+                { rank: 3, name: '饿小宝', avatar: '饿', taskCount: 3, status: 'atRisk' },
+                { rank: 4, name: '钉三多', avatar: '钉', taskCount: 2, status: 'notStarted' },
+                { rank: 5, name: '菜小鸟', avatar: '菜', taskCount: 2, status: 'completed' }
+            ];
+        }
+
+        function getDefaultProjectData() {
+            return [
+                { projectName: '点单项', notStarted: 1, inProgress: 1, atRisk: 0, completed: 1 },
+                { projectName: '配送优', notStarted: 0, inProgress: 2, atRisk: 0, completed: 1 },
+                { projectName: '新会员', notStarted: 1, inProgress: 1, atRisk: 0, completed: 1 },
+                { projectName: '营销门', notStarted: 0, inProgress: 1, atRisk: 1, completed: 0 },
+                { projectName: '中台项', notStarted: 0, inProgress: 0, atRisk: 0, completed: 2 }
+            ];
+        }
+
+        // 如果加载失败，使用默认数据初始化
+        function initDefaultData() {
+            const taskStats = getDefaultTaskStats();
+            const priorityData = getDefaultPriorityData();
+            const personData = getDefaultPersonData();
+            const projectData = getDefaultProjectData();
+
+            updateStatsCards(taskStats);
+            initTaskStatusChart(taskStats);
+            initPriorityChart(priorityData);
+            initProjectTaskChart(projectData);
+            updatePersonList(personData);
+        }
+
+        // 主题相关功能
+        function initTheme() {
+            console.log('初始化主题功能');
+            
+            // 从localStorage获取保存的主题
+            const savedTheme = localStorage.getItem('qualityProgressTheme') || 'default';
+            console.log('保存的主题:', savedTheme);
+            applyTheme(savedTheme);
+            
+            // 主题按钮点击事件
+            const themeBtn = document.getElementById('themeBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    console.log('主题按钮被点击');
+                    toggleThemeDropdown();
+                });
+            } else {
+                console.error('主题按钮未找到');
+            }
+            
+            // 主题选项点击事件
+            const themeOptions = document.querySelectorAll('.theme-option');
+            console.log('找到主题选项数量:', themeOptions.length);
+            
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.dataset.theme;
+                    console.log('选择主题:', theme);
+                    applyTheme(theme);
+                    localStorage.setItem('qualityProgressTheme', theme);
+                    hideThemeDropdown();
+                });
+            });
+            
+            // 点击页面其他地方关闭下拉菜单
+            document.addEventListener('click', function() {
+                hideThemeDropdown();
+            });
+        }
+        
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('themeDropdown');
+            console.log('切换下拉菜单，当前状态:', dropdown.classList.contains('show'));
+            dropdown.classList.toggle('show');
+            console.log('切换后状态:', dropdown.classList.contains('show'));
+        }
+        
+        function hideThemeDropdown() {
+            const dropdown = document.getElementById('themeDropdown');
+            dropdown.classList.remove('show');
+        }
+        
+        function applyTheme(theme) {
+            // 移除所有主题类
+            document.body.classList.remove('theme-default', 'theme-dark', 'theme-blue', 'theme-green', 'theme-purple');
+            
+            // 添加新主题类
+            document.body.classList.add('theme-' + theme);
+            
+            // 更新主题按钮文本
+            const themeNames = {
+                'default': '默认主题',
+                'dark': '深色主题',
+                'blue': '蓝色主题',
+                'green': '绿色主题',
+                'purple': '紫色主题'
+            };
+            
+            const themeBtn = document.getElementById('themeBtn');
+            themeBtn.querySelector('span').textContent = themeNames[theme];
+            
+            // 重新初始化图表以应用新主题
+            if (taskStatusChart || priorityChart || projectTaskChart) {
+                setTimeout(() => {
+                    loadAllData();
+                }, 100);
+            }
+        }
+
+        // 返回主页
+        function goHome() {
+            window.location.href = '/DQEIndex?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        }
+    </script>
+</body>
+</html>

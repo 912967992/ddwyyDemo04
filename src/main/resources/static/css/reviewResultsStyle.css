@@ -27,9 +27,39 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* 强制标题在最左边 */
+.header-left {
+    flex: 0 0 auto !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.header-left h1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: white !important;
+}
+
+/* 中间区域占据剩余空间 */
+.header-center {
+    flex: 1;
+}
+
+/* 右侧内容在最右边 */
+.header-right {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 10px !important;
 }
 
 .page-title {
@@ -520,6 +550,8 @@ body {
 
 .table-container {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(20 * 44px + 48px); /* 20行数据(每行约44px) + 表头高度(约48px) */
 }
 
 .data-table {
@@ -537,6 +569,102 @@ body {
     position: sticky;
     top: 0;
     z-index: 10;
+}
+
+/* 冻结窗格 - 前4列水平冻结 */
+.data-table th:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    background: linear-gradient(135deg, #2ba245, #228b3f);
+    border-right: 2px solid #ffffff;
+    width: 60px;
+    min-width: 60px;
+}
+
+.data-table th:nth-child(2) {
+    position: sticky;
+    left: 60px; /* 第一列宽度 */
+    z-index: 11;
+    background: linear-gradient(135deg, #2ba245, #228b3f);
+    border-right: 2px solid #ffffff;
+    width: 80px;
+    min-width: 80px;
+}
+
+.data-table th:nth-child(3) {
+    position: sticky;
+    left: 140px; /* 前两列宽度 */
+    z-index: 11;
+    background: linear-gradient(135deg, #2ba245, #228b3f);
+    border-right: 2px solid #ffffff;
+    width: 120px;
+    min-width: 120px;
+}
+
+.data-table th:nth-child(4) {
+    position: sticky;
+    left: 260px; /* 前三列宽度 */
+    z-index: 11;
+    background: linear-gradient(135deg, #2ba245, #228b3f);
+    border-right: 2px solid #ffffff;
+    width: 100px;
+    min-width: 100px;
+}
+
+.data-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: #ffffff;
+    border-right: 2px solid #dee2e6;
+    width: 60px;
+    min-width: 60px;
+}
+
+.data-table td:nth-child(2) {
+    position: sticky;
+    left: 60px;
+    z-index: 10;
+    background: #ffffff;
+    border-right: 2px solid #dee2e6;
+    width: 80px;
+    min-width: 80px;
+}
+
+.data-table td:nth-child(3) {
+    position: sticky;
+    left: 140px;
+    z-index: 10;
+    background: #ffffff;
+    border-right: 2px solid #dee2e6;
+    width: 120px;
+    min-width: 120px;
+}
+
+.data-table td:nth-child(4) {
+    position: sticky;
+    left: 260px;
+    z-index: 10;
+    background: #ffffff;
+    border-right: 2px solid #dee2e6;
+    width: 100px;
+    min-width: 100px;
+}
+
+/* 确保冻结列在悬停时保持背景色 */
+.data-table tr:hover td:nth-child(1),
+.data-table tr:hover td:nth-child(2),
+.data-table tr:hover td:nth-child(3),
+.data-table tr:hover td:nth-child(4) {
+    background: #f8f9fa;
+}
+
+.data-table tr:nth-child(even):hover td:nth-child(1),
+.data-table tr:nth-child(even):hover td:nth-child(2),
+.data-table tr:nth-child(even):hover td:nth-child(3),
+.data-table tr:nth-child(even):hover td:nth-child(4) {
+    background: #f0f0f0;
 }
 
 .data-table td {

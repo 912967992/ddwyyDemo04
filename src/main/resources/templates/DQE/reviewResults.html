@@ -724,6 +724,23 @@
             background-color: #bbdefb !important;
         }
 
+        /* 兼容性更好的选中行样式 */
+        .table-row-selected {
+            background-color: #e3f2fd !important;
+        }
+
+        .table-row-selected:hover {
+            background-color: #bbdefb !important;
+        }
+
+        .table-row-selected td {
+            background-color: #e3f2fd !important;
+        }
+
+        .table-row-selected:hover td {
+            background-color: #bbdefb !important;
+        }
+
         /* 收藏夹详情模态框样式 */
         .cart-detail-info {
             background-color: #f8f9fa;
@@ -1139,19 +1156,16 @@
 <!-- 页面头部 -->
 <div class="header">
     <div class="header-content">
-        <!-- 导入按钮 - 最左上角 -->
+        <!-- 左侧标题 -->
         <div class="header-left">
-            <button id="importBtn" class="btn btn-primary">
-                <i class="fas fa-upload"></i> 导入评审结果数据
-            </button>
-        </div>
-
-        <!-- 页面标题 - 居中 -->
-        <div class="header-center">
             <h1 class="page-title">
                 <i class="fas fa-clipboard-check"></i>
-                评审结果管理
+                新品质量评价管理
             </h1>
+        </div>
+
+        <!-- 中间区域 -->
+        <div class="header-center">
         </div>
 
         <!-- 用户信息和操作按钮 - 右侧 -->
@@ -1166,6 +1180,9 @@
             <div class="header-action-buttons">
                 <button id="addNewBtn" class="btn btn-success">
                     <i class="fas fa-plus"></i> 新增数据
+                </button>
+                <button id="importBtn" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> 导入评审结果数据
                 </button>
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
@@ -4568,6 +4585,9 @@
 
         // 更新按钮文本
         updateAddToCartButtonText();
+        
+        // 更新行的选中样式
+        updateTableRowSelectionStyles();
 
         updatePagination();
     }
@@ -5187,6 +5207,9 @@
 
         // 更新加入收藏夹按钮的文本
         updateAddToCartButtonText();
+        
+        // 更新行的选中样式
+        updateTableRowSelectionStyles();
     }
 
     // 获取选中的表格行
@@ -5219,6 +5242,9 @@
         });
         
         updateAddToCartButtonText();
+        
+        // 更新行的选中样式
+        updateTableRowSelectionStyles();
     }
 
     // 监听单个复选框变化
@@ -5241,6 +5267,23 @@
         
         // 更新按钮文本
         updateAddToCartButtonText();
+        
+        // 更新行的选中样式
+        updateTableRowSelectionStyles();
+    }
+
+    // 更新表格行选中样式
+    function updateTableRowSelectionStyles() {
+        const rowCheckboxes = document.querySelectorAll('.table-row-checkbox');
+        
+        rowCheckboxes.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            if (checkbox.checked) {
+                row.classList.add('table-row-selected');
+            } else {
+                row.classList.remove('table-row-selected');
+            }
+        });
     }
 
     // 加入收藏夹
