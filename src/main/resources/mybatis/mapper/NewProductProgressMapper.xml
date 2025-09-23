@@ -54,6 +54,16 @@
         LIMIT 1
     </select>
 
+    <!-- 根据产品三级类目、型号、SKU查询是否存在记录 -->
+    <select id="findByCategoryModelSku" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE product_category_level3 = #{productCategory} 
+        AND model = #{model} 
+        AND sku = #{sku} 
+        AND is_deleted = 0
+        LIMIT 1
+    </select>
+
     <!-- 更新新品进度数据 -->
     <update id="update" parameterType="com.lu.ddwyydemo04.pojo.NewProductProgress">
         UPDATE new_product_progress_management SET
@@ -146,3 +156,4 @@
     </select>
 
 </mapper>
+

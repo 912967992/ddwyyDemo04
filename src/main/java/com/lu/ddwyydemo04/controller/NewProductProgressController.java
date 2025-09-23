@@ -427,7 +427,7 @@ public class NewProductProgressController {
             System.out.println("开始处理文件: " + fileName + ", 大小: " + (fileSize / 1024 / 1024) + "MB");
 
             // 调用Service层处理导入
-            NewProductProgressService.ImportResult importResult = newProductProgressService.importNewProductProgressFromExcel(file);
+            NewProductProgressService.ImportResult importResult = newProductProgressService.importNewProductProgressFromExcel(file, username);
 
             System.out.println("文件处理完成: " + importResult.getMessage());
 

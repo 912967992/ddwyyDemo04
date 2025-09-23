@@ -1150,6 +1150,21 @@
             background-color: #e9ecef;
             border-color: #adb5bd;
         }
+
+        /* 全宽度文本域样式 */
+        .full-width-textarea {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        .full-width-textarea.form-control {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -1160,7 +1175,7 @@
         <div class="header-left">
             <h1 class="page-title">
                 <i class="fas fa-clipboard-check"></i>
-                新品质量评价管理
+                新品进度评价管理
             </h1>
         </div>
 
@@ -1470,44 +1485,83 @@
                     <h3>基本信息</h3>
                     <div class="detail-grid">
                         <div class="detail-item">
-                            <label>测试日期:</label>
-                            <span id="detailTestDate">-</span>
+                            <label>产品三级类目:</label>
+                            <span id="detailProductCategory">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>大编码:</label>
-                            <span id="detailMajorCode">-</span>
+                            <label>优先级:</label>
+                            <span id="detailPriority">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>小编码:</label>
-                            <span id="detailMinorCode">-</span>
+                            <label>型号:</label>
+                            <span id="detailModel">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>项目阶段:</label>
-                            <span id="detailProjectPhase">-</span>
+                            <label>SKU:</label>
+                            <span id="detailSku">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>版本:</label>
-                            <span id="detailVersion">-</span>
+                            <label>阶段:</label>
+                            <select id="detailStage" class="form-control" disabled>
+                                <option value="">请选择阶段</option>
+                                <option value="样品承认中">样品承认中</option>
+                                <option value="EVT已准出">EVT已准出</option>
+                                <option value="DVT已准出">DVT已准出</option>
+                                <option value="未送样">未送样</option>
+                            </select>
                         </div>
                         <div class="detail-item">
-                            <label>问题工序:</label>
-                            <span id="detailProblemProcess">-</span>
+                            <label>产品名称:</label>
+                            <span id="detailProductName">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>问题等级:</label>
-                            <span id="detailProblemLevel">-</span>
+                            <label>项目开始时间:</label>
+                            <span id="detailProjectStartTime">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>开发方式:</label>
-                            <span id="detailDevelopmentMethod">-</span>
+                            <label>目标上市时间:</label>
+                            <span id="detailTargetLaunchTime">-</span>
                         </div>
                         <div class="detail-item">
-                            <label>供应商:</label>
-                            <span id="detailSupplier">-</span>
+                            <label>显示类型:</label>
+                            <select id="detailDisplayType" class="form-control" disabled>
+                                <option value="">请选择显示类型</option>
+                                <option value="单显">单显</option>
+                                <option value="双显">双显</option>
+                                <option value="三显">三显</option>
+                                <option value="四显">四显</option>
+                            </select>
                         </div>
                         <div class="detail-item">
-                            <label>方案商:</label>
-                            <span id="detailSolutionProvider">-</span>
+                            <label>产品等级:</label>
+                            <span id="detailProductLevel">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>供应商和负责人信息</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>主要供应商:</label>
+                            <span id="detailPrimarySupplier">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>主导DQE:</label>
+                            <span id="detailLeadDqe">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>电子研发:</label>
+                            <span id="detailElectronicRd">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>状态:</label>
+                            <select id="detailStatus" class="form-control" disabled>
+                                <option value="">请选择状态</option>
+                                <option value="ID/结构/垫子设计中">ID/结构/垫子设计中</option>
+                                <option value="功能样">功能样</option>
+                                <option value="大货样">大货样</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1516,65 +1570,37 @@
                     <h3>问题信息</h3>
                     <div class="detail-grid">
                         <div class="detail-item full-width">
-                            <label>问题点:</label>
-                            <div class="problem-desc" id="detailProblemPoint">-</div>
+                            <label>设计评审问题:</label>
+                            <div class="problem-desc" id="detailDesignReviewProblem">-</div>
                         </div>
                         <div class="detail-item full-width">
-                            <label>问题原因:</label>
-                            <div class="problem-desc" id="detailProblemReason">-</div>
+                            <label>EVT问题:</label>
+                            <div class="problem-desc" id="detailEvtProblem">-</div>
                         </div>
                         <div class="detail-item full-width">
-                            <label>改善对策:</label>
-                            <div class="problem-desc" id="detailImprovementMeasures">-</div>
-                        </div>
-                        <div class="detail-item">
-                            <label>是否可预防:</label>
-                            <span id="detailIsPreventable">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>责任部门:</label>
-                            <span id="detailResponsibleDepartment">-</span>
+                            <label>DVT问题:</label>
+                            <div class="problem-desc" id="detailDvtProblem">-</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="detail-section">
-                    <h3>时间信息</h3>
+                    <h3>项目进度和风险</h3>
                     <div class="detail-grid">
-                        <div class="detail-item">
-                            <label>预计完成时间:</label>
-                            <span id="detailPlannedCompletionTime">-</span>
+                        <div class="detail-item full-width">
+                            <label>主要项目进度:</label>
+                            <div class="problem-desc full-width-textarea" id="detailMainProjectProgress">-</div>
                         </div>
-                        <div class="detail-item">
-                            <label>实际完成时间:</label>
-                            <span id="detailActualCompletionTime">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Delay天数:</label>
-                            <span id="detailDelayDays">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>问题状态:</label>
-                            <span id="detailProblemStatus">-</span>
+                        <div class="detail-item full-width">
+                            <label>主要质量风险:</label>
+                            <div class="problem-desc full-width-textarea" id="detailMainQualityRisks">-</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="detail-section">
-                    <h3>其他信息</h3>
+                    <h3>系统信息</h3>
                     <div class="detail-grid">
-                        <div class="detail-item">
-                            <label>问题打标1:</label>
-                            <span id="detailProblemTag1">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>问题打标2:</label>
-                            <span id="detailProblemTag2">-</span>
-                        </div>
-                        <div class="detail-item full-width">
-                            <label>预防备注:</label>
-                            <div class="problem-desc" id="detailPreventionNotes">-</div>
-                        </div>
                         <div class="detail-item">
                             <label>创建时间:</label>
                             <span id="detailCreatedTime">-</span>
@@ -1582,6 +1608,14 @@
                         <div class="detail-item">
                             <label>更新时间:</label>
                             <span id="detailUpdatedTime">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>创建者:</label>
+                            <span id="detailCreatedBy">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>更新者:</label>
+                            <span id="detailUpdatedBy">-</span>
                         </div>
                     </div>
                 </div>
@@ -3577,18 +3611,31 @@
     function clearReviewDetailFields() {
         // 清空所有显示字段
         const fields = [
-            'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase', 'detailVersion',
-            'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod', 'detailSupplier',
-            'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason', 'detailImprovementMeasures',
-            'detailIsPreventable', 'detailResponsibleDepartment', 'detailPlannedCompletionTime',
-            'detailActualCompletionTime', 'detailDelayDays', 'detailProblemStatus', 'detailProblemTag1',
-            'detailProblemTag2', 'detailPreventionNotes', 'detailCreatedTime', 'detailUpdatedTime'
+            'detailProductCategory', 'detailPriority', 'detailModel', 'detailSku', 'detailStage',
+            'detailProductName', 'detailProjectStartTime', 'detailTargetLaunchTime', 'detailDisplayType',
+            'detailProductLevel', 'detailPrimarySupplier', 'detailLeadDqe', 'detailElectronicRd',
+            'detailStatus', 'detailDesignReviewProblem', 'detailEvtProblem', 'detailDvtProblem',
+            'detailMainProjectProgress', 'detailMainQualityRisks', 'detailCreatedTime', 'detailUpdatedTime',
+            'detailCreatedBy', 'detailUpdatedBy'
         ];
 
         fields.forEach(fieldId => {
             const element = document.getElementById(fieldId);
             if (element) {
-                element.textContent = '-';
+                // 如果是下拉框，清空选择并重置选项
+                if (element.tagName === 'SELECT') {
+                    element.value = '';
+                    // 重置下拉框选项到默认状态
+                    if (fieldId === 'detailStage') {
+                        element.innerHTML = '<option value="">请选择阶段</option><option value="样品承认中">样品承认中</option><option value="EVT已准出">EVT已准出</option><option value="DVT已准出">DVT已准出</option><option value="未送样">未送样</option>';
+                    } else if (fieldId === 'detailDisplayType') {
+                        element.innerHTML = '<option value="">请选择显示类型</option><option value="单显">单显</option><option value="双显">双显</option><option value="三显">三显</option><option value="四显">四显</option>';
+                    } else if (fieldId === 'detailStatus') {
+                        element.innerHTML = '<option value="">请选择状态</option><option value="ID/结构/垫子设计中">ID/结构/垫子设计中</option><option value="功能样">功能样</option><option value="大货样">大货样</option>';
+                    }
+                } else {
+                    element.textContent = '-';
+                }
             }
         });
     }
@@ -3608,30 +3655,65 @@
         currentEditingReviewId = reviewId;
 
         // 填充详情数据
-        document.getElementById('detailTestDate').textContent = product.project_start_time || '-';
-        document.getElementById('detailMajorCode').textContent = product.product_category_level3 || '-';
-        document.getElementById('detailMinorCode').textContent = product.priority || '-';
-        document.getElementById('detailProjectPhase').textContent = product.stage || '-';
-        document.getElementById('detailVersion').textContent = product.model || '-';
-        document.getElementById('detailProblemProcess').textContent = product.sku || '-';
-        document.getElementById('detailProblemLevel').textContent = product.product_name || '-';
-        document.getElementById('detailDevelopmentMethod').textContent = product.image_url || '-';
-        document.getElementById('detailSupplier').textContent = product.target_launch_time || '-';
-        document.getElementById('detailSolutionProvider').textContent = product.display_type || '-';
-        document.getElementById('detailProblemPoint').textContent = product.product_level || '-';
-        document.getElementById('detailProblemReason').textContent = product.primary_supplier || '-';
-        document.getElementById('detailImprovementMeasures').textContent = product.lead_dqe || '-';
-        document.getElementById('detailIsPreventable').textContent = product.electronic_rd || '-';
-        document.getElementById('detailResponsibleDepartment').textContent = product.status || '-';
-        document.getElementById('detailPlannedCompletionTime').textContent = product.design_review_problem || '-';
-        document.getElementById('detailActualCompletionTime').textContent = product.evt_problem || '-';
-        document.getElementById('detailDelayDays').textContent = product.dvt_problem || '-';
-        document.getElementById('detailProblemStatus').textContent = product.main_project_progress || '-';
-        document.getElementById('detailProblemTag1').textContent = product.main_quality_risks || '-';
-        document.getElementById('detailProblemTag2').textContent = product.create_time || '-';
-        document.getElementById('detailPreventionNotes').textContent = product.update_time || '-';
-        document.getElementById('detailCreatedTime').textContent = product.create_time || '-';
-        document.getElementById('detailUpdatedTime').textContent = product.update_time || '-';
+        document.getElementById('detailProductCategory').textContent = product.productCategoryLevel3 || '-';
+        document.getElementById('detailPriority').textContent = product.priority || '-';
+        document.getElementById('detailModel').textContent = product.model || '-';
+        document.getElementById('detailSku').textContent = product.sku || '-';
+        // 设置阶段下拉框
+        const stageSelect = document.getElementById('detailStage');
+        if (stageSelect) {
+            stageSelect.value = product.stage || '';
+            // 如果值不在选项中，添加一个临时选项
+            if (product.stage && !Array.from(stageSelect.options).some(option => option.value === product.stage)) {
+                const tempOption = document.createElement('option');
+                tempOption.value = product.stage;
+                tempOption.textContent = product.stage;
+                stageSelect.appendChild(tempOption);
+                stageSelect.value = product.stage;
+            }
+        }
+        document.getElementById('detailProductName').textContent = product.productName || '-';
+        document.getElementById('detailProjectStartTime').textContent = product.projectStartTime || '-';
+        document.getElementById('detailTargetLaunchTime').textContent = product.targetLaunchTime || '-';
+        // 设置显示类型下拉框
+        const displayTypeSelect = document.getElementById('detailDisplayType');
+        if (displayTypeSelect) {
+            displayTypeSelect.value = product.displayType || '';
+            // 如果值不在选项中，添加一个临时选项
+            if (product.displayType && !Array.from(displayTypeSelect.options).some(option => option.value === product.displayType)) {
+                const tempOption = document.createElement('option');
+                tempOption.value = product.displayType;
+                tempOption.textContent = product.displayType;
+                displayTypeSelect.appendChild(tempOption);
+                displayTypeSelect.value = product.displayType;
+            }
+        }
+        document.getElementById('detailProductLevel').textContent = product.productLevel || '-';
+        document.getElementById('detailPrimarySupplier').textContent = product.primarySupplier || '-';
+        document.getElementById('detailLeadDqe').textContent = product.leadDqe || '-';
+        document.getElementById('detailElectronicRd').textContent = product.electronicRd || '-';
+        // 设置状态下拉框
+        const statusSelect = document.getElementById('detailStatus');
+        if (statusSelect) {
+            statusSelect.value = product.status || '';
+            // 如果值不在选项中，添加一个临时选项
+            if (product.status && !Array.from(statusSelect.options).some(option => option.value === product.status)) {
+                const tempOption = document.createElement('option');
+                tempOption.value = product.status;
+                tempOption.textContent = product.status;
+                statusSelect.appendChild(tempOption);
+                statusSelect.value = product.status;
+            }
+        }
+        document.getElementById('detailDesignReviewProblem').textContent = product.designReviewProblem || '-';
+        document.getElementById('detailEvtProblem').textContent = product.evtProblem || '-';
+        document.getElementById('detailDvtProblem').textContent = product.dvtProblem || '-';
+        document.getElementById('detailMainProjectProgress').textContent = product.mainProjectProgress || '-';
+        document.getElementById('detailMainQualityRisks').textContent = product.mainQualityRisks || '-';
+        document.getElementById('detailCreatedTime').textContent = product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-';
+        document.getElementById('detailUpdatedTime').textContent = product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-';
+        document.getElementById('detailCreatedBy').textContent = product.createBy || '-';
+        document.getElementById('detailUpdatedBy').textContent = product.updateBy || '-';
 
         // 显示编辑按钮，隐藏保存和取消按钮
         document.getElementById('editReviewBtn').style.display = 'inline-block';
@@ -3667,43 +3749,58 @@
     // 转换为编辑模式
     function convertToEditMode() {
         const fieldMappings = [
-            { id: 'detailTestDate', type: 'date' },
-            { id: 'detailMajorCode', type: 'text' },
-            { id: 'detailMinorCode', type: 'text' },
-            { id: 'detailProjectPhase', type: 'text' },
-            { id: 'detailVersion', type: 'text' },
-            { id: 'detailProblemProcess', type: 'text' },
-            { id: 'detailProblemLevel', type: 'select', options: ['S', 'A', 'B', 'C'] },
-            { id: 'detailDevelopmentMethod', type: 'text' },
-            { id: 'detailSupplier', type: 'text' },
-            { id: 'detailSolutionProvider', type: 'text' },
-            { id: 'detailProblemPoint', type: 'textarea' },
-            { id: 'detailProblemReason', type: 'textarea' },
-            { id: 'detailImprovementMeasures', type: 'textarea' },
-            { id: 'detailIsPreventable', type: 'select', options: ['是', '否'] },
-            { id: 'detailResponsibleDepartment', type: 'text' },
-            { id: 'detailPlannedCompletionTime', type: 'date' },
-            { id: 'detailActualCompletionTime', type: 'date' },
-            { id: 'detailDelayDays', type: 'number' },
-            { id: 'detailProblemStatus', type: 'select', options: ['open', 'close', 'follow up'] },
-            { id: 'detailProblemTag1', type: 'text' },
-            { id: 'detailProblemTag2', type: 'text' },
-            { id: 'detailPreventionNotes', type: 'textarea' }
+            { id: 'detailProductCategory', type: 'text' },
+            { id: 'detailPriority', type: 'text' },
+            { id: 'detailModel', type: 'text' },
+            { id: 'detailSku', type: 'text' },
+            { id: 'detailStage', type: 'select', options: ['样品承认中', 'EVT已准出', 'DVT已准出', '未送样'] },
+            { id: 'detailProductName', type: 'text' },
+            { id: 'detailProjectStartTime', type: 'date' },
+            { id: 'detailTargetLaunchTime', type: 'date' },
+            { id: 'detailDisplayType', type: 'select', options: ['单显', '双显', '三显', '四显'] },
+            { id: 'detailProductLevel', type: 'text' },
+            { id: 'detailPrimarySupplier', type: 'text' },
+            { id: 'detailLeadDqe', type: 'text' },
+            { id: 'detailElectronicRd', type: 'text' },
+            { id: 'detailStatus', type: 'select', options: ['ID/结构/垫子设计中', '功能样', '大货样'] },
+            { id: 'detailDesignReviewProblem', type: 'textarea' },
+            { id: 'detailEvtProblem', type: 'textarea' },
+            { id: 'detailDvtProblem', type: 'textarea' },
+            { id: 'detailMainProjectProgress', type: 'textarea' },
+            { id: 'detailMainQualityRisks', type: 'textarea' }
         ];
 
         fieldMappings.forEach(field => {
             const element = document.getElementById(field.id);
             if (element) {
                 const parent = element.parentElement;
-                const currentValue = element.textContent === '-' ? '' : element.textContent;
+                let currentValue;
+                if (element.tagName === 'SELECT') {
+                    currentValue = element.value || '';
+                } else {
+                    currentValue = element.textContent === '-' ? '' : element.textContent;
+                }
 
                 // 创建新的输入元素
                 let inputElement;
                 if (field.type === 'textarea') {
                     inputElement = document.createElement('textarea');
                     inputElement.rows = 3;
+                    // 为主要项目进度和主要质量风险字段设置全宽度
+                    if (field.id.includes('MainProjectProgress') || field.id.includes('MainQualityRisks')) {
+                        inputElement.className = 'form-control full-width-textarea';
+                    } else {
+                        inputElement.className = 'form-control';
+                    }
                 } else if (field.type === 'select') {
                     inputElement = document.createElement('select');
+                    inputElement.className = 'form-control';
+                    // 添加默认选项
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = '请选择' + getFieldLabel(field.id);
+                    inputElement.appendChild(defaultOption);
+                    // 添加选项
                     field.options.forEach(option => {
                         const optionElement = document.createElement('option');
                         optionElement.value = option;
@@ -3713,6 +3810,7 @@
                 } else {
                     inputElement = document.createElement('input');
                     inputElement.type = field.type;
+                    inputElement.className = 'form-control';
                 }
 
                 inputElement.id = 'edit' + field.id;
@@ -3726,11 +3824,12 @@
                     } else {
                         inputElement.value = currentValue;
                     }
+                } else if (field.type === 'select') {
+                    // 对于下拉框，设置选中的值
+                    inputElement.value = currentValue || '';
                 } else {
                     inputElement.value = currentValue;
                 }
-
-                inputElement.className = 'form-control';
 
                 // 替换原元素
                 parent.replaceChild(inputElement, element);
@@ -3747,15 +3846,35 @@
         });
     }
 
+    // 获取字段选项的辅助函数
+    function getFieldOptions(fieldId) {
+        const fieldMappings = [
+            { id: 'detailStage', options: ['样品承认中', 'EVT已准出', 'DVT已准出', '未送样'] },
+            { id: 'detailDisplayType', options: ['单显', '双显', '三显', '四显'] },
+            { id: 'detailStatus', options: ['ID/结构/垫子设计中', '功能样', '大货样'] }
+        ];
+        const fieldMapping = fieldMappings.find(field => field.id === fieldId);
+        return fieldMapping ? fieldMapping.options || [] : [];
+    }
+
+    // 获取字段标签的辅助函数
+    function getFieldLabel(fieldId) {
+        const labels = {
+            'detailStage': '阶段',
+            'detailDisplayType': '显示类型',
+            'detailStatus': '状态'
+        };
+        return labels[fieldId] || '';
+    }
+
     // 转换为只读模式
     function convertToReadMode() {
         const fieldMappings = [
-            'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase',
-            'detailVersion', 'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod',
-            'detailSupplier', 'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason',
-            'detailImprovementMeasures', 'detailIsPreventable', 'detailResponsibleDepartment',
-            'detailPlannedCompletionTime', 'detailActualCompletionTime', 'detailDelayDays',
-            'detailProblemStatus', 'detailProblemTag1', 'detailProblemTag2', 'detailPreventionNotes'
+            'detailProductCategory', 'detailPriority', 'detailModel', 'detailSku', 'detailStage',
+            'detailProductName', 'detailProjectStartTime', 'detailTargetLaunchTime', 'detailDisplayType',
+            'detailProductLevel', 'detailPrimarySupplier', 'detailLeadDqe', 'detailElectronicRd',
+            'detailStatus', 'detailDesignReviewProblem', 'detailEvtProblem', 'detailDvtProblem',
+            'detailMainProjectProgress', 'detailMainQualityRisks'
         ];
 
         fieldMappings.forEach(fieldId => {
@@ -3767,15 +3886,36 @@
                 // 创建新的显示元素
                 let displayElement;
                 if (fieldId.includes('ProblemPoint') || fieldId.includes('ProblemReason') ||
-                    fieldId.includes('ImprovementMeasures') || fieldId.includes('PreventionNotes')) {
+                    fieldId.includes('ImprovementMeasures') || fieldId.includes('PreventionNotes') ||
+                    fieldId.includes('MainProjectProgress') || fieldId.includes('MainQualityRisks')) {
                     displayElement = document.createElement('div');
-                    displayElement.className = 'problem-desc';
+                    displayElement.className = 'problem-desc full-width-textarea';
+                } else if (fieldId.includes('Stage') || fieldId.includes('DisplayType') || fieldId.includes('Status')) {
+                    // 对于下拉框字段，创建select元素
+                    displayElement = document.createElement('select');
+                    displayElement.className = 'form-control';
+                    displayElement.disabled = true;
+                    
+                    // 添加选项
+                    const options = getFieldOptions(fieldId);
+                    options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                        displayElement.appendChild(optionElement);
+                    });
                 } else {
                     displayElement = document.createElement('span');
                 }
 
                 displayElement.id = fieldId;
-                displayElement.textContent = currentValue;
+                
+                // 设置值
+                if (fieldId.includes('Stage') || fieldId.includes('DisplayType') || fieldId.includes('Status')) {
+                    displayElement.value = currentValue;
+                } else {
+                    displayElement.textContent = currentValue;
+                }
 
                 // 替换编辑元素
                 parent.replaceChild(displayElement, editElement);
@@ -3804,28 +3944,25 @@
 
         // 收集编辑后的数据
         const editData = {
-            testDate: document.getElementById('editdetailTestDate')?.value || '',
-            majorCode: document.getElementById('editdetailMajorCode')?.value || '',
-            minorCode: document.getElementById('editdetailMinorCode')?.value || '',
-            projectPhase: document.getElementById('editdetailProjectPhase')?.value || '',
-            version: document.getElementById('editdetailVersion')?.value || '',
-            problemProcess: document.getElementById('editdetailProblemProcess')?.value || '',
-            problemLevel: document.getElementById('editdetailProblemLevel')?.value || '',
-            developmentMethod: document.getElementById('editdetailDevelopmentMethod')?.value || '',
-            supplier: document.getElementById('editdetailSupplier')?.value || '',
-            solutionProvider: document.getElementById('editdetailSolutionProvider')?.value || '',
-            problemPoint: document.getElementById('editdetailProblemPoint')?.value || '',
-            problemReason: document.getElementById('editdetailProblemReason')?.value || '',
-            improvementMeasures: document.getElementById('editdetailImprovementMeasures')?.value || '',
-            isPreventable: document.getElementById('editdetailIsPreventable')?.value || '',
-            responsibleDepartment: document.getElementById('editdetailResponsibleDepartment')?.value || '',
-            plannedCompletionTime: document.getElementById('editdetailPlannedCompletionTime')?.value || '',
-            actualCompletionTime: document.getElementById('editdetailActualCompletionTime')?.value || '',
-            delayDays: document.getElementById('editdetailDelayDays')?.value || '',
-            problemStatus: document.getElementById('editdetailProblemStatus')?.value || '',
-            problemTag1: document.getElementById('editdetailProblemTag1')?.value || '',
-            problemTag2: document.getElementById('editdetailProblemTag2')?.value || '',
-            preventionNotes: document.getElementById('editdetailPreventionNotes')?.value || ''
+            productCategoryLevel3: document.getElementById('editdetailProductCategory')?.value || '',
+            priority: document.getElementById('editdetailPriority')?.value || '',
+            model: document.getElementById('editdetailModel')?.value || '',
+            sku: document.getElementById('editdetailSku')?.value || '',
+            stage: document.getElementById('editdetailStage')?.value || '',
+            productName: document.getElementById('editdetailProductName')?.value || '',
+            projectStartTime: document.getElementById('editdetailProjectStartTime')?.value || '',
+            targetLaunchTime: document.getElementById('editdetailTargetLaunchTime')?.value || '',
+            displayType: document.getElementById('editdetailDisplayType')?.value || '',
+            productLevel: document.getElementById('editdetailProductLevel')?.value || '',
+            primarySupplier: document.getElementById('editdetailPrimarySupplier')?.value || '',
+            leadDqe: document.getElementById('editdetailLeadDqe')?.value || '',
+            electronicRd: document.getElementById('editdetailElectronicRd')?.value || '',
+            status: document.getElementById('editdetailStatus')?.value || '',
+            designReviewProblem: document.getElementById('editdetailDesignReviewProblem')?.value || '',
+            evtProblem: document.getElementById('editdetailEvtProblem')?.value || '',
+            dvtProblem: document.getElementById('editdetailDvtProblem')?.value || '',
+            mainProjectProgress: document.getElementById('editdetailMainProjectProgress')?.value || '',
+            mainQualityRisks: document.getElementById('editdetailMainQualityRisks')?.value || ''
         };
 
         // 只有在更新时才添加id字段
@@ -4578,23 +4715,23 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc" title="${product.product_name || ''}">${(product.product_name || '').substring(0, 30)}${(product.product_name || '').length > 30 ? '...' : ''}</td>
-                    <td>${product.image_url ? `<img src="${product.image_url}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
-                    <td>${product.project_start_time || '-'}</td>
-                    <td>${product.target_launch_time || '-'}</td>
-                    <td><span class="status-badge status-${product.display_type?.toLowerCase() || ''}">${product.display_type || '-'}</span></td>
-                    <td><span class="status-badge status-${product.product_level?.toLowerCase() || ''}">${product.product_level || '-'}</span></td>
-                    <td class="problem-desc" title="${product.primary_supplier || ''}">${(product.primary_supplier || '').substring(0, 20)}${(product.primary_supplier || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.lead_dqe || ''}">${(product.lead_dqe || '').substring(0, 20)}${(product.lead_dqe || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.electronic_rd || ''}">${(product.electronic_rd || '').substring(0, 20)}${(product.electronic_rd || '').length > 20 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.productName || ''}">${(product.productName || '').substring(0, 30)}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
+                    <td>${product.projectStartTime || '-'}</td>
+                    <td>${product.targetLaunchTime || '-'}</td>
+                    <td><span class="status-badge status-${product.displayType?.toLowerCase() || ''}">${product.displayType || '-'}</span></td>
+                    <td><span class="status-badge status-${product.productLevel?.toLowerCase() || ''}">${product.productLevel || '-'}</span></td>
+                    <td class="problem-desc" title="${product.primarySupplier || ''}">${(product.primarySupplier || '').substring(0, 20)}${(product.primarySupplier || '').length > 20 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc" title="${product.design_review_problem || ''}">${(product.design_review_problem || '').substring(0, 30)}${(product.design_review_problem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.evt_problem || ''}">${(product.evt_problem || '').substring(0, 30)}${(product.evt_problem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.dvt_problem || ''}">${(product.dvt_problem || '').substring(0, 30)}${(product.dvt_problem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.main_project_progress || ''}">${(product.main_project_progress || '').substring(0, 30)}${(product.main_project_progress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.main_quality_risks || ''}">${(product.main_quality_risks || '').substring(0, 30)}${(product.main_quality_risks || '').length > 30 ? '...' : ''}</td>
-                    <td>${product.create_time ? new Date(product.create_time).toLocaleString('zh-CN') : '-'}</td>
-                    <td>${product.update_time ? new Date(product.update_time).toLocaleString('zh-CN') : '-'}</td>
+                    <td class="problem-desc" title="${product.designReviewProblem || ''}">${(product.designReviewProblem || '').substring(0, 30)}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.evtProblem || ''}">${(product.evtProblem || '').substring(0, 30)}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.dvtProblem || ''}">${(product.dvtProblem || '').substring(0, 30)}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.mainProjectProgress || ''}">${(product.mainProjectProgress || '').substring(0, 30)}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.mainQualityRisks || ''}">${(product.mainQualityRisks || '').substring(0, 30)}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
                         <button class="btn btn-sm btn-info" onclick="showProductDetail(${product.id})" title="查看详情">
                             <i class="fas fa-eye"></i>
@@ -5544,13 +5681,13 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                     <td>${product.id || ''}</td>
-                    <td class="problem-desc" title="${product.product_category_level3 || ''}">${(product.product_category_level3 || '').substring(0, 20)}${(product.product_category_level3 || '').length > 20 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.productCategoryLevel3 || ''}">${(product.productCategoryLevel3 || '').substring(0, 20)}${(product.productCategoryLevel3 || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.priority?.toLowerCase() || ''}">${product.priority || ''}</span></td>
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || ''}</span></td>
                     <td class="problem-desc" title="${product.product_name || ''}">${(product.product_name || '').substring(0, 30)}${(product.product_name || '').length > 30 ? '...' : ''}</td>
-                    <td>${product.image_url ? `<img src="${product.image_url}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
+                    <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
                     <td>${product.project_start_time || ''}</td>
                     <td>${product.target_launch_time || ''}</td>
                     <td><span class="status-badge status-${product.display_type?.toLowerCase() || ''}">${product.display_type || ''}</span></td>
@@ -5684,13 +5821,13 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                     <td>${product.id || '-'}</td>
-                    <td class="problem-desc" title="${product.product_category_level3 || ''}">${(product.product_category_level3 || '').substring(0, 20)}${(product.product_category_level3 || '').length > 20 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.productCategoryLevel3 || ''}">${(product.productCategoryLevel3 || '').substring(0, 20)}${(product.productCategoryLevel3 || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.priority?.toLowerCase() || ''}">${product.priority || '-'}</span></td>
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
                     <td class="problem-desc" title="${product.product_name || ''}">${(product.product_name || '').substring(0, 30)}${(product.product_name || '').length > 30 ? '...' : ''}</td>
-                    <td>${product.image_url ? `<img src="${product.image_url}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
+                    <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width: 40px; height: 40px; object-fit: cover;" title="产品图片">` : '-'}</td>
                     <td>${product.project_start_time || '-'}</td>
                     <td>${product.target_launch_time || '-'}</td>
                     <td><span class="status-badge status-${product.display_type?.toLowerCase() || ''}">${product.display_type || '-'}</span></td>

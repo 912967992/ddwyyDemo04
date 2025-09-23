@@ -27,6 +27,17 @@ public interface NewProductProgressDao {
     Long findBySku(@Param("sku") String sku);
 
     /**
+     * 根据产品三级类目、型号、SKU查询是否存在记录
+     * @param productCategory 产品三级类目
+     * @param model 型号
+     * @param sku SKU
+     * @return 存在的记录，如果不存在返回null
+     */
+    NewProductProgress findByCategoryModelSku(@Param("productCategory") String productCategory,
+                                           @Param("model") String model,
+                                           @Param("sku") String sku);
+
+    /**
      * 更新新品进度数据
      * @param newProductProgress 新品进度对象
      * @return 影响行数
@@ -83,3 +94,4 @@ public interface NewProductProgressDao {
                          @Param("electronicRd") String electronicRd,
                          @Param("status") String status);
 }
+

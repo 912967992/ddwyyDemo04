@@ -77,32 +77,102 @@ public class NewProductProgressService {
     }
 
     /**
-     * 批量插入新品进度数据
+     * 批量插入新品进度数据（支持覆盖更新）
      * @param newProductProgressList 新品进度列表
-     * @return 插入数量
+     * @param username 用户名
+     * @return 处理结果（包含插入和更新数量）
      */
-    private int batchInsertNewProductProgress(List<NewProductProgress> newProductProgressList) {
+    private BatchProcessResult batchInsertNewProductProgress(List<NewProductProgress> newProductProgressList, String username) {
         int insertCount = 0;
+        int updateCount = 0;
+        
         for (NewProductProgress newProductProgress : newProductProgressList) {
             try {
-                int resultCount = newProductProgressDao.insert(newProductProgress);
-                if (resultCount > 0) {
-                    insertCount++;
+                // 检查是否存在相同的产品三级类目、型号、SKU
+                NewProductProgress existingRecord = newProductProgressDao.findByCategoryModelSku(
+                    newProductProgress.getProductCategoryLevel3(),
+                    newProductProgress.getModel(),
+                    newProductProgress.getSku()
+                );
+                
+                if (existingRecord != null) {
+                    // 存在相同记录，进行覆盖更新
+                    System.out.println("=== 发现重复记录，进行覆盖更新 ===");
+                    System.out.println("产品三级类目: " + newProductProgress.getProductCategoryLevel3());
+                    System.out.println("型号: " + newProductProgress.getModel());
+                    System.out.println("SKU: " + newProductProgress.getSku());
+                    System.out.println("原记录ID: " + existingRecord.getId());
+                    System.out.println("原记录创建时间: " + existingRecord.getCreateTime());
+                    System.out.println("新记录产品名称: " + newProductProgress.getProductName());
+                    System.out.println("新记录阶段: " + newProductProgress.getStage());
+                    System.out.println("新记录状态: " + newProductProgress.getStatus());
+                    System.out.println("=====================================");
+                    
+                    // 设置原记录的ID，保持ID不变
+                    newProductProgress.setId(existingRecord.getId());
+                    // 保持原记录的创建时间和创建人
+                    newProductProgress.setCreateTime(existingRecord.getCreateTime());
+                    newProductProgress.setCreateBy(existingRecord.getCreateBy());
+                    // 更新修改时间和修改人（使用传入的username）
+                    newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
+                    newProductProgress.setUpdateBy(username);
+                    
+                    int resultCount = newProductProgressDao.update(newProductProgress);
+                    if (resultCount > 0) {
+                        updateCount++;
+                        System.out.println("成功更新记录，ID: " + existingRecord.getId());
+                    }
+                } else {
+                    // 不存在相同记录，进行插入
+                    // 设置创建者和创建时间
+                    newProductProgress.setCreateBy(username);
+                    newProductProgress.setCreateTime(java.time.LocalDateTime.now());
+                    newProductProgress.setUpdateBy(username);
+                    newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
+                    
+                    int resultCount = newProductProgressDao.insert(newProductProgress);
+                    if (resultCount > 0) {
+                        insertCount++;
+                    }
                 }
             } catch (Exception e) {
                 // 记录错误但继续处理
-                System.err.println("插入记录失败: " + e.getMessage());
+                System.err.println("处理记录失败: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-        return insertCount;
+        
+        return new BatchProcessResult(insertCount, updateCount);
+    }
+    
+    /**
+     * 批量处理结果类
+     */
+    private static class BatchProcessResult {
+        private final int insertCount;
+        private final int updateCount;
+        
+        public BatchProcessResult(int insertCount, int updateCount) {
+            this.insertCount = insertCount;
+            this.updateCount = updateCount;
+        }
+        
+        public int getInsertCount() {
+            return insertCount;
+        }
+        
+        public int getUpdateCount() {
+            return updateCount;
+        }
     }
 
     /**
      * 导入Excel文件并解析新品进度数据
      * @param file Excel文件
+     * @param username 用户名
      * @return 导入结果
      */
-    public ImportResult importNewProductProgressFromExcel(MultipartFile file) {
+    public ImportResult importNewProductProgressFromExcel(MultipartFile file, String username) {
         ImportResult result = new ImportResult();
         Workbook workbook = null;
         
@@ -199,36 +269,65 @@ public class NewProductProgressService {
                 }
             }
             
-            // 批量插入数据库，分批处理避免内存问题
+            // 批量处理数据库，分批处理避免内存问题（支持插入和更新）
             int insertCount = 0;
+            int updateCount = 0;
             int batchSize = 500; // 增加批量大小到500条记录
             
-            System.out.println("开始批量插入数据，共 " + newProductProgressList.size() + " 条记录...");
+            System.out.println("开始批量处理数据，共 " + newProductProgressList.size() + " 条记录...");
             
             for (int i = 0; i < newProductProgressList.size(); i += batchSize) {
                 int endIndex = Math.min(i + batchSize, newProductProgressList.size());
                 List<NewProductProgress> batch = newProductProgressList.subList(i, endIndex);
                 
                 try {
-                    // 批量插入
-                    int batchInsertCount = batchInsertNewProductProgress(batch);
-                    insertCount += batchInsertCount;
+                    // 批量处理（插入或更新）
+                    BatchProcessResult batchResult = batchInsertNewProductProgress(batch, username);
+                    insertCount += batchResult.getInsertCount();
+                    updateCount += batchResult.getUpdateCount();
                     
-                    System.out.println("已插入 " + insertCount + "/" + newProductProgressList.size() + " 条记录...");
+                    System.out.println("已处理 " + (insertCount + updateCount) + "/" + newProductProgressList.size() + " 条记录（插入: " + insertCount + ", 更新: " + updateCount + "）...");
                     
                 } catch (Exception e) {
-                    // 如果批量插入失败，尝试逐条插入
-                    System.out.println("批量插入失败，尝试逐条插入: " + e.getMessage());
+                    // 如果批量处理失败，尝试逐条处理
+                    System.out.println("批量处理失败，尝试逐条处理: " + e.getMessage());
                     for (NewProductProgress newProductProgress : batch) {
                         try {
-                            int resultCount = newProductProgressDao.insert(newProductProgress);
-                            if (resultCount > 0) {
-                                insertCount++;
+                            // 检查是否存在相同记录
+                            NewProductProgress existingRecord = newProductProgressDao.findByCategoryModelSku(
+                                newProductProgress.getProductCategoryLevel3(),
+                                newProductProgress.getModel(),
+                                newProductProgress.getSku()
+                            );
+                            
+                            if (existingRecord != null) {
+                                // 更新现有记录
+                                newProductProgress.setId(existingRecord.getId());
+                                newProductProgress.setCreateTime(existingRecord.getCreateTime());
+                                newProductProgress.setCreateBy(existingRecord.getCreateBy());
+                                newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
+                                newProductProgress.setUpdateBy(username);
+                                
+                                int resultCount = newProductProgressDao.update(newProductProgress);
+                                if (resultCount > 0) {
+                                    updateCount++;
+                                }
+                            } else {
+                                // 插入新记录
+                                newProductProgress.setCreateBy(username);
+                                newProductProgress.setCreateTime(java.time.LocalDateTime.now());
+                                newProductProgress.setUpdateBy(username);
+                                newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
+                                
+                                int resultCount = newProductProgressDao.insert(newProductProgress);
+                                if (resultCount > 0) {
+                                    insertCount++;
+                                }
                             }
                         } catch (Exception ex) {
                             errorCount++;
                             if (errorList.size() < maxErrors) {
-                                errorList.add("插入失败: " + ex.getMessage());
+                                errorList.add("处理失败: " + ex.getMessage());
                             }
                         }
                     }
@@ -238,7 +337,7 @@ public class NewProductProgressService {
             // 构建错误消息，限制长度
             StringBuilder errorMessage = new StringBuilder();
             if (errorCount > 0) {
-                errorMessage.append("导入完成，成功插入").append(insertCount).append("条记录，失败").append(errorCount).append("条");
+                errorMessage.append("导入完成，成功插入").append(insertCount).append("条记录，更新").append(updateCount).append("条记录，失败").append(errorCount).append("条");
                 if (!errorList.isEmpty()) {
                     errorMessage.append("。前").append(Math.min(errorList.size(), 10)).append("个错误：");
                     for (int i = 0; i < Math.min(errorList.size(), 10); i++) {
@@ -249,13 +348,13 @@ public class NewProductProgressService {
                     }
                 }
             } else {
-                errorMessage.append("导入完成，成功插入").append(insertCount).append("条记录");
+                errorMessage.append("导入完成，成功插入").append(insertCount).append("条记录，更新").append(updateCount).append("条记录");
             }
             
             result.setSuccess(true);
             result.setMessage(errorMessage.toString());
             result.setInsertCount(insertCount);
-            result.setUpdateCount(0);
+            result.setUpdateCount(updateCount);
             result.setErrorCount(errorCount);
             
         } catch (IOException e) {
@@ -499,9 +598,9 @@ public class NewProductProgressService {
     }
 
     /**
-     * 验证并生成SKU值
+     * 验证并清理SKU值
      * @param sku SKU值
-     * @param usedSkus 已使用的SKU集合
+     * @param usedSkus 已使用的SKU集合（用于记录，不再用于重复检查）
      * @param rowNum 行号
      * @return 有效的SKU值
      */
@@ -518,24 +617,10 @@ public class NewProductProgressService {
             return generateUniqueSku("AUTO_SKU", usedSkus, rowNum);
         }
         
-        // 检查SKU是否在当前批次中已使用
-        if (usedSkus.contains(trimmed)) {
-            // 如果SKU已存在，生成一个唯一的SKU
-            return generateUniqueSku(trimmed, usedSkus, rowNum);
-        }
+        // 记录使用的SKU（用于统计，不再用于重复检查）
+        usedSkus.add(trimmed);
         
-        // 检查数据库中是否已存在该SKU
-        try {
-            Long existingId = newProductProgressDao.findBySku(trimmed);
-            if (existingId != null) {
-                // 如果数据库中已存在，生成一个唯一的SKU
-                return generateUniqueSku(trimmed, usedSkus, rowNum);
-            }
-        } catch (Exception e) {
-            // 如果查询失败，使用原SKU
-            System.err.println("查询SKU失败: " + e.getMessage());
-        }
-        
+        // 直接返回原始SKU，重复检查在批量处理时进行
         return trimmed;
     }
 
@@ -679,3 +764,4 @@ public class NewProductProgressService {
         }
     }
 }
+
