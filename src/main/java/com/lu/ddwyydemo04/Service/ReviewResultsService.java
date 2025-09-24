@@ -30,10 +30,10 @@ public class ReviewResultsService {
      */
     public List<ReviewResults> getAllReviewResults() {
         List<ReviewResults> results = reviewResultsDao.findAll();
-        System.out.println("Service层获取到的数据量: " + (results != null ? results.size() : 0));
-        if (results != null && !results.isEmpty()) {
-            System.out.println("第一条数据: " + results.get(0).getMajorCode() + " - " + results.get(0).getMinorCode());
-        }
+//        System.out.println("Service层获取到的数据量: " + (results != null ? results.size() : 0));
+//        if (results != null && !results.isEmpty()) {
+//            System.out.println("第一条数据: " + results.get(0).getMajorCode() + " - " + results.get(0).getMinorCode());
+//        }
         return results;
     }
 
@@ -693,7 +693,7 @@ public class ReviewResultsService {
             // 调用DAO层插入数据
             int insertCount = reviewResultsDao.insert(reviewResults);
             
-            System.out.println("插入评审结果: " + (insertCount > 0 ? "成功" : "失败"));
+//            System.out.println("插入评审结果: " + (insertCount > 0 ? "成功" : "失败"));
             
             return insertCount;
         } catch (Exception e) {

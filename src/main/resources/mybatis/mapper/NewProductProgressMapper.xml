@@ -102,7 +102,7 @@
     <select id="findAll" resultMap="NewProductProgressMap">
         SELECT * FROM new_product_progress_management 
         WHERE is_deleted = 0
-        ORDER BY create_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 根据ID列表批量删除新品进度（软删除） -->

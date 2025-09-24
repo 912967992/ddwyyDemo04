@@ -2,6 +2,11 @@ package com.lu.ddwyydemo04.controller;
 
 import com.lu.ddwyydemo04.Service.NewProductProgressService;
 import com.lu.ddwyydemo04.pojo.NewProductProgress;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Picture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -14,13 +19,22 @@ import org.springframework.http.MediaType;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -33,6 +47,9 @@ public class NewProductProgressController {
 
     @Value("${file.storage.templatespath}")
     private String templatesPath;
+
+    @Value("${file.storage.imagepath}")
+    private String imagePath;
 
     @Autowired
     private NewProductProgressService newProductProgressService;
@@ -92,35 +109,35 @@ public class NewProductProgressController {
 //            System.out.println("allData:"+allData);
             
             // 应用筛选条件
-            List<NewProductProgress> filteredData = allData.stream()
-                .filter(item -> productCategory == null || productCategory.isEmpty() || 
-                    (item.getProductCategoryLevel3() != null && item.getProductCategoryLevel3().toLowerCase().contains(productCategory.toLowerCase())))
-                .filter(item -> priority == null || priority.isEmpty() || 
-                    (item.getPriority() != null && item.getPriority().toLowerCase().contains(priority.toLowerCase())))
-                .filter(item -> model == null || model.isEmpty() || 
-                    (item.getModel() != null && item.getModel().toLowerCase().contains(model.toLowerCase())))
-                .filter(item -> sku == null || sku.isEmpty() || 
-                    (item.getSku() != null && item.getSku().toLowerCase().contains(sku.toLowerCase())))
-                .filter(item -> stage == null || stage.isEmpty() || 
-                    (item.getStage() != null && item.getStage().toLowerCase().contains(stage.toLowerCase())))
-                .filter(item -> productName == null || productName.isEmpty() || 
-                    (item.getProductName() != null && item.getProductName().toLowerCase().contains(productName.toLowerCase())))
-                .filter(item -> leadDqe == null || leadDqe.isEmpty() || 
-                    (item.getLeadDqe() != null && item.getLeadDqe().toLowerCase().contains(leadDqe.toLowerCase())))
-                .filter(item -> electronicRd == null || electronicRd.isEmpty() || 
-                    (item.getElectronicRd() != null && item.getElectronicRd().toLowerCase().contains(electronicRd.toLowerCase())))
-                .filter(item -> status == null || status.isEmpty() || 
-                    (item.getStatus() != null && item.getStatus().toLowerCase().contains(status.toLowerCase())))
-                .filter(item -> testStartDate == null || testStartDate.isEmpty() || 
-                    (item.getProjectStartTime() != null && item.getProjectStartTime().compareTo(testStartDate) >= 0))
-                .filter(item -> testEndDate == null || testEndDate.isEmpty() || 
-                    (item.getProjectStartTime() != null && item.getProjectStartTime().compareTo(testEndDate) <= 0))
-                .collect(Collectors.toList());
+//            List<NewProductProgress> filteredData = allData.stream()
+//                .filter(item -> productCategory == null || productCategory.isEmpty() ||
+//                    (item.getProductCategoryLevel3() != null && item.getProductCategoryLevel3().toLowerCase().contains(productCategory.toLowerCase())))
+//                .filter(item -> priority == null || priority.isEmpty() ||
+//                    (item.getPriority() != null && item.getPriority().toLowerCase().contains(priority.toLowerCase())))
+//                .filter(item -> model == null || model.isEmpty() ||
+//                    (item.getModel() != null && item.getModel().toLowerCase().contains(model.toLowerCase())))
+//                .filter(item -> sku == null || sku.isEmpty() ||
+//                    (item.getSku() != null && item.getSku().toLowerCase().contains(sku.toLowerCase())))
+//                .filter(item -> stage == null || stage.isEmpty() ||
+//                    (item.getStage() != null && item.getStage().toLowerCase().contains(stage.toLowerCase())))
+//                .filter(item -> productName == null || productName.isEmpty() ||
+//                    (item.getProductName() != null && item.getProductName().toLowerCase().contains(productName.toLowerCase())))
+//                .filter(item -> leadDqe == null || leadDqe.isEmpty() ||
+//                    (item.getLeadDqe() != null && item.getLeadDqe().toLowerCase().contains(leadDqe.toLowerCase())))
+//                .filter(item -> electronicRd == null || electronicRd.isEmpty() ||
+//                    (item.getElectronicRd() != null && item.getElectronicRd().toLowerCase().contains(electronicRd.toLowerCase())))
+//                .filter(item -> status == null || status.isEmpty() ||
+//                    (item.getStatus() != null && item.getStatus().toLowerCase().contains(status.toLowerCase())))
+//                .filter(item -> testStartDate == null || testStartDate.isEmpty() ||
+//                    (item.getProjectStartTime() != null && item.getProjectStartTime().compareTo(testStartDate) >= 0))
+//                .filter(item -> testEndDate == null || testEndDate.isEmpty() ||
+//                    (item.getProjectStartTime() != null && item.getProjectStartTime().compareTo(testEndDate) <= 0))
+//                .collect(Collectors.toList());
 
 //            System.out.println("filteredData:"+filteredData);
 
             // 分页处理
-            int total = filteredData.size();
+            int total = allData.size();
             int totalPages = (int) Math.ceil((double) total / size);
             int startIndex = (page - 1) * size;
             int endIndex = Math.min(startIndex + size, total);
@@ -129,7 +146,7 @@ public class NewProductProgressController {
             if (total == 0) {
                 pageData = new ArrayList<>();
             } else {
-                pageData = filteredData.subList(startIndex, endIndex);
+                pageData = allData.subList(startIndex, endIndex);
             }
 
             result.put("success", true);
@@ -201,6 +218,16 @@ public class NewProductProgressController {
             newProduct.setCreateTime(LocalDateTime.now());
             newProduct.setUpdateTime(LocalDateTime.now());
             
+            // 设置创建者和更新者
+            String username = (String) requestData.get("username");
+            if (username != null && !username.trim().isEmpty()) {
+                newProduct.setCreateBy(username);
+                newProduct.setUpdateBy(username);
+            }
+            
+            // 设置删除标记为0（未删除）
+            newProduct.setIsDeleted(0);
+            
             // 更新字段
             updateNewProductFields(newProduct, requestData);
 
@@ -257,6 +284,12 @@ public class NewProductProgressController {
             // 更新字段
             updateNewProductFields(existingProduct, requestData);
             existingProduct.setUpdateTime(LocalDateTime.now());
+            
+            // 设置更新者
+            String username = (String) requestData.get("username");
+            if (username != null && !username.trim().isEmpty()) {
+                existingProduct.setUpdateBy(username);
+            }
 
             // 调用Service层更新数据库
             boolean updateSuccess = newProductProgressService.updateNewProductProgress(existingProduct);
@@ -522,6 +555,456 @@ public class NewProductProgressController {
                     
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 上传产品图片
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    @PostMapping("/newProductProgress/uploadImage")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 检查文件是否为空
+            if (file.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "请选择要上传的图片文件");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 检查文件类型
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                result.put("success", false);
+                result.put("message", "文件类型不正确，请上传图片文件");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 检查文件大小（限制为5MB）
+            if (file.getSize() > 5 * 1024 * 1024) {
+                result.put("success", false);
+                result.put("message", "图片文件过大，请上传小于5MB的图片");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 生成唯一文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String fileName = "product_" + System.currentTimeMillis() + extension;
+
+            // 检查并创建图片目录
+            Path imageDir = Paths.get(imagePath);
+            if (!Files.exists(imageDir)) {
+                Files.createDirectories(imageDir);
+            }
+
+            // 保存文件
+            Path filePath = imageDir.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 返回相对路径
+            String imagePath = "/imageDirectory/" + fileName;
+
+            result.put("success", true);
+            result.put("message", "图片上传成功");
+            result.put("imagePath", imagePath);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.err.println("图片上传失败: " + e.getMessage());
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "图片上传失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 导出新品进度数据
+     */
+    @PostMapping("/newProductProgress/exportQualityProgressData")
+    public ResponseEntity<byte[]> exportQualityProgressData(@RequestBody Map<String, Object> requestData) {
+        try {
+            System.out.println("开始导出新品进度数据...");
+            System.out.println("导出参数: " + requestData);
+            
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> dataList = (List<Map<String, Object>>) requestData.get("data");
+            String exportType = (String) requestData.get("exportType");
+            String fileName = (String) requestData.get("fileName");
+            Integer totalCount = (Integer) requestData.get("totalCount");
+            String username = (String) requestData.get("username");
+            String job = (String) requestData.get("job");
+            
+            System.out.println("导出数据量: " + (dataList != null ? dataList.size() : 0));
+            System.out.println("导出类型: " + exportType);
+            System.out.println("文件名: " + fileName);
+            System.out.println("用户名: " + username);
+            System.out.println("角色: " + job);
+            
+            // 打印数据字段信息
+            if (!dataList.isEmpty()) {
+                System.out.println("数据字段: " + dataList.get(0).keySet());
+                System.out.println("数据样本: " + dataList.get(0));
+            }
+            
+            if (dataList == null || dataList.isEmpty()) {
+                System.err.println("导出数据为空");
+                return ResponseEntity.badRequest().build();
+            }
+            
+            // 创建Excel工作簿
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("新品进度数据");
+            
+            // 动态获取所有字段名（基于第一行数据的所有键）
+            Set<String> allFields = new LinkedHashSet<>();
+            if (!dataList.isEmpty()) {
+                allFields.addAll(dataList.get(0).keySet());
+            }
+            
+            // 过滤掉不需要的字段
+            Set<String> excludedFields = new HashSet<>();
+            excludedFields.add("id");
+            excludedFields.add("createTime");
+            excludedFields.add("updateTime");
+            excludedFields.add("createBy");
+            excludedFields.add("updateBy");
+            excludedFields.add("isDeleted");
+            
+            allFields.removeAll(excludedFields);
+            
+            // 定义字段显示顺序和中文名称映射
+            Map<String, String> fieldDisplayNames = new LinkedHashMap<>();
+            fieldDisplayNames.put("productCategoryLevel3", "产品三级类目");
+            fieldDisplayNames.put("priority", "优先级");
+            fieldDisplayNames.put("model", "型号");
+            fieldDisplayNames.put("sku", "SKU");
+            fieldDisplayNames.put("stage", "阶段（节点管理）");
+            fieldDisplayNames.put("productName", "产品名称（接口/功能信息）");
+            fieldDisplayNames.put("imageUrl", "图片");
+            fieldDisplayNames.put("projectStartTime", "立项时间");
+            fieldDisplayNames.put("targetLaunchTime", "目标上市时间");
+            fieldDisplayNames.put("displayType", "单显/双显/三显/四显");
+            fieldDisplayNames.put("productLevel", "产品等级");
+            fieldDisplayNames.put("primarySupplier", "一级供方");
+            fieldDisplayNames.put("leadDqe", "主导DQE");
+            fieldDisplayNames.put("electronicRd", "电子研发");
+            fieldDisplayNames.put("status", "状态（只填ID/结构/电子设计中或功能样或大货样）");
+            fieldDisplayNames.put("designReviewProblem", "设计评审主要问题");
+            fieldDisplayNames.put("evtProblem", "EVT主要问题");
+            fieldDisplayNames.put("dvtProblem", "DVT主要问题");
+            fieldDisplayNames.put("mainProjectProgress", "主要项目进度（只填重要内容或一句话）");
+            fieldDisplayNames.put("mainQualityRisks", "质量主要风险（只填重要内容或一句话）");
+            
+            // 创建标题行
+            Row headerRow = sheet.createRow(0);
+            List<String> orderedHeaders = new ArrayList<>();
+            List<String> orderedFieldNames = new ArrayList<>();
+            
+            // 按照预定义顺序添加字段
+            for (Map.Entry<String, String> entry : fieldDisplayNames.entrySet()) {
+                if (allFields.contains(entry.getKey())) {
+                    orderedHeaders.add(entry.getValue());
+                    orderedFieldNames.add(entry.getKey());
+                }
+            }
+            
+            // 添加其他未预定义的字段
+            for (String field : allFields) {
+                if (!orderedFieldNames.contains(field)) {
+                    orderedHeaders.add(field);
+                    orderedFieldNames.add(field);
+                }
+            }
+            
+            System.out.println("导出字段顺序: " + orderedFieldNames);
+            System.out.println("导出字段标题: " + orderedHeaders);
+            
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 14);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREEN.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setBorderBottom(BorderStyle.MEDIUM);
+            headerStyle.setBorderTop(BorderStyle.MEDIUM);
+            headerStyle.setBorderRight(BorderStyle.MEDIUM);
+            headerStyle.setBorderLeft(BorderStyle.MEDIUM);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            
+            // 设置标题行高度
+            headerRow.setHeightInPoints(25);
+            
+            for (int i = 0; i < orderedHeaders.size(); i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(orderedHeaders.get(i));
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // 填充数据行
+            CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setBorderBottom(BorderStyle.THIN);
+            dataStyle.setBorderTop(BorderStyle.THIN);
+            dataStyle.setBorderRight(BorderStyle.THIN);
+            dataStyle.setBorderLeft(BorderStyle.THIN);
+            dataStyle.setAlignment(HorizontalAlignment.CENTER);
+            dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            dataStyle.setWrapText(true); // 自动换行
+            
+            // 设置数据行字体
+            Font dataFont = workbook.createFont();
+            dataFont.setFontHeightInPoints((short) 12);
+            dataStyle.setFont(dataFont);
+            
+            // 找到图片字段的列索引
+            int imageColumnIndex = -1;
+            for (int j = 0; j < orderedFieldNames.size(); j++) {
+                if ("imageUrl".equals(orderedFieldNames.get(j))) {
+                    imageColumnIndex = j;
+                    break;
+                }
+            }
+            
+            for (int i = 0; i < dataList.size(); i++) {
+                Map<String, Object> rowData = dataList.get(i);
+                Row dataRow = sheet.createRow(i + 1);
+                
+                // 设置数据行高度，如果有图片列则增加高度
+                if (imageColumnIndex >= 0) {
+                    dataRow.setHeightInPoints(60); // 图片行需要更高
+                } else {
+                    dataRow.setHeightInPoints(20);
+                }
+                
+                // 根据字段顺序动态填充数据
+                for (int j = 0; j < orderedFieldNames.size(); j++) {
+                    String fieldName = orderedFieldNames.get(j);
+                    Cell cell = dataRow.createCell(j);
+                    
+                    if (j == imageColumnIndex) {
+                        // 处理图片字段
+                        String imagePath = getStringValue(rowData, fieldName);
+                        if (imagePath != null && !imagePath.trim().isEmpty()) {
+                            try {
+                                // 尝试加载图片并插入到Excel中
+                                insertImageToCell(workbook, sheet, cell, imagePath, i + 1, j);
+                            } catch (Exception e) {
+                                System.err.println("插入图片失败: " + imagePath + ", 错误: " + e.getMessage());
+                                cell.setCellValue("图片加载失败");
+                                cell.setCellStyle(dataStyle);
+                            }
+                        } else {
+                            cell.setCellValue("无图片");
+                            cell.setCellStyle(dataStyle);
+                        }
+                    } else {
+                        // 普通字段
+                        String cellValue = getStringValue(rowData, fieldName);
+                        cell.setCellValue(cellValue);
+                        cell.setCellStyle(dataStyle);
+                    }
+                }
+            }
+            
+            // 自动调整列宽
+            for (int i = 0; i < orderedHeaders.size(); i++) {
+                if (i == imageColumnIndex) {
+                    // 图片列设置固定宽度
+                    sheet.setColumnWidth(i, 6000); // 图片列更宽
+                } else {
+                    sheet.autoSizeColumn(i);
+                    // 设置最小列宽，让列更宽一些
+                    int currentWidth = sheet.getColumnWidth(i);
+                    int minWidth = 4000; // 增加最小列宽
+                    if (currentWidth < minWidth) {
+                        sheet.setColumnWidth(i, minWidth);
+                    } else {
+                        // 如果自动调整的宽度合适，再增加一些
+                        sheet.setColumnWidth(i, (int)(currentWidth * 1.2));
+                    }
+                }
+            }
+            
+            // 转换为字节数组
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+            
+            byte[] excelBytes = outputStream.toByteArray();
+            outputStream.close();
+            
+            System.out.println("Excel文件生成成功，大小: " + excelBytes.length + " bytes");
+            
+            // 设置响应头
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            responseHeaders.setContentDispositionFormData("attachment", fileName);
+            responseHeaders.setContentLength(excelBytes.length);
+            
+            return ResponseEntity.ok()
+                    .headers(responseHeaders)
+                    .body(excelBytes);
+                    
+        } catch (Exception e) {
+            System.err.println("导出新品进度数据失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * 获取字符串值，支持多个字段名
+     */
+    private String getStringValue(Map<String, Object> data, String... fieldNames) {
+        for (String fieldName : fieldNames) {
+            Object value = data.get(fieldName);
+            if (value != null) {
+                return value.toString();
+            }
+        }
+        return "";
+    }
+    
+    /**
+     * 读取InputStream的所有字节（Java 8兼容）
+     */
+    private byte[] readAllBytes(InputStream inputStream) throws Exception {
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        
+        return buffer.toByteArray();
+    }
+    
+    /**
+     * 将图片插入到Excel单元格中
+     */
+    private void insertImageToCell(Workbook workbook, Sheet sheet, Cell cell, String imagePath, int rowIndex, int colIndex) {
+        try {
+            // 处理相对路径，转换为绝对路径
+            String fullImagePath;
+            if (imagePath.startsWith("/")) {
+                // 如果是绝对路径，直接使用
+                fullImagePath = imagePath;
+            } else if (imagePath.startsWith("http")) {
+                // 如果是URL，直接使用
+                fullImagePath = imagePath;
+            } else {
+                // 如果是相对路径，拼接基础路径
+                fullImagePath = imagePath.startsWith("/") ? imagePath : "/" + imagePath;
+            }
+            
+            System.out.println("尝试加载图片: " + fullImagePath);
+            System.out.println("配置的图片路径: " + this.imagePath);
+            
+            // 创建图片输入流
+            InputStream imageStream;
+            if (fullImagePath.startsWith("http")) {
+                // 网络图片
+                java.net.URL url = new java.net.URL(fullImagePath);
+                imageStream = url.openStream();
+            } else {
+                // 本地文件 - 尝试多个可能的路径
+                Path path = null;
+                
+                // 1. 尝试直接使用原始路径
+                path = Paths.get(imagePath);
+                if (!Files.exists(path)) {
+                    // 2. 尝试在项目根目录下查找
+                    path = Paths.get(System.getProperty("user.dir"), imagePath.replaceFirst("^/", ""));
+                }
+                if (!Files.exists(path)) {
+                    // 3. 尝试在static目录下查找
+                    path = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", imagePath.replaceFirst("^/", ""));
+                }
+                if (!Files.exists(path)) {
+                    // 4. 尝试在target目录下查找（编译后的路径）
+                    path = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", imagePath.replaceFirst("^/", ""));
+                }
+                if (!Files.exists(path)) {
+                    // 5. 尝试使用配置的图片路径
+                    path = Paths.get(this.imagePath, imagePath.replaceFirst("^/imageDirectory/", ""));
+                }
+                if (!Files.exists(path)) {
+                    // 6. 尝试直接拼接配置路径和文件名
+                    String fileName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+                    path = Paths.get(this.imagePath, fileName);
+                }
+                
+                if (path == null || !Files.exists(path)) {
+                    System.err.println("尝试的图片路径:");
+                    System.err.println("1. 原始路径: " + imagePath);
+                    System.err.println("2. 项目根目录: " + Paths.get(System.getProperty("user.dir"), imagePath.replaceFirst("^/", "")));
+                    System.err.println("3. static目录: " + Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", imagePath.replaceFirst("^/", "")));
+                    System.err.println("4. target目录: " + Paths.get(System.getProperty("user.dir"), "target", "classes", "static", imagePath.replaceFirst("^/", "")));
+                    System.err.println("5. 配置路径: " + Paths.get(this.imagePath, imagePath.replaceFirst("^/imageDirectory/", "")));
+                    System.err.println("6. 配置路径+文件名: " + Paths.get(this.imagePath, imagePath.substring(imagePath.lastIndexOf("/") + 1)));
+                    System.err.println("配置的图片路径: " + this.imagePath);
+                    throw new FileNotFoundException("图片文件不存在: " + imagePath);
+                }
+                
+                System.out.println("找到图片文件: " + path.toString());
+                imageStream = Files.newInputStream(path);
+            }
+            
+            // 读取图片数据
+            byte[] imageBytes = readAllBytes(imageStream);
+            imageStream.close();
+            
+            // 获取图片格式
+            int pictureType;
+            if (imagePath.toLowerCase().endsWith(".png")) {
+                pictureType = Workbook.PICTURE_TYPE_PNG;
+            } else if (imagePath.toLowerCase().endsWith(".jpg") || imagePath.toLowerCase().endsWith(".jpeg")) {
+                pictureType = Workbook.PICTURE_TYPE_JPEG;
+            } else if (imagePath.toLowerCase().endsWith(".gif")) {
+                pictureType = Workbook.PICTURE_TYPE_JPEG; // GIF转换为JPEG
+            } else {
+                pictureType = Workbook.PICTURE_TYPE_JPEG; // 默认JPEG
+            }
+            
+            // 添加图片到工作簿
+            int pictureIdx = workbook.addPicture(imageBytes, pictureType);
+            
+            // 创建绘图对象
+            Drawing<?> drawing = sheet.createDrawingPatriarch();
+            
+            // 创建锚点
+            ClientAnchor anchor = workbook.getCreationHelper().createClientAnchor();
+            anchor.setCol1(colIndex);
+            anchor.setRow1(rowIndex);
+            anchor.setCol2(colIndex + 1);
+            anchor.setRow2(rowIndex + 1);
+            
+            // 插入图片
+            Picture picture = drawing.createPicture(anchor, pictureIdx);
+            
+            // 设置图片大小（可选）
+            picture.resize(0.8); // 缩放到80%
+            
+            System.out.println("图片插入成功: " + imagePath);
+            
+        } catch (Exception e) {
+            System.err.println("插入图片失败: " + imagePath + ", 错误: " + e.getMessage());
+            e.printStackTrace();
+            // 如果图片插入失败，显示错误信息
+            cell.setCellValue("图片加载失败: " + e.getMessage());
         }
     }
 }

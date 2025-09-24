@@ -5,10 +5,14 @@ import com.lu.ddwyydemo04.pojo.NewProductProgress;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,6 +30,9 @@ public class NewProductProgressService {
 
     @Autowired
     private NewProductProgressDao newProductProgressDao;
+
+    @Value("${file.storage.imagepath}")
+    private String imagePath;
 
     /**
      * 获取所有新品进度数据
@@ -197,6 +204,9 @@ public class NewProductProgressService {
             // 获取第二个工作表（索引为1）
             Sheet sheet = workbook.getSheetAt(1);
             
+            // 获取绘图对象用于提取图片
+            Drawing<?> drawing = sheet.getDrawingPatriarch();
+            
             // 检查第七行是否存在（索引为6）
             if (sheet.getLastRowNum() < 6) {
                 result.setSuccess(false);
@@ -243,13 +253,20 @@ public class NewProductProgressService {
                      
                      NewProductProgress newProductProgress = parseRowToNewProductProgressWithMapping(row, columnMapping, usedSkus, i);
                      if (newProductProgress != null && isValidProductProgress(newProductProgress)) {
+                         // 提取图片并保存
+                         String imagePath = extractAndSaveImageFromRow(row, drawing, columnMapping, i);
+                         if (imagePath != null && !imagePath.isEmpty()) {
+                             newProductProgress.setImageUrl(imagePath);
+                         }
+                         
                          newProductProgressList.add(newProductProgress);
                          usedSkus.add(newProductProgress.getSku()); // 记录已使用的SKU
                          if (i <= 20) { // 只打印前20行的调试信息
                              System.out.println("第" + (i + 1) + "行：成功解析 - 产品三级类目: " + 
                                  newProductProgress.getProductCategoryLevel3() + 
                                  ", 产品名称: " + newProductProgress.getProductName() + 
-                                 ", SKU: " + newProductProgress.getSku());
+                                 ", SKU: " + newProductProgress.getSku() +
+                                 (imagePath != null ? ", 图片: " + imagePath : ""));
                          }
                      } else {
                          if (i <= 20) { // 只打印前20行的调试信息
@@ -762,6 +779,65 @@ public class NewProductProgressService {
         public void setErrorCount(int errorCount) {
             this.errorCount = errorCount;
         }
+    }
+
+    /**
+     * 从Excel行中提取图片并保存到指定目录
+     * @param row Excel行
+     * @param drawing 绘图对象
+     * @param columnMapping 列映射
+     * @param rowIndex 行索引
+     * @return 保存的图片路径
+     */
+    private String extractAndSaveImageFromRow(Row row, Drawing<?> drawing, Map<String, Integer> columnMapping, int rowIndex) {
+        try {
+            if (drawing == null) {
+                return null;
+            }
+
+            // 查找图片列的索引
+            Integer imageColumnIndex = columnMapping.get("图片");
+            if (imageColumnIndex == null) {
+                return null;
+            }
+
+            // 检查该行该列是否有图片
+            for (Shape shape : drawing) {
+                if (shape instanceof Picture) {
+                    Picture picture = (Picture) shape;
+                    ClientAnchor anchor = picture.getClientAnchor();
+
+                    if (anchor != null && 
+                        anchor.getCol1() == imageColumnIndex && 
+                        anchor.getRow1() == row.getRowNum()) {
+                        
+                        if (picture.getPictureData() != null) {
+                            byte[] pictureData = picture.getPictureData().getData();
+                            
+                            // 生成图片文件名
+                            String fileName = "product_" + System.currentTimeMillis() + "_" + rowIndex + ".png";
+                            
+                            // 检查并创建图片目录
+                            Path imageDir = Paths.get(imagePath);
+                            if (!Files.exists(imageDir)) {
+                                Files.createDirectories(imageDir);
+                            }
+                            
+                            // 保存图片
+                            Path imageFile = imageDir.resolve(fileName);
+                            Files.write(imageFile, pictureData);
+                            
+                            // 返回相对路径
+                            return "/imageDirectory/" + fileName;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("提取图片失败，行 " + (rowIndex + 1) + ": " + e.getMessage());
+        }
+        
+        return null;
     }
 }
 
