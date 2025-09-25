@@ -137,6 +137,11 @@
             color: #667eea;
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
         .theme-selector {
             display: flex;
@@ -501,7 +506,10 @@
         }
 
         .dashboard-actions {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
             padding: 32px;
         }
 
@@ -520,6 +528,15 @@
         .dashboard-actions .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        }
+
+        .dashboard-actions .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 8px 24px rgba(108, 117, 125, 0.3);
+        }
+
+        .dashboard-actions .btn-secondary:hover {
+            box-shadow: 0 12px 32px rgba(108, 117, 125, 0.4);
         }
 
         /* 优先级分布图表样式 */
@@ -1835,8 +1852,11 @@
         </div>
     </div>
 
-    <!-- 进入详细数据按钮 -->
+    <!-- 操作按钮区域 -->
     <div class="dashboard-actions">
+        <button class="btn btn-secondary btn-lg" onclick="goHome()">
+            <i class="fas fa-home"></i> 返回主页
+        </button>
         <button id="enterDetailBtn" class="btn btn-primary btn-lg">
             <i class="fas fa-arrow-right"></i> 进入详细数据管理
         </button>
@@ -6342,7 +6362,9 @@
 
     // 返回上一页
     function goBack() {
-        window.history.back();
+        // 返回到任务状态大盘
+        document.getElementById('detailView').style.display = 'none';
+        document.getElementById('dashboardView').style.display = 'block';
     }
 
     // 返回主页

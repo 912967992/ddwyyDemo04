@@ -331,6 +331,10 @@
             background-color: #f8f9fa;
             font-weight: bold;
             color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .cart-items-container .data-table tbody tr:hover {
@@ -416,7 +420,8 @@
             color: #495057;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .merged-table-container .data-table tbody tr:hover {
@@ -802,7 +807,8 @@
             color: #495057;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .cart-detail-table-container .data-table tbody tr:hover {
@@ -1355,7 +1361,7 @@
 
         <div class="chart-canvas-container">
             <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
-                <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每个柱状图上方会显示具体数值，关闭率显示为百分比。
+                <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
             </div>
             <div id="chartStatus" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
                 <i class="fas fa-chart-bar"></i> <span id="chartStatusText">准备就绪</span>
@@ -2319,25 +2325,38 @@
             currentChart = null;
         }
         
-        // 如果已经有图表数据，自动重新生成图表
+        // 如果已经有分组字段，自动重新生成图表（使用全部搜索结果数据）
         const groupField = document.getElementById('groupField');
         const groupFieldValue = groupField ? groupField.value : null;
         console.log('📋 当前状态检查:', {
             groupField: groupFieldValue,
-            allDataLength: allData ? allData.length : 'undefined',
             currentChartType: currentChartType
         });
         
-        if (groupFieldValue && allData && allData.length > 0) {
-            console.log('🚀 开始重新生成图表，类型:', currentChartType);
-            try {
-                processChartData(allData, groupFieldValue, currentChartType, chartSortOrder);
-                console.log('✅ 图表重新生成完成');
-            } catch (error) {
-                console.error('❌ 图表重新生成失败:', error);
-            }
+        if (groupFieldValue) {
+            console.log('🚀 开始重新生成图表，类型:', currentChartType, '，使用全部搜索结果数据');
+            
+            // 重新获取全部搜索结果数据并生成图表
+            getAllSearchData()
+                .then(allSearchData => {
+                    console.log('获取到的全部搜索结果数据用于图表切换:', allSearchData.length);
+                    if (allSearchData && allSearchData.length > 0) {
+                        try {
+                            processChartData(allSearchData, groupFieldValue, currentChartType, chartSortOrder);
+                            console.log('✅ 图表重新生成完成，使用数据量:', allSearchData.length);
+                        } catch (error) {
+                            console.error('❌ 图表重新生成失败:', error);
+                        }
+                    } else {
+                        console.log('ℹ️ 没有搜索结果数据');
+                        showNoDataMessage();
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ 获取全部数据失败:', error);
+                });
         } else {
-            console.log('ℹ️ 没有数据或分组字段，等待用户操作');
+            console.log('ℹ️ 没有选择分组字段，等待用户操作');
         }
     }
     let totalPages = 1;
@@ -5879,7 +5898,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: type === 'pie' ? 'right' : 'bottom',
+                        position: type === 'pie' ? 'left' : 'bottom',
                         labels: {
                             usePointStyle: true,
                             padding: 20,
@@ -6121,50 +6140,35 @@
         generateBtn.textContent = '加载中...';
         generateBtn.disabled = true;
 
-        // 先尝试使用现有的allData
-        console.log('当前allData长度:', allData.length);
-        console.log('当前totalCount:', totalCount);
-
-        // 如果allData的数据量等于totalCount，说明已经包含了所有数据
-        if (allData.length === totalCount && allData.length > 0) {
-            console.log('使用现有的allData，数据量:', allData.length);
-            try {
-                processChartData(allData, groupField, currentChartType, chartSortOrder);
-            } catch (error) {
-                console.error('处理图表数据失败:', error);
-                alert('处理图表数据失败: ' + error.message);
-                showNoDataMessage();
-            }
-        } else {
-            console.log('allData不完整，重新获取所有数据');
-            // 获取所有搜索结果数据
-            getAllSearchData()
-                .then(allSearchData => {
-                    console.log('获取到的所有搜索结果数据:', allSearchData);
-                    if (allSearchData && allSearchData.length > 0) {
-                        try {
-                            processChartData(allSearchData, groupField, currentChartType, chartSortOrder);
-                        } catch (error) {
-                            console.error('处理图表数据失败:', error);
-                            alert('处理图表数据失败: ' + error.message);
-                            showNoDataMessage();
-                        }
-                    } else {
-                        console.log('没有获取到数据');
-                        alert('没有获取到数据，请检查搜索条件');
+        // 始终重新获取所有搜索结果数据，确保图表使用完整的搜索数据
+        console.log('重新获取所有搜索结果数据用于图表');
+        getAllSearchData()
+            .then(allSearchData => {
+                console.log('获取到的所有搜索结果数据:', allSearchData);
+                if (allSearchData && allSearchData.length > 0) {
+                    try {
+                        processChartData(allSearchData, groupField, currentChartType, chartSortOrder);
+                        console.log('✅ 图表生成成功，使用数据量:', allSearchData.length);
+                    } catch (error) {
+                        console.error('处理图表数据失败:', error);
+                        alert('处理图表数据失败: ' + error.message);
                         showNoDataMessage();
                     }
-                })
-                .catch(error => {
-                    console.error('获取数据失败:', error);
-                    alert('获取数据失败: ' + error.message);
+                } else {
+                    console.log('没有获取到数据');
                     showNoDataMessage();
-                });
-        }
-
-        // 恢复按钮状态
-        generateBtn.textContent = originalText;
-        generateBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('获取所有数据失败:', error);
+                alert('获取数据失败: ' + error.message);
+                showNoDataMessage();
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                generateBtn.textContent = originalText;
+                generateBtn.disabled = false;
+            });
     }
 
     // 处理图表数据的辅助函数
@@ -6249,7 +6253,7 @@
 
     // 获取所有搜索结果数据（用于图表）
     function getAllSearchData() {
-        console.log('=== 获取所有搜索结果数据 ===');
+        console.log('=== 获取所有搜索结果数据用于图表 ===');
 
         return new Promise((resolve, reject) => {
             // 构建查询参数（设置一个很大的size来获取所有数据）
@@ -6257,10 +6261,10 @@
                 username: currentUser,
                 job: currentRole,
                 page: 1,
-                size: 10000  // 设置一个很大的数字来获取所有数据
+                size: 50000  // 增加数据量限制，确保能获取到所有数据
             });
 
-            // 添加筛选条件
+            // 添加筛选条件（与当前搜索条件保持一致）
             const majorCode = document.getElementById('majorCodeFilter').value.trim();
             const minorCode = document.getElementById('minorCodeFilter').value.trim();
             const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
@@ -6277,7 +6281,7 @@
             if (testStartDate) params.append('testStartDate', testStartDate);
             if (testEndDate) params.append('testEndDate', testEndDate);
 
-            console.log('发送的查询参数（获取所有数据）:', params.toString());
+            console.log('发送的查询参数（获取所有数据用于图表）:', params.toString());
 
             fetch('/reviewResult/getReviewResults?' + params.toString())
                 .then(response => response.json())
@@ -6285,7 +6289,8 @@
                     console.log('API响应数据（所有数据）:', data);
                     if (data.success) {
                         const allSearchData = data.data || [];
-                        console.log('获取到的所有搜索结果数据量:', allSearchData.length);
+                        console.log('✅ 获取到的所有搜索结果数据量:', allSearchData.length);
+                        console.log('📊 图表将使用这', allSearchData.length, '条数据进行统计');
                         resolve(allSearchData);
                     } else {
                         console.error('API返回错误:', data);
@@ -6583,7 +6588,7 @@
                 plugins: {
                     legend: {
                         display: type !== 'pie',
-                        position: type === 'pie' ? 'right' : 'top',
+                        position: type === 'pie' ? 'left' : 'top',
                         labels: {
                             usePointStyle: true,
                             padding: 20,
@@ -6664,16 +6669,19 @@
                             display: false
                         }
                     }
-                } : {},
-                animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart'
-                },
-                layout: {
-                    padding: {
-                        top: 40,
-                        bottom: 20
-                    }
+                } : {}
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeInOutQuart',
+                delay: 100,
+                animateRotate: true,
+                animateScale: true
+            },
+            layout: {
+                padding: {
+                    top: 40,
+                    bottom: 20
                 }
             }
         };
@@ -6839,7 +6847,7 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: type === 'pie' ? 'right' : 'bottom',
+                        position: type === 'pie' ? 'left' : 'bottom',
                         labels: {
                             usePointStyle: true,
                             padding: 20,
@@ -6968,16 +6976,19 @@
                             display: false
                         }
                     }
-                },
-                animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart'
-                },
-                layout: {
-                    padding: {
-                        top: 40,  // 增加顶部间距以容纳数据标签
-                        bottom: 20
-                    }
+                }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeInOutQuart',
+                delay: 100,
+                animateRotate: true,
+                animateScale: true
+            },
+            layout: {
+                padding: {
+                    top: 40,  // 增加顶部间距以容纳数据标签
+                    bottom: 20
                 }
             }
         };
