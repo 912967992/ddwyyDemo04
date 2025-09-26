@@ -225,8 +225,6 @@ public class NewProductProgressController {
                 newProduct.setUpdateBy(username);
             }
             
-            // 设置删除标记为0（未删除）
-            newProduct.setIsDeleted(0);
             
             // 更新字段
             updateNewProductFields(newProduct, requestData);

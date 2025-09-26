@@ -95,12 +95,24 @@ public class NewProductProgressService {
         
         for (NewProductProgress newProductProgress : newProductProgressList) {
             try {
-                // 检查是否存在相同的产品三级类目、型号、SKU
-                NewProductProgress existingRecord = newProductProgressDao.findByCategoryModelSku(
-                    newProductProgress.getProductCategoryLevel3(),
-                    newProductProgress.getModel(),
-                    newProductProgress.getSku()
-                );
+                // 检查是否存在相同的记录
+                NewProductProgress existingRecord = null;
+                if (newProductProgress.getSku() != null && !newProductProgress.getSku().trim().isEmpty()) {
+                    // 如果SKU不为空，使用产品三级类目、型号、SKU、产品名称四个字段判断
+                    existingRecord = newProductProgressDao.findByCategoryModelSkuProductName(
+                        newProductProgress.getProductCategoryLevel3(),
+                        newProductProgress.getModel(),
+                        newProductProgress.getSku(),
+                        newProductProgress.getProductName()
+                    );
+                } else {
+                    // 如果SKU为空，使用产品三级类目、型号、产品名称三个字段判断
+                    existingRecord = newProductProgressDao.findByCategoryModelProductName(
+                        newProductProgress.getProductCategoryLevel3(),
+                        newProductProgress.getModel(),
+                        newProductProgress.getProductName()
+                    );
+                }
                 
                 if (existingRecord != null) {
                     // 存在相同记录，进行覆盖更新
@@ -334,11 +346,23 @@ public class NewProductProgressService {
                     for (NewProductProgress newProductProgress : batch) {
                         try {
                             // 检查是否存在相同记录
-                            NewProductProgress existingRecord = newProductProgressDao.findByCategoryModelSku(
-                                newProductProgress.getProductCategoryLevel3(),
-                                newProductProgress.getModel(),
-                                newProductProgress.getSku()
-                            );
+                            NewProductProgress existingRecord = null;
+                            if (newProductProgress.getSku() != null && !newProductProgress.getSku().trim().isEmpty()) {
+                                // 如果SKU不为空，使用产品三级类目、型号、SKU、产品名称四个字段判断
+                                existingRecord = newProductProgressDao.findByCategoryModelSkuProductName(
+                                    newProductProgress.getProductCategoryLevel3(),
+                                    newProductProgress.getModel(),
+                                    newProductProgress.getSku(),
+                                    newProductProgress.getProductName()
+                                );
+                            } else {
+                                // 如果SKU为空，使用产品三级类目、型号、产品名称三个字段判断
+                                existingRecord = newProductProgressDao.findByCategoryModelProductName(
+                                    newProductProgress.getProductCategoryLevel3(),
+                                    newProductProgress.getModel(),
+                                    newProductProgress.getProductName()
+                                );
+                            }
                             
                             if (existingRecord != null) {
                                 // 更新现有记录
@@ -499,7 +523,6 @@ public class NewProductProgressService {
             // 设置创建时间和更新时间
             newProductProgress.setCreateTime(LocalDateTime.now());
             newProductProgress.setUpdateTime(LocalDateTime.now());
-            newProductProgress.setIsDeleted(0);
             
             return newProductProgress;
             
@@ -572,7 +595,6 @@ public class NewProductProgressService {
             // 设置创建时间和更新时间
             newProductProgress.setCreateTime(LocalDateTime.now());
             newProductProgress.setUpdateTime(LocalDateTime.now());
-            newProductProgress.setIsDeleted(0);
             
             return newProductProgress;
             
@@ -623,10 +645,8 @@ public class NewProductProgressService {
             return false;
         }
         
-        // 其他字段可以为空，但SKU必须生成
-        if (newProductProgress.getSku() == null || newProductProgress.getSku().trim().isEmpty()) {
-            return false;
-        }
+        // SKU可以为空，不再强制要求
+        // 其他字段也可以为空
         
         return true;
     }
@@ -640,15 +660,15 @@ public class NewProductProgressService {
      */
     private String validateAndGenerateSku(String sku, Set<String> usedSkus, int rowNum) {
         if (sku == null || sku.trim().isEmpty()) {
-            // 如果SKU为空，生成一个唯一的SKU
-            return generateUniqueSku("AUTO_SKU", usedSkus, rowNum);
+            // 如果SKU为空，直接返回空字符串，不再自动生成
+            return "";
         }
         
         String trimmed = sku.trim();
         
         if (trimmed.isEmpty()) {
-            // 如果SKU为空字符串，生成一个唯一的SKU
-            return generateUniqueSku("AUTO_SKU", usedSkus, rowNum);
+            // 如果SKU为空字符串，直接返回空字符串
+            return "";
         }
         
         // 记录使用的SKU（用于统计，不再用于重复检查）

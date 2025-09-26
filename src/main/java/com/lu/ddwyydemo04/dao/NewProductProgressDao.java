@@ -38,6 +38,39 @@ public interface NewProductProgressDao {
                                            @Param("sku") String sku);
 
     /**
+     * 根据产品三级类目、型号查询是否存在记录（用于SKU为空的情况）
+     * @param productCategory 产品三级类目
+     * @param model 型号
+     * @return 存在的记录，如果不存在返回null
+     */
+    NewProductProgress findByCategoryModel(@Param("productCategory") String productCategory,
+                                         @Param("model") String model);
+
+    /**
+     * 根据产品三级类目、型号、SKU、产品名称查询是否存在记录
+     * @param productCategory 产品三级类目
+     * @param model 型号
+     * @param sku SKU
+     * @param productName 产品名称
+     * @return 存在的记录，如果不存在返回null
+     */
+    NewProductProgress findByCategoryModelSkuProductName(@Param("productCategory") String productCategory,
+                                                        @Param("model") String model,
+                                                        @Param("sku") String sku,
+                                                        @Param("productName") String productName);
+
+    /**
+     * 根据产品三级类目、型号、产品名称查询是否存在记录（用于SKU为空的情况）
+     * @param productCategory 产品三级类目
+     * @param model 型号
+     * @param productName 产品名称
+     * @return 存在的记录，如果不存在返回null
+     */
+    NewProductProgress findByCategoryModelProductName(@Param("productCategory") String productCategory,
+                                                     @Param("model") String model,
+                                                     @Param("productName") String productName);
+
+    /**
      * 更新新品进度数据
      * @param newProductProgress 新品进度对象
      * @return 影响行数

@@ -30,7 +30,6 @@
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
-        <result property="isDeleted" column="is_deleted"/>
     </resultMap>
 
     <!-- 插入新品进度数据 -->
@@ -39,19 +38,19 @@
             product_category_level3, priority, model, sku, stage, product_name, image_url,
             project_start_time, target_launch_time, display_type, product_level, primary_supplier,
             lead_dqe, electronic_rd, group_name, status, design_review_problem, evt_problem, dvt_problem,
-            main_project_progress, main_quality_risks, create_time, update_time, create_by, update_by, is_deleted
+            main_project_progress, main_quality_risks, create_time, update_time, create_by, update_by
         ) VALUES (
             #{productCategoryLevel3}, #{priority}, #{model}, #{sku}, #{stage}, #{productName}, #{imageUrl},
             #{projectStartTime}, #{targetLaunchTime}, #{displayType}, #{productLevel}, #{primarySupplier},
             #{leadDqe}, #{electronicRd}, #{groupName}, #{status}, #{designReviewProblem}, #{evtProblem}, #{dvtProblem},
-            #{mainProjectProgress}, #{mainQualityRisks}, #{createTime}, #{updateTime}, #{createBy}, #{updateBy}, #{isDeleted}
+            #{mainProjectProgress}, #{mainQualityRisks}, #{createTime}, #{updateTime}, #{createBy}, #{updateBy}
         )
     </insert>
 
     <!-- 根据SKU查询是否存在记录 -->
     <select id="findBySku" parameterType="string" resultType="long">
         SELECT id FROM new_product_progress_management 
-        WHERE sku = #{sku} AND is_deleted = 0
+        WHERE sku = #{sku}
         LIMIT 1
     </select>
 
@@ -60,8 +59,36 @@
         SELECT * FROM new_product_progress_management 
         WHERE product_category_level3 = #{productCategory} 
         AND model = #{model} 
-        AND sku = #{sku} 
-        AND is_deleted = 0
+        AND sku = #{sku}
+        LIMIT 1
+    </select>
+
+    <!-- 根据产品三级类目、型号查询是否存在记录（用于SKU为空的情况） -->
+    <select id="findByCategoryModel" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE product_category_level3 = #{productCategory} 
+        AND model = #{model} 
+        AND (sku IS NULL OR sku = '')
+        LIMIT 1
+    </select>
+
+    <!-- 根据产品三级类目、型号、SKU、产品名称查询是否存在记录 -->
+    <select id="findByCategoryModelSkuProductName" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE product_category_level3 = #{productCategory} 
+        AND model = #{model} 
+        AND sku = #{sku}
+        AND product_name = #{productName}
+        LIMIT 1
+    </select>
+
+    <!-- 根据产品三级类目、型号、产品名称查询是否存在记录（用于SKU为空的情况） -->
+    <select id="findByCategoryModelProductName" resultMap="NewProductProgressMap">
+        SELECT * FROM new_product_progress_management 
+        WHERE product_category_level3 = #{productCategory} 
+        AND model = #{model} 
+        AND product_name = #{productName}
+        AND (sku IS NULL OR sku = '')
         LIMIT 1
     </select>
 
@@ -91,43 +118,40 @@
             main_quality_risks = #{mainQualityRisks},
             update_time = #{updateTime},
             update_by = #{updateBy}
-        WHERE id = #{id} AND is_deleted = 0
+        WHERE id = #{id}
     </update>
 
     <!-- 根据ID查询新品进度 -->
     <select id="findById" parameterType="long" resultMap="NewProductProgressMap">
         SELECT * FROM new_product_progress_management 
-        WHERE id = #{id} AND is_deleted = 0
+        WHERE id = #{id}
     </select>
 
     <!-- 查询所有新品进度数据 -->
     <select id="findAll" resultMap="NewProductProgressMap">
         SELECT * FROM new_product_progress_management 
-        WHERE is_deleted = 0
         ORDER BY id ASC
     </select>
 
-    <!-- 根据ID列表批量删除新品进度（软删除） -->
-    <update id="deleteByIds">
-        UPDATE new_product_progress_management 
-        SET is_deleted = 1, update_time = NOW()
+    <!-- 根据ID列表批量删除新品进度 -->
+    <delete id="deleteByIds">
+        DELETE FROM new_product_progress_management 
         WHERE id IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
-    </update>
+    </delete>
 
-    <!-- 根据ID删除新品进度（软删除） -->
-    <update id="deleteById" parameterType="long">
-        UPDATE new_product_progress_management 
-        SET is_deleted = 1, update_time = NOW()
+    <!-- 根据ID删除新品进度 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM new_product_progress_management 
         WHERE id = #{id}
-    </update>
+    </delete>
 
     <!-- 根据条件查询新品进度数量 -->
     <select id="countByConditions" resultType="int">
         SELECT COUNT(*) FROM new_product_progress_management 
-        WHERE is_deleted = 0
+        WHERE 1=1
         <if test="productCategory != null and productCategory != ''">
             AND product_category_level3 LIKE CONCAT('%', #{productCategory}, '%')
         </if>

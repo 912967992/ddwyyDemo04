@@ -35,7 +35,6 @@ public class NewProductProgress {
     private LocalDateTime updateTime;
     private String createBy;
     private String updateBy;
-    private Integer isDeleted;
 
     // 无参构造函数
     public NewProductProgress() {}
@@ -48,7 +47,7 @@ public class NewProductProgress {
                             String electronicRd, String status, String designReviewProblem, 
                             String evtProblem, String dvtProblem, String mainProjectProgress, 
                             String mainQualityRisks, LocalDateTime createTime, LocalDateTime updateTime, 
-                            String createBy, String updateBy, Integer isDeleted) {
+                            String createBy, String updateBy) {
         this.id = id;
         this.productCategoryLevel3 = productCategoryLevel3;
         this.priority = priority;
@@ -74,7 +73,6 @@ public class NewProductProgress {
         this.updateTime = updateTime;
         this.createBy = createBy;
         this.updateBy = updateBy;
-        this.isDeleted = isDeleted;
     }
 
     // Getter和Setter方法
@@ -286,13 +284,6 @@ public class NewProductProgress {
         this.updateBy = updateBy;
     }
 
-    public Integer getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Integer isDeleted) {
-        this.isDeleted = isDeleted;
-    }
 
     @Override
     public String toString() {
@@ -323,7 +314,6 @@ public class NewProductProgress {
                 ", updateTime=" + updateTime +
                 ", createBy='" + createBy + '\'' +
                 ", updateBy='" + updateBy + '\'' +
-                ", isDeleted=" + isDeleted +
                 '}';
     }
 }
