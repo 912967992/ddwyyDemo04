@@ -137,59 +137,40 @@
             color: #667eea;
         }
 
-        .dashboard-controls {
+        .header-actions {
             display: flex;
-            gap: 12px;
-        }
-
-        .dashboard-controls .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .dashboard-controls .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .dashboard-controls .btn-secondary {
-            background: #f8f9fa;
-            color: #6c757d;
-            border: 1px solid #dee2e6;
-        }
-
-        .dashboard-controls .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            align-items: center;
+            gap: 16px;
         }
 
         .theme-selector {
-            margin-bottom: 24px;
-            padding: 20px 24px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .theme-selector label {
             font-weight: 600;
-            margin-right: 12px;
             color: #2c3e50;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         .theme-selector select {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: 2px solid #e9ecef;
-            border-radius: 8px;
+            border-radius: 6px;
             background: white;
             font-weight: 500;
+            font-size: 14px;
             transition: all 0.3s ease;
+            min-width: 120px;
         }
 
         .theme-selector select:focus {
@@ -525,7 +506,10 @@
         }
 
         .dashboard-actions {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
             padding: 32px;
         }
 
@@ -544,6 +528,15 @@
         .dashboard-actions .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        }
+
+        .dashboard-actions .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 8px 24px rgba(108, 117, 125, 0.3);
+        }
+
+        .dashboard-actions .btn-secondary:hover {
+            box-shadow: 0 12px 32px rgba(108, 117, 125, 0.4);
         }
 
         /* 优先级分布图表样式 */
@@ -1429,6 +1422,80 @@
             color: #333 !important;
         }
 
+        /* 表格图片样式 */
+        .image-cell {
+            text-align: center;
+            padding: 8px;
+            width: 80px;
+        }
+
+        .product-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .product-thumbnail:hover {
+            transform: scale(1.1);
+            border-color: #007bff;
+        }
+
+        .no-image {
+            color: #999;
+            font-style: italic;
+            font-size: 12px;
+            padding: 20px 10px;
+            display: block;
+        }
+
+        /* 图片预览模态框样式 */
+        .image-preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .image-preview-content {
+            position: relative;
+            margin: auto;
+            padding: 0;
+            width: 80%;
+            max-width: 800px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .image-preview-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-preview-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10001;
+        }
+
+        .image-preview-close:hover {
+            color: #ccc;
+        }
+
 
         /* 数据表格区域样式 */
         .table-section {
@@ -1508,22 +1575,35 @@
         .basic-filters-container {
             width: 100%;
             overflow: visible;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 8px;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
             margin-left: 0;
             margin-right: auto;
             box-sizing: border-box;
-            min-height: 550px;
+            min-height: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .basic-filters-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #007bff, #28a745, #ffc107);
+            border-radius: 12px 12px 0 0;
         }
 
         .filter-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            align-items: center;
+            gap: 20px;
+            margin-bottom: 0;
+            align-items: end;
             justify-content: flex-start;
             flex-wrap: wrap;
             width: 100%;
@@ -1535,40 +1615,171 @@
 
         .filter-group {
             display: flex;
-            align-items: center;
-            gap: 4px;
-            width: calc(50% - 4px); /* 每行2个，每个占50%宽度，减去间距 */
+            flex-direction: column;
+            gap: 8px;
+            width: calc(20% - 16px); /* 每行5个，每个占20%宽度，减去间距 */
             flex: 0 0 auto;
-            margin-bottom: 8px;
+            margin-bottom: 0;
             box-sizing: border-box;
         }
 
         .filter-group label {
             white-space: nowrap;
-            width: 60px;
-            font-weight: 500;
+            width: auto;
+            font-weight: 600;
             color: #495057;
             font-size: 14px;
             flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
         .filter-group input,
         .filter-group select {
             flex: 1;
-            height: 32px;
-            padding: 4px 8px;
-            font-size: 15px;
+            height: 40px;
+            padding: 10px 12px;
+            font-size: 14px;
             font-weight: 500;
             color: #333;
-            border: 1px solid #ced4da;
-            border-radius: 3px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
 
         .filter-group input:focus,
         .filter-group select:focus {
             border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
             outline: none;
+            transform: translateY(-1px);
+        }
+
+        .filter-group input:hover,
+        .filter-group select:hover {
+            border-color: #007bff;
+        }
+
+        /* 按钮组特殊样式 */
+        .filter-buttons-group {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            width: auto;
+            min-width: 200px;
+            flex: 0 0 auto;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            min-width: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .filter-btn:hover::before {
+            left: 100%;
+        }
+
+        .filter-btn.btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .filter-btn.btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+        }
+
+        .filter-btn.btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        .filter-btn.btn-secondary:hover {
+            background: linear-gradient(135deg, #545b62, #3d4449);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4);
+        }
+
+        .filter-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 过滤器建议下拉框样式 */
+        .input-with-suggestions {
+            position: relative;
+            flex: 1;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .suggestions-dropdown.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item.highlighted {
+            background-color: #007bff;
+            color: white;
         }
 
         /* 日期过滤器特殊样式 */
@@ -1592,19 +1803,33 @@
         /* 响应式设计 - 小屏幕时每行显示更少 */
         @media (max-width: 1200px) {
             .filter-group {
-                width: calc(50% - 4px); /* 每行2个 */
+                width: calc(33.33% - 14px); /* 每行3个 */
+            }
+            .filter-buttons-group {
+                width: calc(66.66% - 14px); /* 按钮组占2个位置 */
             }
         }
 
         @media (max-width: 900px) {
             .filter-group {
-                width: calc(50% - 4px); /* 每行2个 */
+                width: calc(50% - 10px); /* 每行2个 */
+            }
+            .filter-buttons-group {
+                width: calc(100% - 10px); /* 按钮组独占一行 */
             }
         }
 
         @media (max-width: 600px) {
             .filter-group {
-                width: calc(100% - 8px); /* 每行1个 */
+                width: calc(100% - 10px); /* 每行1个 */
+            }
+            .filter-buttons-group {
+                width: calc(100% - 10px); /* 按钮组独占一行 */
+                flex-direction: column;
+                gap: 8px;
+            }
+            .filter-btn {
+                width: 100%;
             }
         }
 
@@ -1702,10 +1927,10 @@
                 <button id="deleteSelectedBtn" class="btn btn-warning">
                     <i class="fas fa-trash"></i> 删除选中数据
                 </button>
-                <button id="addToCartBtn" class="btn btn-warning">
+                <button id="addToCartBtn" class="btn btn-warning" style="display: none;">
                     <i class="fas fa-shopping-cart"></i> 加入收藏夹
                 </button>
-                <button id="showCartBtn" class="btn btn-secondary">
+                <button id="showCartBtn" class="btn btn-secondary" style="display: none;">
                     <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
             </div>
@@ -1765,26 +1990,17 @@
 <div id="dashboardView" class="dashboard-section">
     <div class="dashboard-header">
         <h2><i class="fas fa-tachometer-alt"></i> 任务状态大盘</h2>
-        <div class="dashboard-controls">
-            <button id="addChartBtn" class="btn btn-primary">
-                <i class="fas fa-chart-bar"></i> 添加图表
-            </button>
-            <button id="filterBtn" class="btn btn-secondary">
-                <i class="fas fa-filter"></i> 筛选
-            </button>
+        <!-- 主题选择器 -->
+        <div class="theme-selector">
+            <label>主题：</label>
+            <select id="themeSelect">
+                <option value="default">默认主题</option>
+                <option value="dark">深色主题</option>
+                <option value="blue">蓝色主题</option>
+                <option value="green">绿色主题</option>
+                <option value="purple">紫色主题</option>
+            </select>
         </div>
-    </div>
-
-    <!-- 主题选择器 -->
-    <div class="theme-selector">
-        <label>主题：</label>
-        <select id="themeSelect">
-            <option value="default">默认主题</option>
-            <option value="dark">深色主题</option>
-            <option value="blue">蓝色主题</option>
-            <option value="green">绿色主题</option>
-            <option value="purple">紫色主题</option>
-        </select>
     </div>
 
     <!-- 统计卡片区域 -->
@@ -1868,8 +2084,11 @@
         </div>
     </div>
 
-    <!-- 进入详细数据按钮 -->
+    <!-- 操作按钮区域 -->
     <div class="dashboard-actions">
+        <button class="btn btn-secondary btn-lg" onclick="goHome()">
+            <i class="fas fa-home"></i> 返回主页
+        </button>
         <button id="enterDetailBtn" class="btn btn-primary btn-lg">
             <i class="fas fa-arrow-right"></i> 进入详细数据管理
         </button>
@@ -1878,6 +2097,43 @@
 
 <!-- 详细数据界面（默认隐藏） -->
 <div id="detailView" class="detail-section" style="display: none;">
+    <!-- 过滤器栏 -->
+    <div class="filters-main-container">
+        <div class="basic-filters-container">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>品类:</label>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="filterProductCategory" placeholder="请输入产品三级类目" autocomplete="off" />
+                        <div id="filterProductCategorySuggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>SKU:</label>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="filterSku" placeholder="请输入SKU" autocomplete="off" />
+                        <div id="filterSkuSuggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>主导DQE:</label>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="filterLeadDqe" placeholder="请输入主导DQE" autocomplete="off" />
+                        <div id="filterLeadDqeSuggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </div>
+                <div class="filter-group filter-buttons-group">
+                    <button type="button" class="btn btn-primary filter-btn" onclick="applyFilters()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                    <button type="button" class="btn btn-secondary filter-btn" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i> 重置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 数据表格区域 -->
     <div class="table-section">
         <div class="table-container">
@@ -1894,6 +2150,7 @@
                     <th>SKU</th>
                     <th>阶段</th>
                     <th>产品名称</th>
+                    <th>图片</th>
                     <th>立项时间</th>
                     <th>目标上市时间</th>
                     <th>显示类型</th>
@@ -2855,19 +3112,39 @@
             if (selectedTheme !== 'default') {
                 dashboardSection.classList.add('theme-' + selectedTheme);
             }
+
+            // 保存主题到本地存储
+            localStorage.setItem('dashboardTheme', selectedTheme);
+            console.log('🎨 主题已保存:', selectedTheme);
         });
 
-        // 添加图表按钮事件
-        document.getElementById('addChartBtn').addEventListener('click', function() {
-            showCustomToast('图表功能开发中...', 'info');
-        });
 
-        // 筛选按钮事件
-        document.getElementById('filterBtn').addEventListener('click', function() {
-            showCustomToast('筛选功能开发中...', 'info');
-        });
+        // 恢复保存的主题
+        loadSavedTheme();
 
         // 不在这里初始化大盘数据，等数据加载完成后再更新
+    }
+
+    // 加载保存的主题
+    function loadSavedTheme() {
+        const savedTheme = localStorage.getItem('dashboardTheme');
+        if (savedTheme) {
+            console.log('🎨 恢复保存的主题:', savedTheme);
+
+            // 设置选择框的值
+            const themeSelect = document.getElementById('themeSelect');
+            themeSelect.value = savedTheme;
+
+            // 应用主题
+            const dashboardSection = document.getElementById('dashboardView');
+            dashboardSection.classList.remove('theme-dark', 'theme-blue', 'theme-green', 'theme-purple');
+
+            if (savedTheme !== 'default') {
+                dashboardSection.classList.add('theme-' + savedTheme);
+            }
+        } else {
+            console.log('🎨 没有保存的主题，使用默认主题');
+        }
     }
 
     // 更新大盘数据
@@ -3681,14 +3958,282 @@
 
         // 加载数据
         loadProductData();
+
+        // 添加过滤器事件监听器
+        initFilterEventListeners();
+
+        // 添加图片预览模态框事件监听器
+        const imageModal = document.getElementById('imagePreviewModal');
+        if (imageModal) {
+            const closeBtn = imageModal.querySelector('.image-preview-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeImagePreview);
+            }
+            imageModal.addEventListener('click', function(e) {
+                if (e.target === imageModal) {
+                    closeImagePreview();
+                }
+            });
+        }
     });
+
+    // 初始化过滤器事件监听器
+    function initFilterEventListeners() {
+        // 为过滤器输入框添加事件监听器
+        const filterConfigs = [
+            { id: 'filterProductCategory', field: 'productCategory' },
+            { id: 'filterSku', field: 'sku' },
+            { id: 'filterLeadDqe', field: 'leadDqe' }
+        ];
+
+        filterConfigs.forEach(config => {
+            const input = document.getElementById(config.id);
+            if (input) {
+                // 移除已存在的事件监听器，避免重复绑定
+                input.removeEventListener('keydown', input._keydownHandler);
+                input.removeEventListener('input', input._inputHandler);
+                input.removeEventListener('focus', input._focusHandler);
+                input.removeEventListener('blur', input._blurHandler);
+
+                // 清除防抖定时器
+                if (input._debounceTimer) {
+                    clearTimeout(input._debounceTimer);
+                }
+                // 键盘事件
+                input._keydownHandler = function(e) {
+                    const dropdown = document.getElementById(config.id + 'Suggestions');
+                    if (!dropdown) return;
+
+                    const items = dropdown.querySelectorAll('.suggestion-item');
+                    const highlighted = dropdown.querySelector('.suggestion-item.highlighted');
+
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (highlighted) {
+                            input.value = highlighted.textContent;
+                            hideSuggestions(dropdown);
+                            applyFilters();
+                        } else {
+                            applyFilters();
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (highlighted) {
+                            highlighted.classList.remove('highlighted');
+                            const next = highlighted.nextElementSibling;
+                            if (next) {
+                                next.classList.add('highlighted');
+                            } else if (items.length > 0) {
+                                items[0].classList.add('highlighted');
+                            }
+                        } else if (items.length > 0) {
+                            items[0].classList.add('highlighted');
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (highlighted) {
+                            highlighted.classList.remove('highlighted');
+                            const prev = highlighted.previousElementSibling;
+                            if (prev) {
+                                prev.classList.add('highlighted');
+                            } else if (items.length > 0) {
+                                items[items.length - 1].classList.add('highlighted');
+                            }
+                        } else if (items.length > 0) {
+                            items[items.length - 1].classList.add('highlighted');
+                        }
+                    } else if (e.key === 'Escape') {
+                        hideSuggestions(dropdown);
+                    }
+                };
+
+                // 输入事件 - 显示建议（防抖处理）
+                input._inputHandler = function(e) {
+                    const query = e.target.value.trim();
+                    console.log('⌨️ 输入事件:', config.id, '查询:', query);
+
+                    // 清除之前的定时器
+                    if (input._debounceTimer) {
+                        clearTimeout(input._debounceTimer);
+                    }
+
+                    // 设置防抖延迟，用户停止输入500ms后才开始搜索
+                    input._debounceTimer = setTimeout(() => {
+                        const suggestions = filterSuggestions(config.field, query);
+                        console.log('📋 建议数量:', suggestions.length);
+                        showSuggestions(config.id, suggestions);
+                    }, 500);
+                };
+
+                // 获得焦点事件 - 显示所有建议（防抖处理）
+                input._focusHandler = function(e) {
+                    const query = e.target.value.trim();
+
+                    // 清除之前的定时器
+                    if (input._debounceTimer) {
+                        clearTimeout(input._debounceTimer);
+                    }
+
+                    // 获得焦点时立即显示建议，但也要防抖
+                    input._debounceTimer = setTimeout(() => {
+                        const suggestions = filterSuggestions(config.field, query);
+                        showSuggestions(config.id, suggestions);
+                    }, 100);
+                };
+
+                // 失去焦点事件 - 延迟隐藏建议
+                input._blurHandler = function(e) {
+                    // 清除防抖定时器
+                    if (input._debounceTimer) {
+                        clearTimeout(input._debounceTimer);
+                    }
+
+                    setTimeout(() => {
+                        const dropdown = document.getElementById(config.id + 'Suggestions');
+                        hideSuggestions(dropdown);
+                    }, 200);
+                };
+
+                // 绑定事件监听器
+                input.addEventListener('keydown', input._keydownHandler);
+                input.addEventListener('input', input._inputHandler);
+                input.addEventListener('focus', input._focusHandler);
+                input.addEventListener('blur', input._blurHandler);
+            }
+        });
+
+        console.log('✅ 过滤器事件监听器初始化完成');
+    }
+
+    // 重新初始化过滤器事件监听器
+    function reinitFilterEventListeners() {
+        console.log('🔄 重新初始化过滤器事件监听器');
+        initFilterEventListeners();
+    }
+
+    // 测试自动完成功能
+    function testAutocomplete() {
+        console.log('🧪 测试自动完成功能');
+        const testFields = ['productCategory', 'sku', 'leadDqe'];
+        testFields.forEach(field => {
+            const values = getUniqueValues(field);
+            console.log(`📊 ${field} 字段的唯一值数量:`, values.length);
+            if (values.length > 0) {
+                console.log(`📝 ${field} 字段的前5个值:`, values.slice(0, 5));
+            }
+        });
+
+        console.log('✅ 自动完成功能测试完成');
+    }
+
+    // 图片预览功能
+    function showImagePreview(imageSrc) {
+        const modal = document.getElementById('imagePreviewModal');
+        const img = document.getElementById('previewImage');
+        img.src = imageSrc;
+        modal.style.display = 'block';
+    }
+
+    // 关闭图片预览
+    function closeImagePreview() {
+        document.getElementById('imagePreviewModal').style.display = 'none';
+    }
+
+    // 获取所有唯一值用于建议
+    function getUniqueValues(field) {
+        console.log('🔍 获取唯一值:', field, 'allData长度:', allData ? allData.length : 0);
+        const values = new Set();
+        if (!allData || allData.length === 0) {
+            console.log('⚠️ 数据未加载或为空');
+            return [];
+        }
+        allData.forEach(item => {
+            let value = '';
+            if (field === 'productCategory') {
+                value = item.productCategoryLevel3;
+            } else if (field === 'sku') {
+                value = item.sku;
+            } else if (field === 'leadDqe') {
+                value = item.leadDqe || item.主导DQE || item.lead_dqe;
+            }
+            if (value && value.trim() !== '') {
+                values.add(value.trim());
+            }
+        });
+        const result = Array.from(values).sort();
+        console.log(`📊 ${field} 字段的唯一值数量:`, result.length);
+        if (result.length > 0) {
+            console.log(`📝 ${field} 字段的前5个值:`, result.slice(0, 5));
+        }
+        return result;
+    }
+
+    // 显示建议下拉框
+    function showSuggestions(inputId, suggestions) {
+        console.log('🎯 显示建议:', inputId, '建议数量:', suggestions.length);
+        const dropdown = document.getElementById(inputId + 'Suggestions');
+        if (!dropdown) {
+            console.log('❌ 找不到下拉框:', inputId + 'Suggestions');
+            return;
+        }
+        console.log('✅ 找到下拉框');
+
+        dropdown.innerHTML = '';
+
+        if (suggestions.length === 0) {
+            console.log('📭 没有建议，隐藏下拉框');
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = suggestion;
+            item.addEventListener('click', () => {
+                document.getElementById(inputId).value = suggestion;
+                hideSuggestions(dropdown);
+                applyFilters();
+            });
+            dropdown.appendChild(item);
+        });
+
+        dropdown.classList.add('show');
+        console.log('✅ 下拉框已显示');
+    }
+
+    // 隐藏建议下拉框
+    function hideSuggestions(dropdown) {
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // 过滤建议
+    function filterSuggestions(field, query) {
+        console.log('🔍 过滤建议:', field, '查询:', query);
+        const allValues = getUniqueValues(field);
+        if (!query || query.trim() === '') {
+            console.log('📝 空查询，返回前10个值');
+            return allValues.slice(0, 10); // 显示前10个
+        }
+
+        const filtered = allValues.filter(value =>
+            value.toLowerCase().includes(query.toLowerCase())
+        );
+        console.log('🎯 过滤结果:', filtered.length, '个匹配项');
+        return filtered.slice(0, 10); // 最多显示10个建议
+    }
 
     // 问题类别相关功能已移除
 
     // 添加全局点击事件，隐藏所有建议框
     document.addEventListener('click', function(e) {
         // 检查点击是否在建议框或输入框内
-        if (!e.target.closest('.input-with-suggestions') && !e.target.closest('.toggle-input-btn')) {
+        const isInSuggestions = e.target.closest('.input-with-suggestions');
+        const isInToggleBtn = e.target.closest('.toggle-input-btn');
+
+        if (!isInSuggestions && !isInToggleBtn) {
             // 隐藏所有建议框
             document.querySelectorAll('.suggestions-dropdown').forEach(suggestions => {
                 hideSuggestions(suggestions);
@@ -3780,7 +4325,11 @@
         document.getElementById('pageSizeSelect').addEventListener('change', function() {
             pageSize = parseInt(this.value);
             currentPage = 1; // 重置到第一页
-            loadProductData(); // 重新加载数据
+            // 重新计算分页
+            totalCount = filteredData.length;
+            totalPages = Math.ceil(totalCount / pageSize);
+            renderTable(); // 直接渲染表格
+            updatePagination();
         });
 
         // 导入相关事件监听器
@@ -4063,7 +4612,11 @@
         document.getElementById('pageSizeSelect').addEventListener('change', function() {
             pageSize = parseInt(this.value);
             currentPage = 1;
-            loadProductData(); // 重新加载数据
+            // 重新计算分页
+            totalCount = filteredData.length;
+            totalPages = Math.ceil(totalCount / pageSize);
+            renderTable(); // 直接渲染表格
+            updatePagination();
         });
 
         // 页码跳转
@@ -4176,12 +4729,12 @@
     function loadProductData() {
         showLoading();
 
-        // 构建查询参数
+        // 构建查询参数 - 获取所有数据，不进行分页
         const params = new URLSearchParams({
             username: currentUser,
             job: currentRole,
-            page: currentPage,
-            size: pageSize
+            page: 1,
+            size: 10000 // 设置一个很大的数字来获取所有数据
         });
 
         // 筛选器已移除，直接加载所有数据
@@ -4195,8 +4748,8 @@
                 if (data.success) {
                     allData = data.data || [];
                     filteredData = [...allData];
-                    totalCount = data.total || 0;
-                    totalPages = data.totalPages || Math.ceil(totalCount / pageSize);
+                    totalCount = allData.length; // 使用本地数据长度
+                    totalPages = Math.ceil(totalCount / pageSize);
                     console.log('加载的数据:', allData);
                     console.log('总记录数:', totalCount);
                     console.log('总页数:', totalPages);
@@ -4225,14 +4778,105 @@
     function searchProducts() {
         console.log('开始搜索');
         currentPage = 1; // 重置到第一页
-        loadProductData(); // 重新加载数据，服务器端会处理筛选
+        // 重置过滤器，显示所有数据
+        filteredData = [...allData];
+        totalCount = filteredData.length;
+        totalPages = Math.ceil(totalCount / pageSize);
+        renderTable();
+        updatePagination();
     }
 
-    // 重置筛选条件（筛选器已移除）
+    // 应用过滤器
+    function applyFilters() {
+        console.log('🔍 应用过滤器');
+        currentPage = 1; // 重置到第一页
+
+        // 获取过滤器值
+        const productCategory = document.getElementById('filterProductCategory').value.trim();
+        const sku = document.getElementById('filterSku').value.trim();
+        const leadDqe = document.getElementById('filterLeadDqe').value.trim();
+
+        console.log('📋 过滤器条件:', {
+            productCategory,
+            sku,
+            leadDqe,
+            allDataLength: allData.length
+        });
+
+        // 应用前端过滤
+        filteredData = allData.filter(item => {
+            let matches = true;
+
+            // 品类过滤
+            if (productCategory && !item.productCategoryLevel3?.toLowerCase().includes(productCategory.toLowerCase())) {
+                matches = false;
+            }
+
+            // SKU过滤
+            if (sku && !item.sku?.toLowerCase().includes(sku.toLowerCase())) {
+                matches = false;
+            }
+
+            // 主导DQE过滤
+            if (leadDqe && !item.leadDqe?.toLowerCase().includes(leadDqe.toLowerCase()) &&
+                !item.主导DQE?.toLowerCase().includes(leadDqe.toLowerCase()) &&
+                !item.lead_dqe?.toLowerCase().includes(leadDqe.toLowerCase())) {
+                matches = false;
+            }
+
+            return matches;
+        });
+
+        // 重新计算分页
+        totalCount = filteredData.length;
+        totalPages = Math.ceil(totalCount / pageSize);
+
+        console.log('📊 过滤结果:', {
+            filteredDataLength: filteredData.length,
+            totalCount,
+            totalPages,
+            currentPage
+        });
+
+        // 渲染表格
+        renderTable();
+        updatePagination();
+
+        // 重新初始化过滤器事件监听器，确保自动完成功能正常
+        setTimeout(() => {
+            reinitFilterEventListeners();
+        }, 100);
+
+        console.log(`✅ 过滤完成，显示 ${filteredData.length} 条数据`);
+    }
+
+    // 重置筛选条件
     function resetFilters() {
-        // 筛选器已移除，直接重新加载数据
+        console.log('重置过滤器');
+
+        // 清空过滤器输入框
+        document.getElementById('filterProductCategory').value = '';
+        document.getElementById('filterSku').value = '';
+        document.getElementById('filterLeadDqe').value = '';
+
+        // 重置数据
+        filteredData = [...allData];
         currentPage = 1;
-        loadProductData();
+
+        // 重新计算分页
+        totalCount = filteredData.length;
+        totalPages = Math.ceil(totalCount / pageSize);
+
+        // 渲染表格
+        renderTable();
+        updatePagination();
+
+        // 重新初始化过滤器事件监听器，确保自动完成功能正常
+        setTimeout(() => {
+            reinitFilterEventListeners();
+        }, 100);
+
+        console.log('过滤器已重置');
     }
 
     // 获取当前用户名
@@ -4324,20 +4968,33 @@
         const selectedRows = getSelectedTableRows();
 
         if (selectedRows.length === 0) {
-            alert('请先选择要导出的数据行！');
+            showToast('请先选择要导出的数据行！', 'warning');
             return;
         }
+
+        console.log('📤 开始导出选中的数据...');
+        console.log('📊 准备导出数据:', {
+            选中数据量: selectedRows.length,
+            总数据量: allData.length,
+            选中数据样本: selectedRows.slice(0, 2)
+        });
 
         showLoading();
 
         // 准备导出数据
         const exportData = {
             data: selectedRows,
-            exportType: 'reviewResults',
-            fileName: `新品进度数据_${new Date().toISOString().slice(0, 10)}.xlsx`
+            exportType: 'newProductProgress',
+            fileName: `新品进度数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+            totalCount: selectedRows.length,
+            exportTime: new Date().toISOString(),
+            username: getCurrentUsername(),
+            job: currentRole
         };
 
-        fetch('/newProductProgress/exportCartsData', {
+        console.log('📋 导出参数:', exportData);
+
+        fetch('/newProductProgress/exportQualityProgressData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -4345,13 +5002,18 @@
             body: JSON.stringify(exportData)
         })
             .then(response => {
+                console.log('📡 导出响应状态:', response.status);
                 if (response.ok) {
                     return response.blob();
                 } else {
-                    throw new Error('导出失败');
+                    return response.text().then(text => {
+                        console.error('❌ 导出失败响应:', text);
+                        throw new Error(`导出失败: ${response.status} ${response.statusText}`);
+                    });
                 }
             })
             .then(blob => {
+                console.log('✅ 导出成功，文件大小:', blob.size, 'bytes');
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -4360,11 +5022,11 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                showToast(`成功导出 ${selectedRows.length} 条新品进度数据！`, 'success');
+                showToast(`导出成功！共导出 ${selectedRows.length} 条新品进度数据`, 'success');
             })
             .catch(error => {
-                console.error('Error:', error);
-                showToast('导出时发生错误', 'error');
+                console.error('❌ 导出错误:', error);
+                showToast(`导出失败: ${error.message}`, 'error');
             })
             .finally(() => {
                 hideLoading();
@@ -5015,6 +5677,9 @@
                 return;
             }
         }
+
+        // 添加用户名字段
+        editData.username = getCurrentUsername();
 
         // 只有在更新时才添加id字段
         if (!isNewRecord) {
@@ -5746,8 +6411,19 @@
         const tbody = document.getElementById('reviewTableBody');
         tbody.innerHTML = '';
 
-        // 直接使用allData，因为服务器端已经处理了分页
-        const pageData = allData;
+        // 使用filteredData，支持前端过滤和分页
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageData = filteredData.slice(startIndex, endIndex);
+
+        console.log('📋 渲染表格:', {
+            filteredDataLength: filteredData.length,
+            currentPage,
+            pageSize,
+            startIndex,
+            endIndex,
+            pageDataLength: pageData.length
+        });
 
         pageData.forEach(product => {
             const row = document.createElement('tr');
@@ -5762,6 +6438,12 @@
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
                     <td class="problem-desc" title="${product.productName || ''}">${(product.productName || '').substring(0, 30)}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="image-cell">
+                        ${product.imageUrl ?
+                `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` :
+                '<span class="no-image">暂无图片</span>'
+            }
+                    </td>
                     <td>${product.projectStartTime || '-'}</td>
                     <td>${product.targetLaunchTime || '-'}</td>
                     <td><span class="status-badge status-${product.displayType?.toLowerCase() || ''}">${product.displayType || '-'}</span></td>
@@ -5841,7 +6523,8 @@
 
         if (newPage >= 1 && newPage <= totalPages) {
             currentPage = newPage;
-            loadProductData(); // 重新加载数据
+            renderTable(); // 直接渲染表格，不需要重新加载数据
+            updatePagination();
         }
     }
 
@@ -5850,7 +6533,8 @@
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page >= 1 && page <= totalPages) {
             currentPage = page;
-            loadProductData(); // 重新加载数据
+            renderTable(); // 直接渲染表格，不需要重新加载数据
+            updatePagination();
         }
     }
 
@@ -5859,7 +6543,8 @@
         const totalPages = Math.ceil(totalCount / pageSize);
         if (totalPages > 0) {
             currentPage = totalPages;
-            loadProductData(); // 重新加载数据
+            renderTable(); // 直接渲染表格，不需要重新加载数据
+            updatePagination();
         }
     }
 
@@ -5871,7 +6556,8 @@
 
         if (page >= 1 && page <= totalPages) {
             currentPage = page;
-            loadProductData(); // 重新加载数据
+            renderTable(); // 直接渲染表格，不需要重新加载数据
+            updatePagination();
             input.value = '';
         } else {
             alert(`请输入1到${totalPages}之间的页码`);
@@ -5953,11 +6639,6 @@
     }
 
 
-    // 应用筛选条件
-    function applyFilters() {
-        // 执行搜索以应用当前筛选条件
-        searchProblems();
-    }
 
 
     // 刷新单个选项（大类或小类）
@@ -6334,7 +7015,9 @@
 
     // 返回上一页
     function goBack() {
-        window.history.back();
+        // 返回到任务状态大盘
+        document.getElementById('detailView').style.display = 'none';
+        document.getElementById('dashboardView').style.display = 'block';
     }
 
     // 返回主页
@@ -6535,26 +7218,22 @@
         alert(`已成功将 ${selectedRows.length} 条数据加入收藏夹！`);
     }
 
-    // 获取当前筛选条件（筛选器已移除）
+    // 获取当前筛选条件
     function getCurrentFilters() {
-        return {}; // 筛选器已移除，返回空对象
+        return {
+            productCategory: document.getElementById('filterProductCategory')?.value?.trim() || '',
+            sku: document.getElementById('filterSku')?.value?.trim() || '',
+            leadDqe: document.getElementById('filterLeadDqe')?.value?.trim() || ''
+        };
     }
 
     // 生成筛选条件描述
     function generateFilterDescription(filters) {
         const descriptions = [];
 
-        if (filters.productCategory) descriptions.push(`产品三级类目: ${filters.productCategory}`);
-        if (filters.priority) descriptions.push(`优先级: ${filters.priority}`);
-        if (filters.model) descriptions.push(`型号: ${filters.model}`);
+        if (filters.productCategory) descriptions.push(`品类: ${filters.productCategory}`);
         if (filters.sku) descriptions.push(`SKU: ${filters.sku}`);
-        if (filters.stage) descriptions.push(`阶段: ${filters.stage}`);
-        if (filters.productName) descriptions.push(`产品名称: ${filters.productName}`);
         if (filters.leadDqe) descriptions.push(`主导DQE: ${filters.leadDqe}`);
-        if (filters.electronicRd) descriptions.push(`电子研发: ${filters.electronicRd}`);
-        if (filters.status) descriptions.push(`状态: ${filters.status}`);
-        if (filters.testStartDate) descriptions.push(`测试开始: ${filters.testStartDate}`);
-        if (filters.testEndDate) descriptions.push(`测试结束: ${filters.testEndDate}`);
 
         return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
     }
@@ -6670,7 +7349,16 @@
         // 清空所有筛选条件
         resetFilters();
 
-        // 筛选器已移除，无法应用筛选条件
+        // 应用筛选条件到过滤器输入框
+        if (filters.productCategory) {
+            document.getElementById('filterProductCategory').value = filters.productCategory;
+        }
+        if (filters.sku) {
+            document.getElementById('filterSku').value = filters.sku;
+        }
+        if (filters.leadDqe) {
+            document.getElementById('filterLeadDqe').value = filters.leadDqe;
+        }
 
         // 关闭收藏夹详情模态框
         closeSpecificModal('cartDetailModal');
@@ -6678,11 +7366,11 @@
         // 关闭收藏夹模态框
         closeSpecificModal('cartModal');
 
-        // 执行搜索
-        searchProducts();
+        // 应用过滤器
+        applyFilters();
 
         // 显示成功提示
-        showToast('已应用收藏夹中的筛选条件并重新搜索', 'success');
+        showToast('已应用收藏夹中的筛选条件', 'success');
     }
 
     // 渲染收藏夹详情表格
@@ -8007,5 +8695,14 @@
         }
     }
 </script>
+
+<!-- 图片预览模态框 -->
+<div id="imagePreviewModal" class="image-preview-modal">
+    <div class="image-preview-content">
+        <span class="image-preview-close">&times;</span>
+        <img id="previewImage" src="" alt="产品图片预览">
+    </div>
+</div>
+
 </body>
 </html>

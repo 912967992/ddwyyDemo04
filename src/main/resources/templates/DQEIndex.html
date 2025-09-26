@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>研发质量管理系统主页</title>
     <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -214,13 +214,21 @@
         </div>
     </div>
 
+    <!-- 控制中心切换按钮 -->
+    <button id="controlPanelToggle" class="control-panel-toggle">
+        <i class="fas fa-cog"></i>
+    </button>
+
     <!-- 现代化侧边控制面板 -->
-    <div class="control-panel">
+    <div class="control-panel" id="controlPanel">
         <div class="panel-header">
             <div class="panel-icon">
                 <i class="fas fa-cog"></i>
             </div>
             <h3>控制中心</h3>
+            <button id="closeControlPanel" class="close-control-panel">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="panel-section">
@@ -307,38 +315,40 @@
     <div id="overdueModal" class="modal">
         <div class="modal-content">
             <span class="close overdue-close">&times;</span>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="modal-header-mobile">
                 <h3>超时项目列表</h3>
-                <div>
-                    <input type="text" id="overdueSearch" placeholder="输入关键字搜索..." style="padding: 5px; margin-right: 10px;">
-                    <button onclick="searchOverdueTable()">搜索</button>
-                    <button id="saveOverdueReasons" style="margin-left: 10px;">提交超时原因</button>
+                <div class="search-controls">
+                    <input type="text" id="overdueSearch" placeholder="输入关键字搜索..." class="search-input">
+                    <button onclick="searchOverdueTable()" class="search-btn">搜索</button>
+                    <button id="saveOverdueReasons" class="save-btn">提交超时原因</button>
                 </div>
             </div>
 
-            <table id="overdueTable">
-                <thead>
-                <tr>
-                    <th>列表ID</th>
-                    <th>样品ID</th>
-                    <th>超时节点</th>
-                    <th>当前进度</th>
-                    <th>创建时间</th>
-                    <th>警告时间</th>
-                    <th>第一次超时通知主管时间</th>
-                    <th>第二次超时通知经理时间</th>
-                    <th>大小编码</th>
-                    <th>大类</th>
-                    <th>小类</th>
-                    <th>类别</th>
-                    <th>版本</th>
-                    <th>任务属性</th>
-                    <th>节点负责人</th>
-                    <th>超期原因<br>(点上方按钮保存)</th>
-                </tr>
-                </thead>
-                <tbody id="overdueProjectList"></tbody>
-            </table>
+            <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table id="overdueTable">
+                    <thead>
+                    <tr>
+                        <th>列表ID</th>
+                        <th>样品ID</th>
+                        <th>超时节点</th>
+                        <th>当前进度</th>
+                        <th>创建时间</th>
+                        <th>警告时间</th>
+                        <th>第一次超时通知主管时间</th>
+                        <th>第二次超时通知经理时间</th>
+                        <th>大小编码</th>
+                        <th>大类</th>
+                        <th>小类</th>
+                        <th>类别</th>
+                        <th>版本</th>
+                        <th>任务属性</th>
+                        <th>节点负责人</th>
+                        <th>超期原因<br>(点上方按钮保存)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="overdueProjectList"></tbody>
+                </table>
+            </div>
 
         </div>
     </div>
@@ -372,26 +382,28 @@
         <div class="modal-content">
             <span class="close recent-notifications-close">&times;</span>
             <h2>近期通知项目列表</h2>
-            <table id="recentNotificationsTable">
-                <thead>
-                <tr>
-                    <th>列表ID</th>
-                    <th>样品ID</th>
-                    <th>通知节点</th>
-                    <th>当前进度</th>
-                    <th>创建时间</th>
-                    <th>超时预警时间</th>
-                    <th>大小编码</th>
-                    <th>大类</th>
-                    <th>小类</th>
-                    <th>类别</th>
-                    <th>版本</th>
-                    <th>任务属性</th>
-                    <th>节点负责人</th>
-                </tr>
-                </thead>
-                <tbody id="recentNotificationsProjectList"></tbody>
-            </table>
+            <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table id="recentNotificationsTable">
+                    <thead>
+                    <tr>
+                        <th>列表ID</th>
+                        <th>样品ID</th>
+                        <th>通知节点</th>
+                        <th>当前进度</th>
+                        <th>创建时间</th>
+                        <th>超时预警时间</th>
+                        <th>大小编码</th>
+                        <th>大类</th>
+                        <th>小类</th>
+                        <th>类别</th>
+                        <th>版本</th>
+                        <th>任务属性</th>
+                        <th>节点负责人</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recentNotificationsProjectList"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -400,24 +412,26 @@
         <div class="modal-content">
             <span class="close project-detail-close">&times;</span>
             <h2 id="projectDetailTitle">项目详情列表</h2>
-            <table id="projectDetailTable">
-                <thead>
-                <tr>
-                    <th>序号</th>
-                    <th>样品ID</th>
-                    <th>当前节点</th>
-                    <th>当前进度</th>
-                    <th>创建时间</th>
-                    <th>大小编码</th>
-                    <th>大类</th>
-                    <th>大货/功能</th>
-                    <th>类别</th>
-                    <th>版本</th>
-                    <th>节点负责人</th>
-                </tr>
-                </thead>
-                <tbody id="projectDetailList"></tbody>
-            </table>
+            <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table id="projectDetailTable">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>样品ID</th>
+                        <th>当前节点</th>
+                        <th>当前进度</th>
+                        <th>创建时间</th>
+                        <th>大小编码</th>
+                        <th>大类</th>
+                        <th>大货/功能</th>
+                        <th>类别</th>
+                        <th>版本</th>
+                        <th>节点负责人</th>
+                    </tr>
+                    </thead>
+                    <tbody id="projectDetailList"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -431,6 +445,19 @@
             <div class="card-content">
                 <h3>数据看板</h3>
                 <p>项目统计和数据分析</p>
+            </div>
+            <div class="card-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+
+        <div class="dashboard-card" onclick="goToSmartProjectAnalyzer()">
+            <div class="card-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div class="card-content">
+                <h3>智能项目识别与统计分析系统</h3>
+                <p>AI驱动的项目智能分析</p>
             </div>
             <div class="card-arrow">
                 <i class="fas fa-arrow-right"></i>
@@ -533,15 +560,21 @@
 
 
 
-    <!-- 下方固定按钮 -->
+    <!-- 现代化底部导航栏 -->
     <div class="btn-container">
         <hr class="divider"> <!-- 按钮上方的横线 -->
         <!-- 主页按钮 -->
-        <button class="btn" id="homeBtn"><i class="fas fa-home"></i></button>
+        <button class="btn" id="homeBtn" title="主页">
+            <i class="fas fa-home"></i>
+        </button>
         <!-- 搜索资源库按钮 -->
-        <button class="btn" id="cloudBtn"><i class="fas fa-cloud"></i></button>
+        <button class="btn" id="cloudBtn" title="搜索资源库">
+            <i class="fas fa-cloud"></i>
+        </button>
         <!-- 个人界面按钮 -->
-        <button class="btn" id="profileBtn"><i class="fas fa-user"></i></button>
+        <button class="btn" id="profileBtn" title="个人中心">
+            <i class="fas fa-user"></i>
+        </button>
     </div>
 
     <!-- 模态框结构 -->
@@ -576,6 +609,117 @@
     </div>
 
     <script>
+        // 移动端检测和优化
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (window.innerWidth <= 768);
+        }
+        
+        // 移动端触摸优化
+        function addTouchOptimizations() {
+            if (isMobileDevice()) {
+                // 为所有可点击元素添加触摸反馈
+                const clickableElements = document.querySelectorAll('.module-card, .dashboard-card, .stat-card, .modern-btn, .role-btn, .btn');
+                clickableElements.forEach(element => {
+                    element.addEventListener('touchstart', function() {
+                        this.style.transform = 'scale(0.95)';
+                    });
+                    element.addEventListener('touchend', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+                
+                // 优化模态框在移动端的显示
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    modal.addEventListener('show', function() {
+                        document.body.style.overflow = 'hidden';
+                    });
+                    modal.addEventListener('hide', function() {
+                        document.body.style.overflow = 'auto';
+                    });
+                });
+            }
+        }
+        
+        // 页面加载完成后应用移动端优化
+        document.addEventListener('DOMContentLoaded', function() {
+            addTouchOptimizations();
+            initControlPanel();
+            initBottomButtons();
+        });
+        
+        // 初始化底部按钮
+        function initBottomButtons() {
+            const buttons = document.querySelectorAll('.btn');
+            
+            buttons.forEach(button => {
+                // 添加点击波纹效果
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.classList.add('ripple');
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+                
+                // 添加键盘支持
+                button.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            });
+        }
+        
+        // 初始化控制面板
+        function initControlPanel() {
+            const controlPanel = document.getElementById('controlPanel');
+            const toggleBtn = document.getElementById('controlPanelToggle');
+            const closeBtn = document.getElementById('closeControlPanel');
+            
+            // 切换控制面板显示/隐藏
+            toggleBtn.addEventListener('click', function() {
+                controlPanel.classList.toggle('show');
+                if (controlPanel.classList.contains('show')) {
+                    toggleBtn.style.display = 'none';
+                }
+            });
+            
+            // 关闭控制面板
+            closeBtn.addEventListener('click', function() {
+                controlPanel.classList.remove('show');
+                toggleBtn.style.display = 'flex';
+            });
+            
+            // 点击控制面板外部区域关闭面板
+            document.addEventListener('click', function(event) {
+                if (!controlPanel.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    controlPanel.classList.remove('show');
+                    toggleBtn.style.display = 'flex';
+                }
+            });
+            
+            // 移动端特殊处理
+            if (isMobileDevice()) {
+                // 在移动端，控制面板从上方滑入
+                controlPanel.style.transform = 'translateY(-100%)';
+                controlPanel.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            }
+        }
+
         function checkAndRedirect() {
             if (username === "许梦瑶"||username === "姚遥" ||username === "卢健"  || username === "占海英" || username === "陈少侠" || username === "郭丽纯" || username === "刘定荣" || username === "卢绮敏") {
                 location.href = "/loginTestEnvironment";
@@ -586,51 +730,51 @@
         }
 
         function checkProblemLibraryPermission() {
-            // const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
-            // if (allowedUsers.includes(username)) {
-            //     // 检查是否在钉钉环境中
-            //     const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-            //     const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            //     // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            //
-            //     if (isDingTalk) {
-            //         dd.openLink({
-            //             url: url,
-            //             success: function() {
-            //                 console.log('成功打开问题点库管理页面');
-            //             },
-            //             fail: function(err) {
-            //                 alert('打开页面失败：' + JSON.stringify(err));
-            //                 console.error('dd.openLink fail:', err);
-            //             }
-            //         });
-            //     } else {
-            //         // 非钉钉环境使用普通跳转
-            //         window.location.href = url;
-            //     }
-            // } else {
-            //     alert("您无权限进入问题点库管理页面");
-            // }
-            // 检查是否在钉钉环境中
-            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-            const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧', "谢勇"];
+            if (allowedUsers.includes(username)) {
+                // 检查是否在钉钉环境中
+                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+                const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
-            if (isDingTalk) {
-                dd.openLink({
-                    url: url,
-                    success: function() {
-                        console.log('成功打开问题点库管理页面');
-                    },
-                    fail: function(err) {
-                        alert('打开页面失败：' + JSON.stringify(err));
-                        console.error('dd.openLink fail:', err);
-                    }
-                });
+                if (isDingTalk) {
+                    dd.openLink({
+                        url: url,
+                        success: function() {
+                            console.log('成功打开问题点库管理页面');
+                        },
+                        fail: function(err) {
+                            alert('打开页面失败：' + JSON.stringify(err));
+                            console.error('dd.openLink fail:', err);
+                        }
+                    });
+                } else {
+                    // 非钉钉环境使用普通跳转
+                    window.location.href = url;
+                }
             } else {
-                // 非钉钉环境使用普通跳转
-                window.location.href = url;
+                alert("您无权限进入问题点库管理页面");
             }
+            // // 检查是否在钉钉环境中
+            // const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            // const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            //
+            // if (isDingTalk) {
+            //     dd.openLink({
+            //         url: url,
+            //         success: function() {
+            //             console.log('成功打开问题点库管理页面');
+            //         },
+            //         fail: function(err) {
+            //             alert('打开页面失败：' + JSON.stringify(err));
+            //             console.error('dd.openLink fail:', err);
+            //         }
+            //     });
+            // } else {
+            //     // 非钉钉环境使用普通跳转
+            //     window.location.href = url;
+            // }
         }
 
         function goToScheduleBoard() {
@@ -769,6 +913,45 @@
                 // 非钉钉环境使用普通跳转
                 window.location.href = url;
             }
+        }
+
+        // 跳转到智能项目识别与统计分析系统
+        function goToSmartProjectAnalyzer() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+            
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+
+            if(job === 'manager'){
+
+                // 检查是否在钉钉环境中
+                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+                const url = 'http://219.134.191.195:64000/smart-project-analyzer?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+                if (isDingTalk) {
+                    dd.openLink({
+                        url: url,
+                        success: function() {
+                            console.log('成功打开智能项目识别与统计分析系统');
+                        },
+                        fail: function(err) {
+                            alert('打开页面失败：' + JSON.stringify(err));
+                            console.error('dd.openLink fail:', err);
+                        }
+                    });
+                } else {
+                    // 非钉钉环境使用普通跳转
+                    window.location.href = url;
+                }
+            }else{
+                alert("只有李良健才有权限进入该页面")
+            }
+
         }
 
         // 辅助函数：根据角色获取看板路径

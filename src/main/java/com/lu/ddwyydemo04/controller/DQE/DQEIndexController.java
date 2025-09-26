@@ -457,6 +457,13 @@ public class DQEIndexController {
         return "problemLibraryManage";
     }
 
+    // 智能项目识别与统计分析系统
+    @GetMapping("/smart-project-analyzer")
+    public String smartProjectAnalyzer() {
+        // 返回智能项目识别与统计分析系统页面
+        return "DQE/smart-project-analyzer-source";
+    }
+
     // 获取电气项目数据（管理层看板）
     @GetMapping("/DQEIndex/getElectricProjectData")
     @ResponseBody

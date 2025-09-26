@@ -2517,14 +2517,6 @@
                 return;
             }
 
-            // 检查是否有权限进入问题点库管理页面
-            const allowedUsers = ['邓小英', '邓令章', '卢健', '李良健', '黄家灿'];
-            if (!allowedUsers.includes(currentUser)) {
-                alert('您没有权限进入问题点库管理页面！');
-                window.location.href = '/DQEIndex';
-                return;
-            }
-
             // 检查是否为超级管理员
             isSuperAdmin = (currentUser === '卢健' && currentRole === 'manager');
 
