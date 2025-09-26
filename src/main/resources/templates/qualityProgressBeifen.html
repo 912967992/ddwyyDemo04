@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新品进度管理</title>
+    <title>新品质量进度管理</title>
     <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- 引入外部CSS文件 -->
@@ -791,7 +791,7 @@
             font-size: 11px;
         }
 
-        /* 新品进度详情编辑模式样式 */
+        /* 新品质量进度详情编辑模式样式 */
         .detail-content {
             padding: 20px;
         }
@@ -1897,7 +1897,7 @@
         <div class="header-left">
             <h1 class="page-title">
                 <i class="fas fa-clipboard-check"></i>
-                新品进度评价管理
+                新品质量进度管理
             </h1>
         </div>
 
@@ -1919,7 +1919,7 @@
                     <i class="fas fa-plus"></i> 新增数据
                 </button>
                 <button id="importBtn" class="btn btn-primary">
-                    <i class="fas fa-upload"></i> 导入新品进度数据
+                    <i class="fas fa-upload"></i> 导入新品质量进度数据
                 </button>
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
@@ -1938,11 +1938,11 @@
     </div>
 </div>
 
-<!-- 导入新品进度模态框 -->
+<!-- 导入新品质量进度模态框 -->
 <div id="importModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>导入新品进度数据</h2>
+            <h2>导入新品质量进度数据</h2>
             <span class="close" onclick="closeImportModal()">&times;</span>
         </div>
         <div class="modal-body">
@@ -1952,7 +1952,7 @@
                     <h3><i class="fas fa-download"></i> 下载模板文件</h3>
                     <p>请先下载模板文件，按照模板格式填写数据后上传</p>
                     <button id="downloadTemplateBtn" class="btn btn-info">
-                        <i class="fas fa-file-excel"></i> 下载新品进度模板
+                        <i class="fas fa-file-excel"></i> 下载新品质量进度模板
                     </button>
                     <div class="template-info">
                         <small>模板文件包含所有必填字段的示例数据</small>
@@ -2144,6 +2144,7 @@
                         <input type="checkbox" id="selectAllTableRows" title="全选/取消全选">
                     </th>
                     <th>ID</th>
+                    <th>组别</th>
                     <th>产品三级类目</th>
                     <th>优先级</th>
                     <th>型号</th>
@@ -2207,11 +2208,11 @@
         </div>
     </div>
 
-    <!-- 新品进度详情模态框 -->
+    <!-- 新品质量进度详情模态框 -->
     <div id="reviewDetailModal" class="modal">
         <div class="modal-content large-modal">
             <div class="modal-header">
-                <h2 id="reviewModalTitle">新品进度详情</h2>
+                <h2 id="reviewModalTitle">新品质量进度详情</h2>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
@@ -3466,9 +3467,6 @@
         const labels = Object.keys(priorityMap);
         const chartData = Object.values(priorityMap);
 
-        console.log('📊 优先级饼状图数据:', priorityMap);
-        console.log('🏷️ 优先级标签:', labels);
-        console.log('📈 优先级数据:', chartData);
         const colors = [
             'rgba(220, 53, 69, 0.8)',   // 高优先级 - 红色
             'rgba(255, 193, 7, 0.8)',   // 中优先级 - 黄色
@@ -4141,7 +4139,6 @@
 
     // 获取所有唯一值用于建议
     function getUniqueValues(field) {
-        console.log('🔍 获取唯一值:', field, 'allData长度:', allData ? allData.length : 0);
         const values = new Set();
         if (!allData || allData.length === 0) {
             console.log('⚠️ 数据未加载或为空');
@@ -4287,7 +4284,10 @@
             currentRole = urlRole;
             localStorage.setItem('currentRole', currentRole);
         } else {
-            currentRole = localStorage.getItem('currentRole') || 'TestMan';
+            // 优先从localStorage获取job信息，如果没有则使用currentRole，最后默认为TestMan
+            currentRole = localStorage.getItem('job') || localStorage.getItem('currentRole') || 'TestMan';
+            // 将获取到的角色保存到currentRole中
+            localStorage.setItem('currentRole', currentRole);
         }
 
         // 检查是否为超级管理员
@@ -4300,6 +4300,33 @@
 
         // 根据权限控制界面元素
         controlEditPermissions();
+
+        // 更新角色信息（从localStorage获取最新的job信息）
+        updateRoleFromJob();
+
+        // 定期检查并更新角色信息（每5秒检查一次）
+        setInterval(updateRoleFromJob, 5000);
+
+        // 监听localStorage变化，实时更新角色信息
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'job' && e.newValue && e.newValue !== currentRole) {
+                currentRole = e.newValue;
+                localStorage.setItem('currentRole', currentRole);
+                document.getElementById('currentRole').textContent = `角色: ${currentRole}`;
+                console.log('角色已通过storage事件更新为:', currentRole);
+            }
+        });
+    }
+
+    // 更新角色信息（从localStorage获取最新的job信息）
+    function updateRoleFromJob() {
+        const jobFromStorage = localStorage.getItem('job');
+        if (jobFromStorage && jobFromStorage !== currentRole) {
+            currentRole = jobFromStorage;
+            localStorage.setItem('currentRole', currentRole);
+            document.getElementById('currentRole').textContent = `角色: ${currentRole}`;
+            console.log('角色已更新为:', currentRole);
+        }
     }
 
     // 控制编辑权限
@@ -4487,7 +4514,7 @@
 
                         const link = document.createElement('a');
                         link.href = data.downloadUrl;
-                        link.download = '新品进度导入模板.xlsx';
+                        link.download = '新品质量进度导入模板.xlsx';
                         link.style.display = 'none';
                         document.body.appendChild(link);
                         link.click();
@@ -4598,7 +4625,7 @@
             closeSpecificModal('cartModal');
         });
 
-        // 注意：新品进度页面不需要这些刷新按钮，因为筛选器都是输入框或固定选项
+        // 注意：新品质量进度页面不需要这些刷新按钮，因为筛选器都是输入框或固定选项
 
 
 
@@ -4644,7 +4671,7 @@
         // 关闭历史版本模态框
         document.getElementById('closeHistoryModal').addEventListener('click', closeModal);
 
-        // 关闭新品进度详情模态框
+        // 关闭新品质量进度详情模态框
         document.getElementById('closeReviewDetailModal').addEventListener('click', function() {
             resetReviewEditMode();
             document.getElementById('reviewDetailModal').style.display = 'none';
@@ -4655,7 +4682,7 @@
             closeSpecificModal('problemDetailModal');
         });
 
-        // 新品进度编辑相关事件监听器
+        // 新品质量进度编辑相关事件监听器
         document.getElementById('editReviewBtn').addEventListener('click', enterReviewEditMode);
         document.getElementById('saveReviewBtn').addEventListener('click', saveReviewEdit);
         document.getElementById('cancelEditReviewBtn').addEventListener('click', cancelReviewEdit);
@@ -4679,7 +4706,7 @@
                 // 找到最近的模态框并关闭
                 const modal = event.target.closest('.modal');
                 if (modal) {
-                    // 如果是新品进度详情模态框，需要重置编辑状态
+                    // 如果是新品质量进度详情模态框，需要重置编辑状态
                     if (modal.id === 'reviewDetailModal') {
                         resetReviewEditMode();
                     }
@@ -4690,7 +4717,7 @@
 
             // 处理点击模态框外部关闭
             if (event.target.classList.contains('modal')) {
-                // 如果是新品进度详情模态框，需要重置编辑状态
+                // 如果是新品质量进度详情模态框，需要重置编辑状态
                 if (event.target.id === 'reviewDetailModal') {
                     resetReviewEditMode();
                 }
@@ -4725,7 +4752,7 @@
         }
     }
 
-    // 加载新品进度数据
+    // 加载新品质量进度数据
     function loadProductData() {
         showLoading();
 
@@ -4744,17 +4771,12 @@
         fetch('/newProductProgress/getNewProductProgress?' + params.toString())
             .then(response => response.json())
             .then(data => {
-                console.log('API响应数据:', data);
                 if (data.success) {
                     allData = data.data || [];
                     filteredData = [...allData];
                     totalCount = allData.length; // 使用本地数据长度
                     totalPages = Math.ceil(totalCount / pageSize);
-                    console.log('加载的数据:', allData);
-                    console.log('总记录数:', totalCount);
-                    console.log('总页数:', totalPages);
-                    console.log('当前页:', currentPage);
-                    console.log('每页大小:', pageSize);
+
                     renderTable();
                     updatePagination();
                     // 更新大盘数据 - 使用全部数据
@@ -4774,7 +4796,7 @@
     }
 
 
-    // 搜索新品进度
+    // 搜索新品质量进度
     function searchProducts() {
         console.log('开始搜索');
         currentPage = 1; // 重置到第一页
@@ -4985,7 +5007,7 @@
         const exportData = {
             data: selectedRows,
             exportType: 'newProductProgress',
-            fileName: `新品进度数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+            fileName: `新品质量进度数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
             totalCount: selectedRows.length,
             exportTime: new Date().toISOString(),
             username: getCurrentUsername(),
@@ -5022,7 +5044,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                showToast(`导出成功！共导出 ${selectedRows.length} 条新品进度数据`, 'success');
+                showToast(`导出成功！共导出 ${selectedRows.length} 条新品质量进度数据`, 'success');
             })
             .catch(error => {
                 console.error('❌ 导出错误:', error);
@@ -5094,7 +5116,7 @@
         resetReviewEditMode();
 
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '新增新品进度';
+        document.getElementById('reviewModalTitle').textContent = '新增新品质量进度';
 
         // 清空所有字段
         clearReviewDetailFields();
@@ -5106,7 +5128,7 @@
         document.getElementById('reviewDetailModal').style.display = 'block';
     }
 
-    // 清空新品进度详情字段
+    // 清空新品质量进度详情字段
     function clearReviewDetailFields() {
         // 清空所有显示字段
         const fields = [
@@ -5145,7 +5167,7 @@
         });
     }
 
-    // 显示新品进度详情
+    // 显示新品质量进度详情
     function showProductDetail(reviewId) {
         const product = filteredData.find(p => p.id === reviewId);
         if (!product) return;
@@ -5154,9 +5176,9 @@
         resetReviewEditMode();
 
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '新品进度详情';
+        document.getElementById('reviewModalTitle').textContent = '新品质量进度详情';
 
-        // 存储当前编辑的新品进度ID
+        // 存储当前编辑的新品质量进度ID
         currentEditingReviewId = reviewId;
 
         // 填充详情数据
@@ -5610,13 +5632,13 @@
         });
     }
 
-    // 保存新品进度编辑
+    // 保存新品质量进度编辑
     async function saveReviewEdit() {
         // 判断是新增还是更新
         const isNewRecord = !currentEditingReviewId;
 
         if (!isNewRecord && !currentEditingReviewId) {
-            showToast('没有找到要编辑的新品进度', 'error');
+            showToast('没有找到要编辑的新品质量进度', 'error');
             return;
         }
 
@@ -5691,7 +5713,7 @@
 
         // 根据是新增还是更新选择不同的API
         const apiUrl = isNewRecord ? '/newProductProgress/add' : '/newProductProgress/update';
-        const successMessage = isNewRecord ? '新品进度新增成功' : '新品进度更新成功';
+        const successMessage = isNewRecord ? '新品质量进度新增成功' : '新品质量进度更新成功';
         const errorMessage = isNewRecord ? '新增失败' : '更新失败';
 
         // 发送请求
@@ -5737,7 +5759,7 @@
             });
     }
 
-    // 取消新品进度编辑
+    // 取消新品质量进度编辑
     function cancelReviewEdit() {
         // 退出编辑模式
         exitReviewEditMode();
@@ -5745,7 +5767,7 @@
         showProductDetail(currentEditingReviewId);
     }
 
-    // 重置新品进度编辑模式（用于模态框关闭时）
+    // 重置新品质量进度编辑模式（用于模态框关闭时）
     function resetReviewEditMode() {
         // 如果当前在编辑模式，先退出编辑模式
         const editBtn = document.getElementById('editReviewBtn');
@@ -5760,7 +5782,7 @@
             }
         }
 
-        // 清空当前编辑的新品进度ID
+        // 清空当前编辑的新品质量进度ID
         currentEditingReviewId = null;
     }
 
@@ -6432,6 +6454,7 @@
                         <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行">
                     </td>
                     <td>${product.id || '-'}</td>
+                    <td class="problem-desc" title="${product.groupName || ''}">${(product.groupName || '').substring(0, 20)}${(product.groupName || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.productCategoryLevel3 || ''}">${(product.productCategoryLevel3 || '').substring(0, 20)}${(product.productCategoryLevel3 || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.priority?.toLowerCase() || ''}">${product.priority || '-'}</span></td>
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>

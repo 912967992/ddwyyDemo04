@@ -194,31 +194,48 @@ public class NewProductProgressService {
             // 创建工作簿
             workbook = new XSSFWorkbook(file.getInputStream());
             
-            // 检查是否有第二个工作表
-            if (workbook.getNumberOfSheets() < 2) {
-                result.setSuccess(false);
-                result.setMessage("Excel文件必须包含至少2个工作表，请检查文件格式");
-                return result;
+            // 智能识别工作表：优先使用第一个工作表（导出的数据表）
+            Sheet sheet = null;
+            Row headerRow = null;
+            Drawing<?> drawing = null;
+            
+            // 首先尝试第一个工作表（导出的数据表）
+            if (workbook.getNumberOfSheets() >= 1) {
+                Sheet firstSheet = workbook.getSheetAt(0);
+                if (firstSheet != null && firstSheet.getLastRowNum() >= 0) {
+                    // 检查第一行是否包含导出字段标题
+                    Row firstRow = firstSheet.getRow(0);
+                    if (firstRow != null) {
+                        String firstCellValue = getCellValueAsString(firstRow.getCell(0));
+                        if ("序号".equals(firstCellValue) || "产品三级类目".equals(firstCellValue)) {
+                            // 这是导出的数据表，使用第一行作为标题行
+                            sheet = firstSheet;
+                            headerRow = firstRow;
+                            drawing = sheet.getDrawingPatriarch();
+                            System.out.println("使用第一个工作表（导出的数据表）");
+                        }
+                    }
+                }
             }
             
-            // 获取第二个工作表（索引为1）
-            Sheet sheet = workbook.getSheetAt(1);
-            
-            // 获取绘图对象用于提取图片
-            Drawing<?> drawing = sheet.getDrawingPatriarch();
-            
-            // 检查第七行是否存在（索引为6）
-            if (sheet.getLastRowNum() < 6) {
-                result.setSuccess(false);
-                result.setMessage("第二个工作表的第七行不存在，请检查文件格式");
-                return result;
+            // 如果第一个工作表不是导出格式，尝试第二个工作表（旧格式）
+            if (sheet == null && workbook.getNumberOfSheets() >= 2) {
+                Sheet secondSheet = workbook.getSheetAt(1);
+                if (secondSheet != null && secondSheet.getLastRowNum() >= 6) {
+                    Row seventhRow = secondSheet.getRow(6);
+                    if (seventhRow != null) {
+                        sheet = secondSheet;
+                        headerRow = seventhRow;
+                        drawing = sheet.getDrawingPatriarch();
+                        System.out.println("使用第二个工作表的第七行（旧格式）");
+                    }
+                }
             }
             
-            // 获取第七行作为字段标题行（索引为6）
-            Row headerRow = sheet.getRow(6);
-            if (headerRow == null) {
+            // 如果都没有找到合适的工作表
+            if (sheet == null || headerRow == null) {
                 result.setSuccess(false);
-                result.setMessage("第七行为空，无法解析字段标题");
+                result.setMessage("无法识别Excel文件格式，请使用导出的Excel文件作为模板");
                 return result;
             }
             
@@ -231,14 +248,20 @@ public class NewProductProgressService {
             int maxErrors = 100; // 限制错误消息数量，避免内存溢出
             Set<String> usedSkus = new HashSet<>(); // 用于跟踪已使用的SKU，避免重复
             
-            // 从第八行开始读取数据（索引为7，跳过标题行）
+            // 智能确定数据起始行：导出的Excel文件从第二行开始，旧格式从第八行开始
+            int startRowIndex = 1; // 默认从第二行开始（导出的Excel文件格式）
+            if (headerRow.getRowNum() == 6) {
+                // 如果是旧格式（第七行是标题行），从第八行开始
+                startRowIndex = 7;
+            }
+            
             // 限制处理行数，避免处理时间过长
             int maxRows = 10000; // 最多处理10000行
-            int lastRowIndex = Math.min(sheet.getLastRowNum(), 7 + maxRows - 1);
+            int lastRowIndex = Math.min(sheet.getLastRowNum(), startRowIndex + maxRows - 1);
             
-            System.out.println("开始解析数据，从第8行到第" + (lastRowIndex + 1) + "行，共" + (lastRowIndex - 7 + 1) + "行");
+            System.out.println("开始解析数据，从第" + (startRowIndex + 1) + "行到第" + (lastRowIndex + 1) + "行，共" + (lastRowIndex - startRowIndex + 1) + "行");
             
-            for (int i = 7; i <= lastRowIndex; i++) {
+            for (int i = startRowIndex; i <= lastRowIndex; i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
                 
@@ -432,10 +455,8 @@ public class NewProductProgressService {
             Integer priorityIndex = columnMapping.get("优先级");
             Integer modelIndex = columnMapping.get("型号");
             Integer skuIndex = columnMapping.get("SKU");
-            Integer stageIndex = columnMapping.get("阶段\n" +
-                    "（节点管理）");
-            Integer productNameIndex = columnMapping.get("产品名称\n" +
-                    "（接口/功能信息）");
+            Integer stageIndex = columnMapping.get("阶段");
+            Integer productNameIndex = columnMapping.get("产品名称（接口/功能信息）");
             Integer imageUrlIndex = columnMapping.get("图片");
             Integer projectStartTimeIndex = columnMapping.get("立项时间");
             Integer targetLaunchTimeIndex = columnMapping.get("目标上市时间");
@@ -444,18 +465,13 @@ public class NewProductProgressService {
             Integer primarySupplierIndex = columnMapping.get("一级供方");
             Integer leadDqeIndex = columnMapping.get("主导DQE");
             Integer electronicRdIndex = columnMapping.get("电子研发");
-            Integer statusIndex = columnMapping.get("状态\n" +
-                    "（只填ID/结构/电子设计中或功能样或大货样）");
-            Integer designReviewProblemIndex = columnMapping.get("设计评审\n" +
-                    "主要问题");
-            Integer evtProblemIndex = columnMapping.get("EVT\n" +
-                    "主要问题");
-            Integer dvtProblemIndex = columnMapping.get("DVT\n" +
-                    "主要问题");
-            Integer mainProjectProgressIndex = columnMapping.get("项目进度主要事项\n" +
-                    "（只填重要内容或一句话）");
-            Integer mainQualityRisksIndex = columnMapping.get("质量主要风险\n" +
-                    "（只填重要内容或一句话）");
+            Integer groupNameIndex = columnMapping.get("组别");
+            Integer statusIndex = columnMapping.get("状态");
+            Integer designReviewProblemIndex = columnMapping.get("设计评审主要问题");
+            Integer evtProblemIndex = columnMapping.get("EVT主要问题");
+            Integer dvtProblemIndex = columnMapping.get("DVT主要问题");
+            Integer mainProjectProgressIndex = columnMapping.get("主要项目进度（只填重要内容或一句话）");
+            Integer mainQualityRisksIndex = columnMapping.get("质量主要风险（只填重要内容或一句话）");
             
              // 根据字段标题动态获取数据
              newProductProgress.setProductCategoryLevel3(getCellValueByIndex(row, productCategoryIndex));
@@ -472,6 +488,7 @@ public class NewProductProgressService {
             newProductProgress.setPrimarySupplier(getCellValueByIndex(row, primarySupplierIndex));
             newProductProgress.setLeadDqe(getCellValueByIndex(row, leadDqeIndex));
             newProductProgress.setElectronicRd(getCellValueByIndex(row, electronicRdIndex));
+            newProductProgress.setGroupName(getCellValueByIndex(row, groupNameIndex));
             newProductProgress.setStatus(getCellValueByIndex(row, statusIndex));
             newProductProgress.setDesignReviewProblem(getCellValueByIndex(row, designReviewProblemIndex));
             newProductProgress.setEvtProblem(getCellValueByIndex(row, evtProblemIndex));

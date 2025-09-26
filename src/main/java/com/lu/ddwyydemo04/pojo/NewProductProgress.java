@@ -24,6 +24,7 @@ public class NewProductProgress {
     private String primarySupplier;
     private String leadDqe;
     private String electronicRd;
+    private String groupName;
     private String status;
     private String designReviewProblem;
     private String evtProblem;
@@ -197,6 +198,14 @@ public class NewProductProgress {
         this.electronicRd = electronicRd;
     }
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -303,6 +312,7 @@ public class NewProductProgress {
                 ", primarySupplier='" + primarySupplier + '\'' +
                 ", leadDqe='" + leadDqe + '\'' +
                 ", electronicRd='" + electronicRd + '\'' +
+                ", groupName='" + groupName + '\'' +
                 ", status='" + status + '\'' +
                 ", designReviewProblem='" + designReviewProblem + '\'' +
                 ", evtProblem='" + evtProblem + '\'' +

@@ -673,7 +673,6 @@ public class NewProductProgressController {
             
             // 过滤掉不需要的字段
             Set<String> excludedFields = new HashSet<>();
-            excludedFields.add("id");
             excludedFields.add("createTime");
             excludedFields.add("updateTime");
             excludedFields.add("createBy");
@@ -684,11 +683,13 @@ public class NewProductProgressController {
             
             // 定义字段显示顺序和中文名称映射
             Map<String, String> fieldDisplayNames = new LinkedHashMap<>();
+            fieldDisplayNames.put("id", "序号");
+            fieldDisplayNames.put("groupName", "组别");
             fieldDisplayNames.put("productCategoryLevel3", "产品三级类目");
             fieldDisplayNames.put("priority", "优先级");
             fieldDisplayNames.put("model", "型号");
             fieldDisplayNames.put("sku", "SKU");
-            fieldDisplayNames.put("stage", "阶段（节点管理）");
+            fieldDisplayNames.put("stage", "阶段");
             fieldDisplayNames.put("productName", "产品名称（接口/功能信息）");
             fieldDisplayNames.put("imageUrl", "图片");
             fieldDisplayNames.put("projectStartTime", "立项时间");
@@ -698,7 +699,7 @@ public class NewProductProgressController {
             fieldDisplayNames.put("primarySupplier", "一级供方");
             fieldDisplayNames.put("leadDqe", "主导DQE");
             fieldDisplayNames.put("electronicRd", "电子研发");
-            fieldDisplayNames.put("status", "状态（只填ID/结构/电子设计中或功能样或大货样）");
+            fieldDisplayNames.put("status", "状态");
             fieldDisplayNames.put("designReviewProblem", "设计评审主要问题");
             fieldDisplayNames.put("evtProblem", "EVT主要问题");
             fieldDisplayNames.put("dvtProblem", "DVT主要问题");

@@ -270,7 +270,7 @@ public class ReviewResultsService {
                 mapping.improvementMeasuresIndex = cellIndex;
             } else if (headerValue.contains("是否可预防") || headerValue.contains("可预防")) {
                 mapping.isPreventableIndex = cellIndex;
-            } else if (headerValue.contains("责任部门") || headerValue.contains("部门")) {
+            } else if (headerValue.contains("责任部门")) {
                 mapping.responsibleDepartmentIndex = cellIndex;
             } else if (headerValue.contains("预计完成时间") || headerValue.contains("预计")) {
                 mapping.plannedCompletionTimeIndex = cellIndex;
