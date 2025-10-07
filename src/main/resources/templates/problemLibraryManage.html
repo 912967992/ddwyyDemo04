@@ -615,45 +615,30 @@
                     <select id="fullModelFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshFullModelBtn" class="btn btn-sm btn-outline-info" title="刷新完整编码选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>样品阶段:</label>
                     <select id="sampleStageFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshSampleStageBtn" class="btn btn-sm btn-outline-info" title="刷新样品阶段选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>版本:</label>
                     <select id="versionFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshVersionBtn" class="btn btn-sm btn-outline-info" title="刷新版本选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>大类:</label>
                     <select id="bigSpeciesFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshBigSpeciesBtn" class="btn btn-sm btn-outline-info" title="刷新大类选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>小类:</label>
                     <select id="smallSpeciesFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshSmallSpeciesBtn" class="btn btn-sm btn-outline-info" title="刷新小类选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
             </div>
 
@@ -683,27 +668,18 @@
                     <select id="testerFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshTesterBtn" class="btn btn-sm btn-outline-info" title="刷新测试人员选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>责任部门:</label>
                     <select id="responsibleDepartmentFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshResponsibleDepartmentBtn" class="btn btn-sm btn-outline-info" title="刷新责任部门选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>测试平台:</label>
                     <select id="testPlatformFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshTestPlatformBtn" class="btn btn-sm btn-outline-info" title="刷新测试平台选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
             </div>
 
@@ -719,9 +695,6 @@
                     <select id="dqeFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshDqeBtn" class="btn btn-sm btn-outline-info" title="刷新DQE负责人选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>问题描述:</label>
@@ -732,9 +705,6 @@
                     <select id="testDeviceFilter">
                         <option value="">全部</option>
                     </select>
-                    <button id="refreshTestDeviceBtn" class="btn btn-sm btn-outline-info" title="刷新显示设备选项（从服务器获取最新数据）">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
                 </div>
                 <div class="filter-group">
                     <label>其他设备:</label>
@@ -750,6 +720,9 @@
                 </button>
                 <button id="resetBtn" class="btn btn-secondary">
                     <i class="fas fa-undo"></i> 重置
+                </button>
+                <button id="refreshAllOptionsBtn" class="btn btn-info">
+                    <i class="fas fa-sync-alt"></i> 刷新选项
                 </button>
             </div>
                 </div>
@@ -799,14 +772,6 @@
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </div>
-                            </div>
-                            <div class="button-group">
-                                <button id="refreshProblemCategoryBtn" class="btn btn-sm btn-outline-primary" title="从数据库刷新问题类别选项">
-                                    <i class="fas fa-database"></i>
-                                </button>
-                                <button id="refreshProblemCategoryConfigBtn" class="btn btn-sm btn-outline-secondary" title="从配置文件刷新问题类别选项">
-                                    <i class="fas fa-file-code"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1807,9 +1772,6 @@
             if (!speciesCache.problemCategory || speciesCache.problemCategory.length === 0) {
                 // console.log('问题类别缓存为空，自动从数据库获取');
                 fetchSpeciesOptionsFromServer('problemCategory');
-            } else {
-                // 如果缓存存在，默认设置为数据库按钮激活（因为缓存数据来自数据库）
-                setProblemCategoryButtonActive('database');
             }
 
             // 初始化购物车
@@ -2410,13 +2372,18 @@
             if (selectedLevel1) {
                 let level2Options = [];
                 
-                // 优先从缓存数据中提取二级分类
-                if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                // 优先从当前搜索数据中提取二级分类
+                if (filteredData && filteredData.length > 0) {
+                    level2Options = extractLevel2FromCurrentData(selectedLevel1);
+                }
+                
+                // 如果当前数据中没有找到，则从缓存数据中提取
+                if (level2Options.length === 0 && speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
                     // console.log('从缓存提取二级分类，缓存数据:', speciesCache.problemCategory);
                     // console.log('选中的一级分类:', selectedLevel1);
                     level2Options = extractLevel2FromCache(speciesCache.problemCategory, selectedLevel1);
                     // console.log('提取的二级分类选项:', level2Options);
-                } else if (typeof getLevel2Categories === 'function') {
+                } else if (level2Options.length === 0 && typeof getLevel2Categories === 'function') {
                     // 从配置文件获取
                     level2Options = getLevel2Categories(selectedLevel1);
                 }
@@ -2459,10 +2426,15 @@
             if (selectedLevel1 && selectedLevel2) {
                 let level3Options = [];
                 
-                // 优先从缓存数据中提取三级分类
-                if (speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
+                // 优先从当前搜索数据中提取三级分类
+                if (filteredData && filteredData.length > 0) {
+                    level3Options = extractLevel3FromCurrentData(selectedLevel1, selectedLevel2);
+                }
+                
+                // 如果当前数据中没有找到，则从缓存数据中提取
+                if (level3Options.length === 0 && speciesCache.problemCategory && speciesCache.problemCategory.length > 0) {
                     level3Options = extractLevel3FromCache(speciesCache.problemCategory, selectedLevel1, selectedLevel2);
-                } else if (typeof getLevel3Categories === 'function') {
+                } else if (level3Options.length === 0 && typeof getLevel3Categories === 'function') {
                     // 从配置文件获取
                     level3Options = getLevel3Categories(selectedLevel1, selectedLevel2);
                 }
@@ -2575,64 +2547,9 @@
                 closeSpecificModal('cartModal');
             });
 
-            // 刷新大类按钮
-            document.getElementById('refreshBigSpeciesBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('bigSpecies');
-            });
-
-            // 刷新小类按钮
-            document.getElementById('refreshSmallSpeciesBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('smallSpecies');
-            });
-
-            // 刷新样品阶段按钮
-            document.getElementById('refreshSampleStageBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('sampleStage');
-            });
-
-            // 刷新完整编码按钮
-            document.getElementById('refreshFullModelBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('fullModel');
-            });
-
-            // 刷新版本按钮
-            document.getElementById('refreshVersionBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('version');
-            });
-
-            // 刷新问题类别按钮
-            document.getElementById('refreshProblemCategoryBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('problemCategory');
-            });
-
-            // 刷新问题类别配置文件按钮
-            document.getElementById('refreshProblemCategoryConfigBtn').addEventListener('click', function() {
-                refreshProblemCategoryFromConfig();
-            });
-
-            // 刷新测试人员按钮
-            document.getElementById('refreshTesterBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('tester');
-            });
-
-            // 刷新责任部门按钮
-            document.getElementById('refreshResponsibleDepartmentBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('responsibleDepartment');
-            });
-
-            // 刷新测试平台按钮
-            document.getElementById('refreshTestPlatformBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('testPlatform');
-            });
-
-            // 刷新DQE负责人按钮
-            document.getElementById('refreshDqeBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('dqe');
-            });
-
-            // 刷新显示设备按钮
-            document.getElementById('refreshTestDeviceBtn').addEventListener('click', function() {
-                refreshSingleSpeciesOptions('testDevice');
+            // 刷新所有选项按钮
+            document.getElementById('refreshAllOptionsBtn').addEventListener('click', function() {
+                refreshAllOptions();
             });
 
 
@@ -3787,6 +3704,222 @@
             document.getElementById('closedCount').textContent = closed;
             document.getElementById('followupCount').textContent = followup;
             document.getElementById('filteredCount').textContent = filteredData.length;
+            
+            // 更新问题类别选项
+            updateProblemCategoryOptionsFromCurrentData();
+        }
+
+        // 从当前搜索数据中提取问题类别选项并更新下拉框
+        function updateProblemCategoryOptionsFromCurrentData() {
+            if (!filteredData || filteredData.length === 0) {
+                return;
+            }
+
+            // 保存当前选中的值
+            const currentLevel1 = document.getElementById('problemCategoryLevel1Filter').value;
+            const currentLevel2 = document.getElementById('problemCategoryLevel2Filter').value;
+            const currentLevel3 = document.getElementById('problemCategoryLevel3Filter').value;
+
+            // 提取所有问题类别
+            const problemCategories = filteredData
+                .map(item => item.problemCategory)
+                .filter(category => category && category.trim() !== '')
+                .map(category => category.trim());
+
+            // 去重并排序
+            const uniqueCategories = [...new Set(problemCategories)].sort();
+
+            // 解析三级结构的问题类别
+            const level1Categories = new Set();
+            const level2Categories = new Set();
+            const level3Categories = new Set();
+
+            uniqueCategories.forEach(category => {
+                // 假设问题类别使用 "-" 分隔三级结构
+                const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                
+                if (parts.length >= 1) {
+                    level1Categories.add(parts[0]);
+                }
+                if (parts.length >= 2) {
+                    level2Categories.add(parts[1]);
+                }
+                if (parts.length >= 3) {
+                    level3Categories.add(parts[2]);
+                }
+            });
+
+            // 更新一级下拉框
+            updateProblemCategoryLevelSelect('problemCategoryLevel1Filter', Array.from(level1Categories));
+            
+            // 如果一级分类有变化，清空二级和三级下拉框
+            if (currentLevel1 && !level1Categories.has(currentLevel1)) {
+                const level2Select = document.getElementById('problemCategoryLevel2Filter');
+                const level3Select = document.getElementById('problemCategoryLevel3Filter');
+                if (level2Select) {
+                    level2Select.innerHTML = '<option value="">全部</option>';
+                }
+                if (level3Select) {
+                    level3Select.innerHTML = '<option value="">全部</option>';
+                }
+            } else if (currentLevel1) {
+                // 如果一级分类没有变化，更新二级下拉框选项但保持当前选中值
+                updateLevel2OptionsFromCurrentData(currentLevel1, currentLevel2, currentLevel3);
+            }
+
+            console.log('问题类别选项已根据当前搜索数据更新');
+            console.log('一级类别:', Array.from(level1Categories));
+            console.log('二级类别:', Array.from(level2Categories));
+            console.log('三级类别:', Array.from(level3Categories));
+        }
+
+        // 更新指定级别的问题类别下拉框
+        function updateProblemCategoryLevelSelect(selectId, options) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            // 保存当前选中的值
+            const currentValue = select.value;
+            
+            // 清空选项（保留"全部"选项）
+            select.innerHTML = '<option value="">全部</option>';
+            
+            // 添加新选项
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+
+            // 如果之前选中的值仍然存在，则恢复选中状态
+            if (currentValue && options.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // 从当前数据中提取二级分类
+        function extractLevel2FromCurrentData(selectedLevel1) {
+            if (!filteredData || filteredData.length === 0) {
+                return [];
+            }
+
+            const level2Categories = new Set();
+            
+            filteredData.forEach(item => {
+                const category = item.problemCategory;
+                if (category && category.trim() !== '') {
+                    const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                    if (parts.length >= 2 && parts[0] === selectedLevel1) {
+                        level2Categories.add(parts[1]);
+                    }
+                }
+            });
+
+            return Array.from(level2Categories).sort().map(category => ({
+                value: category,
+                text: category
+            }));
+        }
+
+        // 从当前数据中提取三级分类
+        function extractLevel3FromCurrentData(selectedLevel1, selectedLevel2) {
+            if (!filteredData || filteredData.length === 0) {
+                return [];
+            }
+
+            const level3Categories = new Set();
+            
+            filteredData.forEach(item => {
+                const category = item.problemCategory;
+                if (category && category.trim() !== '') {
+                    const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                    if (parts.length >= 3 && parts[0] === selectedLevel1 && parts[1] === selectedLevel2) {
+                        level3Categories.add(parts[2]);
+                    }
+                }
+            });
+
+            return Array.from(level3Categories).sort().map(category => ({
+                value: category,
+                text: category
+            }));
+        }
+
+        // 从当前数据更新二级和三级下拉框选项，保持当前选中值
+        function updateLevel2OptionsFromCurrentData(currentLevel1, currentLevel2, currentLevel3) {
+            // 更新二级下拉框
+            const level2Options = extractLevel2FromCurrentData(currentLevel1);
+            const level2Select = document.getElementById('problemCategoryLevel2Filter');
+            
+            if (level2Select) {
+                // 保存当前选中的值
+                const currentValue = level2Select.value;
+                
+                // 清空选项（保留"全部"选项）
+                level2Select.innerHTML = '<option value="">全部</option>';
+                
+                // 添加新选项
+                level2Options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.text;
+                    level2Select.appendChild(optionElement);
+                });
+
+                // 如果之前选中的值仍然存在，则恢复选中状态
+                if (currentValue && level2Options.some(opt => opt.value === currentValue)) {
+                    level2Select.value = currentValue;
+                } else if (currentLevel2 && level2Options.some(opt => opt.value === currentLevel2)) {
+                    // 如果当前保存的值仍然存在，使用它
+                    level2Select.value = currentLevel2;
+                }
+            }
+
+            // 更新三级下拉框
+            const level3Options = extractLevel3FromCurrentData(currentLevel1, level2Select ? level2Select.value : '');
+            const level3Select = document.getElementById('problemCategoryLevel3Filter');
+            
+            if (level3Select) {
+                // 保存当前选中的值
+                const currentValue = level3Select.value;
+                
+                // 清空选项（保留"全部"选项）
+                level3Select.innerHTML = '<option value="">全部</option>';
+                
+                // 添加新选项
+                level3Options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.text;
+                    level3Select.appendChild(optionElement);
+                });
+
+                // 如果之前选中的值仍然存在，则恢复选中状态
+                if (currentValue && level3Options.some(opt => opt.value === currentValue)) {
+                    level3Select.value = currentValue;
+                } else if (currentLevel3 && level3Options.some(opt => opt.value === currentLevel3)) {
+                    // 如果当前保存的值仍然存在，使用它
+                    level3Select.value = currentLevel3;
+                }
+            }
+        }
+
+        // 刷新所有选项
+        function refreshAllOptions() {
+            showLoading();
+            
+            // 由于服务器返回的是所有选项的完整数据，只需要调用一次
+            fetchSpeciesOptionsFromServer('all')
+                .then(() => {
+                    hideLoading();
+                    showToast('所有选项已刷新完成！', 'success');
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('刷新选项时出错:', error);
+                    showToast('刷新选项时出现错误，请重试！', 'error');
+                });
         }
 
         // 应用筛选条件
@@ -3807,7 +3940,7 @@
         // 刷新单个选项（大类或小类）
         function refreshSingleSpeciesOptions(speciesType) {
             // 直接从服务器获取最新数据，不使用缓存
-            fetchSpeciesOptionsFromServer(speciesType);
+            return fetchSpeciesOptionsFromServer(speciesType);
         }
 
         // 强制刷新（忽略缓存）
@@ -3821,9 +3954,7 @@
 
         // 从服务器获取选项
         function fetchSpeciesOptionsFromServer(speciesType) {
-            showLoading();
-
-            fetch('/problemLibrary/getSpeciesOptions', {
+            return fetch('/problemLibrary/getSpeciesOptions', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3849,7 +3980,21 @@
                     setCachedSpeciesOptions('dqe', data.data.dqe);
 
                     // 更新对应的下拉框
-                    if (speciesType === 'bigSpecies') {
+                    if (speciesType === 'all') {
+                        // 更新所有下拉框
+                        updateSelectOptions('bigSpeciesFilter', data.data.bigSpecies);
+                        updateSelectOptions('smallSpeciesFilter', data.data.smallSpecies);
+                        updateSelectOptions('sampleStageFilter', data.data.sampleStage);
+                        updateSelectOptions('fullModelFilter', data.data.fullModel);
+                        updateSelectOptions('versionFilter', data.data.version);
+                        updateSelectOptions('testerFilter', data.data.tester);
+                        updateSelectOptions('responsibleDepartmentFilter', data.data.responsibleDepartment);
+                        updateSelectOptions('testPlatformFilter', data.data.testPlatform);
+                        updateSelectOptions('testDeviceFilter', data.data.testDevice);
+                        updateSelectOptions('dqeFilter', data.data.dqe);
+                        // 重新初始化三级问题类别筛选器
+                        initProblemCategoryFilter();
+                    } else if (speciesType === 'bigSpecies') {
                         updateSelectOptions('bigSpeciesFilter', data.data.bigSpecies);
                         showToast('大类选项已刷新并缓存', 'success');
                     } else if (speciesType === 'smallSpecies') {
@@ -3867,8 +4012,6 @@
                     } else if (speciesType === 'problemCategory') {
                         // 重新初始化三级问题类别筛选器
                         initProblemCategoryFilter();
-                        // 设置数据库按钮为激活状态
-                        setProblemCategoryButtonActive('database');
                         showToast('问题类别选项已从数据库刷新并缓存', 'success');
                     } else if (speciesType === 'tester') {
                         updateSelectOptions('testerFilter', data.data.tester);
@@ -3886,16 +4029,16 @@
                         updateSelectOptions('dqeFilter', data.data.dqe);
                         showToast('DQE负责人选项已刷新并缓存', 'success');
                     }
+                    return data;
                 } else {
                     showToast('刷新失败: ' + data.message, 'error');
+                    throw new Error(data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 showToast('刷新时发生错误', 'error');
-            })
-            .finally(() => {
-                hideLoading();
+                throw error;
             });
         }
 
@@ -3927,25 +4070,6 @@
             }
         }
 
-        // 设置问题类别按钮激活状态
-        function setProblemCategoryButtonActive(source) {
-            const dbBtn = document.getElementById('refreshProblemCategoryBtn');
-            const configBtn = document.getElementById('refreshProblemCategoryConfigBtn');
-            
-            if (source === 'database') {
-                // 数据库按钮激活
-                dbBtn.classList.remove('btn-outline-primary');
-                dbBtn.classList.add('btn-primary');
-                configBtn.classList.remove('btn-secondary');
-                configBtn.classList.add('btn-outline-secondary');
-            } else if (source === 'config') {
-                // 配置文件按钮激活
-                configBtn.classList.remove('btn-outline-secondary');
-                configBtn.classList.add('btn-secondary');
-                dbBtn.classList.remove('btn-primary');
-                dbBtn.classList.add('btn-outline-primary');
-            }
-        }
 
         // 从配置文件刷新问题类别选项（三级结构）
         function refreshProblemCategoryFromConfig() {
@@ -3978,8 +4102,6 @@
             // 重新初始化三级问题类别筛选器
             initProblemCategoryFilter();
             
-            // 设置配置文件按钮为激活状态
-            setProblemCategoryButtonActive('config');
             
             showToast('问题类别选项已从配置文件刷新并缓存，共' + allOptions.length + '个选项', 'success');
         }

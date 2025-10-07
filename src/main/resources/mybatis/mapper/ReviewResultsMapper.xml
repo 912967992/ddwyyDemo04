@@ -128,7 +128,7 @@
 
     <!-- 查询所有评审结果 -->
     <select id="findAll" resultMap="ReviewResultsMap">
-        SELECT * FROM reviewResults ORDER BY created_time DESC
+        SELECT * FROM reviewResults ORDER BY created_time ASC
     </select>
 
 </mapper>

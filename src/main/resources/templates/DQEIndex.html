@@ -730,7 +730,7 @@
         }
 
         function checkProblemLibraryPermission() {
-            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧', "谢勇"];
+            const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
             if (allowedUsers.includes(username)) {
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';

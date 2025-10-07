@@ -1617,7 +1617,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            width: calc(20% - 16px); /* 每行5个，每个占20%宽度，减去间距 */
+            width: calc(14.28% - 12px); /* 每行7个（6个过滤器+1个按钮组），每个占14.28%宽度，减去间距 */
             flex: 0 0 auto;
             margin-bottom: 0;
             box-sizing: border-box;
@@ -1667,29 +1667,30 @@
         .filter-buttons-group {
             display: flex;
             flex-direction: row;
-            gap: 12px;
-            width: auto;
-            min-width: 200px;
+            gap: 8px;
+            width: calc(14.28% - 12px); /* 与过滤器组保持一致的宽度 */
             flex: 0 0 auto;
+            justify-content: center;
         }
 
         .filter-btn {
-            padding: 12px 24px;
+            padding: 8px 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             justify-content: center;
-            min-width: 100px;
+            min-width: 50px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             position: relative;
             overflow: hidden;
+            flex: 1;
         }
 
         .filter-btn::before {
@@ -1747,14 +1748,33 @@
             left: 0;
             right: 0;
             background: white;
-            border: 1px solid #ced4da;
+            border: 2px solid #e9ecef;
             border-top: none;
-            border-radius: 0 0 4px 4px;
-            max-height: 200px;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px; /* 增加最大高度以显示更多选项 */
             overflow-y: auto;
             z-index: 10000;
             display: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* 自定义滚动条样式 */
+        .suggestions-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
 
         .suggestions-dropdown.show {
@@ -1762,15 +1782,20 @@
         }
 
         .suggestion-item {
-            padding: 8px 12px;
+            padding: 10px 16px;
             cursor: pointer;
             border-bottom: 1px solid #f0f0f0;
             font-size: 14px;
+            font-weight: 500;
             color: #333;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
         .suggestion-item:hover {
             background-color: #f8f9fa;
+            color: #007bff;
+            transform: translateX(2px);
         }
 
         .suggestion-item:last-child {
@@ -1780,6 +1805,7 @@
         .suggestion-item.highlighted {
             background-color: #007bff;
             color: white;
+            transform: translateX(4px);
         }
 
         /* 日期过滤器特殊样式 */
@@ -1801,30 +1827,48 @@
         }
 
         /* 响应式设计 - 小屏幕时每行显示更少 */
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .filter-group {
-                width: calc(33.33% - 14px); /* 每行3个 */
+                width: calc(16.66% - 10px); /* 每行6个 */
             }
             .filter-buttons-group {
-                width: calc(66.66% - 14px); /* 按钮组占2个位置 */
+                width: calc(16.66% - 10px); /* 按钮组占1个位置 */
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .filter-group {
+                width: calc(20% - 8px); /* 每行5个 */
+            }
+            .filter-buttons-group {
+                width: calc(20% - 8px); /* 按钮组占1个位置 */
             }
         }
 
         @media (max-width: 900px) {
             .filter-group {
-                width: calc(50% - 10px); /* 每行2个 */
+                width: calc(25% - 6px); /* 每行4个 */
             }
             .filter-buttons-group {
-                width: calc(100% - 10px); /* 按钮组独占一行 */
+                width: calc(50% - 6px); /* 按钮组占2个位置 */
             }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .filter-group {
-                width: calc(100% - 10px); /* 每行1个 */
+                width: calc(33.33% - 6px); /* 每行3个 */
             }
             .filter-buttons-group {
-                width: calc(100% - 10px); /* 按钮组独占一行 */
+                width: calc(100% - 6px); /* 按钮组独占一行 */
+            }
+        }
+
+        @media (max-width: 500px) {
+            .filter-group {
+                width: calc(50% - 4px); /* 每行2个 */
+            }
+            .filter-buttons-group {
+                width: calc(100% - 4px); /* 按钮组独占一行 */
                 flex-direction: column;
                 gap: 8px;
             }
@@ -2109,10 +2153,31 @@
                         </div>
                     </div>
                     <div class="filter-group">
+                        <label>型号:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="filterModel" placeholder="请输入型号" autocomplete="off" />
+                            <div id="filterModelSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
                         <label>SKU:</label>
                         <div class="input-with-suggestions">
                             <input type="text" id="filterSku" placeholder="请输入SKU" autocomplete="off" />
                             <div id="filterSkuSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>阶段:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="filterStage" placeholder="请输入阶段" autocomplete="off" />
+                            <div id="filterStageSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>状态:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="filterStatus" placeholder="请输入状态" autocomplete="off" />
+                            <div id="filterStatusSuggestions" class="suggestions-dropdown"></div>
                         </div>
                     </div>
                     <div class="filter-group">
@@ -3981,7 +4046,10 @@
         const filterConfigs = [
             { id: 'filterProductCategory', field: 'productCategory' },
             { id: 'filterSku', field: 'sku' },
-            { id: 'filterLeadDqe', field: 'leadDqe' }
+            { id: 'filterLeadDqe', field: 'leadDqe' },
+            { id: 'filterModel', field: 'model' },
+            { id: 'filterStage', field: 'stage' },
+            { id: 'filterStatus', field: 'status' }
         ];
         
         filterConfigs.forEach(config => {
@@ -4152,6 +4220,12 @@
                 value = item.sku;
             } else if (field === 'leadDqe') {
                 value = item.leadDqe || item.主导DQE || item.lead_dqe;
+            } else if (field === 'model') {
+                value = item.model;
+            } else if (field === 'stage') {
+                value = item.stage;
+            } else if (field === 'status') {
+                value = item.status;
             }
             if (value && value.trim() !== '') {
                 values.add(value.trim());
@@ -4211,15 +4285,15 @@
         console.log('🔍 过滤建议:', field, '查询:', query);
         const allValues = getUniqueValues(field);
         if (!query || query.trim() === '') {
-            console.log('📝 空查询，返回前10个值');
-            return allValues.slice(0, 10); // 显示前10个
+            console.log('📝 空查询，返回前20个值');
+            return allValues.slice(0, 20); // 显示前20个，增加显示数量
         }
         
         const filtered = allValues.filter(value => 
             value.toLowerCase().includes(query.toLowerCase())
         );
         console.log('🎯 过滤结果:', filtered.length, '个匹配项');
-        return filtered.slice(0, 10); // 最多显示10个建议
+        return filtered; // 显示所有匹配的建议，不再限制数量
     }
 
     // 问题类别相关功能已移除
@@ -4817,11 +4891,17 @@
         const productCategory = document.getElementById('filterProductCategory').value.trim();
         const sku = document.getElementById('filterSku').value.trim();
         const leadDqe = document.getElementById('filterLeadDqe').value.trim();
+        const model = document.getElementById('filterModel').value.trim();
+        const stage = document.getElementById('filterStage').value.trim();
+        const status = document.getElementById('filterStatus').value.trim();
         
         console.log('📋 过滤器条件:', {
             productCategory,
             sku,
             leadDqe,
+            model,
+            stage,
+            status,
             allDataLength: allData.length
         });
         
@@ -4843,6 +4923,21 @@
             if (leadDqe && !item.leadDqe?.toLowerCase().includes(leadDqe.toLowerCase()) && 
                 !item.主导DQE?.toLowerCase().includes(leadDqe.toLowerCase()) &&
                 !item.lead_dqe?.toLowerCase().includes(leadDqe.toLowerCase())) {
+                matches = false;
+            }
+            
+            // 型号过滤
+            if (model && !item.model?.toLowerCase().includes(model.toLowerCase())) {
+                matches = false;
+            }
+            
+            // 阶段过滤
+            if (stage && !item.stage?.toLowerCase().includes(stage.toLowerCase())) {
+                matches = false;
+            }
+            
+            // 状态过滤
+            if (status && !item.status?.toLowerCase().includes(status.toLowerCase())) {
                 matches = false;
             }
             
@@ -4880,6 +4975,9 @@
         document.getElementById('filterProductCategory').value = '';
         document.getElementById('filterSku').value = '';
         document.getElementById('filterLeadDqe').value = '';
+        document.getElementById('filterModel').value = '';
+        document.getElementById('filterStage').value = '';
+        document.getElementById('filterStatus').value = '';
         
         // 重置数据
         filteredData = [...allData];
@@ -7246,7 +7344,10 @@
         return {
             productCategory: document.getElementById('filterProductCategory')?.value?.trim() || '',
             sku: document.getElementById('filterSku')?.value?.trim() || '',
-            leadDqe: document.getElementById('filterLeadDqe')?.value?.trim() || ''
+            leadDqe: document.getElementById('filterLeadDqe')?.value?.trim() || '',
+            model: document.getElementById('filterModel')?.value?.trim() || '',
+            stage: document.getElementById('filterStage')?.value?.trim() || '',
+            status: document.getElementById('filterStatus')?.value?.trim() || ''
         };
     }
 
@@ -7257,6 +7358,9 @@
         if (filters.productCategory) descriptions.push(`品类: ${filters.productCategory}`);
         if (filters.sku) descriptions.push(`SKU: ${filters.sku}`);
         if (filters.leadDqe) descriptions.push(`主导DQE: ${filters.leadDqe}`);
+        if (filters.model) descriptions.push(`型号: ${filters.model}`);
+        if (filters.stage) descriptions.push(`阶段: ${filters.stage}`);
+        if (filters.status) descriptions.push(`状态: ${filters.status}`);
 
         return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
     }
@@ -7381,6 +7485,15 @@
         }
         if (filters.leadDqe) {
             document.getElementById('filterLeadDqe').value = filters.leadDqe;
+        }
+        if (filters.model) {
+            document.getElementById('filterModel').value = filters.model;
+        }
+        if (filters.stage) {
+            document.getElementById('filterStage').value = filters.stage;
+        }
+        if (filters.status) {
+            document.getElementById('filterStatus').value = filters.status;
         }
 
         // 关闭收藏夹详情模态框
