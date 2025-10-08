@@ -431,12 +431,15 @@ public class DQEIndexController {
 
     // DQE个人数据看板
     @GetMapping("/dqeDashboard")
-    public String dqeDashboard(@RequestParam(required = false) String username) {
+    public String dqeDashboard(@RequestParam(required = false) String username,
+                               @RequestParam(required = false)String job) {
         System.out.println("username:"+username);
+        System.out.println("job:"+job);
         if (username != null && !username.isEmpty()) {
             try {
                 String encodedUsername = java.net.URLEncoder.encode(username, "UTF-8");
-                return "redirect:/managerboard?job=DQE&username=" + encodedUsername;
+                return "redirect:/managerboard?job="+ job + "&username=" + encodedUsername;
+
             } catch (Exception e) {
                 System.err.println("编码username失败: " + e.getMessage());
                 return "redirect:/managerboard?job=DQE";

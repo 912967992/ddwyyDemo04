@@ -26,6 +26,8 @@
 <div class="title-container">
     <button id="announcement-btn">查看公告(v2.2，20250706新增回传问题点功能)</button>
     <div class="title">主页</div>
+    <!-- 数据看板按钮 -->
+    <button id="dashboard-btn" class="dashboard-btn">数据看板</button>
     <!-- 排期项目面板按钮 -->
     <button id="schedule-panel-btn" class="schedule-panel-btn">排期项目按钮</button>
 </div>
@@ -3840,6 +3842,47 @@
                 console.error('上传出错:', error);
                 // 在这里处理错误情况，比如提示用户
             });
+    }
+
+    // 数据看板按钮功能
+    const dashboardBtn = document.getElementById("dashboard-btn");
+    
+    // 数据看板按钮点击事件
+    dashboardBtn.addEventListener("click", () => {
+        goToDashboard();
+    });
+    
+    // 根据角色跳转到不同的数据看板页面
+    function goToDashboard() {
+        if (!username) {
+            alert("请先输入用户名！");
+            return;
+        }
+        
+        if (!job) {
+            alert("请先选择角色！");
+            return;
+        }
+
+        // 检查是否在钉钉环境中
+        const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+        const url = 'http://219.134.191.195:64000/dqeDashboard?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+        if (isDingTalk) {
+            dd.openLink({
+                url: url,
+                success: function() {
+                    console.log('成功打开数据看板');
+                },
+                fail: function(err) {
+                    alert('打开页面失败：' + JSON.stringify(err));
+                    console.error('dd.openLink fail:', err);
+                }
+            });
+        } else {
+            // 非钉钉环境使用普通跳转
+            window.location.href = url;
+        }
     }
 
     // 20250506 加排期项目按钮

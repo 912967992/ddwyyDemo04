@@ -864,6 +864,22 @@ h3{
 }
 
 
+.dashboard-btn {
+    position: absolute;
+    top: 10px;
+    right: 120px;
+    padding: 10px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.dashboard-btn:hover {
+    background-color: #1976D2;
+}
+
 .schedule-panel-btn {
     position: absolute;
     top: 10px;

@@ -294,6 +294,60 @@
             background: #0056b3;
         }
 
+        /* 视图控制按钮样式 */
+        .view-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .view-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .view-btn.active {
+            background: #28a745;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+
+        .view-btn.active:hover {
+            background: #218838;
+        }
+
+        /* 对比分析按钮样式 */
+        .comparison-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .comparison-btn:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        .comparison-btn.active {
+            background: #fd7e14;
+            box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+        }
+
+        .comparison-btn.active:hover {
+            background: #e8650e;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -460,6 +514,10 @@
             'manager': {
                 title: '管理数据看板',
                 dashboardTitle: '主管级别以上数据看板'
+            },
+            'tester': {
+                title: '测试人员数据看板',
+                dashboardTitle: '测试人员数据看板'
             }
         };
 
@@ -468,6 +526,14 @@
         // 设置页面标题
         document.getElementById('pageTitle').textContent = config.title;
         document.getElementById('dashboardTitle').textContent = config.dashboardTitle;
+        
+        // 如果是tester角色，隐藏返回主页按钮
+        if (job === 'tester') {
+            const backBtn = document.querySelector('.BackBtn');
+            if (backBtn) {
+                backBtn.style.display = 'none';
+            }
+        }
 
         // 存储当前角色信息，供其他功能使用
         window.currentRole = job;
@@ -3311,7 +3377,19 @@
         document.getElementById('modalTitle').innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span>${title}</span>
-                    <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <!-- 视图控制按钮 -->
+                        <div style="display: flex; gap: 5px; margin-right: 10px;">
+                            <button class="view-btn" onclick="switchView('day', '${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')" id="dayViewBtn">日视图</button>
+                            <button class="view-btn" onclick="switchView('week', '${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')" id="weekViewBtn">周视图</button>
+                            <button class="view-btn" onclick="switchView('month', '${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')" id="monthViewBtn">月视图</button>
+                        </div>
+                        <!-- 对比分析按钮 -->
+                        <div style="display: flex; gap: 5px; margin-right: 10px;">
+                            <button class="comparison-btn" onclick="showComparison('ring', '${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')" id="ringComparisonBtn">环比</button>
+                            <button class="comparison-btn" onclick="showComparison('year', '${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')" id="yearComparisonBtn">同比</button>
+                        </div>
+                        <!-- 原有功能按钮 -->
                         <button class="filter-btn" onclick="showModalCharts('${title}', ${JSON.stringify(projects).replace(/"/g, '&quot;')}, '${status}')">
                             查看图表
                         </button>
@@ -7200,6 +7278,349 @@
             bindTooltipEvents(currentChartId);
 
             console.log('图表刷新完成');
+        }
+
+        // 视图切换功能
+        function switchView(viewType, title, projects, status) {
+            // 更新按钮状态
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(viewType + 'ViewBtn').classList.add('active');
+            
+            // 根据视图类型过滤数据
+            let filteredProjects = filterProjectsByView(projects, viewType);
+            
+            // 检查是否有活跃的对比分析按钮
+            const activeComparisonBtn = document.querySelector('.comparison-btn.active');
+            let comparisonType = null;
+            if (activeComparisonBtn) {
+                comparisonType = activeComparisonBtn.id.replace('ComparisonBtn', '');
+            }
+            
+            // 更新显示内容
+            showModalCharts(title, filteredProjects, status);
+            
+            // 更新全局变量，确保图表导航使用正确的数据
+            window.currentProjectsForChart = filteredProjects;
+            window.currentChartTitle = title;
+            window.currentChartStatus = status;
+            
+            // 如果之前有对比分析，重新显示对比分析
+            if (comparisonType) {
+                // 重新计算对比分析数据（使用过滤后的数据）
+                let comparisonData = {};
+                let comparisonTitle = '';
+                
+                if (comparisonType === 'ring') {
+                    comparisonData = calculateRingComparison(filteredProjects);
+                    comparisonTitle = '环比分析';
+                } else if (comparisonType === 'year') {
+                    comparisonData = calculateYearComparison(filteredProjects);
+                    comparisonTitle = '同比分析';
+                }
+                
+                // 显示对比分析结果
+                displayComparisonResults(comparisonTitle, comparisonData, title, filteredProjects, status);
+            }
+        }
+
+        // 根据视图类型过滤项目数据
+        function filterProjectsByView(projects, viewType) {
+            const now = new Date();
+            let filteredProjects = [];
+            
+            switch(viewType) {
+                case 'day':
+                    // 日视图：显示今天的数据
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                    
+                    filteredProjects = projects.filter(project => {
+                        const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                        return projectDate >= today && projectDate < tomorrow;
+                    });
+                    break;
+                    
+                case 'week':
+                    // 周视图：显示本周的数据
+                    const startOfWeek = new Date(now);
+                    startOfWeek.setDate(now.getDate() - now.getDay());
+                    startOfWeek.setHours(0, 0, 0, 0);
+                    
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 7);
+                    
+                    filteredProjects = projects.filter(project => {
+                        const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                        return projectDate >= startOfWeek && projectDate < endOfWeek;
+                    });
+                    break;
+                    
+                case 'month':
+                    // 月视图：显示本月的数据
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                    
+                    filteredProjects = projects.filter(project => {
+                        const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                        return projectDate >= startOfMonth && projectDate < endOfMonth;
+                    });
+                    break;
+                    
+                default:
+                    filteredProjects = projects;
+            }
+            
+            return filteredProjects;
+        }
+
+        // 对比分析功能
+        function showComparison(comparisonType, title, projects, status) {
+            // 更新按钮状态
+            document.querySelectorAll('.comparison-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(comparisonType + 'ComparisonBtn').classList.add('active');
+            
+            let comparisonData = {};
+            let comparisonTitle = '';
+            
+            if (comparisonType === 'ring') {
+                // 环比分析：与上一周期对比
+                comparisonData = calculateRingComparison(projects);
+                comparisonTitle = '环比分析';
+            } else if (comparisonType === 'year') {
+                // 同比分析：与去年同期对比
+                comparisonData = calculateYearComparison(projects);
+                comparisonTitle = '同比分析';
+            }
+            
+            // 检查是否已经显示过对比分析，如果显示过则先清除
+            const existingComparison = document.querySelector('.comparison-analysis-section');
+            if (existingComparison) {
+                existingComparison.remove();
+            }
+            
+            // 显示对比分析结果
+            displayComparisonResults(comparisonTitle, comparisonData, title, projects, status);
+        }
+
+        // 计算环比数据
+        function calculateRingComparison(projects) {
+            const now = new Date();
+            const currentPeriod = getCurrentPeriod(projects, now);
+            const previousPeriod = getPreviousPeriod(projects, now);
+            
+            return {
+                current: currentPeriod,
+                previous: previousPeriod,
+                growth: calculateGrowthRate(currentPeriod.total, previousPeriod.total),
+                trends: calculateTrends(currentPeriod, previousPeriod)
+            };
+        }
+
+        // 计算同比数据
+        function calculateYearComparison(projects) {
+            const now = new Date();
+            const currentYear = getCurrentYearData(projects, now);
+            const lastYear = getLastYearData(projects, now);
+            
+            return {
+                current: currentYear,
+                previous: lastYear,
+                growth: calculateGrowthRate(currentYear.total, lastYear.total),
+                trends: calculateTrends(currentYear, lastYear)
+            };
+        }
+
+        // 获取当前周期数据
+        function getCurrentPeriod(projects, date) {
+            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+            
+            const currentProjects = projects.filter(project => {
+                const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                return projectDate >= startOfMonth && projectDate < endOfMonth;
+            });
+            
+            return {
+                total: currentProjects.length,
+                byStatus: groupByStatus(currentProjects),
+                byCategory: groupByCategory(currentProjects)
+            };
+        }
+
+        // 获取上一周期数据
+        function getPreviousPeriod(projects, date) {
+            const startOfLastMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+            const endOfLastMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            
+            const previousProjects = projects.filter(project => {
+                const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                return projectDate >= startOfLastMonth && projectDate < endOfLastMonth;
+            });
+            
+            return {
+                total: previousProjects.length,
+                byStatus: groupByStatus(previousProjects),
+                byCategory: groupByCategory(previousProjects)
+            };
+        }
+
+        // 获取当前年数据
+        function getCurrentYearData(projects, date) {
+            const startOfYear = new Date(date.getFullYear(), 0, 1);
+            const endOfYear = new Date(date.getFullYear() + 1, 0, 1);
+            
+            const currentYearProjects = projects.filter(project => {
+                const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                return projectDate >= startOfYear && projectDate < endOfYear;
+            });
+            
+            return {
+                total: currentYearProjects.length,
+                byStatus: groupByStatus(currentYearProjects),
+                byCategory: groupByCategory(currentYearProjects)
+            };
+        }
+
+        // 获取去年数据
+        function getLastYearData(projects, date) {
+            const startOfLastYear = new Date(date.getFullYear() - 1, 0, 1);
+            const endOfLastYear = new Date(date.getFullYear(), 0, 1);
+            
+            const lastYearProjects = projects.filter(project => {
+                const projectDate = new Date(project.actual_start_time || project.schedule_start_date || project.created_time);
+                return projectDate >= startOfLastYear && projectDate < endOfLastYear;
+            });
+            
+            return {
+                total: lastYearProjects.length,
+                byStatus: groupByStatus(lastYearProjects),
+                byCategory: groupByCategory(lastYearProjects)
+            };
+        }
+
+        // 按状态分组
+        function groupByStatus(projects) {
+            const groups = {};
+            projects.forEach(project => {
+                const status = project.schedule || '未开始';
+                groups[status] = (groups[status] || 0) + 1;
+            });
+            return groups;
+        }
+
+        // 按类别分组
+        function groupByCategory(projects) {
+            const groups = {};
+            projects.forEach(project => {
+                const category = project.product_category || '未分类';
+                groups[category] = (groups[category] || 0) + 1;
+            });
+            return groups;
+        }
+
+        // 计算增长率
+        function calculateGrowthRate(current, previous) {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return ((current - previous) / previous * 100).toFixed(2);
+        }
+
+        // 计算趋势
+        function calculateTrends(current, previous) {
+            const trends = {};
+            
+            // 状态趋势
+            Object.keys(current.byStatus).forEach(status => {
+                const currentCount = current.byStatus[status] || 0;
+                const previousCount = previous.byStatus[status] || 0;
+                trends[status] = calculateGrowthRate(currentCount, previousCount);
+            });
+            
+            return trends;
+        }
+
+        // 显示对比分析结果
+        function displayComparisonResults(title, comparisonData, originalTitle, projects, status) {
+            const contentHTML = `
+                <div class="comparison-analysis-section" style="margin-bottom: 20px; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                    <h3 style="color: #333; margin-bottom: 15px;">${title}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <!-- 总体对比 -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff;">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">总体对比</h4>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #007bff;">${comparisonData.current.total}</div>
+                                    <div style="color: #666; font-size: 14px;">当前周期</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; color: #666;">${comparisonData.previous.total}</div>
+                                    <div style="color: #666; font-size: 14px;">上期</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: bold; color: ${comparisonData.growth >= 0 ? '#28a745' : '#dc3545'};">
+                                        ${comparisonData.growth >= 0 ? '+' : ''}${comparisonData.growth}%
+                                    </div>
+                                    <div style="color: #666; font-size: 12px;">增长率</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 状态对比 -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">状态分布对比</h4>
+                            ${Object.keys(comparisonData.current.byStatus).map(status => {
+                                const currentCount = comparisonData.current.byStatus[status] || 0;
+                                const previousCount = comparisonData.previous.byStatus[status] || 0;
+                                const growth = calculateGrowthRate(currentCount, previousCount);
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px;">
+                                        <span style="font-weight: 500;">${status}</span>
+                                        <div style="display: flex; align-items: center; gap: 15px;">
+                                            <span>${currentCount}</span>
+                                            <span style="color: #666;">${previousCount}</span>
+                                            <span style="color: ${growth >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                                ${growth >= 0 ? '+' : ''}${growth}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <!-- 类别对比 -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">类别分布对比</h4>
+                            ${Object.keys(comparisonData.current.byCategory).map(category => {
+                                const currentCount = comparisonData.current.byCategory[category] || 0;
+                                const previousCount = comparisonData.previous.byCategory[category] || 0;
+                                const growth = calculateGrowthRate(currentCount, previousCount);
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px;">
+                                        <span style="font-weight: 500;">${category}</span>
+                                        <div style="display: flex; align-items: center; gap: 15px;">
+                                            <span>${currentCount}</span>
+                                            <span style="color: #666;">${previousCount}</span>
+                                            <span style="color: ${growth >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                                ${growth >= 0 ? '+' : ''}${growth}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 将对比分析结果添加到现有内容的下方，而不是替换
+            const modalContent = document.getElementById('modalContent');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentHTML;
+            
+            // 将新内容追加到现有内容后面
+            while (tempDiv.firstChild) {
+                modalContent.appendChild(tempDiv.firstChild);
+            }
         }
 </script>
 

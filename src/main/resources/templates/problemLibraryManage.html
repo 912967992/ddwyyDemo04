@@ -1524,6 +1524,7 @@
         let pageSize = 20;
         let totalRecords = 0;
         let filteredData = [];
+        let allProblemData = []; // 存储所有原始数据
         let isSuperAdmin = false; // 是否为超级管理员
 
         // 购物车/收藏夹相关变量
@@ -2671,6 +2672,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    allProblemData = data.data; // 保存原始数据
                     filteredData = data.data;
                     updateStatistics();
                     renderTable();
@@ -2767,6 +2769,11 @@
                 if (data.success) {
                     filteredData = data.data;
                     currentPage = 1;
+                    // 如果没有任何筛选条件，则更新原始数据
+                    const hasAnyFilter = Object.values(filters).some(value => value && value.toString().trim() !== '');
+                    if (!hasAnyFilter) {
+                        allProblemData = data.data;
+                    }
                     updateStatistics();
                     renderTable();
                 } else {
@@ -3693,12 +3700,13 @@
 
         // 更新统计信息
         function updateStatistics() {
-            const open = filteredData.filter(p => (p.current_status || '').toLowerCase() === 'open').length;
-            const closed = filteredData.filter(p => {
+            // 基于原始数据计算统计数字，而不是筛选后的数据
+            const open = allProblemData.filter(p => (p.current_status || '').toLowerCase() === 'open').length;
+            const closed = allProblemData.filter(p => {
                 const status = (p.current_status || '').toLowerCase();
                 return status === 'closed' || status === 'close';
             }).length;
-            const followup = filteredData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
+            const followup = allProblemData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
 
             document.getElementById('openCount').textContent = open;
             document.getElementById('closedCount').textContent = closed;
