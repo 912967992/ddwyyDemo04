@@ -33,7 +33,7 @@
     </resultMap>
 
     <!-- 插入新品进度数据 -->
-    <insert id="insert" parameterType="com.lu.ddwyydemo04.pojo.NewProductProgress" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertNewProductProgress" parameterType="com.lu.ddwyydemo04.pojo.NewProductProgress" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO new_product_progress_management (
             product_category_level3, priority, model, sku, stage, product_name, image_url,
             project_start_time, target_launch_time, display_type, product_level, primary_supplier,

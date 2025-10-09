@@ -40,7 +40,7 @@ public class NewProductProgressService {
      */
     public List<NewProductProgress> getAllNewProductProgress() {
         List<NewProductProgress> results = newProductProgressDao.findAll();
-        System.out.println("Service层获取到的数据量: " + (results != null ? results.size() : 0));
+//        System.out.println("Service层获取到的数据量: " + (results != null ? results.size() : 0));
         if (results != null && !results.isEmpty()) {
             System.out.println("第一条数据: " + results.get(0).getProductName() + " - " + results.get(0).getModel());
         }
@@ -62,7 +62,7 @@ public class NewProductProgressService {
      * @return 插入结果
      */
     public int insertNewProductProgress(NewProductProgress newProductProgress) {
-        return newProductProgressDao.insert(newProductProgress);
+        return newProductProgressDao.insertNewProductProgress(newProductProgress);
     }
 
     /**
@@ -149,7 +149,7 @@ public class NewProductProgressService {
                     newProductProgress.setUpdateBy(username);
                     newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
                     
-                    int resultCount = newProductProgressDao.insert(newProductProgress);
+                    int resultCount = newProductProgressDao.insertNewProductProgress(newProductProgress);
                     if (resultCount > 0) {
                         insertCount++;
                     }
@@ -383,7 +383,7 @@ public class NewProductProgressService {
                                 newProductProgress.setUpdateBy(username);
                                 newProductProgress.setUpdateTime(java.time.LocalDateTime.now());
                                 
-                                int resultCount = newProductProgressDao.insert(newProductProgress);
+                                int resultCount = newProductProgressDao.insertNewProductProgress(newProductProgress);
                                 if (resultCount > 0) {
                                     insertCount++;
                                 }

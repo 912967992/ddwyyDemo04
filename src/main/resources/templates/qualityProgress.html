@@ -1507,6 +1507,108 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        /* 表格操作栏样式 */
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .edit-status {
+            color: #28a745;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* 编辑模式样式 */
+        .edit-mode .data-table tbody tr {
+            background-color: #fff3cd !important;
+            border-left: 3px solid #ffc107;
+        }
+
+        .edit-mode .data-table tbody tr:hover {
+            background-color: #ffeaa7 !important;
+        }
+
+        .edit-mode .editable-cell {
+            position: relative;
+        }
+
+        .edit-mode .editable-cell input,
+        .edit-mode .editable-cell select,
+        .edit-mode .editable-cell textarea {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+
+        /* 设置下拉框最小宽度 */
+        .edit-mode .editable-cell select {
+            min-width: 90px;
+            max-width: 100px;
+        }
+
+        .edit-mode .editable-cell input:focus,
+        .edit-mode .editable-cell select:focus,
+        .edit-mode .editable-cell textarea:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .edit-mode .editable-cell textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .edit-mode .status-badge {
+            display: none;
+        }
+
+        .edit-mode .image-cell {
+            position: relative;
+        }
+
+        .edit-mode .image-cell input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .edit-mode .image-cell .file-input-label {
+            display: block;
+            padding: 8px;
+            background: #007bff;
+            color: white;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-mode .image-cell .file-input-label:hover {
+            background: #0056b3;
+        }
+
+        /* 支持换行符显示的单元格样式 */
+        .problem-desc {
+            white-space: pre-line;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
         /* 整体页面布局优化 */
         .main-content {
             padding: 20px;
@@ -2201,6 +2303,20 @@
 
 <!-- 数据表格区域 -->
 <div class="table-section">
+    <!-- 表格操作栏 -->
+    <div class="table-actions">
+        <button id="globalEditBtn" class="btn btn-primary" onclick="toggleGlobalEditMode()">
+            <i class="fas fa-edit"></i> 全局编辑
+        </button>
+        <button id="saveAllBtn" class="btn btn-success" onclick="saveAllChanges()" style="display: none;">
+            <i class="fas fa-save"></i> 保存所有更改
+        </button>
+        <button id="cancelEditBtn" class="btn btn-secondary" onclick="cancelGlobalEdit()" style="display: none;">
+            <i class="fas fa-times"></i> 取消编辑
+        </button>
+        <span id="editStatus" class="edit-status" style="display: none;">编辑模式已启用</span>
+    </div>
+    
     <div class="table-container">
         <table id="reviewTable" class="data-table">
             <thead>
@@ -2285,6 +2401,10 @@
                 <div class="detail-section">
                     <h3>基本信息</h3>
                     <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>组别:</label>
+                            <span id="detailGroupName">-</span>
+                        </div>
                         <div class="detail-item">
                             <label>产品三级类目:</label>
                             <span id="detailProductCategory">-</span>
@@ -3157,6 +3277,10 @@
     let currentRole = '';
 
     let currentPage = 1;
+    
+    // 全局编辑模式相关变量
+    let isGlobalEditMode = false;
+    let originalData = []; // 存储原始数据，用于取消编辑时恢复
 
     // 界面切换功能
     function initDashboardToggle() {
@@ -4285,8 +4409,8 @@
         console.log('🔍 过滤建议:', field, '查询:', query);
         const allValues = getUniqueValues(field);
         if (!query || query.trim() === '') {
-            console.log('📝 空查询，返回前20个值');
-            return allValues.slice(0, 20); // 显示前20个，增加显示数量
+            console.log('📝 空查询，返回所有值');
+            return allValues; // 显示所有值，不限制数量
         }
         
         const filtered = allValues.filter(value => 
@@ -5230,7 +5354,7 @@
     function clearReviewDetailFields() {
         // 清空所有显示字段
         const fields = [
-            'detailProductCategory', 'detailPriority', 'detailModel', 'detailSku', 'detailStage',
+            'detailGroupName', 'detailProductCategory', 'detailPriority', 'detailModel', 'detailSku', 'detailStage',
             'detailProductName', 'detailProjectStartTime', 'detailTargetLaunchTime', 'detailDisplayType',
             'detailProductLevel', 'detailProductImage', 'detailPrimarySupplier', 'detailLeadDqe', 'detailElectronicRd',
             'detailStatus', 'detailDesignReviewProblem', 'detailEvtProblem', 'detailDvtProblem',
@@ -5273,17 +5397,51 @@
         // 先重置编辑状态（防止之前的状态影响）
         resetReviewEditMode();
 
+        // 确保DOM元素已经准备好
+        setTimeout(() => {
+            fillProductDetailData(product);
+        }, 100);
+    }
+
+    // 填充产品详情数据
+    function fillProductDetailData(product) {
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '新品质量进度详情';
+        const titleElement = document.getElementById('reviewModalTitle');
+        if (titleElement) {
+            titleElement.textContent = '新品质量进度详情';
+        }
 
         // 存储当前编辑的新品质量进度ID
-        currentEditingReviewId = reviewId;
+        currentEditingReviewId = product.id;
 
-        // 填充详情数据
-        document.getElementById('detailProductCategory').textContent = product.productCategoryLevel3 || '-';
-        document.getElementById('detailPriority').textContent = product.priority || '-';
-        document.getElementById('detailModel').textContent = product.model || '-';
-        document.getElementById('detailSku').textContent = product.sku || '-';
+        // 填充详情数据 - 添加安全检查
+        const groupNameElement = document.getElementById('detailGroupName');
+        if (groupNameElement) {
+            groupNameElement.textContent = product.groupName || '-';
+        } else {
+            console.error('detailGroupName element not found');
+        }
+        
+        // 安全地设置其他字段
+        const productCategoryElement = document.getElementById('detailProductCategory');
+        if (productCategoryElement) {
+            productCategoryElement.textContent = product.productCategoryLevel3 || '-';
+        }
+        
+        const priorityElement = document.getElementById('detailPriority');
+        if (priorityElement) {
+            priorityElement.textContent = product.priority || '-';
+        }
+        
+        const modelElement = document.getElementById('detailModel');
+        if (modelElement) {
+            modelElement.textContent = product.model || '-';
+        }
+        
+        const skuElement = document.getElementById('detailSku');
+        if (skuElement) {
+            skuElement.textContent = product.sku || '-';
+        }
         // 设置阶段下拉框
         const stageSelect = document.getElementById('detailStage');
         if (stageSelect) {
@@ -5461,24 +5619,25 @@
     // 转换为编辑模式
     function convertToEditMode() {
         const fieldMappings = [
+            { id: 'detailGroupName', type: 'text' },
             { id: 'detailProductCategory', type: 'text' },
-            { id: 'detailPriority', type: 'text' },
+            { id: 'detailPriority', type: 'select', options: ['S+', 'S', 'A', 'B', 'C'] },
             { id: 'detailModel', type: 'text' },
             { id: 'detailSku', type: 'text' },
-            { id: 'detailStage', type: 'select', options: ['样品承认中', 'EVT已准出', 'DVT已准出', '未送样'] },
-            { id: 'detailProductName', type: 'text' },
+            { id: 'detailStage', type: 'select', options: ['设计中', 'EVT', 'DVT', 'PVT'] },
+            { id: 'detailProductName', type: 'textarea' },
             { id: 'detailProjectStartTime', type: 'date' },
             { id: 'detailTargetLaunchTime', type: 'date' },
-            { id: 'detailDisplayType', type: 'select', options: ['单显', '双显', '三显', '四显'] },
-            { id: 'detailProductLevel', type: 'text' },
+            { id: 'detailDisplayType', type: 'text' },
+            { id: 'detailProductLevel', type: 'select', options: ['L1', 'L2', 'L3'] },
             { id: 'detailProductImage', type: 'image' },
             { id: 'detailPrimarySupplier', type: 'text' },
             { id: 'detailLeadDqe', type: 'text' },
             { id: 'detailElectronicRd', type: 'text' },
-            { id: 'detailStatus', type: 'select', options: ['ID/结构/垫子设计中', '功能样', '大货样'] },
-            { id: 'detailDesignReviewProblem', type: 'select', options: ['ID/结构/电子设计中', '功能样', '大货样'] },
-            { id: 'detailEvtProblem', type: 'select', options: ['ID/结构/电子设计中', '功能样', '大货样'] },
-            { id: 'detailDvtProblem', type: 'select', options: ['ID/结构/电子设计中', '功能样', '大货样'] },
+            { id: 'detailStatus', type: 'select', options: ['设计中', '功能样', '大货样'] },
+            { id: 'detailDesignReviewProblem', type: 'textarea' },
+            { id: 'detailEvtProblem', type: 'textarea' },
+            { id: 'detailDvtProblem', type: 'textarea' },
             { id: 'detailMainProjectProgress', type: 'textarea' },
             { id: 'detailMainQualityRisks', type: 'textarea' }
         ];
@@ -5742,6 +5901,7 @@
 
         // 收集编辑后的数据
         const editData = {
+            groupName: document.getElementById('editdetailGroupName')?.value || '',
             productCategoryLevel3: document.getElementById('editdetailProductCategory')?.value || '',
             priority: document.getElementById('editdetailPriority')?.value || '',
             model: document.getElementById('editdetailModel')?.value || '',
@@ -6547,7 +6707,113 @@
 
         pageData.forEach(product => {
             const row = document.createElement('tr');
-            row.innerHTML = `
+            row.setAttribute('data-product-id', product.id);
+            
+            if (isGlobalEditMode) {
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行">
+                    </td>
+                    <td>${product.id || '-'}</td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.groupName || ''}" data-field="groupName" data-original="${product.groupName || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.productCategoryLevel3 || ''}" data-field="productCategoryLevel3" data-original="${product.productCategoryLevel3 || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <select data-field="priority" data-original="${product.priority || ''}">
+                            <option value="">请选择</option>
+                            <option value="S+" ${product.priority === 'S+' ? 'selected' : ''}>S+</option>
+                            <option value="S" ${product.priority === 'S' ? 'selected' : ''}>S</option>
+                            <option value="A" ${product.priority === 'A' ? 'selected' : ''}>A</option>
+                            <option value="B" ${product.priority === 'B' ? 'selected' : ''}>B</option>
+                            <option value="C" ${product.priority === 'C' ? 'selected' : ''}>C</option>
+                        </select>
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.model || ''}" data-field="model" data-original="${product.model || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.sku || ''}" data-field="sku" data-original="${product.sku || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <select data-field="stage" data-original="${product.stage || ''}">
+                            <option value="">请选择</option>
+                            <option value="设计中" ${product.stage === '设计中' ? 'selected' : ''}>设计中</option>
+                            <option value="EVT" ${product.stage === 'EVT' ? 'selected' : ''}>EVT</option>
+                            <option value="DVT" ${product.stage === 'DVT' ? 'selected' : ''}>DVT</option>
+                            <option value="PVT" ${product.stage === 'PVT' ? 'selected' : ''}>PVT</option>
+                        </select>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="productName" data-original="${product.productName || ''}">${product.productName || ''}</textarea>
+                    </td>
+                    <td class="image-cell">
+                        ${product.imageUrl ? 
+                            `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图" style="max-width: 50px; max-height: 50px;">` : 
+                            '<span class="no-image">暂无图片</span>'
+                        }
+                    </td>
+                    <td class="editable-cell">
+                        <input type="date" value="${product.projectStartTime || ''}" data-field="projectStartTime" data-original="${product.projectStartTime || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="date" value="${product.targetLaunchTime || ''}" data-field="targetLaunchTime" data-original="${product.targetLaunchTime || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.displayType || ''}" data-field="displayType" data-original="${product.displayType || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <select data-field="productLevel" data-original="${product.productLevel || ''}">
+                            <option value="">请选择</option>
+                            <option value="L1" ${product.productLevel === 'L1' ? 'selected' : ''}>L1</option>
+                            <option value="L2" ${product.productLevel === 'L2' ? 'selected' : ''}>L2</option>
+                            <option value="L3" ${product.productLevel === 'L3' ? 'selected' : ''}>L3</option>
+                        </select>
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.primarySupplier || ''}" data-field="primarySupplier" data-original="${product.primarySupplier || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.leadDqe || ''}" data-field="leadDqe" data-original="${product.leadDqe || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <input type="text" value="${product.electronicRd || ''}" data-field="electronicRd" data-original="${product.electronicRd || ''}">
+                    </td>
+                    <td class="editable-cell">
+                        <select data-field="status" data-original="${product.status || ''}">
+                            <option value="">请选择</option>
+                            <option value="设计中" ${product.status === '设计中' ? 'selected' : ''}>设计中</option>
+                            <option value="功能样" ${product.status === '功能样' ? 'selected' : ''}>功能样</option>
+                            <option value="大货样" ${product.status === '大货样' ? 'selected' : ''}>大货样</option>
+                        </select>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</textarea>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="evtProblem" data-original="${product.evtProblem || ''}">${product.evtProblem || ''}</textarea>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="dvtProblem" data-original="${product.dvtProblem || ''}">${product.dvtProblem || ''}</textarea>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</textarea>
+                    </td>
+                    <td class="editable-cell">
+                        <textarea data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</textarea>
+                    </td>
+                    <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="showProductDetail(${product.id})" title="查看详情">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            } else {
+                row.innerHTML = `
                     <td>
                         <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行">
                     </td>
@@ -6558,7 +6824,7 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc" title="${product.productName || ''}">${(product.productName || '').substring(0, 30)}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.productName || ''}">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
                     <td class="image-cell">
                         ${product.imageUrl ? 
                             `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` : 
@@ -6573,11 +6839,11 @@
                     <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc" title="${product.designReviewProblem || ''}">${(product.designReviewProblem || '').substring(0, 30)}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.evtProblem || ''}">${(product.evtProblem || '').substring(0, 30)}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.dvtProblem || ''}">${(product.dvtProblem || '').substring(0, 30)}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainProjectProgress || ''}">${(product.mainProjectProgress || '').substring(0, 30)}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainQualityRisks || ''}">${(product.mainQualityRisks || '').substring(0, 30)}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.designReviewProblem || ''}">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.evtProblem || ''}">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.dvtProblem || ''}">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.mainProjectProgress || ''}">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc" title="${product.mainQualityRisks || ''}">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
@@ -6586,6 +6852,7 @@
                         </button>
                     </td>
                 `;
+            }
             tbody.appendChild(row);
         });
 
@@ -6602,6 +6869,278 @@
         updateTableRowSelectionStyles();
 
         updatePagination();
+    }
+
+    // 全局编辑模式相关函数
+    function toggleGlobalEditMode() {
+        if (isGlobalEditMode) {
+            // 如果已经在编辑模式，则取消编辑
+            cancelGlobalEdit();
+        } else {
+            // 进入编辑模式
+            enterGlobalEditMode();
+        }
+    }
+
+    function enterGlobalEditMode() {
+        // 保存原始数据
+        originalData = JSON.parse(JSON.stringify(filteredData));
+        
+        // 设置编辑模式
+        isGlobalEditMode = true;
+        
+        // 更新UI
+        document.getElementById('globalEditBtn').style.display = 'none';
+        document.getElementById('saveAllBtn').style.display = 'inline-block';
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        document.getElementById('editStatus').style.display = 'inline-block';
+        
+        // 添加编辑模式样式类
+        document.querySelector('.table-section').classList.add('edit-mode');
+        
+        // 重新渲染表格
+        renderTable();
+        
+        showToast('已进入全局编辑模式，您可以同时编辑多行数据', 'success');
+    }
+
+    function cancelGlobalEdit() {
+        // 恢复原始数据
+        filteredData = JSON.parse(JSON.stringify(originalData));
+        
+        // 退出编辑模式
+        isGlobalEditMode = false;
+        
+        // 更新UI
+        document.getElementById('globalEditBtn').style.display = 'inline-block';
+        document.getElementById('saveAllBtn').style.display = 'none';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        document.getElementById('editStatus').style.display = 'none';
+        
+        // 移除编辑模式样式类
+        document.querySelector('.table-section').classList.remove('edit-mode');
+        
+        // 重新渲染表格
+        renderTable();
+        
+        showToast('已取消编辑，所有更改已丢弃', 'info');
+    }
+
+    function saveAllChanges() {
+        // 收集所有更改的数据
+        const changedData = collectChangedData();
+        
+        console.log('收集到的更改数据:', changedData);
+        console.log('当前用户:', currentUser);
+        
+        if (changedData.length === 0) {
+            showToast('没有检测到任何更改', 'info');
+            return;
+        }
+        
+        // 显示确认对话框
+        if (!confirm(`确定要保存 ${changedData.length} 条记录的更改吗？`)) {
+            return;
+        }
+        
+        // 批量保存数据
+        batchSaveData(changedData);
+    }
+
+    function collectChangedData() {
+        const changedData = [];
+        const tbody = document.getElementById('reviewTableBody');
+        const rows = tbody.querySelectorAll('tr[data-product-id]');
+        
+        console.log('检查表格行数:', rows.length);
+        
+        rows.forEach((row, index) => {
+            const productId = row.getAttribute('data-product-id');
+            const changes = {};
+            let hasChanges = false;
+            
+            console.log(`检查第${index + 1}行，产品ID: ${productId}`);
+            
+            // 收集所有输入字段的更改
+            const inputs = row.querySelectorAll('input, select, textarea');
+            console.log(`第${index + 1}行输入字段数:`, inputs.length);
+            
+            inputs.forEach((input, inputIndex) => {
+                const field = input.getAttribute('data-field');
+                
+                // 跳过图片字段，因为图片字段在编辑模式下不可修改
+                if (field === 'imageUrl') {
+                    console.log(`跳过图片字段: ${field}`);
+                    return;
+                }
+                
+                const originalValue = input.getAttribute('data-original') || '';
+                const currentValue = input.type === 'file' ? 
+                    (input.files.length > 0 ? 'file_uploaded' : originalValue) : 
+                    input.value;
+                
+                console.log(`字段${inputIndex + 1}: ${field}, 原值: "${originalValue}", 当前值: "${currentValue}"`);
+                
+                if (field && currentValue !== originalValue) {
+                    changes[field] = currentValue;
+                    hasChanges = true;
+                    console.log(`检测到字段 ${field} 有更改`);
+                }
+            });
+            
+            if (hasChanges) {
+                changes.id = productId;
+                changedData.push(changes);
+                console.log(`第${index + 1}行有更改:`, changes);
+            } else {
+                console.log(`第${index + 1}行无更改`);
+            }
+        });
+        
+        console.log('最终收集到的更改数据:', changedData);
+        return changedData;
+    }
+
+    async function batchSaveData(changedData) {
+        try {
+            showToast('正在保存数据...', 'info');
+            
+            // 检查是否有现有的保存接口
+            let response;
+            try {
+                // 尝试使用现有的更新接口进行批量保存
+                const updatePromises = changedData.map(async (item) => {
+                    const updateData = { ...item };
+                    
+                    // 添加用户名参数
+                    if (currentUser) {
+                        updateData.username = currentUser;
+                    }
+                    
+                    console.log('发送更新请求:', updateData);
+                    
+                    const response = await fetch('/newProductProgress/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('更新失败:', errorText);
+                        throw new Error(`更新记录 ${item.id} 失败: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('更新成功:', result);
+                    return result;
+                });
+                
+                await Promise.all(updatePromises);
+                
+                showToast(`成功保存 ${changedData.length} 条记录`, 'success');
+                
+                // 退出编辑模式
+                cancelGlobalEdit();
+                
+                // 重新加载数据以显示最新内容
+                await refreshDataAndRender();
+                
+            } catch (apiError) {
+                console.warn('API调用失败:', apiError);
+                
+                // 询问用户是否使用前端模拟保存
+                const useLocalSave = confirm(
+                    `服务器保存失败：${apiError.message}\n\n` +
+                    `是否使用前端模拟保存？\n` +
+                    `注意：这种方式只会在当前页面生效，刷新页面后更改会丢失。\n` +
+                    `建议联系管理员检查后端接口。`
+                );
+                
+                if (useLocalSave) {
+                    // 如果API调用失败，使用模拟保存（仅更新前端数据）
+                    changedData.forEach(item => {
+                        const productIndex = filteredData.findIndex(p => p.id == item.id);
+                        if (productIndex !== -1) {
+                            // 更新本地数据
+                            Object.keys(item).forEach(key => {
+                                if (key !== 'id') {
+                                    filteredData[productIndex][key] = item[key];
+                                }
+                            });
+                        }
+                    });
+                    
+                    showToast(`已更新 ${changedData.length} 条记录（仅前端，请刷新页面以同步到服务器）`, 'warning');
+                    
+                    // 退出编辑模式
+                    cancelGlobalEdit();
+                    
+                    // 重新渲染表格以显示更新后的数据
+                    renderTable();
+                    updatePagination();
+                    updateDashboardData();
+                } else {
+                    showToast('已取消保存操作', 'info');
+                }
+            }
+            
+        } catch (error) {
+            console.error('批量保存失败:', error);
+            showToast('保存失败: ' + error.message, 'error');
+        }
+    }
+
+    // 刷新数据并重新渲染表格
+    async function refreshDataAndRender() {
+        try {
+            showToast('正在刷新数据...', 'info');
+            
+            // 构建查询参数
+            const params = new URLSearchParams({
+                username: currentUser,
+                job: currentRole,
+                page: 1,
+                size: 10000 // 获取所有数据
+            });
+
+            console.log('刷新数据，发送的查询参数:', params.toString());
+
+            const response = await fetch('/newProductProgress/getNewProductProgress?' + params.toString());
+            const data = await response.json();
+            
+            if (data.success) {
+                // 更新数据
+                allData = data.data || [];
+                filteredData = [...allData];
+                totalCount = allData.length;
+                totalPages = Math.ceil(totalCount / pageSize);
+                
+                // 重新渲染表格
+                renderTable();
+                updatePagination();
+                
+                // 更新大盘数据
+                updateDashboardData();
+                
+                showToast('数据已刷新', 'success');
+                console.log('数据刷新成功，共加载', allData.length, '条记录');
+            } else {
+                console.error('刷新数据失败:', data);
+                showToast('刷新数据失败: ' + (data.error || data.message || '未知错误'), 'error');
+            }
+        } catch (error) {
+            console.error('刷新数据时发生错误:', error);
+            showToast('刷新数据时发生错误: ' + error.message, 'error');
+        }
+    }
+
+    // 格式化文本，将换行符转换为HTML的<br>标签
+    function formatTextWithLineBreaks(text) {
+        if (!text) return '';
+        return text.replace(/\n/g, '<br>').replace(/\r\n/g, '<br>').replace(/\r/g, '<br>');
     }
 
     // 更新分页信息
@@ -6955,6 +7494,7 @@
 
     // 保存详情修改
     function saveDetailChanges() {
+        alert("sasdasd")
         // 检查权限
         if (!isSuperAdmin) {
             alert('您没有权限进行此操作！');

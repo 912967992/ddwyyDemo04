@@ -17,7 +17,7 @@ public interface NewProductProgressDao {
      * @param newProductProgress 新品进度对象
      * @return 影响行数
      */
-    int insert(NewProductProgress newProductProgress);
+    int insertNewProductProgress(NewProductProgress newProductProgress);
 
     /**
      * 根据SKU查询是否存在记录

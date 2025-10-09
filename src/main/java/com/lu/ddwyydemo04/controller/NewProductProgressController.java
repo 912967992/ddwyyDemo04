@@ -288,6 +288,7 @@ public class NewProductProgressController {
             if (username != null && !username.trim().isEmpty()) {
                 existingProduct.setUpdateBy(username);
             }
+//            System.out.println("existingProduct:"+existingProduct);
 
             // 调用Service层更新数据库
             boolean updateSuccess = newProductProgressService.updateNewProductProgress(existingProduct);
@@ -317,6 +318,9 @@ public class NewProductProgressController {
      */
     private void updateNewProductFields(NewProductProgress product, Map<String, Object> requestData) {
         // 更新基本信息
+        if (requestData.get("groupName") != null) {
+            product.setGroupName(requestData.get("groupName").toString());
+        }
         if (requestData.get("productCategoryLevel3") != null) {
             product.setProductCategoryLevel3(requestData.get("productCategoryLevel3").toString());
         }
