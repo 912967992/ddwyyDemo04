@@ -197,6 +197,34 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px) scale(0.8);
+            animation: cardPopIn 0.6s ease forwards;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        @keyframes cardPopIn {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.8);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-10px) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .stat-card::before {
@@ -257,6 +285,17 @@
             background-clip: text;
         }
 
+        .stat-card.risk .stat-number {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card.risk::before {
+            background: linear-gradient(90deg, #dc3545, #e83e8c);
+        }
+
         .stat-label {
             color: #6c757d;
             font-size: 16px;
@@ -268,6 +307,23 @@
             grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: chartsFadeIn 0.8s ease forwards;
+        }
+
+        @keyframes chartsFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-container {
             max-height: 600px;
             overflow-y: auto;
         }
@@ -663,6 +719,17 @@
             background-clip: text;
         }
 
+        .theme-blue .stat-card.risk .stat-number {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-blue .stat-card.risk::before {
+            background: linear-gradient(90deg, #dc3545, #e83e8c);
+        }
+
         .theme-green {
             background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
         }
@@ -678,6 +745,17 @@
             background-clip: text;
         }
 
+        .theme-green .stat-card.risk .stat-number {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-green .stat-card.risk::before {
+            background: linear-gradient(90deg, #dc3545, #e83e8c);
+        }
+
         .theme-purple {
             background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
         }
@@ -691,6 +769,17 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .theme-purple .stat-card.risk .stat-number {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-purple .stat-card.risk::before {
+            background: linear-gradient(90deg, #dc3545, #e83e8c);
         }
 
         .problem-image-container img:hover {
@@ -1505,6 +1594,20 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: tableFadeIn 0.8s ease forwards;
+        }
+
+        @keyframes tableFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 表格操作栏样式 */
@@ -2135,7 +2238,7 @@
 <!-- 任务状态大盘界面 -->
 <div id="dashboardView" class="dashboard-section">
     <div class="dashboard-header">
-        <h2><i class="fas fa-tachometer-alt"></i> 任务状态大盘</h2>
+        <h2><i class="fas fa-tachometer-alt"></i> 首页看板 </h2>
         <!-- 主题选择器 -->
         <div class="theme-selector">
             <label>主题：</label>
@@ -2149,21 +2252,37 @@
         </div>
     </div>
 
-    <!-- 统计卡片区域 -->
-    <div class="stats-cards">
-        <div class="stat-card completed">
-            <div class="stat-number" id="completedTasks">5</div>
-            <div class="stat-label">已完成任务</div>
-        </div>
-        <div class="stat-card in-progress">
-            <div class="stat-number" id="inProgressTasks">8</div>
-            <div class="stat-label">进行中任务</div>
-        </div>
-        <div class="stat-card at-risk">
-            <div class="stat-number" id="atRiskTasks">1</div>
-            <div class="stat-label">有风险任务</div>
-        </div>
-    </div>
+     <!-- 统计卡片区域 -->
+     <div class="stats-cards">
+         <div class="stat-card total" data-filter="all" onclick="filterByStatCard('all')">
+             <div class="stat-number" id="totalProjects">0</div>
+             <div class="stat-label">总项目数</div>
+         </div>
+         <div class="stat-card in-progress" data-filter="inProgress" onclick="filterByStatCard('inProgress')">
+             <div class="stat-number" id="inProgressProjects">0</div>
+             <div class="stat-label">进行中项目</div>
+         </div>
+         <div class="stat-card design" data-filter="design" onclick="filterByStatCard('design')">
+             <div class="stat-number" id="designProjects">0</div>
+             <div class="stat-label">设计项目数</div>
+         </div>
+         <div class="stat-card evt" data-filter="evt" onclick="filterByStatCard('evt')">
+             <div class="stat-number" id="evtProjects">0</div>
+             <div class="stat-label">EVT项目数</div>
+         </div>
+         <div class="stat-card dvt" data-filter="dvt" onclick="filterByStatCard('dvt')">
+             <div class="stat-number" id="dvtProjects">0</div>
+             <div class="stat-label">DVT项目数</div>
+         </div>
+         <div class="stat-card risk" data-filter="risk" onclick="filterByStatCard('risk')">
+             <div class="stat-number" id="pendingRisks">0</div>
+             <div class="stat-label">待解决风险数</div>
+         </div>
+         <div class="stat-card completed" data-filter="completed" onclick="filterByStatCard('completed')">
+             <div class="stat-number" id="completedProjects">0</div>
+             <div class="stat-label">已完成项目</div>
+         </div>
+     </div>
 
     <!-- 图表区域 -->
     <div class="charts-container">
@@ -3283,11 +3402,17 @@
     let originalData = []; // 存储原始数据，用于取消编辑时恢复
 
     // 界面切换功能
+    // 进入详细数据管理页面
+    function enterDetailView() {
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('detailView').style.display = 'block';
+        console.log('✅ 已进入详细数据管理页面');
+    }
+
     function initDashboardToggle() {
         // 进入详细数据按钮事件
         document.getElementById('enterDetailBtn').addEventListener('click', function() {
-            document.getElementById('dashboardView').style.display = 'none';
-            document.getElementById('detailView').style.display = 'block';
+            enterDetailView();
         });
 
         // 主题切换功能
@@ -3402,96 +3527,153 @@
         processDashboardData(allData);
     }
 
-    // 处理大盘数据的核心逻辑
-    function processDashboardData(data) {
-        console.log('🔍 开始统计各负责人任务状态...');
-        console.log('📊 总数据量:', data.length);
-        
-        // 打印前几条数据样本
-        console.log('📋 数据样本 (前3条):');
-        data.slice(0, 3).forEach((item, index) => {
-            console.log(`第${index + 1}条数据:`, {
-                id: item.id,
-                productName: item.productName || item.型号,
-                stage: item.stage,
-                主导DQE: item.主导DQE,
-                lead_dqe: item.lead_dqe,
-                leadDqe: item.leadDqe,
-                priority: item.priority
-            });
-        });
+     // 处理大盘数据的核心逻辑
+     function processDashboardData(data) {
+         console.log('🔍 开始统计项目数据...');
+         console.log('📊 总数据量:', data.length);
+         
+         // 设计项目数
+         const designProjects = data.filter(item => 
+             item.stage === '设计中'
+         ).length;
+         
+         // EVT项目数
+         const evtProjects = data.filter(item => 
+             item.stage === 'EVT'
+         ).length;
+         
+         // DVT项目数
+         const dvtProjects = data.filter(item => 
+             item.stage === 'DVT'
+         ).length;
+         
+         // 已完成项目（阶段值为PVT）
+         const completedProjects = data.filter(item => 
+             item.stage === 'PVT'
+         ).length;
+         
+         // 进行中项目（阶段值为设计中、EVT、DVT）
+         const inProgressProjects = designProjects + evtProjects + dvtProjects;
+         
+         // 总项目数 = 进行中项目 + 已完成项目
+         const totalProjects = inProgressProjects + completedProjects;
+         
+         // 待解决风险数（暂时设为0）
+         const pendingRisks = 0;
 
-        // 根据阶段字段计算任务状态
-        const completedTasks = data.filter(item => 
-            item.stage === 'DVT已准出' || item.stage === 'EVT已准出'
-        ).length;
+         // 更新页面显示
+         document.getElementById('totalProjects').textContent = totalProjects;
+         document.getElementById('inProgressProjects').textContent = inProgressProjects;
+         document.getElementById('designProjects').textContent = designProjects;
+         document.getElementById('evtProjects').textContent = evtProjects;
+         document.getElementById('dvtProjects').textContent = dvtProjects;
+         document.getElementById('pendingRisks').textContent = pendingRisks;
+         document.getElementById('completedProjects').textContent = completedProjects;
 
-        const inProgressTasks = data.filter(item => 
-            item.stage === '样品承认中'
-        ).length;
+         console.log('📊 项目统计结果:', {
+             totalProjects,
+             inProgressProjects,
+             designProjects,
+             evtProjects,
+             dvtProjects,
+             pendingRisks,
+             completedProjects
+         });
 
-        const atRiskTasks = data.filter(item => 
-            item.stage && !['DVT已准出', 'EVT已准出', '样品承认中'].includes(item.stage)
-        ).length;
+         // 计算图表数据（使用与统计卡片一致的计算逻辑）
+         const completedTasks = completedProjects; // 已完成项目（PVT）
+         const inProgressTasks = inProgressProjects; // 进行中项目（设计中、EVT、DVT）
+         const atRiskTasks = data.filter(item => 
+             item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
+         ).length;
 
-        // 计算各负责人任务数
-        const responsibleMap = {};
-        data.forEach(item => {
-            // 尝试多个可能的字段名
-            const dqe = item.主导DQE || item.lead_dqe || item.leadDqe;
-            if (dqe && dqe.trim() !== '') {
-                if (!responsibleMap[dqe]) {
-                    responsibleMap[dqe] = { 
-                        name: dqe.charAt(0), 
-                        nickname: dqe, 
-                        tasks: 0,
-                        completed: 0,
-                        inProgress: 0,
-                        atRisk: 0
-                    };
-                }
-                responsibleMap[dqe].tasks++;
-                
-                // 统计各状态数量
-                if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
-                    responsibleMap[dqe].completed++;
-                } else if (item.stage === '样品承认中') {
-                    responsibleMap[dqe].inProgress++;
-                } else {
-                    responsibleMap[dqe].atRisk++;
-                }
-            }
-        });
+         // 更新任务状态分布饼状图
+         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
+         
+         // 更新项目优先级分布饼状图
+         updatePriorityChart(data);
+         
+         // 更新各项目任务数
+         updateProjectTasks(data);
 
-        const responsible = Object.values(responsibleMap).sort((a, b) => b.tasks - a.tasks);
+         // 计算各负责人任务数（恢复原来的逻辑）
+         const responsibleMap = {};
+         data.forEach(item => {
+             // 尝试多个可能的字段名
+             const dqe = item.主导DQE || item.lead_dqe || item.leadDqe;
+             if (dqe && dqe.trim() !== '') {
+                 if (!responsibleMap[dqe]) {
+                     responsibleMap[dqe] = { 
+                         name: dqe.charAt(0), 
+                         nickname: dqe, 
+                         tasks: 0,
+                         completed: 0,
+                         inProgress: 0,
+                         atRisk: 0
+                     };
+                 }
+                 responsibleMap[dqe].tasks++;
+                 
+                 // 统计各状态数量
+                 if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
+                     responsibleMap[dqe].completed++;
+                 } else if (item.stage === '样品承认中') {
+                     responsibleMap[dqe].inProgress++;
+                 } else {
+                     responsibleMap[dqe].atRisk++;
+                 }
+             }
+         });
 
-        console.log('📊 任务状态统计:', {
-            completedTasks,
-            inProgressTasks,
-            atRiskTasks,
-            responsible
-        });
+         const responsible = Object.values(responsibleMap).sort((a, b) => b.tasks - a.tasks);
 
+         console.log('👥 负责人统计结果:');
+         console.log('📊 负责人总数:', responsible.length);
+         if (responsible.length === 0) {
+             console.log('⚠️ 没有找到负责人数据，检查字段名是否正确');
+             console.log('🔍 数据中主导DQE字段的样本值:', data.slice(0, 5).map(item => ({
+                 主导DQE: item.主导DQE,
+                 lead_dqe: item.lead_dqe,
+                 leadDqe: item.leadDqe
+             })));
+         }
+         responsible.forEach((person, index) => {
+             console.log(`${index + 1}. ${person.nickname} (${person.name}):`, {
+                 总任务数: person.tasks,
+                 已完成: person.completed,
+                 进行中: person.inProgress,
+                 有风险: person.atRisk,
+                 完成率: person.tasks > 0 ? ((person.completed / person.tasks) * 100).toFixed(1) + '%' : '0%'
+             });
+         });
 
-        console.log('👥 负责人统计结果:');
-        console.log('📊 负责人总数:', responsible.length);
-        if (responsible.length === 0) {
-            console.log('⚠️ 没有找到负责人数据，检查字段名是否正确');
-            console.log('🔍 数据中主导DQE字段的样本值:', data.slice(0, 5).map(item => ({
-                主导DQE: item.主导DQE,
-                lead_dqe: item.lead_dqe,
-                leadDqe: item.leadDqe
-            })));
-        }
-        responsible.forEach((person, index) => {
-            console.log(`${index + 1}. ${person.nickname} (${person.name}):`, {
-                总任务数: person.tasks,
-                已完成: person.completed,
-                进行中: person.inProgress,
-                有风险: person.atRisk,
-                完成率: person.tasks > 0 ? ((person.completed / person.tasks) * 100).toFixed(1) + '%' : '0%'
-            });
-        });
+         // 更新负责人数据
+         const responsibleChart = document.getElementById('responsibleChart');
+         responsibleChart.innerHTML = '';
+         
+         responsible.forEach(person => {
+             const item = document.createElement('div');
+             item.className = 'responsible-item';
+             const completionRate = person.tasks > 0 ? ((person.completed / person.tasks) * 100).toFixed(1) : 0;
+             item.innerHTML = `
+                 <div class="responsible-name">${person.name}</div>
+                 <div class="responsible-info">
+                     <div class="responsible-details">
+                         <div class="responsible-nickname">${person.nickname}</div>
+                         <div class="responsible-stats">
+                             <span class="stat completed">已完成: ${person.completed}</span>
+                             <span class="stat in-progress">进行中: ${person.inProgress}</span>
+                             <span class="stat at-risk">有风险: ${person.atRisk}</span>
+                         </div>
+                     </div>
+                     <div class="responsible-tasks">
+                         <div class="task-count">${person.tasks}</div>
+                         <div class="completion-rate">${completionRate}%</div>
+                     </div>
+                 </div>
+             `;
+             responsibleChart.appendChild(item);
+         });
 
         // 打印阶段分布统计
         console.log('📈 阶段分布统计:');
@@ -3516,37 +3698,6 @@
         });
 
         // 更新统计数字
-        document.getElementById('completedTasks').textContent = completedTasks;
-        document.getElementById('inProgressTasks').textContent = inProgressTasks;
-        document.getElementById('atRiskTasks').textContent = atRiskTasks;
-
-        // 更新负责人数据
-        const responsibleChart = document.getElementById('responsibleChart');
-        responsibleChart.innerHTML = '';
-        
-        responsible.forEach(person => {
-            const item = document.createElement('div');
-            item.className = 'responsible-item';
-            const completionRate = person.tasks > 0 ? ((person.completed / person.tasks) * 100).toFixed(1) : 0;
-            item.innerHTML = `
-                <div class="responsible-name">${person.name}</div>
-                <div class="responsible-info">
-                    <div class="responsible-details">
-                        <div class="responsible-nickname">${person.nickname}</div>
-                        <div class="responsible-stats">
-                            <span class="stat completed">已完成: ${person.completed}</span>
-                            <span class="stat in-progress">进行中: ${person.inProgress}</span>
-                            <span class="stat at-risk">有风险: ${person.atRisk}</span>
-                        </div>
-                    </div>
-                    <div class="responsible-tasks">
-                        <div class="task-count">${person.tasks}</div>
-                        <div class="completion-rate">${completionRate}%</div>
-                    </div>
-                </div>
-            `;
-            responsibleChart.appendChild(item);
-        });
 
         // 更新任务状态分布饼状图
         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
@@ -5089,6 +5240,110 @@
         }, 100);
         
         console.log(`✅ 过滤完成，显示 ${filteredData.length} 条数据`);
+    }
+
+    // 根据统计卡片筛选数据
+    function filterByStatCard(filterType) {
+        console.log('🎯 根据统计卡片筛选:', filterType);
+        
+        // 先进入详细数据管理页面
+        enterDetailView();
+        
+        // 延迟执行筛选，确保页面切换完成
+        setTimeout(() => {
+            // 清空所有过滤器
+            resetFilters();
+            
+            // 根据筛选类型设置对应的过滤器
+            switch(filterType) {
+                case 'all':
+                    // 显示所有数据，不需要额外设置
+                    break;
+                case 'inProgress':
+                    // 筛选进行中项目（设计中、EVT、DVT）
+                    filteredData = allData.filter(item => 
+                        ['设计中', 'EVT', 'DVT'].includes(item.stage)
+                    );
+                    break;
+                case 'design':
+                    // 筛选设计项目
+                    filteredData = allData.filter(item => item.stage === '设计中');
+                    break;
+                case 'evt':
+                    // 筛选EVT项目
+                    filteredData = allData.filter(item => item.stage === 'EVT');
+                    break;
+                case 'dvt':
+                    // 筛选DVT项目
+                    filteredData = allData.filter(item => item.stage === 'DVT');
+                    break;
+                case 'risk':
+                    // 筛选有风险项目（不在正常阶段中的项目）
+                    filteredData = allData.filter(item => 
+                        item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
+                    );
+                    break;
+                case 'completed':
+                    // 筛选已完成项目
+                    filteredData = allData.filter(item => item.stage === 'PVT');
+                    break;
+                default:
+                    filteredData = allData;
+            }
+            
+            // 重置到第一页
+            currentPage = 1;
+            
+            // 重新渲染表格和分页
+            renderTable();
+            updatePagination();
+            
+            // 滚动到表格区域
+            setTimeout(() => {
+                const tableSection = document.querySelector('.table-section');
+                if (tableSection) {
+                    // 计算表格区域的位置
+                    const rect = tableSection.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset + rect.top - 100; // 留出100px的间距
+                    
+                    // 平滑滚动到表格区域
+                    window.scrollTo({
+                        top: scrollTop,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 对于特定卡片，添加高亮效果
+                    if (['design', 'evt', 'dvt', 'completed'].includes(filterType)) {
+                        // 高亮显示表格区域
+                        tableSection.style.border = '3px solid #007bff';
+                        tableSection.style.boxShadow = '0 0 20px rgba(0, 123, 255, 0.3)';
+                        
+                        // 3秒后移除高亮效果
+                        setTimeout(() => {
+                            tableSection.style.border = '';
+                            tableSection.style.boxShadow = '';
+                        }, 3000);
+                    }
+                    
+                    console.log('✅ 已跳转到表格区域');
+                } else {
+                    console.error('❌ 找不到表格区域元素');
+                }
+            }, 300);
+            
+            // 显示筛选结果提示
+            const filterNames = {
+                'all': '所有项目',
+                'inProgress': '进行中项目',
+                'design': '设计项目',
+                'evt': 'EVT项目',
+                'dvt': 'DVT项目',
+                'risk': '有风险项目',
+                'completed': '已完成项目'
+            };
+            
+            showToast(`已筛选显示：${filterNames[filterType]} (${filteredData.length}条)`, 'success');
+        }, 100);
     }
 
     // 重置筛选条件
