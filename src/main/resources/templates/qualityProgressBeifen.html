@@ -14,6 +14,8 @@
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
     <!-- 引入Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入Chart.js datalabels插件 -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <!-- 自定义提示框样式 -->
     <style>
@@ -200,6 +202,16 @@
             opacity: 0;
             transform: translateY(50px) scale(0.8);
             animation: cardPopIn 0.6s ease forwards;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card:active {
+            transform: translateY(-4px) scale(0.98);
         }
 
         @keyframes cardPopIn {
@@ -1649,6 +1661,176 @@
             max-width: 100px;
         }
 
+        /* 型号和SKU输入框变大 */
+        .edit-mode .editable-cell input[data-field="model"],
+        .edit-mode .editable-cell input[data-field="sku"] {
+            min-width: 60px;
+            width: 60px;
+        }
+
+        /* 显示类型、一级供方、主导DQE、电子研发输入框设置与SKU相同 */
+        .edit-mode .editable-cell input[data-field="displayType"],
+        .edit-mode .editable-cell input[data-field="primarySupplier"],
+        .edit-mode .editable-cell input[data-field="leadDqe"],
+        .edit-mode .editable-cell input[data-field="electronicRd"] {
+            min-width: 60px;
+            width: 60px;
+        }
+
+        /* 产品名称输入框变大 */
+        .edit-mode .editable-cell textarea[data-field="productName"] {
+            min-width: 80px;
+            width: 80px;
+        }
+
+        /* 长文本字段样式 - 点击编辑 */
+        .edit-mode .editable-cell .text-edit-trigger {
+            cursor: pointer;
+            padding: 4px 8px;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            min-height: 32px;
+            width: 100%;
+            min-width: 60px;
+            max-width: 100px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger:hover {
+            background-color: #e9ecef;
+            border-color: #0056b3;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger::after {
+            content: "";
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger .text-preview {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        /* 文本编辑弹窗样式 */
+        .text-edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .text-edit-modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .text-edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .text-edit-modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .text-edit-modal-close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .text-edit-modal-close:hover {
+            color: #000;
+        }
+
+        .text-edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .text-edit-modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .text-edit-modal-footer button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #545b62;
+        }
+
+        /* 可点击文本样式 */
+        .clickable-text {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .clickable-text:hover {
+            color: #0056b3;
+            background-color: #f8f9fa;
+        }
+
         .edit-mode .editable-cell input:focus,
         .edit-mode .editable-cell select:focus,
         .edit-mode .editable-cell textarea:focus {
@@ -2244,31 +2426,31 @@
 
     <!-- 统计卡片区域 -->
     <div class="stats-cards">
-        <div class="stat-card total">
+        <div class="stat-card total" data-filter="all" onclick="filterByStatCard('all')">
             <div class="stat-number" id="totalProjects">0</div>
             <div class="stat-label">总项目数</div>
         </div>
-        <div class="stat-card in-progress">
+        <div class="stat-card in-progress" data-filter="inProgress" onclick="filterByStatCard('inProgress')">
             <div class="stat-number" id="inProgressProjects">0</div>
             <div class="stat-label">进行中项目</div>
         </div>
-        <div class="stat-card design">
+        <div class="stat-card design" data-filter="design" onclick="filterByStatCard('design')">
             <div class="stat-number" id="designProjects">0</div>
-            <div class="stat-label">设计项目数</div>
+            <div class="stat-label">设计中项目数</div>
         </div>
-        <div class="stat-card evt">
+        <div class="stat-card evt" data-filter="evt" onclick="filterByStatCard('evt')">
             <div class="stat-number" id="evtProjects">0</div>
             <div class="stat-label">EVT项目数</div>
         </div>
-        <div class="stat-card dvt">
+        <div class="stat-card dvt" data-filter="dvt" onclick="filterByStatCard('dvt')">
             <div class="stat-number" id="dvtProjects">0</div>
             <div class="stat-label">DVT项目数</div>
         </div>
-        <div class="stat-card risk">
+        <div class="stat-card risk" data-filter="risk" onclick="filterByStatCard('risk')">
             <div class="stat-number" id="pendingRisks">0</div>
             <div class="stat-label">待解决风险数</div>
         </div>
-        <div class="stat-card completed">
+        <div class="stat-card completed" data-filter="completed" onclick="filterByStatCard('completed')">
             <div class="stat-number" id="completedProjects">0</div>
             <div class="stat-label">已完成项目</div>
         </div>
@@ -2494,6 +2676,39 @@
                     <span>页</span>
                     <button id="pageJumpBtn" class="btn btn-sm">跳转</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文本编辑弹窗 -->
+    <div id="textEditModal" class="text-edit-modal">
+        <div class="text-edit-modal-content">
+            <div class="text-edit-modal-header">
+                <h3 id="textEditModalTitle">编辑文本</h3>
+                <span class="text-edit-modal-close" onclick="closeTextEditModal()">&times;</span>
+            </div>
+            <div class="text-edit-modal-body">
+                <textarea id="textEditTextarea" class="text-edit-textarea" placeholder="请输入内容..."></textarea>
+            </div>
+            <div class="text-edit-modal-footer">
+                <button class="btn-cancel" onclick="closeTextEditModal()">取消</button>
+                <button class="btn-save" onclick="saveTextEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容查看模态框 -->
+    <div id="contentViewModal" class="text-edit-modal">
+        <div class="text-edit-modal-content">
+            <div class="text-edit-modal-header">
+                <h3 id="contentViewModalTitle">查看内容</h3>
+                <span class="text-edit-modal-close" onclick="closeContentViewModal()">&times;</span>
+            </div>
+            <div class="text-edit-modal-body">
+                <div id="contentViewText" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
+            </div>
+            <div class="text-edit-modal-footer">
+                <button class="btn-cancel" onclick="closeContentViewModal()">关闭</button>
             </div>
         </div>
     </div>
@@ -3392,11 +3607,17 @@
     let originalData = []; // 存储原始数据，用于取消编辑时恢复
 
     // 界面切换功能
+    // 进入详细数据管理页面
+    function enterDetailView() {
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('detailView').style.display = 'block';
+        console.log('✅ 已进入详细数据管理页面');
+    }
+
     function initDashboardToggle() {
         // 进入详细数据按钮事件
         document.getElementById('enterDetailBtn').addEventListener('click', function() {
-            document.getElementById('dashboardView').style.display = 'none';
-            document.getElementById('detailView').style.display = 'block';
+            enterDetailView();
         });
 
         // 主题切换功能
@@ -3567,9 +3788,7 @@
         // 计算图表数据（使用与统计卡片一致的计算逻辑）
         const completedTasks = completedProjects; // 已完成项目（PVT）
         const inProgressTasks = inProgressProjects; // 进行中项目（设计中、EVT、DVT）
-        const atRiskTasks = data.filter(item =>
-            item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
-        ).length;
+        const atRiskTasks = 0; // 风险固定为0，暂时不定义
 
         // 更新任务状态分布饼状图
         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
@@ -3599,12 +3818,13 @@
                 responsibleMap[dqe].tasks++;
 
                 // 统计各状态数量
-                if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
+                if (item.stage === 'PVT') {
                     responsibleMap[dqe].completed++;
-                } else if (item.stage === '样品承认中') {
+                } else if (['设计中', 'EVT', 'DVT'].includes(item.stage)) {
                     responsibleMap[dqe].inProgress++;
                 } else {
-                    responsibleMap[dqe].atRisk++;
+                    // 其他状态暂时归类为进行中，风险固定为0
+                    responsibleMap[dqe].inProgress++;
                 }
             }
         });
@@ -3712,7 +3932,7 @@
         }
 
         const data = {
-            labels: ['已完成', '进行中', '有风险'],
+            labels: [`已完成 (${completed})`, `进行中 (${inProgress})`, `有风险 (${atRisk})`],
             datasets: [{
                 data: [completed, inProgress, atRisk],
                 backgroundColor: [
@@ -3755,6 +3975,17 @@
                                 return `${context.label}: ${context.parsed}个 (${percentage}%)`;
                             }
                         }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        formatter: function(value, context) {
+                            return value > 0 ? value : '';
+                        }
                     }
                 }
             }
@@ -3788,18 +4019,27 @@
             priorityMap[priority] = (priorityMap[priority] || 0) + 1;
         });
 
-        const labels = Object.keys(priorityMap);
-        const chartData = Object.values(priorityMap);
+        // 按优先级顺序排序
+        const priorityOrder = ['S+', 'S', 'A', 'B', 'C', '未设置'];
+        const sortedPriorities = priorityOrder.filter(p => priorityMap[p] > 0);
 
-        const colors = [
-            'rgba(220, 53, 69, 0.8)',   // 高优先级 - 红色
-            'rgba(255, 193, 7, 0.8)',   // 中优先级 - 黄色
-            'rgba(40, 167, 69, 0.8)',   // 低优先级 - 绿色
-            'rgba(108, 117, 125, 0.8)'  // 未设置 - 灰色
-        ];
+        const labels = sortedPriorities;
+        const chartData = sortedPriorities.map(p => priorityMap[p]);
+
+        // 按优先级顺序分配颜色
+        const colorMap = {
+            'S+': 'rgba(128, 0, 128, 0.8)',    // 紫色 - 最高优先级
+            'S': 'rgba(220, 53, 69, 0.8)',     // 红色 - 高优先级
+            'A': 'rgba(255, 193, 7, 0.8)',     // 黄色 - 中优先级
+            'B': 'rgba(40, 167, 69, 0.8)',     // 绿色 - 低优先级
+            'C': 'rgba(0, 123, 255, 0.8)',     // 蓝色 - 更低优先级
+            '未设置': 'rgba(108, 117, 125, 0.8)' // 灰色 - 未设置
+        };
+
+        const colors = labels.map(label => colorMap[label] || 'rgba(108, 117, 125, 0.8)');
 
         const chartConfig = {
-            labels: labels,
+            labels: labels.map((label, index) => `${label} (${chartData[index]})`),
             datasets: [{
                 data: chartData,
                 backgroundColor: colors.slice(0, labels.length),
@@ -3833,6 +4073,17 @@
                                 const percentage = ((context.parsed / total) * 100).toFixed(1);
                                 return `${context.label}: ${context.parsed}个 (${percentage}%)`;
                             }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        formatter: function(value, context) {
+                            return value > 0 ? value : '';
                         }
                     }
                 }
@@ -3876,12 +4127,13 @@
             categoryMap[category].tasks++;
 
             // 统计各状态数量
-            if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
+            if (item.stage === 'PVT') {
                 categoryMap[category].completed++;
-            } else if (item.stage === '样品承认中') {
+            } else if (['设计中', 'EVT', 'DVT'].includes(item.stage)) {
                 categoryMap[category].inProgress++;
             } else {
-                categoryMap[category].atRisk++;
+                // 其他状态暂时归类为进行中，风险固定为0
+                categoryMap[category].inProgress++;
             }
         });
 
@@ -3894,7 +4146,7 @@
         const tasksData = sortedCategories.map(cat => cat.tasks);
         const completedData = sortedCategories.map(cat => cat.completed);
         const inProgressData = sortedCategories.map(cat => cat.inProgress);
-        const atRiskData = sortedCategories.map(cat => cat.atRisk);
+        const atRiskData = sortedCategories.map(cat => 0); // 风险固定为0
 
         console.log('📊 产品三级类目统计结果:');
         sortedCategories.forEach((category, index) => {
@@ -4252,6 +4504,14 @@
     // 页面初始化
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 页面加载完成，开始初始化...');
+
+        // 注册Chart.js datalabels插件
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+            console.log('✅ Chart.js datalabels插件已注册');
+        } else {
+            console.warn('⚠️ Chart.js datalabels插件未加载');
+        }
 
         // 检查用户权限
         checkUserPermission();
@@ -5224,6 +5484,110 @@
         }, 100);
 
         console.log(`✅ 过滤完成，显示 ${filteredData.length} 条数据`);
+    }
+
+    // 根据统计卡片筛选数据
+    function filterByStatCard(filterType) {
+        console.log('🎯 根据统计卡片筛选:', filterType);
+
+        // 先进入详细数据管理页面
+        enterDetailView();
+
+        // 延迟执行筛选，确保页面切换完成
+        setTimeout(() => {
+            // 清空所有过滤器
+            resetFilters();
+
+            // 根据筛选类型设置对应的过滤器
+            switch(filterType) {
+                case 'all':
+                    // 显示所有数据，不需要额外设置
+                    break;
+                case 'inProgress':
+                    // 筛选进行中项目（设计中、EVT、DVT）
+                    filteredData = allData.filter(item =>
+                        ['设计中', 'EVT', 'DVT'].includes(item.stage)
+                    );
+                    break;
+                case 'design':
+                    // 筛选设计项目
+                    filteredData = allData.filter(item => item.stage === '设计中');
+                    break;
+                case 'evt':
+                    // 筛选EVT项目
+                    filteredData = allData.filter(item => item.stage === 'EVT');
+                    break;
+                case 'dvt':
+                    // 筛选DVT项目
+                    filteredData = allData.filter(item => item.stage === 'DVT');
+                    break;
+                case 'risk':
+                    // 筛选有风险项目（不在正常阶段中的项目）
+                    filteredData = allData.filter(item =>
+                        item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
+                    );
+                    break;
+                case 'completed':
+                    // 筛选已完成项目
+                    filteredData = allData.filter(item => item.stage === 'PVT');
+                    break;
+                default:
+                    filteredData = allData;
+            }
+
+            // 重置到第一页
+            currentPage = 1;
+
+            // 重新渲染表格和分页
+            renderTable();
+            updatePagination();
+
+            // 滚动到表格区域
+            setTimeout(() => {
+                const tableSection = document.querySelector('.table-section');
+                if (tableSection) {
+                    // 计算表格区域的位置
+                    const rect = tableSection.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset + rect.top - 100; // 留出100px的间距
+
+                    // 平滑滚动到表格区域
+                    window.scrollTo({
+                        top: scrollTop,
+                        behavior: 'smooth'
+                    });
+
+                    // 对于特定卡片，添加高亮效果
+                    if (['design', 'evt', 'dvt', 'completed'].includes(filterType)) {
+                        // 高亮显示表格区域
+                        tableSection.style.border = '3px solid #007bff';
+                        tableSection.style.boxShadow = '0 0 20px rgba(0, 123, 255, 0.3)';
+
+                        // 3秒后移除高亮效果
+                        setTimeout(() => {
+                            tableSection.style.border = '';
+                            tableSection.style.boxShadow = '';
+                        }, 3000);
+                    }
+
+                    console.log('✅ 已跳转到表格区域');
+                } else {
+                    console.error('❌ 找不到表格区域元素');
+                }
+            }, 300);
+
+            // 显示筛选结果提示
+            const filterNames = {
+                'all': '所有项目',
+                'inProgress': '进行中项目',
+                'design': '设计项目',
+                'evt': 'EVT项目',
+                'dvt': 'DVT项目',
+                'risk': '有风险项目',
+                'completed': '已完成项目'
+            };
+
+            showToast(`已筛选显示：${filterNames[filterType]} (${filteredData.length}条)`, 'success');
+        }, 100);
     }
 
     // 重置筛选条件
@@ -6925,19 +7289,29 @@
                         </select>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="evtProblem" data-original="${product.evtProblem || ''}">${product.evtProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="evtProblem" data-original="${product.evtProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.evtProblem || ''}">${product.evtProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="dvtProblem" data-original="${product.dvtProblem || ''}">${product.dvtProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="dvtProblem" data-original="${product.dvtProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.dvtProblem || ''}">${product.dvtProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</div>
+                        </div>
                     </td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
@@ -6959,7 +7333,7 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc" title="${product.productName || ''}">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
                     <td class="image-cell">
                         ${product.imageUrl ?
                     `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` :
@@ -6974,11 +7348,11 @@
                     <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc" title="${product.designReviewProblem || ''}">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.evtProblem || ''}">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.dvtProblem || ''}">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainProjectProgress || ''}">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainQualityRisks || ''}">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
@@ -7097,7 +7471,7 @@
             console.log(`检查第${index + 1}行，产品ID: ${productId}`);
 
             // 收集所有输入字段的更改
-            const inputs = row.querySelectorAll('input, select, textarea');
+            const inputs = row.querySelectorAll('input, select, textarea, .text-edit-trigger');
             console.log(`第${index + 1}行输入字段数:`, inputs.length);
 
             inputs.forEach((input, inputIndex) => {
@@ -7110,13 +7484,31 @@
                 }
 
                 const originalValue = input.getAttribute('data-original') || '';
-                const currentValue = input.type === 'file' ?
-                    (input.files.length > 0 ? 'file_uploaded' : originalValue) :
-                    input.value;
+                let currentValue;
+
+                if (input.classList.contains('text-edit-trigger')) {
+                    // 处理文本编辑触发器 - 使用data-original作为当前值
+                    currentValue = input.getAttribute('data-original') || '';
+                    // 对于文本编辑触发器，我们需要检查是否有实际内容变化
+                    // 这里我们直接使用当前值，因为data-original在保存时已经更新了
+                } else if (input.type === 'file') {
+                    currentValue = input.files.length > 0 ? 'file_uploaded' : originalValue;
+                } else {
+                    currentValue = input.value;
+                }
 
                 console.log(`字段${inputIndex + 1}: ${field}, 原值: "${originalValue}", 当前值: "${currentValue}"`);
 
-                if (field && currentValue !== originalValue) {
+                // 对于文本编辑触发器，我们需要特殊处理
+                if (input.classList.contains('text-edit-trigger')) {
+                    // 检查是否被修改过
+                    const isModified = input.getAttribute('data-modified') === 'true';
+                    if (field && isModified && currentValue) {
+                        changes[field] = currentValue;
+                        hasChanges = true;
+                        console.log(`检测到文本编辑字段 ${field} 已修改:`, currentValue);
+                    }
+                } else if (field && currentValue !== originalValue) {
                     changes[field] = currentValue;
                     hasChanges = true;
                     console.log(`检测到字段 ${field} 有更改`);
@@ -7228,10 +7620,39 @@
         }
     }
 
+    // 保存当前筛选条件
+    function saveCurrentFilters() {
+        return {
+            productCategory: document.getElementById('filterProductCategory').value.trim(),
+            sku: document.getElementById('filterSku').value.trim(),
+            leadDqe: document.getElementById('filterLeadDqe').value.trim(),
+            model: document.getElementById('filterModel').value.trim(),
+            stage: document.getElementById('filterStage').value.trim(),
+            status: document.getElementById('filterStatus').value.trim()
+        };
+    }
+
+    // 恢复筛选条件
+    function restoreFilters(savedFilters) {
+        document.getElementById('filterProductCategory').value = savedFilters.productCategory;
+        document.getElementById('filterSku').value = savedFilters.sku;
+        document.getElementById('filterLeadDqe').value = savedFilters.leadDqe;
+        document.getElementById('filterModel').value = savedFilters.model;
+        document.getElementById('filterStage').value = savedFilters.stage;
+        document.getElementById('filterStatus').value = savedFilters.status;
+    }
+
     // 刷新数据并重新渲染表格
     async function refreshDataAndRender() {
         try {
             showToast('正在刷新数据...', 'info');
+
+            // 保存当前筛选条件
+            const savedFilters = saveCurrentFilters();
+            const hasActiveFilters = Object.values(savedFilters).some(value => value !== '');
+
+            console.log('保存的筛选条件:', savedFilters);
+            console.log('是否有活跃筛选条件:', hasActiveFilters);
 
             // 构建查询参数
             const params = new URLSearchParams({
@@ -7249,8 +7670,55 @@
             if (data.success) {
                 // 更新数据
                 allData = data.data || [];
-                filteredData = [...allData];
-                totalCount = allData.length;
+
+                if (hasActiveFilters) {
+                    // 如果有活跃的筛选条件，重新应用筛选
+                    console.log('重新应用筛选条件...');
+                    filteredData = allData.filter(item => {
+                        let matches = true;
+
+                        // 品类过滤
+                        if (savedFilters.productCategory && !item.productCategoryLevel3?.toLowerCase().includes(savedFilters.productCategory.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        // SKU过滤
+                        if (savedFilters.sku && !item.sku?.toLowerCase().includes(savedFilters.sku.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        // 主导DQE过滤
+                        if (savedFilters.leadDqe && !item.leadDqe?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase()) &&
+                            !item.主导DQE?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase()) &&
+                            !item.lead_dqe?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        // 型号过滤
+                        if (savedFilters.model && !item.model?.toLowerCase().includes(savedFilters.model.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        // 阶段过滤
+                        if (savedFilters.stage && !item.stage?.toLowerCase().includes(savedFilters.stage.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        // 状态过滤
+                        if (savedFilters.status && !item.status?.toLowerCase().includes(savedFilters.status.toLowerCase())) {
+                            matches = false;
+                        }
+
+                        return matches;
+                    });
+
+                    console.log('筛选后数据量:', filteredData.length);
+                } else {
+                    // 没有筛选条件，显示全部数据
+                    filteredData = [...allData];
+                }
+
+                totalCount = filteredData.length;
                 totalPages = Math.ceil(totalCount / pageSize);
 
                 // 重新渲染表格
@@ -7260,8 +7728,11 @@
                 // 更新大盘数据
                 updateDashboardData();
 
-                showToast('数据已刷新', 'success');
-                console.log('数据刷新成功，共加载', allData.length, '条记录');
+                const message = hasActiveFilters ?
+                    `数据已刷新，保持筛选条件 (${filteredData.length}条)` :
+                    `数据已刷新 (${allData.length}条)`;
+                showToast(message, 'success');
+                console.log('数据刷新成功，共加载', allData.length, '条记录，筛选后', filteredData.length, '条');
             } else {
                 console.error('刷新数据失败:', data);
                 showToast('刷新数据失败: ' + (data.error || data.message || '未知错误'), 'error');
@@ -7277,6 +7748,110 @@
         if (!text) return '';
         return text.replace(/\n/g, '<br>').replace(/\r\n/g, '<br>').replace(/\r/g, '<br>');
     }
+
+    // 文本编辑相关变量
+    let currentTextEditElement = null;
+    let currentTextEditField = null;
+
+    // 打开文本编辑弹窗
+    function openTextEdit(element) {
+        currentTextEditElement = element;
+        currentTextEditField = element.getAttribute('data-field');
+        const currentValue = element.getAttribute('data-original') || '';
+
+        // 设置弹窗标题
+        const fieldNames = {
+            'designReviewProblem': '设计评审主要问题',
+            'evtProblem': 'EVT主要问题',
+            'dvtProblem': 'DVT主要问题',
+            'mainProjectProgress': '项目进度主要事项',
+            'mainQualityRisks': '质量主要风险'
+        };
+
+        document.getElementById('textEditModalTitle').textContent = `编辑${fieldNames[currentTextEditField] || currentTextEditField}`;
+
+        // 设置文本内容
+        document.getElementById('textEditTextarea').value = currentValue;
+
+        // 显示弹窗
+        document.getElementById('textEditModal').style.display = 'block';
+
+        // 聚焦到文本区域
+        setTimeout(() => {
+            document.getElementById('textEditTextarea').focus();
+        }, 100);
+    }
+
+    // 关闭文本编辑弹窗
+    function closeTextEditModal() {
+        document.getElementById('textEditModal').style.display = 'none';
+        currentTextEditElement = null;
+        currentTextEditField = null;
+    }
+
+    // 保存文本编辑
+    function saveTextEdit() {
+        if (!currentTextEditElement || !currentTextEditField) {
+            console.error('没有找到当前编辑的元素或字段');
+            return;
+        }
+
+        const newValue = document.getElementById('textEditTextarea').value;
+
+        // 更新元素的data-original属性
+        currentTextEditElement.setAttribute('data-original', newValue);
+
+        // 标记字段为已修改
+        currentTextEditElement.setAttribute('data-modified', 'true');
+
+        // 更新显示内容
+        const previewElement = currentTextEditElement.querySelector('.text-preview');
+        if (previewElement) {
+            previewElement.textContent = newValue || '';
+            previewElement.title = newValue || '';
+        }
+
+        // 关闭弹窗
+        closeTextEditModal();
+
+        console.log(`已更新字段 ${currentTextEditField} 的值为:`, newValue);
+    }
+
+    // 点击弹窗外部关闭
+    document.getElementById('textEditModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTextEditModal();
+        }
+    });
+
+    // ESC键关闭弹窗
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('textEditModal').style.display === 'block') {
+            closeTextEditModal();
+        }
+        if (e.key === 'Escape' && document.getElementById('contentViewModal').style.display === 'block') {
+            closeContentViewModal();
+        }
+    });
+
+    // 显示内容查看模态框
+    function showContentViewModal(title, content) {
+        document.getElementById('contentViewModalTitle').textContent = `查看${title}`;
+        document.getElementById('contentViewText').textContent = content || '暂无内容';
+        document.getElementById('contentViewModal').style.display = 'block';
+    }
+
+    // 关闭内容查看模态框
+    function closeContentViewModal() {
+        document.getElementById('contentViewModal').style.display = 'none';
+    }
+
+    // 点击内容查看弹窗外部关闭
+    document.getElementById('contentViewModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeContentViewModal();
+        }
+    });
 
     // 更新分页信息
     function updatePagination() {

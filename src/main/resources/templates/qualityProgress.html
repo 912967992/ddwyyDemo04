@@ -14,6 +14,8 @@
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
     <!-- 引入Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入Chart.js datalabels插件 -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <!-- 自定义提示框样式 -->
     <style>
@@ -180,21 +182,66 @@
         }
 
         .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 24px;
             margin-bottom: 32px;
+            justify-content: center;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 32px 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            flex: 0 0 calc(25% - 18px);
+            min-width: 280px;
+        }
+
+        /* 第二排的3个卡片居中显示 */
+        .stats-cards .stat-card:nth-child(n+5) {
+            flex: 0 0 calc(33.333% - 16px);
+            min-width: 280px;
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 1200px) {
+            .stat-card {
+                flex: 0 0 calc(33.333% - 16px);
+            }
+            
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 calc(33.333% - 16px);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .stat-card {
+                flex: 0 0 calc(50% - 12px);
+            }
+            
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 calc(50% - 12px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stat-card {
+                flex: 0 0 100%;
+                max-width: 400px;
+            }
+            
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 100%;
+                max-width: 400px;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+            padding: 36px 28px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             opacity: 0;
@@ -204,8 +251,8 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .stat-card:active {
@@ -255,13 +302,27 @@
         }
 
         .stat-number {
-            font-size: 48px;
-            font-weight: 800;
-            margin-bottom: 8px;
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .stat-number::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+            border-radius: 2px;
         }
 
         .stat-card.completed .stat-number {
@@ -298,18 +359,38 @@
 
         .stat-label {
             color: #6c757d;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            opacity: 0.8;
         }
 
         .charts-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+            padding: 0 20px;
             opacity: 0;
             transform: translateY(30px);
             animation: chartsFadeIn 0.8s ease forwards;
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 0 10px;
+            }
         }
 
         @keyframes chartsFadeIn {
@@ -323,59 +404,130 @@
             }
         }
 
+        /* 添加图表容器的交错动画 */
+        .chart-section:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .chart-section:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .chart-section:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .chart-section:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
         .chart-container {
             max-height: 600px;
             overflow-y: auto;
         }
 
         .chart-section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-            height: 400px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 450px;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: chartSectionFadeIn 0.6s ease forwards;
+        }
+
+        @keyframes chartSectionFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 20px 20px 0 0;
         }
 
         .chart-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .chart-section h3 {
-            margin: 0 0 20px 0;
+            margin: 0 0 24px 0;
             color: #2c3e50;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
-            height: 40px;
+            gap: 12px;
+            height: 48px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
 
         .chart-section h3::before {
             content: '';
-            width: 4px;
-            height: 20px;
+            width: 5px;
+            height: 24px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 2px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-section h3::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3));
         }
 
         .chart-container {
-            height: 300px;
+            height: 320px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(248, 250, 252, 0.8));
+            border-radius: 16px;
             position: relative;
             overflow: hidden;
             flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .chart-container canvas {
@@ -432,11 +584,12 @@
         .responsible-chart {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
             flex: 1;
             overflow-y: auto;
-            max-height: 300px;
-            padding-right: 8px;
+            max-height: 320px;
+            padding-right: 12px;
+            padding-top: 8px;
         }
 
         .responsible-chart::-webkit-scrollbar {
@@ -460,23 +613,37 @@
         .responsible-item {
             display: flex;
             align-items: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            margin-bottom: 12px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .responsible-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 16px 0 0 16px;
         }
 
         .responsible-item:hover {
-            transform: translateX(8px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            transform: translateX(12px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            background: linear-gradient(135deg, #ffffff, rgba(248, 250, 252, 0.95));
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .responsible-name {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-radius: 50%;
@@ -484,10 +651,26 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
-            margin-right: 20px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            font-size: 20px;
+            margin-right: 24px;
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .responsible-name::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(4px);
         }
 
         .responsible-info {
@@ -1659,6 +1842,176 @@
             max-width: 100px;
         }
 
+        /* 型号和SKU输入框变大 */
+        .edit-mode .editable-cell input[data-field="model"],
+        .edit-mode .editable-cell input[data-field="sku"] {
+            min-width: 60px;
+            width: 60px;
+        }
+
+        /* 显示类型、一级供方、主导DQE、电子研发输入框设置与SKU相同 */
+        .edit-mode .editable-cell input[data-field="displayType"],
+        .edit-mode .editable-cell input[data-field="primarySupplier"],
+        .edit-mode .editable-cell input[data-field="leadDqe"],
+        .edit-mode .editable-cell input[data-field="electronicRd"] {
+            min-width: 60px;
+            width: 60px;
+        }
+
+        /* 产品名称输入框变大 */
+        .edit-mode .editable-cell textarea[data-field="productName"] {
+            min-width: 80px;
+            width: 80px;
+        }
+
+        /* 长文本字段样式 - 点击编辑 */
+        .edit-mode .editable-cell .text-edit-trigger {
+            cursor: pointer;
+            padding: 4px 8px;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            min-height: 32px;
+            width: 100%;
+            min-width: 60px;
+            max-width: 100px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger:hover {
+            background-color: #e9ecef;
+            border-color: #0056b3;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger::after {
+            content: "";
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .edit-mode .editable-cell .text-edit-trigger .text-preview {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        /* 文本编辑弹窗样式 */
+        .text-edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .text-edit-modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .text-edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .text-edit-modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .text-edit-modal-close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .text-edit-modal-close:hover {
+            color: #000;
+        }
+
+        .text-edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .text-edit-modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .text-edit-modal-footer button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #545b62;
+        }
+
+        /* 可点击文本样式 */
+        .clickable-text {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .clickable-text:hover {
+            color: #0056b3;
+            background-color: #f8f9fa;
+        }
+
         .edit-mode .editable-cell input:focus,
         .edit-mode .editable-cell select:focus,
         .edit-mode .editable-cell textarea:focus {
@@ -2264,7 +2617,7 @@
          </div>
          <div class="stat-card design" data-filter="design" onclick="filterByStatCard('design')">
              <div class="stat-number" id="designProjects">0</div>
-             <div class="stat-label">设计项目数</div>
+             <div class="stat-label">设计中项目数</div>
          </div>
          <div class="stat-card evt" data-filter="evt" onclick="filterByStatCard('evt')">
              <div class="stat-number" id="evtProjects">0</div>
@@ -2504,6 +2857,39 @@
                 <span>页</span>
                 <button id="pageJumpBtn" class="btn btn-sm">跳转</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文本编辑弹窗 -->
+<div id="textEditModal" class="text-edit-modal">
+    <div class="text-edit-modal-content">
+        <div class="text-edit-modal-header">
+            <h3 id="textEditModalTitle">编辑文本</h3>
+            <span class="text-edit-modal-close" onclick="closeTextEditModal()">&times;</span>
+        </div>
+        <div class="text-edit-modal-body">
+            <textarea id="textEditTextarea" class="text-edit-textarea" placeholder="请输入内容..."></textarea>
+        </div>
+        <div class="text-edit-modal-footer">
+            <button class="btn-cancel" onclick="closeTextEditModal()">取消</button>
+            <button class="btn-save" onclick="saveTextEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 内容查看模态框 -->
+<div id="contentViewModal" class="text-edit-modal">
+    <div class="text-edit-modal-content">
+        <div class="text-edit-modal-header">
+            <h3 id="contentViewModalTitle">查看内容</h3>
+            <span class="text-edit-modal-close" onclick="closeContentViewModal()">&times;</span>
+        </div>
+        <div class="text-edit-modal-body">
+            <div id="contentViewText" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
+        </div>
+        <div class="text-edit-modal-footer">
+            <button class="btn-cancel" onclick="closeContentViewModal()">关闭</button>
         </div>
     </div>
 </div>
@@ -3583,9 +3969,7 @@
          // 计算图表数据（使用与统计卡片一致的计算逻辑）
          const completedTasks = completedProjects; // 已完成项目（PVT）
          const inProgressTasks = inProgressProjects; // 进行中项目（设计中、EVT、DVT）
-         const atRiskTasks = data.filter(item => 
-             item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
-         ).length;
+         const atRiskTasks = 0; // 风险固定为0，暂时不定义
 
          // 更新任务状态分布饼状图
          updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
@@ -3615,12 +3999,13 @@
                  responsibleMap[dqe].tasks++;
                  
                  // 统计各状态数量
-                 if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
+                 if (item.stage === 'PVT') {
                      responsibleMap[dqe].completed++;
-                 } else if (item.stage === '样品承认中') {
+                 } else if (['设计中', 'EVT', 'DVT'].includes(item.stage)) {
                      responsibleMap[dqe].inProgress++;
                  } else {
-                     responsibleMap[dqe].atRisk++;
+                     // 其他状态暂时归类为进行中，风险固定为0
+                     responsibleMap[dqe].inProgress++;
                  }
              }
          });
@@ -3728,7 +4113,7 @@
         }
 
         const data = {
-            labels: ['已完成', '进行中', '有风险'],
+            labels: [`已完成 (${completed})`, `进行中 (${inProgress})`, `有风险 (${atRisk})`],
             datasets: [{
                 data: [completed, inProgress, atRisk],
                 backgroundColor: [
@@ -3771,6 +4156,17 @@
                                 return `${context.label}: ${context.parsed}个 (${percentage}%)`;
                             }
                         }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        formatter: function(value, context) {
+                            return value > 0 ? value : '';
+                        }
                     }
                 }
             }
@@ -3804,18 +4200,27 @@
             priorityMap[priority] = (priorityMap[priority] || 0) + 1;
         });
 
-        const labels = Object.keys(priorityMap);
-        const chartData = Object.values(priorityMap);
+        // 按优先级顺序排序
+        const priorityOrder = ['S+', 'S', 'A', 'B', 'C', '未设置'];
+        const sortedPriorities = priorityOrder.filter(p => priorityMap[p] > 0);
+        
+        const labels = sortedPriorities;
+        const chartData = sortedPriorities.map(p => priorityMap[p]);
 
-        const colors = [
-            'rgba(220, 53, 69, 0.8)',   // 高优先级 - 红色
-            'rgba(255, 193, 7, 0.8)',   // 中优先级 - 黄色
-            'rgba(40, 167, 69, 0.8)',   // 低优先级 - 绿色
-            'rgba(108, 117, 125, 0.8)'  // 未设置 - 灰色
-        ];
+        // 按优先级顺序分配颜色
+        const colorMap = {
+            'S+': 'rgba(128, 0, 128, 0.8)',    // 紫色 - 最高优先级
+            'S': 'rgba(220, 53, 69, 0.8)',     // 红色 - 高优先级
+            'A': 'rgba(255, 193, 7, 0.8)',     // 黄色 - 中优先级
+            'B': 'rgba(40, 167, 69, 0.8)',     // 绿色 - 低优先级
+            'C': 'rgba(0, 123, 255, 0.8)',     // 蓝色 - 更低优先级
+            '未设置': 'rgba(108, 117, 125, 0.8)' // 灰色 - 未设置
+        };
+        
+        const colors = labels.map(label => colorMap[label] || 'rgba(108, 117, 125, 0.8)');
 
         const chartConfig = {
-            labels: labels,
+            labels: labels.map((label, index) => `${label} (${chartData[index]})`),
             datasets: [{
                 data: chartData,
                 backgroundColor: colors.slice(0, labels.length),
@@ -3849,6 +4254,17 @@
                                 const percentage = ((context.parsed / total) * 100).toFixed(1);
                                 return `${context.label}: ${context.parsed}个 (${percentage}%)`;
                             }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        formatter: function(value, context) {
+                            return value > 0 ? value : '';
                         }
                     }
                 }
@@ -3892,12 +4308,13 @@
             categoryMap[category].tasks++;
             
             // 统计各状态数量
-            if (item.stage === 'DVT已准出' || item.stage === 'EVT已准出') {
+            if (item.stage === 'PVT') {
                 categoryMap[category].completed++;
-            } else if (item.stage === '样品承认中') {
+            } else if (['设计中', 'EVT', 'DVT'].includes(item.stage)) {
                 categoryMap[category].inProgress++;
             } else {
-                categoryMap[category].atRisk++;
+                // 其他状态暂时归类为进行中，风险固定为0
+                categoryMap[category].inProgress++;
             }
         });
 
@@ -3910,7 +4327,7 @@
         const tasksData = sortedCategories.map(cat => cat.tasks);
         const completedData = sortedCategories.map(cat => cat.completed);
         const inProgressData = sortedCategories.map(cat => cat.inProgress);
-        const atRiskData = sortedCategories.map(cat => cat.atRisk);
+        const atRiskData = sortedCategories.map(cat => 0); // 风险固定为0
 
         console.log('📊 产品三级类目统计结果:');
         sortedCategories.forEach((category, index) => {
@@ -4268,6 +4685,14 @@
     // 页面初始化
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 页面加载完成，开始初始化...');
+
+        // 注册Chart.js datalabels插件
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+            console.log('✅ Chart.js datalabels插件已注册');
+        } else {
+            console.warn('⚠️ Chart.js datalabels插件未加载');
+        }
 
         // 检查用户权限
         checkUserPermission();
@@ -7045,19 +7470,29 @@
                         </select>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="evtProblem" data-original="${product.evtProblem || ''}">${product.evtProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="evtProblem" data-original="${product.evtProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.evtProblem || ''}">${product.evtProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="dvtProblem" data-original="${product.dvtProblem || ''}">${product.dvtProblem || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="dvtProblem" data-original="${product.dvtProblem || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.dvtProblem || ''}">${product.dvtProblem || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</div>
+                        </div>
                     </td>
                     <td class="editable-cell">
-                        <textarea data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</textarea>
+                        <div class="text-edit-trigger" data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}" onclick="openTextEdit(this)">
+                            <div class="text-preview" title="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</div>
+                        </div>
                     </td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
@@ -7079,7 +7514,7 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc" title="${product.productName || ''}">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
                     <td class="image-cell">
                         ${product.imageUrl ? 
                             `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` : 
@@ -7094,11 +7529,11 @@
                     <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc" title="${product.designReviewProblem || ''}">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.evtProblem || ''}">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.dvtProblem || ''}">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainProjectProgress || ''}">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.mainQualityRisks || ''}">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
@@ -7217,7 +7652,7 @@
             console.log(`检查第${index + 1}行，产品ID: ${productId}`);
             
             // 收集所有输入字段的更改
-            const inputs = row.querySelectorAll('input, select, textarea');
+            const inputs = row.querySelectorAll('input, select, textarea, .text-edit-trigger');
             console.log(`第${index + 1}行输入字段数:`, inputs.length);
             
             inputs.forEach((input, inputIndex) => {
@@ -7230,13 +7665,31 @@
                 }
                 
                 const originalValue = input.getAttribute('data-original') || '';
-                const currentValue = input.type === 'file' ? 
-                    (input.files.length > 0 ? 'file_uploaded' : originalValue) : 
-                    input.value;
+                let currentValue;
+                
+                if (input.classList.contains('text-edit-trigger')) {
+                    // 处理文本编辑触发器 - 使用data-original作为当前值
+                    currentValue = input.getAttribute('data-original') || '';
+                    // 对于文本编辑触发器，我们需要检查是否有实际内容变化
+                    // 这里我们直接使用当前值，因为data-original在保存时已经更新了
+                } else if (input.type === 'file') {
+                    currentValue = input.files.length > 0 ? 'file_uploaded' : originalValue;
+                } else {
+                    currentValue = input.value;
+                }
                 
                 console.log(`字段${inputIndex + 1}: ${field}, 原值: "${originalValue}", 当前值: "${currentValue}"`);
                 
-                if (field && currentValue !== originalValue) {
+                // 对于文本编辑触发器，我们需要特殊处理
+                if (input.classList.contains('text-edit-trigger')) {
+                    // 检查是否被修改过
+                    const isModified = input.getAttribute('data-modified') === 'true';
+                    if (field && isModified && currentValue) {
+                        changes[field] = currentValue;
+                        hasChanges = true;
+                        console.log(`检测到文本编辑字段 ${field} 已修改:`, currentValue);
+                    }
+                } else if (field && currentValue !== originalValue) {
                     changes[field] = currentValue;
                     hasChanges = true;
                     console.log(`检测到字段 ${field} 有更改`);
@@ -7348,10 +7801,39 @@
         }
     }
 
+    // 保存当前筛选条件
+    function saveCurrentFilters() {
+        return {
+            productCategory: document.getElementById('filterProductCategory').value.trim(),
+            sku: document.getElementById('filterSku').value.trim(),
+            leadDqe: document.getElementById('filterLeadDqe').value.trim(),
+            model: document.getElementById('filterModel').value.trim(),
+            stage: document.getElementById('filterStage').value.trim(),
+            status: document.getElementById('filterStatus').value.trim()
+        };
+    }
+
+    // 恢复筛选条件
+    function restoreFilters(savedFilters) {
+        document.getElementById('filterProductCategory').value = savedFilters.productCategory;
+        document.getElementById('filterSku').value = savedFilters.sku;
+        document.getElementById('filterLeadDqe').value = savedFilters.leadDqe;
+        document.getElementById('filterModel').value = savedFilters.model;
+        document.getElementById('filterStage').value = savedFilters.stage;
+        document.getElementById('filterStatus').value = savedFilters.status;
+    }
+
     // 刷新数据并重新渲染表格
     async function refreshDataAndRender() {
         try {
             showToast('正在刷新数据...', 'info');
+            
+            // 保存当前筛选条件
+            const savedFilters = saveCurrentFilters();
+            const hasActiveFilters = Object.values(savedFilters).some(value => value !== '');
+            
+            console.log('保存的筛选条件:', savedFilters);
+            console.log('是否有活跃筛选条件:', hasActiveFilters);
             
             // 构建查询参数
             const params = new URLSearchParams({
@@ -7369,8 +7851,55 @@
             if (data.success) {
                 // 更新数据
                 allData = data.data || [];
-                filteredData = [...allData];
-                totalCount = allData.length;
+                
+                if (hasActiveFilters) {
+                    // 如果有活跃的筛选条件，重新应用筛选
+                    console.log('重新应用筛选条件...');
+                    filteredData = allData.filter(item => {
+                        let matches = true;
+                        
+                        // 品类过滤
+                        if (savedFilters.productCategory && !item.productCategoryLevel3?.toLowerCase().includes(savedFilters.productCategory.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        // SKU过滤
+                        if (savedFilters.sku && !item.sku?.toLowerCase().includes(savedFilters.sku.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        // 主导DQE过滤
+                        if (savedFilters.leadDqe && !item.leadDqe?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase()) && 
+                            !item.主导DQE?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase()) &&
+                            !item.lead_dqe?.toLowerCase().includes(savedFilters.leadDqe.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        // 型号过滤
+                        if (savedFilters.model && !item.model?.toLowerCase().includes(savedFilters.model.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        // 阶段过滤
+                        if (savedFilters.stage && !item.stage?.toLowerCase().includes(savedFilters.stage.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        // 状态过滤
+                        if (savedFilters.status && !item.status?.toLowerCase().includes(savedFilters.status.toLowerCase())) {
+                            matches = false;
+                        }
+                        
+                        return matches;
+                    });
+                    
+                    console.log('筛选后数据量:', filteredData.length);
+                } else {
+                    // 没有筛选条件，显示全部数据
+                    filteredData = [...allData];
+                }
+                
+                totalCount = filteredData.length;
                 totalPages = Math.ceil(totalCount / pageSize);
                 
                 // 重新渲染表格
@@ -7380,8 +7909,11 @@
                 // 更新大盘数据
                 updateDashboardData();
                 
-                showToast('数据已刷新', 'success');
-                console.log('数据刷新成功，共加载', allData.length, '条记录');
+                const message = hasActiveFilters ? 
+                    `数据已刷新，保持筛选条件 (${filteredData.length}条)` : 
+                    `数据已刷新 (${allData.length}条)`;
+                showToast(message, 'success');
+                console.log('数据刷新成功，共加载', allData.length, '条记录，筛选后', filteredData.length, '条');
             } else {
                 console.error('刷新数据失败:', data);
                 showToast('刷新数据失败: ' + (data.error || data.message || '未知错误'), 'error');
@@ -7397,6 +7929,110 @@
         if (!text) return '';
         return text.replace(/\n/g, '<br>').replace(/\r\n/g, '<br>').replace(/\r/g, '<br>');
     }
+
+    // 文本编辑相关变量
+    let currentTextEditElement = null;
+    let currentTextEditField = null;
+
+    // 打开文本编辑弹窗
+    function openTextEdit(element) {
+        currentTextEditElement = element;
+        currentTextEditField = element.getAttribute('data-field');
+        const currentValue = element.getAttribute('data-original') || '';
+        
+        // 设置弹窗标题
+        const fieldNames = {
+            'designReviewProblem': '设计评审主要问题',
+            'evtProblem': 'EVT主要问题',
+            'dvtProblem': 'DVT主要问题',
+            'mainProjectProgress': '项目进度主要事项',
+            'mainQualityRisks': '质量主要风险'
+        };
+        
+        document.getElementById('textEditModalTitle').textContent = `编辑${fieldNames[currentTextEditField] || currentTextEditField}`;
+        
+        // 设置文本内容
+        document.getElementById('textEditTextarea').value = currentValue;
+        
+        // 显示弹窗
+        document.getElementById('textEditModal').style.display = 'block';
+        
+        // 聚焦到文本区域
+        setTimeout(() => {
+            document.getElementById('textEditTextarea').focus();
+        }, 100);
+    }
+
+    // 关闭文本编辑弹窗
+    function closeTextEditModal() {
+        document.getElementById('textEditModal').style.display = 'none';
+        currentTextEditElement = null;
+        currentTextEditField = null;
+    }
+
+    // 保存文本编辑
+    function saveTextEdit() {
+        if (!currentTextEditElement || !currentTextEditField) {
+            console.error('没有找到当前编辑的元素或字段');
+            return;
+        }
+        
+        const newValue = document.getElementById('textEditTextarea').value;
+        
+        // 更新元素的data-original属性
+        currentTextEditElement.setAttribute('data-original', newValue);
+        
+        // 标记字段为已修改
+        currentTextEditElement.setAttribute('data-modified', 'true');
+        
+        // 更新显示内容
+        const previewElement = currentTextEditElement.querySelector('.text-preview');
+        if (previewElement) {
+            previewElement.textContent = newValue || '';
+            previewElement.title = newValue || '';
+        }
+        
+        // 关闭弹窗
+        closeTextEditModal();
+        
+        console.log(`已更新字段 ${currentTextEditField} 的值为:`, newValue);
+    }
+
+    // 点击弹窗外部关闭
+    document.getElementById('textEditModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTextEditModal();
+        }
+    });
+
+    // ESC键关闭弹窗
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('textEditModal').style.display === 'block') {
+            closeTextEditModal();
+        }
+        if (e.key === 'Escape' && document.getElementById('contentViewModal').style.display === 'block') {
+            closeContentViewModal();
+        }
+    });
+
+    // 显示内容查看模态框
+    function showContentViewModal(title, content) {
+        document.getElementById('contentViewModalTitle').textContent = `查看${title}`;
+        document.getElementById('contentViewText').textContent = content || '暂无内容';
+        document.getElementById('contentViewModal').style.display = 'block';
+    }
+
+    // 关闭内容查看模态框
+    function closeContentViewModal() {
+        document.getElementById('contentViewModal').style.display = 'none';
+    }
+
+    // 点击内容查看弹窗外部关闭
+    document.getElementById('contentViewModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeContentViewModal();
+        }
+    });
 
     // 更新分页信息
     function updatePagination() {
