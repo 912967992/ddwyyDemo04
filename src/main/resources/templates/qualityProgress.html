@@ -2654,6 +2654,13 @@
         </div>
 
         <div class="chart-section">
+            <h3>各项目任务数</h3>
+            <div class="chart-container">
+                <canvas id="projectChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
             <h3>各负责人任务状态</h3>
             <div class="responsible-chart" id="responsibleChart">
                 <div class="responsible-item">
@@ -2691,13 +2698,6 @@
                         <div class="responsible-tasks">2</div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="chart-section">
-            <h3>各项目任务数</h3>
-            <div class="chart-container">
-                <canvas id="projectChart" width="400" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -2988,9 +2988,10 @@
                             <label>状态:</label>
                             <select id="detailStatus" class="form-control" disabled>
                                 <option value="">请选择状态</option>
-                                <option value="ID/结构/垫子设计中">ID/结构/垫子设计中</option>
+                                <option value="设计中">设计中</option>
                                 <option value="功能样">功能样</option>
                                 <option value="大货样">大货样</option>
+                                <option value="量产">量产</option>
                             </select>
                         </div>
                     </div>
@@ -3786,6 +3787,31 @@
     // 全局编辑模式相关变量
     let isGlobalEditMode = false;
     let originalData = []; // 存储原始数据，用于取消编辑时恢复
+    
+    // 阶段到状态的映射关系
+    const stageToStatusMapping = {
+        '设计中': '设计中',
+        'EVT': '功能样',
+        'DVT': '大货样',
+        'PVT': '量产'
+    };
+    
+    // 阶段状态联动函数
+    function handleStageChange(stageSelect) {
+        const selectedStage = stageSelect.value;
+        const row = stageSelect.closest('tr');
+        const statusSelect = row.querySelector('select[data-field="status"]');
+        
+        if (statusSelect && selectedStage) {
+            // 根据阶段自动设置状态
+            const mappedStatus = stageToStatusMapping[selectedStage];
+            if (mappedStatus) {
+                statusSelect.value = mappedStatus;
+                // 触发change事件，确保数据更新
+                statusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    }
 
     // 界面切换功能
     // 进入详细数据管理页面
@@ -4295,7 +4321,13 @@
         // 统计各产品三级类目任务数
         const categoryMap = {};
         data.forEach(item => {
-            const category = item.productCategoryLevel3 || '未分类';
+            let category = item.productCategoryLevel3 || '未分类';
+            
+            // 如果包含"扩展坞"关键字，统一归类为"扩展坞"
+            if (category.includes('扩展坞')) {
+                category = '扩展坞';
+            }
+            
             if (!categoryMap[category]) {
                 categoryMap[category] = {
                     name: category,
@@ -6056,7 +6088,7 @@
                     } else if (fieldId === 'detailDisplayType') {
                         element.innerHTML = '<option value="">请选择显示类型</option><option value="单显">单显</option><option value="双显">双显</option><option value="三显">三显</option><option value="四显">四显</option>';
                     } else if (fieldId === 'detailStatus') {
-                        element.innerHTML = '<option value="">请选择状态</option><option value="ID/结构/垫子设计中">ID/结构/垫子设计中</option><option value="功能样">功能样</option><option value="大货样">大货样</option>';
+                        element.innerHTML = '<option value="">请选择状态</option><option value="设计中">设计中</option><option value="功能样">功能样</option><option value="大货样">大货样</option><option value="量产">量产</option>';
                     } else if (fieldId === 'detailDesignReviewProblem') {
                         element.innerHTML = '<option value="">请选择设计评审问题</option><option value="ID/结构/电子设计中">ID/结构/电子设计中</option><option value="功能样">功能样</option><option value="大货样">大货样</option>';
                     } else if (fieldId === 'detailEvtProblem') {
@@ -6316,7 +6348,7 @@
             { id: 'detailPrimarySupplier', type: 'text' },
             { id: 'detailLeadDqe', type: 'text' },
             { id: 'detailElectronicRd', type: 'text' },
-            { id: 'detailStatus', type: 'select', options: ['设计中', '功能样', '大货样'] },
+            { id: 'detailStatus', type: 'select', options: ['设计中', '功能样', '大货样', '量产'] },
             { id: 'detailDesignReviewProblem', type: 'textarea' },
             { id: 'detailEvtProblem', type: 'textarea' },
             { id: 'detailDvtProblem', type: 'textarea' },
@@ -6421,7 +6453,7 @@
         const fieldMappings = [
             { id: 'detailStage', options: ['样品承认中', 'EVT已准出', 'DVT已准出', '未送样'] },
             { id: 'detailDisplayType', options: ['单显', '双显', '三显', '四显'] },
-            { id: 'detailStatus', options: ['ID/结构/垫子设计中', '功能样', '大货样'] },
+            { id: 'detailStatus', options: ['设计中', '功能样', '大货样', '量产'] },
             { id: 'detailDesignReviewProblem', options: ['ID/结构/电子设计中', '功能样', '大货样'] },
             { id: 'detailEvtProblem', options: ['ID/结构/电子设计中', '功能样', '大货样'] },
             { id: 'detailDvtProblem', options: ['ID/结构/电子设计中', '功能样', '大货样'] }
@@ -7420,7 +7452,7 @@
                         <input type="text" value="${product.sku || ''}" data-field="sku" data-original="${product.sku || ''}">
                     </td>
                     <td class="editable-cell">
-                        <select data-field="stage" data-original="${product.stage || ''}">
+                        <select data-field="stage" data-original="${product.stage || ''}" onchange="handleStageChange(this)">
                             <option value="">请选择</option>
                             <option value="设计中" ${product.stage === '设计中' ? 'selected' : ''}>设计中</option>
                             <option value="EVT" ${product.stage === 'EVT' ? 'selected' : ''}>EVT</option>
@@ -7469,6 +7501,7 @@
                             <option value="设计中" ${product.status === '设计中' ? 'selected' : ''}>设计中</option>
                             <option value="功能样" ${product.status === '功能样' ? 'selected' : ''}>功能样</option>
                             <option value="大货样" ${product.status === '大货样' ? 'selected' : ''}>大货样</option>
+                            <option value="量产" ${product.status === '量产' ? 'selected' : ''}>量产</option>
                         </select>
                     </td>
                     <td class="editable-cell">
