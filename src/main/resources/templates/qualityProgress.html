@@ -2886,7 +2886,7 @@
             <span class="text-edit-modal-close" onclick="closeContentViewModal()">&times;</span>
         </div>
         <div class="text-edit-modal-body">
-            <div id="contentViewText" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
+            <div id="contentViewText" style="word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
         </div>
         <div class="text-edit-modal-footer">
             <button class="btn-cancel" onclick="closeContentViewModal()">关闭</button>
@@ -7514,7 +7514,7 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
                     <td class="image-cell">
                         ${product.imageUrl ? 
                             `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` : 
@@ -7529,11 +7529,11 @@
                     <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
@@ -8018,7 +8018,17 @@
     // 显示内容查看模态框
     function showContentViewModal(title, content) {
         document.getElementById('contentViewModalTitle').textContent = `查看${title}`;
-        document.getElementById('contentViewText').textContent = content || '暂无内容';
+        const contentElement = document.getElementById('contentViewText');
+        if (content && content.trim()) {
+            // 先解码转义的换行符，然后转换为HTML换行标签
+            const decodedContent = content.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+            // 转义HTML特殊字符，但保留换行符用于后续处理
+            const escapedContent = decodedContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // 将换行符转换为HTML换行标签
+            contentElement.innerHTML = escapedContent.replace(/\n/g, '<br>');
+        } else {
+            contentElement.textContent = '暂无内容';
+        }
         document.getElementById('contentViewModal').style.display = 'block';
     }
 

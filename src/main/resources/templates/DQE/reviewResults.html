@@ -871,6 +871,14 @@
             min-width: 0; /* 防止内容溢出 */
         }
 
+        /* 双图表容器样式 */
+        .dual-chart-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
         /* 图表容器样式 */
         .chart-container {
             background: #ffffff;
@@ -881,6 +889,17 @@
             flex-direction: column;
             height: 100%; /* 填满网格单元格 */
             min-width: 0; /* 防止内容溢出 */
+            flex: 1; /* 每个图表容器占据相等的空间 */
+        }
+
+        /* 左侧图表样式 */
+        .chart-left {
+            border-left: 4px solid #007bff;
+        }
+
+        /* 右侧图表样式 */
+        .chart-right {
+            border-left: 4px solid #28a745;
         }
 
         .chart-header {
@@ -990,6 +1009,12 @@
             .filter-container,
             .chart-container {
                 height: auto; /* 在小屏幕上允许高度自适应 */
+            }
+
+            /* 双图表在小屏幕上垂直排列 */
+            .dual-chart-container {
+                flex-direction: column;
+                gap: 15px;
             }
         }
 
@@ -1310,65 +1335,131 @@
         </div>
     </div>
 
-    <!-- 图表容器 -->
-    <div class="chart-container">
-        <div class="chart-header">
-            <h3 class="chart-title">数据可视化</h3>
-            <div class="chart-controls">
-                <div class="chart-type-buttons">
-                    <button class="chart-type-btn active" data-type="bar" onclick="console.log('🔥 柱状图按钮被点击!'); switchChartType('bar')">柱状图</button>
-                    <button class="chart-type-btn" data-type="pie" onclick="console.log('🔥 饼状图按钮被点击!'); switchChartType('pie')">饼状图</button>
-                    <button class="chart-type-btn" data-type="line" onclick="console.log('🔥 折线图按钮被点击!'); switchChartType('line')">折线图</button>
+    <!-- 双图表容器 -->
+    <div class="dual-chart-container">
+        <!-- 左侧图表 -->
+        <div class="chart-container chart-left">
+            <div class="chart-header">
+                <h3 class="chart-title">数据可视化 - 图表1</h3>
+                <div class="chart-controls">
+                    <div class="chart-type-buttons">
+                        <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 1)">柱状图</button>
+                        <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 1)">饼状图</button>
+                        <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 1)">折线图</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-selector">
+                <label>分组字段:</label>
+                <select id="groupField1">
+                    <option value="">请选择分组字段</option>
+                    <option value="problemLevel">问题等级</option>
+                    <option value="majorCode">大编码</option>
+                    <option value="minorCode">小编码</option>
+                    <option value="projectPhase">项目阶段</option>
+                    <option value="version">版本</option>
+                    <option value="problemProcess">问题工序</option>
+                    <option value="developmentMethod">开发方式</option>
+                    <option value="supplier">供应商</option>
+                    <option value="solutionProvider">方案商</option>
+                    <option value="problemPoint">问题点</option>
+                    <option value="problemReason">问题原因</option>
+                    <option value="improvementStrategy">改善对策</option>
+                    <option value="isPreventable">是否可预防</option>
+                    <option value="responsibleDepartment">责任部门</option>
+                    <option value="problemStatus">问题状态</option>
+                    <option value="problemTag1">问题打标1</option>
+                    <option value="problemTag2">问题打标2</option>
+                </select>
+
+                <button id="generateChartBtn1" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(1)">生成图表</button>
+                
+                <!-- 排序按钮组 -->
+                <div class="chart-sort-buttons" role="group">
+                    <button id="sortAscBtn1" class="btn btn-outline-secondary" onclick="setChartSort('asc', 1)" title="按数值升序排列">
+                        <i class="fas fa-sort-amount-up"></i> 升序
+                    </button>
+                    <button id="sortDescBtn1" class="btn btn-outline-secondary" onclick="setChartSort('desc', 1)" title="按数值降序排列">
+                        <i class="fas fa-sort-amount-down"></i> 降序
+                    </button>
+                </div>
+            </div>
+
+            <div class="chart-canvas-container">
+                <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
+                    <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
+                </div>
+                <div id="chartStatus1" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
+                    <i class="fas fa-chart-bar"></i> <span id="chartStatusText1">准备就绪</span>
+                </div>
+                <canvas id="dataChart1" class="chart-canvas"></canvas>
+                <div id="noDataMessage1" class="no-data-message" style="display: none;">
+                    请先选择要展示的字段，然后点击"生成图表"按钮
                 </div>
             </div>
         </div>
 
-        <div class="field-selector">
-            <label>分组字段:</label>
-            <select id="groupField">
-                <option value="">请选择分组字段</option>
-                <option value="problemLevel">问题等级</option>
-                <option value="majorCode">大编码</option>
-                <option value="minorCode">小编码</option>
-                <option value="projectPhase">项目阶段</option>
-                <option value="version">版本</option>
-                <option value="problemProcess">问题工序</option>
-                <option value="developmentMethod">开发方式</option>
-                <option value="supplier">供应商</option>
-                <option value="solutionProvider">方案商</option>
-                <option value="problemPoint">问题点</option>
-                <option value="problemReason">问题原因</option>
-                <option value="improvementStrategy">改善对策</option>
-                <option value="isPreventable">是否可预防</option>
-                <option value="responsibleDepartment">责任部门</option>
-                <option value="problemStatus">问题状态</option>
-                <option value="problemTag1">问题打标1</option>
-                <option value="problemTag2">问题打标2</option>
-            </select>
+        <!-- 右侧图表 -->
+        <div class="chart-container chart-right">
+            <div class="chart-header">
+                <h3 class="chart-title">数据可视化 - 图表2</h3>
+                <div class="chart-controls">
+                    <div class="chart-type-buttons">
+                        <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 2)">柱状图</button>
+                        <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 2)">饼状图</button>
+                        <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 2)">折线图</button>
+                    </div>
+                </div>
+            </div>
 
-            <button id="generateChartBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="console.log('🔥 生成图表按钮被点击!'); generateChart()">生成图表</button>
-            
-            <!-- 排序按钮组 -->
-            <div class="chart-sort-buttons" role="group">
-                <button id="sortAscBtn" class="btn btn-outline-secondary" onclick="setChartSort('asc')" title="按数值升序排列">
-                    <i class="fas fa-sort-amount-up"></i> 升序
-                </button>
-                <button id="sortDescBtn" class="btn btn-outline-secondary" onclick="setChartSort('desc')" title="按数值降序排列">
-                    <i class="fas fa-sort-amount-down"></i> 降序
-                </button>
-            </div>
-        </div>
+            <div class="field-selector">
+                <label>分组字段:</label>
+                <select id="groupField2">
+                    <option value="">请选择分组字段</option>
+                    <option value="problemLevel">问题等级</option>
+                    <option value="majorCode">大编码</option>
+                    <option value="minorCode">小编码</option>
+                    <option value="projectPhase">项目阶段</option>
+                    <option value="version">版本</option>
+                    <option value="problemProcess">问题工序</option>
+                    <option value="developmentMethod">开发方式</option>
+                    <option value="supplier">供应商</option>
+                    <option value="solutionProvider">方案商</option>
+                    <option value="problemPoint">问题点</option>
+                    <option value="problemReason">问题原因</option>
+                    <option value="improvementStrategy">改善对策</option>
+                    <option value="isPreventable">是否可预防</option>
+                    <option value="responsibleDepartment">责任部门</option>
+                    <option value="problemStatus">问题状态</option>
+                    <option value="problemTag1">问题打标1</option>
+                    <option value="problemTag2">问题打标2</option>
+                </select>
 
-        <div class="chart-canvas-container">
-            <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
-                <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
+                <button id="generateChartBtn2" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(2)">生成图表</button>
+                
+                <!-- 排序按钮组 -->
+                <div class="chart-sort-buttons" role="group">
+                    <button id="sortAscBtn2" class="btn btn-outline-secondary" onclick="setChartSort('asc', 2)" title="按数值升序排列">
+                        <i class="fas fa-sort-amount-up"></i> 升序
+                    </button>
+                    <button id="sortDescBtn2" class="btn btn-outline-secondary" onclick="setChartSort('desc', 2)" title="按数值降序排列">
+                        <i class="fas fa-sort-amount-down"></i> 降序
+                    </button>
+                </div>
             </div>
-            <div id="chartStatus" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
-                <i class="fas fa-chart-bar"></i> <span id="chartStatusText">准备就绪</span>
-            </div>
-            <canvas id="dataChart" class="chart-canvas"></canvas>
-            <div id="noDataMessage" class="no-data-message" style="display: none;">
-                请先选择要展示的字段，然后点击"生成图表"按钮
+
+            <div class="chart-canvas-container">
+                <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
+                    <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
+                </div>
+                <div id="chartStatus2" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
+                    <i class="fas fa-chart-bar"></i> <span id="chartStatusText2">准备就绪</span>
+                </div>
+                <canvas id="dataChart2" class="chart-canvas"></canvas>
+                <div id="noDataMessage2" class="no-data-message" style="display: none;">
+                    请先选择要展示的字段，然后点击"生成图表"按钮
+                </div>
             </div>
         </div>
     </div>
@@ -2292,24 +2383,34 @@
     let currentUser = '';
     let currentRole = '';
 
-    // 图表相关变量
-    var currentChart = null;
-    var currentChartType = 'bar';
-    var chartSortOrder = 'none'; // 排序状态: 'none', 'asc', 'desc'
+    // 图表相关变量 - 支持双图表
+    var currentChart1 = null;
+    var currentChart2 = null;
+    var currentChartType1 = 'bar';
+    var currentChartType2 = 'bar';
+    var chartSortOrder1 = 'none'; // 排序状态: 'none', 'asc', 'desc'
+    var chartSortOrder2 = 'none'; // 排序状态: 'none', 'asc', 'desc'
     let currentPage = 1;
     let pageSize = 20;
     let totalCount = 0;
 
     // 切换图表类型函数
-    function switchChartType(type) {
-        console.log('🎯 switchChartType函数被调用，类型:', type);
+    // 切换图表类型函数 - 支持双图表
+    function switchChartType(type, chartNumber) {
+        console.log('🎯 switchChartType函数被调用，类型:', type, '图表编号:', chartNumber);
         
-        // 更新当前图表类型
-        currentChartType = type;
-        console.log('✅ 当前图表类型已更新为:', currentChartType);
+        // 更新对应图表的类型
+        if (chartNumber === 1) {
+            currentChartType1 = type;
+            console.log('✅ 图表1类型已更新为:', currentChartType1);
+        } else if (chartNumber === 2) {
+            currentChartType2 = type;
+            console.log('✅ 图表2类型已更新为:', currentChartType2);
+        }
         
-        // 更新按钮状态
-        const chartTypeButtons = document.querySelectorAll('.chart-type-btn');
+        // 更新对应图表的按钮状态
+        const chartContainer = chartNumber === 1 ? '.chart-left' : '.chart-right';
+        const chartTypeButtons = document.querySelectorAll(`${chartContainer} .chart-type-btn`);
         chartTypeButtons.forEach(btn => {
             btn.classList.remove('active');
             if (btn.dataset.type === type) {
@@ -2318,23 +2419,32 @@
             }
         });
         
-        // 检查是否有现有图表
-        if (currentChart) {
-            console.log('📊 销毁现有图表');
-            currentChart.destroy();
-            currentChart = null;
+        // 检查是否有现有图表并销毁
+        if (chartNumber === 1 && currentChart1) {
+            console.log('📊 销毁图表1');
+            currentChart1.destroy();
+            currentChart1 = null;
+        } else if (chartNumber === 2 && currentChart2) {
+            console.log('📊 销毁图表2');
+            currentChart2.destroy();
+            currentChart2 = null;
         }
         
         // 如果已经有分组字段，自动重新生成图表（使用全部搜索结果数据）
-        const groupField = document.getElementById('groupField');
+        const groupFieldId = chartNumber === 1 ? 'groupField1' : 'groupField2';
+        const groupField = document.getElementById(groupFieldId);
         const groupFieldValue = groupField ? groupField.value : null;
+        const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
+        const chartSortOrder = chartNumber === 1 ? chartSortOrder1 : chartSortOrder2;
+        
         console.log('📋 当前状态检查:', {
             groupField: groupFieldValue,
-            currentChartType: currentChartType
+            currentChartType: currentChartType,
+            chartNumber: chartNumber
         });
         
         if (groupFieldValue) {
-            console.log('🚀 开始重新生成图表，类型:', currentChartType, '，使用全部搜索结果数据');
+            console.log('🚀 开始重新生成图表', chartNumber, '，类型:', currentChartType, '，使用全部搜索结果数据');
             
             // 重新获取全部搜索结果数据并生成图表
             getAllSearchData()
@@ -2342,14 +2452,14 @@
                     console.log('获取到的全部搜索结果数据用于图表切换:', allSearchData.length);
                     if (allSearchData && allSearchData.length > 0) {
                         try {
-                            processChartData(allSearchData, groupFieldValue, currentChartType, chartSortOrder);
-                            console.log('✅ 图表重新生成完成，使用数据量:', allSearchData.length);
+                            processChartData(allSearchData, groupFieldValue, currentChartType, chartSortOrder, chartNumber);
+                            console.log('✅ 图表', chartNumber, '重新生成完成，使用数据量:', allSearchData.length);
                         } catch (error) {
-                            console.error('❌ 图表重新生成失败:', error);
+                            console.error('❌ 图表', chartNumber, '重新生成失败:', error);
                         }
                     } else {
                         console.log('ℹ️ 没有搜索结果数据');
-                        showNoDataMessage();
+                        showNoDataMessage(chartNumber);
                     }
                 })
                 .catch(error => {
@@ -2881,11 +2991,16 @@
         }
 
 
-        // 生成图表按钮事件
-        const generateChartBtn = document.getElementById('generateChartBtn');
-        if (generateChartBtn) {
-            generateChartBtn.addEventListener('click', generateChart);
-            console.log('生成图表按钮事件监听器已添加');
+        // 生成图表按钮事件 - 支持双图表
+        const generateChartBtn1 = document.getElementById('generateChartBtn1');
+        const generateChartBtn2 = document.getElementById('generateChartBtn2');
+        if (generateChartBtn1) {
+            generateChartBtn1.addEventListener('click', () => generateChart(1));
+            console.log('生成图表1按钮事件监听器已添加');
+        }
+        if (generateChartBtn2) {
+            generateChartBtn2.addEventListener('click', () => generateChart(2));
+            console.log('生成图表2按钮事件监听器已添加');
         }
 
 
@@ -2923,35 +3038,56 @@
                 chartTypeButtons.forEach(b => b.classList.remove('active'));
                 // 添加active类到当前按钮
                 this.classList.add('active');
-                currentChartType = this.dataset.type;
-                console.log('✅ 图表类型切换为:', currentChartType);
                 
-                // 检查是否有现有图表
+                // 确定图表编号（通过父容器判断）
+                const chartContainer = this.closest('.chart-left, .chart-right');
+                const chartNumber = chartContainer && chartContainer.classList.contains('chart-left') ? 1 : 2;
+                
+                // 更新对应图表的类型
+                if (chartNumber === 1) {
+                    currentChartType1 = this.dataset.type;
+                    console.log('✅ 图表1类型切换为:', currentChartType1);
+                } else {
+                    currentChartType2 = this.dataset.type;
+                    console.log('✅ 图表2类型切换为:', currentChartType2);
+                }
+                
+                // 检查是否有现有图表并销毁
+                const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
                 if (currentChart) {
-                    console.log('📊 销毁现有图表');
+                    console.log('📊 销毁现有图表', chartNumber);
                     currentChart.destroy();
-                    currentChart = null;
+                    if (chartNumber === 1) {
+                        currentChart1 = null;
+                    } else {
+                        currentChart2 = null;
+                    }
                 }
                 
                 // 如果已经有图表数据，自动重新生成图表
-                const groupField = document.getElementById('groupField');
+                const groupFieldId = chartNumber === 1 ? 'groupField1' : 'groupField2';
+                const groupField = document.getElementById(groupFieldId);
                 const groupFieldValue = groupField ? groupField.value : null;
+                const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
+                const chartSortOrder = chartNumber === 1 ? chartSortOrder1 : chartSortOrder2;
+                
                 console.log('📋 当前状态检查:', {
                     groupField: groupFieldValue,
                     allDataLength: allData ? allData.length : 'undefined',
-                    currentChartType: currentChartType
+                    currentChartType: currentChartType,
+                    chartNumber: chartNumber
                 });
                 
                 if (groupFieldValue && allData && allData.length > 0) {
-                    console.log('🚀 开始重新生成图表，类型:', currentChartType);
+                    console.log('🚀 开始重新生成图表', chartNumber, '，类型:', currentChartType);
                     try {
-                        processChartData(allData, groupFieldValue, currentChartType, chartSortOrder);
-                        console.log('✅ 图表重新生成完成');
+                        processChartData(allData, groupFieldValue, currentChartType, chartSortOrder, chartNumber);
+                        console.log('✅ 图表', chartNumber, '重新生成完成');
                     } catch (error) {
-                        console.error('❌ 图表重新生成失败:', error);
+                        console.error('❌ 图表', chartNumber, '重新生成失败:', error);
                     }
                 } else {
-                    console.log('⚠️ 条件不满足，不重新生成图表');
+                    console.log('⚠️ 条件不满足，不重新生成图表', chartNumber);
                     console.log('需要满足: groupField有值 && allData有数据');
                 }
             });
@@ -6085,13 +6221,22 @@
     }
 
     // 设置图表排序
-    function setChartSort(sortOrder) {
-        console.log('设置图表排序:', sortOrder);
-        chartSortOrder = sortOrder;
+    // 设置图表排序 - 支持双图表
+    function setChartSort(sortOrder, chartNumber) {
+        console.log('设置图表排序:', sortOrder, '图表编号:', chartNumber);
         
-        // 更新按钮状态
-        const ascBtn = document.getElementById('sortAscBtn');
-        const descBtn = document.getElementById('sortDescBtn');
+        // 更新对应图表的排序状态
+        if (chartNumber === 1) {
+            chartSortOrder1 = sortOrder;
+        } else if (chartNumber === 2) {
+            chartSortOrder2 = sortOrder;
+        }
+        
+        // 更新对应图表的按钮状态
+        const ascBtnId = chartNumber === 1 ? 'sortAscBtn1' : 'sortAscBtn2';
+        const descBtnId = chartNumber === 1 ? 'sortDescBtn1' : 'sortDescBtn2';
+        const ascBtn = document.getElementById(ascBtnId);
+        const descBtn = document.getElementById(descBtnId);
         
         // 重置所有按钮状态
         ascBtn.classList.remove('active', 'btn-primary');
@@ -6109,15 +6254,16 @@
         }
         
         // 如果已有图表，重新生成
+        const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
         if (currentChart) {
-            console.log('重新生成图表以应用排序');
-            generateChart();
+            console.log('重新生成图表', chartNumber, '以应用排序');
+            generateChart(chartNumber);
         }
     }
 
-    // 生成图表函数
-    function generateChart() {
-        console.log('generateChart函数被调用');
+    // 生成图表函数 - 支持双图表
+    function generateChart(chartNumber = 1) {
+        console.log('generateChart函数被调用，图表编号:', chartNumber);
 
         // 检查Chart.js是否加载
         if (typeof Chart === 'undefined') {
@@ -6125,9 +6271,12 @@
             return;
         }
 
-        const groupField = document.getElementById('groupField').value;
+        const groupFieldId = chartNumber === 1 ? 'groupField1' : 'groupField2';
+        const groupField = document.getElementById(groupFieldId).value;
+        const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
+        const chartSortOrder = chartNumber === 1 ? chartSortOrder1 : chartSortOrder2;
 
-        console.log('选择的分组字段:', groupField);
+        console.log('选择的分组字段:', groupField, '图表编号:', chartNumber);
 
         if (!groupField) {
             alert('请选择分组字段');
@@ -6135,34 +6284,35 @@
         }
 
         // 显示加载状态
-        const generateBtn = document.getElementById('generateChartBtn');
+        const generateBtnId = chartNumber === 1 ? 'generateChartBtn1' : 'generateChartBtn2';
+        const generateBtn = document.getElementById(generateBtnId);
         const originalText = generateBtn.textContent;
         generateBtn.textContent = '加载中...';
         generateBtn.disabled = true;
 
         // 始终重新获取所有搜索结果数据，确保图表使用完整的搜索数据
-        console.log('重新获取所有搜索结果数据用于图表');
+        console.log('重新获取所有搜索结果数据用于图表', chartNumber);
         getAllSearchData()
             .then(allSearchData => {
                 console.log('获取到的所有搜索结果数据:', allSearchData);
                 if (allSearchData && allSearchData.length > 0) {
                     try {
-                        processChartData(allSearchData, groupField, currentChartType, chartSortOrder);
-                        console.log('✅ 图表生成成功，使用数据量:', allSearchData.length);
+                        processChartData(allSearchData, groupField, currentChartType, chartSortOrder, chartNumber);
+                        console.log('✅ 图表', chartNumber, '生成成功，使用数据量:', allSearchData.length);
                     } catch (error) {
                         console.error('处理图表数据失败:', error);
                         alert('处理图表数据失败: ' + error.message);
-                        showNoDataMessage();
+                        showNoDataMessage(chartNumber);
                     }
                 } else {
                     console.log('没有获取到数据');
-                    showNoDataMessage();
+                    showNoDataMessage(chartNumber);
                 }
             })
             .catch(error => {
                 console.error('获取所有数据失败:', error);
                 alert('获取数据失败: ' + error.message);
-                showNoDataMessage();
+                showNoDataMessage(chartNumber);
             })
             .finally(() => {
                 // 恢复按钮状态
@@ -6171,18 +6321,19 @@
             });
     }
 
-    // 处理图表数据的辅助函数
-    function processChartData(data, groupField, chartType, sortOrder = 'none') {
+    // 处理图表数据的辅助函数 - 支持双图表
+    function processChartData(data, groupField, chartType, sortOrder = 'none', chartNumber = 1) {
         console.log('🔄 processChartData 被调用:', {
             dataLength: data.length,
             groupField: groupField,
             chartType: chartType,
-            sortOrder: sortOrder
+            sortOrder: sortOrder,
+            chartNumber: chartNumber
         });
         
         if (!data || data.length === 0) {
             console.log('❌ 没有数据，显示无数据消息');
-            showNoDataMessage();
+            showNoDataMessage(chartNumber);
             return;
         }
 
@@ -6196,32 +6347,37 @@
         // 处理数据
         console.log('📊 开始处理分组数据...');
         try {
-            const chartData = processGroupedDataForChart(data, groupField, chartType, chartSortOrder);
+            const chartData = processGroupedDataForChart(data, groupField, chartType, sortOrder);
             console.log('✅ 处理后的图表数据:', chartData);
 
             // 验证处理后的数据
             if (!chartData || !chartData.labels || chartData.labels.length === 0) {
                 console.error('❌ 处理后的图表数据无效');
                 alert('无法生成图表数据，请检查数据格式');
-                showNoDataMessage();
+                showNoDataMessage(chartNumber);
                 return;
             }
 
             // 销毁现有图表
+            const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
             if (currentChart) {
-                console.log('🗑️ 销毁现有图表');
+                console.log('🗑️ 销毁现有图表', chartNumber);
                 currentChart.destroy();
-                currentChart = null;
+                if (chartNumber === 1) {
+                    currentChart1 = null;
+                } else {
+                    currentChart2 = null;
+                }
             }
 
             // 创建新图表
-            console.log('🚀 开始创建图表，类型:', chartType);
-            createGroupedChart(chartData, chartType);
-            console.log('✅ 图表创建完成');
+            console.log('🚀 开始创建图表', chartNumber, '，类型:', chartType);
+            createGroupedChart(chartData, chartType, chartNumber);
+            console.log('✅ 图表', chartNumber, '创建完成');
         } catch (error) {
             console.error('❌ 处理图表数据失败:', error);
             alert('处理图表数据失败: ' + error.message);
-            showNoDataMessage();
+            showNoDataMessage(chartNumber);
         }
     }
 
@@ -6694,8 +6850,14 @@
                 Chart.register(ChartDataLabels);
             }
             
-            currentChart = new Chart(ctx, config);
-            console.log('图表创建成功');
+            // 根据图表编号创建对应的图表实例
+            if (chartNumber === 1) {
+                currentChart1 = new Chart(ctx, config);
+                console.log('图表1创建成功');
+            } else {
+                currentChart2 = new Chart(ctx, config);
+                console.log('图表2创建成功');
+            }
         } catch (error) {
             console.error('图表创建失败:', error);
             alert('图表创建失败: ' + error.message);
@@ -6703,19 +6865,29 @@
     }
 
     // 显示无数据消息
-    function showNoDataMessage() {
+    // 显示无数据消息 - 支持双图表
+    function showNoDataMessage(chartNumber = 1) {
+        const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
         if (currentChart) {
             currentChart.destroy();
-            currentChart = null;
+            if (chartNumber === 1) {
+                currentChart1 = null;
+            } else {
+                currentChart2 = null;
+            }
         }
-        document.getElementById('noDataMessage').style.display = 'block';
-        updateChartStatus('无数据可显示', 'warning');
+        
+        const noDataMessageId = chartNumber === 1 ? 'noDataMessage1' : 'noDataMessage2';
+        document.getElementById(noDataMessageId).style.display = 'block';
+        updateChartStatus('无数据可显示', 'warning', chartNumber);
     }
 
-    // 更新图表状态
-    function updateChartStatus(message, type = 'info') {
-        const statusDiv = document.getElementById('chartStatus');
-        const statusText = document.getElementById('chartStatusText');
+    // 更新图表状态 - 支持双图表
+    function updateChartStatus(message, type = 'info', chartNumber = 1) {
+        const statusDivId = chartNumber === 1 ? 'chartStatus1' : 'chartStatus2';
+        const statusTextId = chartNumber === 1 ? 'chartStatusText1' : 'chartStatusText2';
+        const statusDiv = document.getElementById(statusDivId);
+        const statusText = document.getElementById(statusTextId);
         
         if (statusDiv && statusText) {
             statusText.textContent = message;
@@ -6792,17 +6964,20 @@
     }
 
 
-    // 创建分组图表
-    function createGroupedChart(data, type) {
+    // 创建分组图表 - 支持双图表
+    function createGroupedChart(data, type, chartNumber = 1) {
         console.log('🎨 createGroupedChart函数被调用:', {
             data: data,
             type: type,
             labels: data.labels,
-            datasetsCount: data.datasets ? data.datasets.length : 0
+            datasetsCount: data.datasets ? data.datasets.length : 0,
+            chartNumber: chartNumber
         });
 
-        const ctx = document.getElementById('dataChart').getContext('2d');
-        const noDataMessage = document.getElementById('noDataMessage');
+        const canvasId = chartNumber === 1 ? 'dataChart1' : 'dataChart2';
+        const noDataMessageId = chartNumber === 1 ? 'noDataMessage1' : 'noDataMessage2';
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        const noDataMessage = document.getElementById(noDataMessageId);
 
         if (!ctx) {
             console.error('❌ 无法获取canvas上下文');
@@ -6858,7 +7033,7 @@
                     },
                     title: {
                         display: true,
-                        text: `${document.getElementById('groupField').selectedOptions[0].text} 问题关闭情况`,
+                        text: `${document.getElementById(chartNumber === 1 ? 'groupField1' : 'groupField2').selectedOptions[0].text} 问题关闭情况`,
                         font: {
                             size: 18,
                             weight: 'bold'
@@ -7006,14 +7181,24 @@
             Chart.register(ChartDataLabels);
 
             console.log('🎯 开始创建Chart实例...');
-            currentChart = new Chart(ctx, config);
-            console.log('🎉 分组图表创建成功!', {
-                chartType: currentChart.config.type,
-                dataPoints: currentChart.data.datasets[0] ? currentChart.data.datasets[0].data.length : 0
-            });
+            // 根据图表编号创建对应的图表实例
+            if (chartNumber === 1) {
+                currentChart1 = new Chart(ctx, config);
+                console.log('🎉 分组图表1创建成功!', {
+                    chartType: currentChart1.config.type,
+                    dataPoints: currentChart1.data.datasets[0] ? currentChart1.data.datasets[0].data.length : 0
+                });
+            } else {
+                currentChart2 = new Chart(ctx, config);
+                console.log('🎉 分组图表2创建成功!', {
+                    chartType: currentChart2.config.type,
+                    dataPoints: currentChart2.data.datasets[0] ? currentChart2.data.datasets[0].data.length : 0
+                });
+            }
             
             // 更新状态
-            updateChartStatus(`图表创建成功 - ${currentChartType === 'pie' ? '饼状图' : currentChartType === 'bar' ? '柱状图' : '折线图'}`, 'success');
+            const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
+            updateChartStatus(`图表${chartNumber}创建成功 - ${currentChartType === 'pie' ? '饼状图' : currentChartType === 'bar' ? '柱状图' : '折线图'}`, 'success', chartNumber);
         } catch (error) {
             console.error('💥 分组图表创建失败:', error);
             console.error('错误详情:', {

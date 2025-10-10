@@ -182,21 +182,66 @@
         }
 
         .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 24px;
             margin-bottom: 32px;
+            justify-content: center;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 32px 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            flex: 0 0 calc(25% - 18px);
+            min-width: 280px;
+        }
+
+        /* 第二排的3个卡片居中显示 */
+        .stats-cards .stat-card:nth-child(n+5) {
+            flex: 0 0 calc(33.333% - 16px);
+            min-width: 280px;
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 1200px) {
+            .stat-card {
+                flex: 0 0 calc(33.333% - 16px);
+            }
+
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 calc(33.333% - 16px);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .stat-card {
+                flex: 0 0 calc(50% - 12px);
+            }
+
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 calc(50% - 12px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stat-card {
+                flex: 0 0 100%;
+                max-width: 400px;
+            }
+
+            .stats-cards .stat-card:nth-child(n+5) {
+                flex: 0 0 100%;
+                max-width: 400px;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+            padding: 36px 28px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             opacity: 0;
@@ -206,8 +251,8 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .stat-card:active {
@@ -257,13 +302,27 @@
         }
 
         .stat-number {
-            font-size: 48px;
-            font-weight: 800;
-            margin-bottom: 8px;
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .stat-number::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+            border-radius: 2px;
         }
 
         .stat-card.completed .stat-number {
@@ -300,18 +359,38 @@
 
         .stat-label {
             color: #6c757d;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            opacity: 0.8;
         }
 
         .charts-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+            padding: 0 20px;
             opacity: 0;
             transform: translateY(30px);
             animation: chartsFadeIn 0.8s ease forwards;
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 0 10px;
+            }
         }
 
         @keyframes chartsFadeIn {
@@ -325,59 +404,130 @@
             }
         }
 
+        /* 添加图表容器的交错动画 */
+        .chart-section:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .chart-section:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .chart-section:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .chart-section:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
         .chart-container {
             max-height: 600px;
             overflow-y: auto;
         }
 
         .chart-section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-            height: 400px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 450px;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: chartSectionFadeIn 0.6s ease forwards;
+        }
+
+        @keyframes chartSectionFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 20px 20px 0 0;
         }
 
         .chart-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .chart-section h3 {
-            margin: 0 0 20px 0;
+            margin: 0 0 24px 0;
             color: #2c3e50;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
-            height: 40px;
+            gap: 12px;
+            height: 48px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
 
         .chart-section h3::before {
             content: '';
-            width: 4px;
-            height: 20px;
+            width: 5px;
+            height: 24px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 2px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-section h3::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3));
         }
 
         .chart-container {
-            height: 300px;
+            height: 320px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(248, 250, 252, 0.8));
+            border-radius: 16px;
             position: relative;
             overflow: hidden;
             flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .chart-container canvas {
@@ -434,11 +584,12 @@
         .responsible-chart {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
             flex: 1;
             overflow-y: auto;
-            max-height: 300px;
-            padding-right: 8px;
+            max-height: 320px;
+            padding-right: 12px;
+            padding-top: 8px;
         }
 
         .responsible-chart::-webkit-scrollbar {
@@ -462,23 +613,37 @@
         .responsible-item {
             display: flex;
             align-items: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            margin-bottom: 12px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .responsible-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 16px 0 0 16px;
         }
 
         .responsible-item:hover {
-            transform: translateX(8px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            transform: translateX(12px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            background: linear-gradient(135deg, #ffffff, rgba(248, 250, 252, 0.95));
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .responsible-name {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-radius: 50%;
@@ -486,10 +651,26 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
-            margin-right: 20px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            font-size: 20px;
+            margin-right: 24px;
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .responsible-name::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(4px);
         }
 
         .responsible-info {
@@ -2705,7 +2886,7 @@
                 <span class="text-edit-modal-close" onclick="closeContentViewModal()">&times;</span>
             </div>
             <div class="text-edit-modal-body">
-                <div id="contentViewText" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
+                <div id="contentViewText" style="word-wrap: break-word; line-height: 1.6; font-size: 14px; color: #333; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa;"></div>
             </div>
             <div class="text-edit-modal-footer">
                 <button class="btn-cancel" onclick="closeContentViewModal()">关闭</button>
@@ -7333,7 +7514,7 @@
                     <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
                     <td class="image-cell">
                         ${product.imageUrl ?
                     `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` :
@@ -7348,11 +7529,11 @@
                     <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
                     <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
                     <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'")}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
                     <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
                     <td>
@@ -7837,7 +8018,17 @@
     // 显示内容查看模态框
     function showContentViewModal(title, content) {
         document.getElementById('contentViewModalTitle').textContent = `查看${title}`;
-        document.getElementById('contentViewText').textContent = content || '暂无内容';
+        const contentElement = document.getElementById('contentViewText');
+        if (content && content.trim()) {
+            // 先解码转义的换行符，然后转换为HTML换行标签
+            const decodedContent = content.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+            // 转义HTML特殊字符，但保留换行符用于后续处理
+            const escapedContent = decodedContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // 将换行符转换为HTML换行标签
+            contentElement.innerHTML = escapedContent.replace(/\n/g, '<br>');
+        } else {
+            contentElement.textContent = '暂无内容';
+        }
         document.getElementById('contentViewModal').style.display = 'block';
     }
 
