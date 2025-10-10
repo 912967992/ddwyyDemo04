@@ -5045,18 +5045,20 @@
     function checkUserPermission() {
         // 优先从URL参数获取用户信息，其次从localStorage获取
         const urlUsername = getUrlParameter('username');
-        const urlRole = getUrlParameter('role');
+        const urlJob = getUrlParameter('job'); // 修改参数名从'role'改为'job'
 
         if (urlUsername) {
             currentUser = urlUsername;
             localStorage.setItem('currentUser', currentUser);
+            localStorage.setItem('username', currentUser); // 同时保存到username键
         } else {
-            currentUser = localStorage.getItem('currentUser') || '';
+            currentUser = localStorage.getItem('currentUser') || localStorage.getItem('username') || '';
         }
 
-        if (urlRole) {
-            currentRole = urlRole;
+        if (urlJob) {
+            currentRole = urlJob;
             localStorage.setItem('currentRole', currentRole);
+            localStorage.setItem('job', currentRole); // 同时保存到job键
         } else {
             // 优先从localStorage获取job信息，如果没有则使用currentRole，最后默认为TestMan
             currentRole = localStorage.getItem('job') || localStorage.getItem('currentRole') || 'TestMan';

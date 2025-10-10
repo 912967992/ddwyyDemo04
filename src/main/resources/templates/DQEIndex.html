@@ -496,8 +496,8 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div class="card-content">
-                    <h3>新品质量评价管理</h3>
-                    <p>评审结果相关</p>
+                    <h3>新品质量问题管理</h3>
+                    <p>评审问题相关</p>
                 </div>
                 <div class="card-arrow">
                     <i class="fas fa-arrow-right"></i>
@@ -738,6 +738,10 @@
                 // const url = 'http://e888ccd6.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
                 if (isDingTalk) {
+                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('job', job);
+                    
                     dd.openLink({
                         url: url,
                         success: function() {
@@ -786,6 +790,10 @@
                 // const url = 'http://e888ccd6.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
 
                 if (isDingTalk) {
+                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('job', job);
+                    
                     dd.openLink({
                         url: url,
                         success: function() {
@@ -825,6 +833,10 @@
                 // const url = 'http://e888ccd6.natappfree.cc/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
                 if (isDingTalk) {
+                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('job', job);
+                    
                     dd.openLink({
                         url: url,
                         success: function() {
@@ -863,6 +875,10 @@
                 const url = 'http://219.134.191.195:64000/qualityProgress?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
                 if (isDingTalk) {
+                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('job', job);
+                    
                     dd.openLink({
                         url: url,
                         success: function() {
@@ -899,6 +915,10 @@
             // const url = 'http://x446fd53.natappfree.cc/' + getDashboardPath(job) + '?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
             if (isDingTalk) {
+                // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                localStorage.setItem('username', username);
+                localStorage.setItem('job', job);
+                
                 dd.openLink({
                     url: url,
                     success: function() {
@@ -934,6 +954,10 @@
                 const url = 'http://219.134.191.195:64000/smart-project-analyzer?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
                 if (isDingTalk) {
+                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('job', job);
+                    
                     dd.openLink({
                         url: url,
                         success: function() {
@@ -1326,6 +1350,10 @@
         }
 
         if (isDingTalk) {
+            // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+            localStorage.setItem('username', username);
+            localStorage.setItem('job', job);
+            
             dd.openLink({
                 url: url,
                 success: function() {
