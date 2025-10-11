@@ -553,14 +553,14 @@ public class ScheduleBoardController {
                     
                     // 如果项目横跨多天，创建合并单元格
                     if (projectInfo.scheduleDays > 1) {
-                        int endColIndex = i + (int) Math.ceil(projectInfo.scheduleDays);
+                        int endColIndex = i + (int) projectInfo.scheduleDays;
                         if (endColIndex > dateList.size()) {
                             endColIndex = dateList.size();
                         }
                         
                         // 创建合并单元格（从当前列到结束列）
                         if (endColIndex > i + 1) {
-                            CellRangeAddress mergedRegion = new CellRangeAddress(rowIndex - 1, rowIndex - 1, i + 1, endColIndex - 1);
+                            CellRangeAddress mergedRegion = new CellRangeAddress(rowIndex - 1, rowIndex - 1, i + 1, endColIndex);
                             sheet.addMergedRegion(mergedRegion);
                             
                             // 设置合并单元格的样式
@@ -570,8 +570,10 @@ public class ScheduleBoardController {
                             cell.setCellStyle(mergedStyle);
                             
                             // 标记所有被合并的单元格为已处理
-                            for (int j = i; j < endColIndex; j++) {
-                                processedCells[j] = true;
+                            for (int j = i; j < i + (int) projectInfo.scheduleDays; j++) {
+                                if (j < processedCells.length) {
+                                    processedCells[j] = true;
+                                }
                             }
                         }
                     } else {
