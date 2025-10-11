@@ -181,6 +181,79 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .dashboard-filters {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .filter-group select {
+            padding: 6px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 当前筛选条件显示区域 */
+        .current-filters-display {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-info i {
+            font-size: 16px;
+        }
+
+        .filter-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
         .stats-cards {
             display: flex;
             flex-wrap: wrap;
@@ -2592,16 +2665,26 @@
 <div id="dashboardView" class="dashboard-section">
     <div class="dashboard-header">
         <h2><i class="fas fa-tachometer-alt"></i> 首页看板 </h2>
-        <!-- 主题选择器 -->
-        <div class="theme-selector">
-            <label>主题：</label>
-            <select id="themeSelect">
-                <option value="default">默认主题</option>
-                <option value="dark">深色主题</option>
-                <option value="blue">蓝色主题</option>
-                <option value="green">绿色主题</option>
-                <option value="purple">紫色主题</option>
-            </select>
+        <!-- 筛选器区域 -->
+        <div class="dashboard-filters">
+            <!-- 组别筛选器 -->
+            <div class="filter-group">
+                <label>组别：</label>
+                <select id="groupFilter">
+                    <option value="">全部组别</option>
+                </select>
+            </div>
+            <!-- 主题选择器 -->
+            <div class="theme-selector">
+                <label>主题：</label>
+                <select id="themeSelect">
+                    <option value="default">默认主题</option>
+                    <option value="dark">深色主题</option>
+                    <option value="blue">蓝色主题</option>
+                    <option value="green">绿色主题</option>
+                    <option value="purple">紫色主题</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -2715,6 +2798,16 @@
 
 <!-- 详细数据界面（默认隐藏） -->
 <div id="detailView" class="detail-section" style="display: none;">
+    <!-- 当前筛选条件显示区域 -->
+    <div class="current-filters-display" id="currentFiltersDisplay" style="display: none;">
+        <div class="filter-info">
+            <i class="fas fa-filter"></i>
+            <span>当前筛选条件：</span>
+            <span id="currentGroupFilter" class="filter-tag"></span>
+            <span id="currentStageFilter" class="filter-tag"></span>
+        </div>
+    </div>
+
     <!-- 过滤器栏 -->
     <div class="filters-main-container">
         <div class="basic-filters-container">
@@ -3796,6 +3889,10 @@
         'PVT': '量产'
     };
 
+    // 组别筛选相关变量
+    let selectedGroup = ''; // 当前选中的组别
+    let allGroups = []; // 所有可用的组别列表
+
     // 阶段状态联动函数
     function handleStageChange(stageSelect) {
         const selectedStage = stageSelect.value;
@@ -3813,11 +3910,116 @@
         }
     }
 
+    // 提取所有组别选项
+    function extractGroups(data) {
+        const groups = new Set();
+        data.forEach(item => {
+            if (item.groupName && item.groupName.trim() !== '') {
+                groups.add(item.groupName.trim());
+            }
+        });
+        allGroups = Array.from(groups).sort();
+        console.log('📊 提取到的组别:', allGroups);
+        return allGroups;
+    }
+
+    // 填充组别下拉框
+    function populateGroupFilter() {
+        const groupFilter = document.getElementById('groupFilter');
+        if (!groupFilter) return;
+
+        // 清空现有选项（保留"全部组别"选项）
+        groupFilter.innerHTML = '<option value="">全部组别</option>';
+
+        // 添加所有组别选项
+        allGroups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupFilter.appendChild(option);
+        });
+
+        console.log('✅ 组别筛选器已填充，共', allGroups.length, '个组别');
+    }
+
+    // 根据组别筛选数据
+    function filterDataByGroup(data) {
+        if (!selectedGroup || selectedGroup === '') {
+            return data;
+        }
+        return data.filter(item => item.groupName === selectedGroup);
+    }
+
+    // 组别筛选变化处理
+    function handleGroupFilterChange() {
+        const groupFilter = document.getElementById('groupFilter');
+        if (!groupFilter) return;
+
+        selectedGroup = groupFilter.value;
+        console.log('🔍 组别筛选变更:', selectedGroup);
+        console.log('📊 当前allData长度:', allData ? allData.length : 0);
+
+        // 测试筛选函数
+        const testFiltered = filterDataByGroup(allData || []);
+        console.log('🔍 筛选后数据长度:', testFiltered.length);
+        console.log('🔍 筛选后数据样本:', testFiltered.slice(0, 3));
+
+        // 重新更新看板数据
+        updateDashboardData();
+    }
+
+    // 更新当前筛选条件显示
+    function updateCurrentFiltersDisplay(filterType, groupName) {
+        const display = document.getElementById('currentFiltersDisplay');
+        const groupTag = document.getElementById('currentGroupFilter');
+        const stageTag = document.getElementById('currentStageFilter');
+
+        if (!display || !groupTag || !stageTag) return;
+
+        // 显示筛选条件区域
+        display.style.display = 'block';
+
+        // 更新组别标签
+        if (groupName && groupName !== '') {
+            groupTag.textContent = `组别: ${groupName}`;
+            groupTag.style.display = 'inline-block';
+        } else {
+            groupTag.style.display = 'none';
+        }
+
+        // 更新阶段标签
+        const stageLabels = {
+            'all': '全部项目',
+            'inProgress': '进行中项目',
+            'design': '设计中项目',
+            'evt': 'EVT项目',
+            'dvt': 'DVT项目',
+            'risk': '有风险项目',
+            'completed': '已完成项目'
+        };
+
+        if (filterType && stageLabels[filterType]) {
+            stageTag.textContent = stageLabels[filterType];
+            stageTag.style.display = 'inline-block';
+        } else {
+            stageTag.style.display = 'none';
+        }
+
+        console.log('🏷️ 筛选条件显示已更新:', { filterType, groupName });
+    }
+
     // 界面切换功能
     // 进入详细数据管理页面
     function enterDetailView() {
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('detailView').style.display = 'block';
+
+        // 隐藏筛选条件显示（除非是通过统计卡片进入的）
+        const currentFiltersDisplay = document.getElementById('currentFiltersDisplay');
+        if (currentFiltersDisplay) {
+            currentFiltersDisplay.style.display = 'none';
+        }
+
         console.log('✅ 已进入详细数据管理页面');
     }
 
@@ -3844,6 +4046,9 @@
             localStorage.setItem('dashboardTheme', selectedTheme);
             console.log('🎨 主题已保存:', selectedTheme);
         });
+
+        // 组别筛选功能
+        document.getElementById('groupFilter').addEventListener('change', handleGroupFilterChange);
 
 
         // 恢复保存的主题
@@ -3942,25 +4147,30 @@
     // 处理大盘数据的核心逻辑
     function processDashboardData(data) {
         console.log('🔍 开始统计项目数据...');
-        console.log('📊 总数据量:', data.length);
+        console.log('📊 原始数据量:', data.length);
+
+        // 应用组别筛选
+        const filteredData = filterDataByGroup(data);
+        console.log('🔍 组别筛选后数据量:', filteredData.length);
+        console.log('🎯 当前筛选组别:', selectedGroup || '全部组别');
 
         // 设计项目数
-        const designProjects = data.filter(item =>
+        const designProjects = filteredData.filter(item =>
             item.stage === '设计中'
         ).length;
 
         // EVT项目数
-        const evtProjects = data.filter(item =>
+        const evtProjects = filteredData.filter(item =>
             item.stage === 'EVT'
         ).length;
 
         // DVT项目数
-        const dvtProjects = data.filter(item =>
+        const dvtProjects = filteredData.filter(item =>
             item.stage === 'DVT'
         ).length;
 
         // 已完成项目（阶段值为PVT）
-        const completedProjects = data.filter(item =>
+        const completedProjects = filteredData.filter(item =>
             item.stage === 'PVT'
         ).length;
 
@@ -4001,14 +4211,14 @@
         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
 
         // 更新项目优先级分布饼状图
-        updatePriorityChart(data);
+        updatePriorityChart(filteredData);
 
         // 更新各项目任务数
-        updateProjectTasks(data);
+        updateProjectTasks(filteredData);
 
         // 计算各负责人任务数（恢复原来的逻辑）
         const responsibleMap = {};
-        data.forEach(item => {
+        filteredData.forEach(item => {
             // 尝试多个可能的字段名
             const dqe = item.主导DQE || item.lead_dqe || item.leadDqe;
             if (dqe && dqe.trim() !== '') {
@@ -4089,7 +4299,7 @@
         // 打印阶段分布统计
         console.log('📈 阶段分布统计:');
         const stageStats = {};
-        data.forEach(item => {
+        filteredData.forEach(item => {
             const stage = item.stage || '未设置';
             stageStats[stage] = (stageStats[stage] || 0) + 1;
         });
@@ -4100,7 +4310,7 @@
         // 打印优先级分布统计
         console.log('🎯 优先级分布统计:');
         const priorityStats = {};
-        data.forEach(item => {
+        filteredData.forEach(item => {
             const priority = item.priority || '未设置';
             priorityStats[priority] = (priorityStats[priority] || 0) + 1;
         });
@@ -4114,10 +4324,10 @@
         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
 
         // 更新项目优先级分布饼状图
-        updatePriorityChart(data);
+        updatePriorityChart(filteredData);
 
         // 更新各项目任务数
-        updateProjectTasks(data);
+        updateProjectTasks(filteredData);
     }
 
     // 更新任务状态分布饼状图
@@ -4205,6 +4415,8 @@
     // 更新项目优先级分布饼状图
     function updatePriorityChart(data) {
         console.log('🎨 开始创建项目优先级分布饼状图...');
+        console.log('📊 接收到的数据长度:', data ? data.length : 0);
+        console.log('🎯 当前筛选组别:', selectedGroup || '全部组别');
 
         if (!data || data.length === 0) {
             console.log('❌ 没有数据，无法创建优先级饼状图');
@@ -4304,6 +4516,8 @@
     // 更新各项目任务数柱状图
     function updateProjectTasks(data) {
         console.log('🎨 开始创建各项目任务数柱状图...');
+        console.log('📊 接收到的数据长度:', data ? data.length : 0);
+        console.log('🎯 当前筛选组别:', selectedGroup || '全部组别');
 
         if (!data || data.length === 0) {
             console.log('❌ 没有数据，无法创建项目任务数柱状图');
@@ -5585,6 +5799,10 @@
                     totalCount = allData.length; // 使用本地数据长度
                     totalPages = Math.ceil(totalCount / pageSize);
 
+                    // 提取组别选项并填充下拉框
+                    extractGroups(allData);
+                    populateGroupFilter();
+
                     renderTable();
                     updatePagination();
                     // 更新大盘数据 - 使用全部数据
@@ -5704,6 +5922,7 @@
     // 根据统计卡片筛选数据
     function filterByStatCard(filterType) {
         console.log('🎯 根据统计卡片筛选:', filterType);
+        console.log('🎯 当前选中的组别:', selectedGroup || '全部组别');
 
         // 先进入详细数据管理页面
         enterDetailView();
@@ -5713,41 +5932,46 @@
             // 清空所有过滤器
             resetFilters();
 
+            // 首先应用组别筛选
+            let baseData = filterDataByGroup(allData);
+            console.log('🔍 组别筛选后数据量:', baseData.length);
+
             // 根据筛选类型设置对应的过滤器
             switch(filterType) {
                 case 'all':
                     // 显示所有数据，不需要额外设置
+                    filteredData = baseData;
                     break;
                 case 'inProgress':
                     // 筛选进行中项目（设计中、EVT、DVT）
-                    filteredData = allData.filter(item =>
+                    filteredData = baseData.filter(item =>
                         ['设计中', 'EVT', 'DVT'].includes(item.stage)
                     );
                     break;
                 case 'design':
                     // 筛选设计项目
-                    filteredData = allData.filter(item => item.stage === '设计中');
+                    filteredData = baseData.filter(item => item.stage === '设计中');
                     break;
                 case 'evt':
                     // 筛选EVT项目
-                    filteredData = allData.filter(item => item.stage === 'EVT');
+                    filteredData = baseData.filter(item => item.stage === 'EVT');
                     break;
                 case 'dvt':
                     // 筛选DVT项目
-                    filteredData = allData.filter(item => item.stage === 'DVT');
+                    filteredData = baseData.filter(item => item.stage === 'DVT');
                     break;
                 case 'risk':
                     // 筛选有风险项目（不在正常阶段中的项目）
-                    filteredData = allData.filter(item =>
+                    filteredData = baseData.filter(item =>
                         item.stage && !['设计中', 'EVT', 'DVT', 'PVT'].includes(item.stage)
                     );
                     break;
                 case 'completed':
                     // 筛选已完成项目
-                    filteredData = allData.filter(item => item.stage === 'PVT');
+                    filteredData = baseData.filter(item => item.stage === 'PVT');
                     break;
                 default:
-                    filteredData = allData;
+                    filteredData = baseData;
             }
 
             // 重置到第一页
@@ -5756,6 +5980,9 @@
             // 重新渲染表格和分页
             renderTable();
             updatePagination();
+
+            // 更新筛选条件显示
+            updateCurrentFiltersDisplay(filterType, selectedGroup);
 
             // 滚动到表格区域
             setTimeout(() => {
