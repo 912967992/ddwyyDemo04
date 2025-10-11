@@ -451,18 +451,18 @@
             </div>
         </div>
 
-        <div class="dashboard-card" onclick="goToSmartProjectAnalyzer()">
-            <div class="card-icon">
-                <i class="fas fa-brain"></i>
-            </div>
-            <div class="card-content">
-                <h3>智能项目识别与统计分析系统</h3>
-                <p>AI驱动的项目智能分析</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </div>
+<!--        <div class="dashboard-card" onclick="goToSmartProjectAnalyzer()">-->
+<!--            <div class="card-icon">-->
+<!--                <i class="fas fa-brain"></i>-->
+<!--            </div>-->
+<!--            <div class="card-content">-->
+<!--                <h3>智能项目识别与统计分析系统</h3>-->
+<!--                <p>AI驱动的项目智能分析</p>-->
+<!--            </div>-->
+<!--            <div class="card-arrow">-->
+<!--                <i class="fas fa-arrow-right"></i>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <div class="grid-container">
             <div class="module-card highlighted" onclick="redirectToPage()">
@@ -937,46 +937,51 @@
 
         // 跳转到智能项目识别与统计分析系统
         function goToSmartProjectAnalyzer() {
-            if (!username) {
-                alert("请先输入用户名！");
-                return;
-            }
-            
-            if (!job) {
-                alert("请先选择角色！");
-                return;
-            }
-
-            if(job === 'manager'){
-
-                // 检查是否在钉钉环境中
-                const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-                const url = 'http://219.134.191.195:64000/smart-project-analyzer?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-
-                if (isDingTalk) {
-                    // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('job', job);
-                    
-                    dd.openLink({
-                        url: url,
-                        success: function() {
-                            console.log('成功打开智能项目识别与统计分析系统');
-                        },
-                        fail: function(err) {
-                            alert('打开页面失败：' + JSON.stringify(err));
-                            console.error('dd.openLink fail:', err);
-                        }
-                    });
-                } else {
-                    // 非钉钉环境使用普通跳转
-                    window.location.href = url;
-                }
-            }else{
-                alert("只有李良健才有权限进入该页面")
-            }
-
+            alert("此页面暂时下架");
         }
+
+        // 跳转到智能项目识别与统计分析系统
+        // function goToSmartProjectAnalyzer() {
+        //     if (!username) {
+        //         alert("请先输入用户名！");
+        //         return;
+        //     }
+        //
+        //     if (!job) {
+        //         alert("请先选择角色！");
+        //         return;
+        //     }
+        //
+        //     if(job === 'manager'){
+        //
+        //         // 检查是否在钉钉环境中
+        //         const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+        //         const url = 'http://219.134.191.195:64000/smart-project-analyzer?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        //
+        //         if (isDingTalk) {
+        //             // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+        //             localStorage.setItem('username', username);
+        //             localStorage.setItem('job', job);
+        //
+        //             dd.openLink({
+        //                 url: url,
+        //                 success: function() {
+        //                     console.log('成功打开智能项目识别与统计分析系统');
+        //                 },
+        //                 fail: function(err) {
+        //                     alert('打开页面失败：' + JSON.stringify(err));
+        //                     console.error('dd.openLink fail:', err);
+        //                 }
+        //             });
+        //         } else {
+        //             // 非钉钉环境使用普通跳转
+        //             window.location.href = url;
+        //         }
+        //     }else{
+        //         alert("只有李良健才有权限进入该页面")
+        //     }
+        //
+        // }
 
         // 辅助函数：根据角色获取看板路径
         function getDashboardPath(job) {
