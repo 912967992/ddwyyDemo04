@@ -6310,8 +6310,8 @@
             chartType: chartType
         });
 
-        // 使用与主图表完全相同的数据处理逻辑
-        return processGroupedDataForChart(data, groupField, chartType, chartSortOrder);
+        // 使用与主图表完全相同的数据处理逻辑，默认不排序
+        return processGroupedDataForChart(data, groupField, chartType, 'none');
     }
 
     // 创建合并数据图表 - 使用与主图表完全相同的配置

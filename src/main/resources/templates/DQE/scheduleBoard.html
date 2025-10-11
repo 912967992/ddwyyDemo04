@@ -225,6 +225,7 @@
             <input type="date" id="endDate" class="date-picker">
             <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
             <button class="save-schedule-btn" onclick="saveScheduleWithPermission()">保存排期</button>
+            <button class="save-schedule-btn" onclick="exportScheduleToExcel()" style="background-color: #28a745; color: white;">📊 导出Excel</button>
         </div>
     </div>
     <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
@@ -2020,6 +2021,35 @@
             console.error('保存排期失败:', error);
             alert('保存失败，请稍后重试！');
         }
+    }
+
+    // 导出排期面板到Excel
+    function exportScheduleToExcel() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        
+        if (!startDate || !endDate) {
+            alert("请先选择开始日期和结束日期");
+            return;
+        }
+        
+        // 获取当前排期面板的数据
+        const scheduleBoard = document.getElementById('scheduleBoard');
+        if (!scheduleBoard || scheduleBoard.innerHTML.includes('请选择排期面板时间')) {
+            alert("请先设置日期并加载排期面板");
+            return;
+        }
+        
+        // 构建导出URL
+        const exportUrl = `/scheduleBoardController/exportScheduleToExcel?startDate=${startDate}&endDate=${endDate}`;
+        
+        // 创建隐藏的下载链接
+        const link = document.createElement('a');
+        link.href = exportUrl;
+        link.download = `排期面板_${startDate}_${endDate}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     async function refreshSchedule() {
