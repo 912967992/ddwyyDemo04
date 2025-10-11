@@ -373,6 +373,23 @@
             color: #e3f2fd;
         }
 
+        /* 过滤器输入框样式 */
+        .filter-input {
+            width: 100%;
+            padding: 6px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .filter-input:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
         /* 合并数据展示区域样式 */
         .merged-data-section {
             margin-top: 20px;
@@ -612,33 +629,38 @@
                     <div class="filter-row">
                 <div class="filter-group">
                     <label>完整编码:</label>
-                    <select id="fullModelFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="fullModelFilter" placeholder="输入完整编码" class="filter-input">
+                        <div class="suggestions-dropdown" id="fullModelSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>样品阶段:</label>
-                    <select id="sampleStageFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="sampleStageFilter" placeholder="输入样品阶段" class="filter-input">
+                        <div class="suggestions-dropdown" id="sampleStageSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>版本:</label>
-                    <select id="versionFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="versionFilter" placeholder="输入版本" class="filter-input">
+                        <div class="suggestions-dropdown" id="versionSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>大类:</label>
-                    <select id="bigSpeciesFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="bigSpeciesFilter" placeholder="输入大类" class="filter-input">
+                        <div class="suggestions-dropdown" id="bigSpeciesSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>小类:</label>
-                    <select id="smallSpeciesFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="smallSpeciesFilter" placeholder="输入小类" class="filter-input">
+                        <div class="suggestions-dropdown" id="smallSpeciesSuggestions"></div>
+                    </div>
                 </div>
             </div>
 
@@ -665,21 +687,24 @@
                 </div>
                 <div class="filter-group">
                     <label>测试人员:</label>
-                    <select id="testerFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="testerFilter" placeholder="输入测试人员" class="filter-input">
+                        <div class="suggestions-dropdown" id="testerSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>责任部门:</label>
-                    <select id="responsibleDepartmentFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="responsibleDepartmentFilter" placeholder="输入责任部门" class="filter-input">
+                        <div class="suggestions-dropdown" id="responsibleDepartmentSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>测试平台:</label>
-                    <select id="testPlatformFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="testPlatformFilter" placeholder="输入测试平台" class="filter-input">
+                        <div class="suggestions-dropdown" id="testPlatformSuggestions"></div>
+                    </div>
                 </div>
             </div>
 
@@ -692,9 +717,10 @@
                 </div>
                 <div class="filter-group">
                     <label>DQE负责人:</label>
-                    <select id="dqeFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="dqeFilter" placeholder="输入DQE负责人" class="filter-input">
+                        <div class="suggestions-dropdown" id="dqeSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>问题描述:</label>
@@ -702,9 +728,10 @@
                 </div>
                 <div class="filter-group">
                     <label>显示设备:</label>
-                    <select id="testDeviceFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="testDeviceFilter" placeholder="输入显示设备" class="filter-input">
+                        <div class="suggestions-dropdown" id="testDeviceSuggestions"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
                     <label>其他设备:</label>
@@ -720,9 +747,6 @@
                 </button>
                 <button id="resetBtn" class="btn btn-secondary">
                     <i class="fas fa-undo"></i> 重置
-                </button>
-                <button id="refreshAllOptionsBtn" class="btn btn-info">
-                    <i class="fas fa-sync-alt"></i> 刷新选项
                 </button>
             </div>
                 </div>
@@ -1769,11 +1793,12 @@
             // 初始化问题类别筛选器（在缓存加载后）
             initProblemCategoryFilter();
 
-            // 如果问题类别缓存为空或过期，自动从数据库获取
-            if (!speciesCache.problemCategory || speciesCache.problemCategory.length === 0) {
-                // console.log('问题类别缓存为空，自动从数据库获取');
-                fetchSpeciesOptionsFromServer('problemCategory');
-            }
+            // 自动获取所有选项数据（用于自动完成功能）
+            fetchSpeciesOptionsFromServer('all').then(() => {
+                console.log('所有选项数据已加载完成');
+            }).catch(error => {
+                console.error('加载选项数据时出错:', error);
+            });
 
             // 初始化购物车
             loadCartFromStorage();
@@ -1904,8 +1929,7 @@
                                 this.innerHTML = '<i class="fas fa-edit"></i>';
                                 this.title = '切换手动输入';
                                 
-                                // 清空输入框和建议框
-                                targetInput.value = '';
+                                // 不清空输入框的值，保持手动输入的内容
                                 if (suggestions) {
                                     hideSuggestions(suggestions);
                                 }
@@ -1930,7 +1954,16 @@
 
                     // 键盘事件 - 导航和选择
                     input.addEventListener('keydown', function(e) {
-                        handleInputKeydown(e, this, suggestions, level);
+                        if (e.key === 'Enter') {
+                            // 回车键直接触发搜索
+                            e.preventDefault();
+                            if (this.value.trim()) {
+                                confirmCategoryInput(level, this.value);
+                                searchProblems();
+                            }
+                        } else {
+                            handleInputKeydown(e, this, suggestions, level);
+                        }
                     });
 
                     // 失去焦点事件 - 延迟隐藏建议框
@@ -1940,6 +1973,8 @@
                             const level = this.id.replace('problemCategoryLevel', '').replace('Input', '');
                             if (this.value.trim()) {
                                 confirmCategoryInput(level, this.value);
+                                // 手动输入后自动触发搜索
+                                searchProblems();
                             }
                         }, 200);
                     });
@@ -2142,59 +2177,22 @@
 
         // 确认手动输入的问题类别
         function confirmCategoryInput(level, inputValue) {
-            // console.log('=== 手动输入确认 ===');
-            // console.log('输入级别:', level);
-            // console.log('输入值:', inputValue);
-            // console.log('输入值类型:', typeof inputValue);
-            // console.log('输入值长度:', inputValue ? inputValue.length : 'undefined');
-            
             if (!inputValue.trim()) {
-                // console.log('输入值为空，退出');
                 return;
             }
 
             const levelNum = parseInt(level);
-            const selectId = `problemCategoryLevel${levelNum}Filter`;
-            const select = document.getElementById(selectId);
-            
-            if (!select) {
-                // console.log('找不到选择框:', selectId);
-                return;
-            }
-
             const trimmedValue = inputValue.trim();
-            // console.log('处理后的值:', trimmedValue);
             
-            // 检查该值是否已存在于下拉框中
-            const existingOption = select.querySelector(`option[value="${trimmedValue}"]`);
-            if (!existingOption) {
-                // console.log('值不存在于下拉框中，添加新选项');
-                // 如果不存在，则添加新选项
-                const newOption = document.createElement('option');
-                newOption.value = trimmedValue;
-                newOption.textContent = trimmedValue;
-                select.appendChild(newOption);
-                // console.log('已添加新选项:', trimmedValue);
-            } else {
-                // console.log('值已存在于下拉框中');
-            }
-
-            // 设置选中的值
-            select.value = trimmedValue;
-            // console.log('设置选中值:', trimmedValue);
+            // 手动输入的值不应该添加到下拉框选项中
+            // 只需要在搜索时使用手动输入的值即可
             
-            // 触发级联更新
+            // 触发级联更新（清空下级选项）
             if (levelNum === 1) {
-                // console.log('触发二级分类更新');
                 updateLevel2Options();
             } else if (levelNum === 2) {
-                // console.log('触发三级分类更新');
                 updateLevel3Options();
             }
-
-            // 触发筛选更新
-            // applyFilters();
-            // console.log('=== 手动输入确认完成 ===');
         }
 
         // 从缓存数据中提取一级分类选项
@@ -2531,6 +2529,9 @@
                 }
             });
 
+            // 初始化自动完成功能
+            initAutocompleteForFilters();
+
             // 导出按钮
             document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
 
@@ -2548,10 +2549,6 @@
                 closeSpecificModal('cartModal');
             });
 
-            // 刷新所有选项按钮
-            document.getElementById('refreshAllOptionsBtn').addEventListener('click', function() {
-                refreshAllOptions();
-            });
 
 
 
@@ -2791,11 +2788,24 @@
 
         // 重置筛选条件
         function resetFilters() {
-            document.getElementById('fullModelFilter').value = '';
-            document.getElementById('sampleStageFilter').value = '';
-            document.getElementById('versionFilter').value = '';
-            document.getElementById('bigSpeciesFilter').value = '';
-            document.getElementById('smallSpeciesFilter').value = '';
+            // 重置输入框过滤器
+            const inputFilters = [
+                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
+                'testerFilter', 'responsibleDepartmentFilter', 'testPlatformFilter', 'dqeFilter', 'testDeviceFilter'
+            ];
+            
+            inputFilters.forEach(filterId => {
+                const input = document.getElementById(filterId);
+                if (input) {
+                    input.value = '';
+                }
+                // 隐藏对应的建议框
+                const suggestionsId = filterId.replace('Filter', 'Suggestions');
+                const suggestions = document.getElementById(suggestionsId);
+                if (suggestions) {
+                    hideSuggestions(suggestions);
+                }
+            });
             
             // 重置三级问题类别筛选器
             document.getElementById('problemCategoryLevel1Filter').value = '';
@@ -2814,16 +2824,14 @@
             // 清空二级和三级下拉框选项
             updateLevel2Options();
             
+            // 重置下拉框过滤器
             document.getElementById('defectLevelFilter').value = '';
             document.getElementById('currentStatusFilter').value = '';
-            document.getElementById('testerFilter').value = '';
-            document.getElementById('responsibleDepartmentFilter').value = '';
+            
+            // 重置其他输入框
             document.getElementById('startDateFilter').value = '';
             document.getElementById('endDateFilter').value = '';
-            document.getElementById('dqeFilter').value = '';
             document.getElementById('problemFilter').value = '';
-            document.getElementById('testPlatformFilter').value = '';
-            document.getElementById('testDeviceFilter').value = '';
             document.getElementById('otherDeviceFilter').value = '';
 
             loadProblemData();
@@ -3700,13 +3708,15 @@
 
         // 更新统计信息
         function updateStatistics() {
-            // 基于原始数据计算统计数字，而不是筛选后的数据
-            const open = allProblemData.filter(p => (p.current_status || '').toLowerCase() === 'open').length;
-            const closed = allProblemData.filter(p => {
+            // 基于当前过滤器条件计算统计数字，而不是基于搜索结果
+            const statsData = getFilteredDataForStats();
+            
+            const open = statsData.filter(p => (p.current_status || '').toLowerCase() === 'open').length;
+            const closed = statsData.filter(p => {
                 const status = (p.current_status || '').toLowerCase();
                 return status === 'closed' || status === 'close';
             }).length;
-            const followup = allProblemData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
+            const followup = statsData.filter(p => (p.current_status || '').toLowerCase() === 'follow up').length;
 
             document.getElementById('openCount').textContent = open;
             document.getElementById('closedCount').textContent = closed;
@@ -3715,6 +3725,60 @@
             
             // 更新问题类别选项
             updateProblemCategoryOptionsFromCurrentData();
+        }
+
+        // 根据当前过滤器条件获取数据用于统计
+        function getFilteredDataForStats() {
+            // 获取当前过滤器的值（除了状态过滤器）
+            const problemCategoryKeyword = generateProblemCategorySearchKeyword();
+            
+            const filters = {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
+                problemCategory: problemCategoryKeyword,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                // 注意：这里不包含currentStatus，因为我们想要所有状态的数据用于统计
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
+            };
+
+            // 基于当前过滤器条件过滤数据
+            return allProblemData.filter(item => {
+                // 应用所有过滤器条件（除了状态）
+                if (filters.fullModel && !item.full_model?.toLowerCase().includes(filters.fullModel.toLowerCase())) return false;
+                if (filters.sampleStage && !item.sample_stage?.toLowerCase().includes(filters.sampleStage.toLowerCase())) return false;
+                if (filters.version && !item.version?.toLowerCase().includes(filters.version.toLowerCase())) return false;
+                if (filters.bigSpecies && !item.big_species?.toLowerCase().includes(filters.bigSpecies.toLowerCase())) return false;
+                if (filters.smallSpecies && !item.small_species?.toLowerCase().includes(filters.smallSpecies.toLowerCase())) return false;
+                if (filters.defectLevel && item.defect_level !== filters.defectLevel) return false;
+                if (filters.tester && !item.tester?.toLowerCase().includes(filters.tester.toLowerCase())) return false;
+                if (filters.responsibleDepartment && !item.responsible_department?.toLowerCase().includes(filters.responsibleDepartment.toLowerCase())) return false;
+                if (filters.startDate && item.submit_time && new Date(item.submit_time) < new Date(filters.startDate)) return false;
+                if (filters.endDate && item.submit_time && new Date(item.submit_time) > new Date(filters.endDate)) return false;
+                if (filters.dqe && !item.dqe?.toLowerCase().includes(filters.dqe.toLowerCase())) return false;
+                if (filters.problem && !item.problem?.toLowerCase().includes(filters.problem.toLowerCase())) return false;
+                if (filters.testPlatform && !item.test_platform?.toLowerCase().includes(filters.testPlatform.toLowerCase())) return false;
+                if (filters.testDevice && !item.test_device?.toLowerCase().includes(filters.testDevice.toLowerCase())) return false;
+                if (filters.otherDevice && !item.other_device?.toLowerCase().includes(filters.otherDevice.toLowerCase())) return false;
+                
+                // 问题类别过滤
+                if (filters.problemCategory) {
+                    const itemCategory = `${item.problem_category_level1 || ''}-${item.problem_category_level2 || ''}-${item.problem_category_level3 || ''}`.replace(/-+$/, '');
+                    if (!itemCategory.toLowerCase().includes(filters.problemCategory.toLowerCase())) return false;
+                }
+                
+                return true;
+            });
         }
 
         // 从当前搜索数据中提取问题类别选项并更新下拉框
@@ -3913,6 +3977,171 @@
             }
         }
 
+        // 初始化过滤器自动完成功能
+        function initAutocompleteForFilters() {
+            // 定义需要自动完成的过滤器映射
+            const filterMappings = {
+                'fullModelFilter': 'fullModel',
+                'sampleStageFilter': 'sampleStage',
+                'versionFilter': 'version',
+                'bigSpeciesFilter': 'bigSpecies',
+                'smallSpeciesFilter': 'smallSpecies',
+                'testerFilter': 'tester',
+                'responsibleDepartmentFilter': 'responsibleDepartment',
+                'testPlatformFilter': 'testPlatform',
+                'dqeFilter': 'dqe',
+                'testDeviceFilter': 'testDevice'
+            };
+
+            // 为每个过滤器添加自动完成功能
+            Object.keys(filterMappings).forEach(filterId => {
+                const input = document.getElementById(filterId);
+                const suggestionsId = filterId.replace('Filter', 'Suggestions');
+                const suggestions = document.getElementById(suggestionsId);
+                const dataType = filterMappings[filterId];
+
+                if (input && suggestions) {
+                    // 添加输入事件监听器
+                    input.addEventListener('input', function(e) {
+                        const searchText = e.target.value.trim();
+                        if (searchText.length > 0) {
+                            showFilterSuggestions(input, suggestions, dataType, searchText);
+                        } else {
+                            hideSuggestions(suggestions);
+                        }
+                    });
+
+                    // 添加焦点事件监听器 - 获得焦点时显示所有选项
+                    input.addEventListener('focus', function(e) {
+                        const searchText = e.target.value.trim();
+                        // 获得焦点时总是显示建议，如果输入框为空则显示所有选项
+                        showFilterSuggestions(input, suggestions, dataType, searchText);
+                    });
+
+                    // 添加键盘事件监听器
+                    input.addEventListener('keydown', function(e) {
+                        handleFilterInputKeydown(e, input, suggestions);
+                    });
+
+                    // 添加点击外部隐藏建议框的事件
+                    input.addEventListener('blur', function(e) {
+                        // 延迟隐藏，以便点击建议项时能正常选择
+                        setTimeout(() => {
+                            hideSuggestions(suggestions);
+                        }, 200);
+                    });
+                }
+            });
+        }
+
+        // 显示过滤器建议
+        function showFilterSuggestions(input, suggestions, dataType, searchText) {
+            // 从缓存中获取数据
+            const cachedData = getCachedSpeciesOptions(dataType);
+            if (!cachedData || cachedData.length === 0) {
+                // 如果缓存为空，尝试从服务器获取
+                fetchSpeciesOptionsFromServer(dataType).then(() => {
+                    const freshData = getCachedSpeciesOptions(dataType);
+                    if (freshData && freshData.length > 0) {
+                        displayFilterSuggestions(suggestions, freshData, searchText);
+                    }
+                });
+                return;
+            }
+
+            displayFilterSuggestions(suggestions, cachedData, searchText);
+        }
+
+        // 显示过滤器建议内容
+        function displayFilterSuggestions(suggestions, data, searchText) {
+            let filteredData;
+            
+            if (!searchText || searchText.trim() === '') {
+                // 如果查询为空，显示所有选项
+                filteredData = data;
+            } else {
+                // 过滤匹配的数据
+                filteredData = data.filter(item => {
+                    const value = typeof item === 'string' ? item : item.value || item.name || item;
+                    return value.toLowerCase().includes(searchText.toLowerCase());
+                });
+            }
+
+            if (filteredData.length > 0) {
+                // 清空之前的建议
+                suggestions.innerHTML = '';
+
+                // 添加建议项（限制显示数量，避免过多选项）
+                const maxSuggestions = searchText && searchText.trim() !== '' ? 10 : 20;
+                filteredData.slice(0, maxSuggestions).forEach(item => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    
+                    const value = typeof item === 'string' ? item : item.value || item.name || item;
+                    suggestionItem.textContent = value;
+                    suggestionItem.dataset.value = value;
+
+                    // 添加点击事件
+                    suggestionItem.addEventListener('click', function() {
+                        const targetInput = suggestions.previousElementSibling;
+                        targetInput.value = value;
+                        hideSuggestions(suggestions);
+                        targetInput.focus();
+                    });
+
+                    suggestions.appendChild(suggestionItem);
+                });
+
+                // 显示建议框
+                suggestions.style.display = 'block';
+                suggestions.classList.add('show');
+            } else {
+                hideSuggestions(suggestions);
+            }
+        }
+
+        // 处理过滤器输入框键盘事件
+        function handleFilterInputKeydown(e, input, suggestions) {
+            const suggestionItems = suggestions.querySelectorAll('.suggestion-item');
+            const highlightedItem = suggestions.querySelector('.suggestion-item.highlighted');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (highlightedItem) {
+                    highlightedItem.classList.remove('highlighted');
+                    const nextItem = highlightedItem.nextElementSibling;
+                    if (nextItem) {
+                        nextItem.classList.add('highlighted');
+                    }
+                } else if (suggestionItems.length > 0) {
+                    suggestionItems[0].classList.add('highlighted');
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (highlightedItem) {
+                    highlightedItem.classList.remove('highlighted');
+                    const prevItem = highlightedItem.previousElementSibling;
+                    if (prevItem) {
+                        prevItem.classList.add('highlighted');
+                    }
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (highlightedItem) {
+                    const value = highlightedItem.dataset.value;
+                    input.value = value;
+                    hideSuggestions(suggestions);
+                    input.focus();
+                } else {
+                    // 如果没有高亮项，执行搜索
+                    searchProblems();
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions(suggestions);
+                input.focus();
+            }
+        }
+
         // 刷新所有选项
         function refreshAllOptions() {
             showLoading();
@@ -3938,11 +4167,66 @@
 
         // 根据状态筛选
         function filterByStatus(status) {
-            // 保持其他筛选条件不变，只修改当前状态筛选
-            document.getElementById('currentStatusFilter').value = status;
+            // 直接使用状态参数进行搜索，不修改过滤器
+            searchProblemsByStatus(status);
+        }
 
-            // 执行搜索
-            searchProblems();
+        // 根据状态搜索问题
+        function searchProblemsByStatus(status) {
+            showLoading();
+
+            // 生成问题类别搜索关键字
+            const problemCategoryKeyword = generateProblemCategorySearchKeyword();
+
+            const filters = {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
+                problemCategory: problemCategoryKeyword,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                currentStatus: status, // 直接使用传入的状态参数
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
+            };
+
+            fetch('/problemLibrary/searchProblems', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    filteredData = data.data;
+                    currentPage = 1;
+                    totalCount = filteredData.length;
+                    totalPages = Math.ceil(totalCount / pageSize);
+                    
+                    renderTable();
+                    updatePagination();
+                    // 注意：不调用updateStatistics()，因为统计数量应该基于过滤器条件而不是搜索结果
+                } else {
+                    showToast('搜索失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('搜索时发生错误', 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
         }
 
         // 刷新单个选项（大类或小类）

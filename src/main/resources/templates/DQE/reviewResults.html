@@ -1103,6 +1103,70 @@
             border-radius: 3px;
         }
 
+        /* 过滤器建议下拉框样式 */
+        .input-with-suggestions {
+            position: relative;
+            flex: 1;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 3px 3px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.highlighted {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 自定义滚动条样式 */
+        .suggestions-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .suggestions-dropdown.show {
+            display: block;
+        }
+
         .filter-group input:focus,
         .filter-group select:focus {
             border-color: #007bff;
@@ -1289,23 +1353,38 @@
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>大编码:</label>
-                        <input type="text" id="majorCodeFilter" placeholder="输入大编码">
+                        <div class="input-with-suggestions">
+                            <input type="text" id="majorCodeFilter" placeholder="输入大编码" autocomplete="off" />
+                            <div id="majorCodeFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label>小编码:</label>
-                        <input type="text" id="minorCodeFilter" placeholder="输入小编码">
+                        <div class="input-with-suggestions">
+                            <input type="text" id="minorCodeFilter" placeholder="输入小编码" autocomplete="off" />
+                            <div id="minorCodeFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label>项目阶段:</label>
-                        <input type="text" id="projectPhaseFilter" placeholder="输入项目阶段">
+                        <div class="input-with-suggestions">
+                            <input type="text" id="projectPhaseFilter" placeholder="输入项目阶段" autocomplete="off" />
+                            <div id="projectPhaseFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label>版本:</label>
-                        <input type="text" id="versionFilter" placeholder="输入版本">
+                        <div class="input-with-suggestions">
+                            <input type="text" id="versionFilter" placeholder="输入版本" autocomplete="off" />
+                            <div id="versionFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label>供应商:</label>
-                        <input type="text" id="supplierFilter" placeholder="输入供应商">
+                        <div class="input-with-suggestions">
+                            <input type="text" id="supplierFilter" placeholder="输入供应商" autocomplete="off" />
+                            <div id="supplierFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -2473,6 +2552,7 @@
     let allData = [];
     let currentEditingReviewId = null;
     let filteredData = [];
+    let allSearchData = []; // 存储搜索的全部数据，用于建议功能
     let isSuperAdmin = false; // 是否为超级管理员
 
     // 购物车/收藏夹相关变量
@@ -2738,6 +2818,12 @@
 
         // 初始化事件监听器
         initEventListeners();
+        
+        // 初始化过滤器建议功能
+        initFilterSuggestions();
+        
+        // 加载初始的全部数据用于建议功能
+        loadAllSearchDataForSuggestions();
 
         // 初始化缓存状态显示
         loadCacheFromStorage();
@@ -3458,6 +3544,9 @@
                     console.log('每页大小:', pageSize);
                     renderTable();
                     updatePagination();
+                    
+                    // 获取全部搜索数据用于建议功能
+                    loadAllSearchDataForSuggestions();
                 } else {
                     console.error('API返回错误:', data);
                     showToast('加载数据失败: ' + (data.error || data.message || '未知错误'), 'error');
@@ -3478,6 +3567,52 @@
         console.log('开始搜索');
         currentPage = 1; // 重置到第一页
         loadReviewData(); // 重新加载数据，服务器端会处理筛选
+    }
+
+    // 加载全部搜索数据用于建议功能
+    function loadAllSearchDataForSuggestions() {
+        console.log('🔄 加载全部搜索数据用于建议功能');
+        
+        // 构建查询参数（不包含分页参数）
+        const params = new URLSearchParams({
+            username: currentUser,
+            job: currentRole,
+            page: 1,
+            size: 10000 // 设置一个很大的值来获取所有数据
+        });
+
+        // 添加筛选条件
+        const majorCode = document.getElementById('majorCodeFilter').value.trim();
+        const minorCode = document.getElementById('minorCodeFilter').value.trim();
+        const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
+        const version = document.getElementById('versionFilter').value.trim();
+        const supplier = document.getElementById('supplierFilter').value.trim();
+        const testStartDate = document.getElementById('testStartDateFilter').value;
+        const testEndDate = document.getElementById('testEndDateFilter').value;
+
+        if (majorCode) params.append('majorCode', majorCode);
+        if (minorCode) params.append('minorCode', minorCode);
+        if (projectPhase) params.append('projectPhase', projectPhase);
+        if (version) params.append('version', version);
+        if (supplier) params.append('supplier', supplier);
+        if (testStartDate) params.append('testStartDate', testStartDate);
+        if (testEndDate) params.append('testEndDate', testEndDate);
+
+        fetch('/reviewResult/getReviewResults?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allSearchData = data.data || [];
+                    console.log('✅ 全部搜索数据加载完成，数据量:', allSearchData.length);
+                } else {
+                    console.error('❌ 加载全部搜索数据失败:', data);
+                    allSearchData = [];
+                }
+            })
+            .catch(error => {
+                console.error('❌ 加载全部搜索数据时发生错误:', error);
+                allSearchData = [];
+            });
     }
 
     // 重置筛选条件
@@ -5513,6 +5648,216 @@
 
         return descriptions.length > 0 ? descriptions.join(', ') : '无条件筛选';
     }
+
+    // 初始化过滤器建议功能
+    function initFilterSuggestions() {
+        console.log('🎯 初始化过滤器建议功能');
+        
+        // 为过滤器输入框添加事件监听器
+        const filterConfigs = [
+            { id: 'majorCodeFilter', field: 'majorCode' },
+            { id: 'minorCodeFilter', field: 'minorCode' },
+            { id: 'projectPhaseFilter', field: 'projectPhase' },
+            { id: 'versionFilter', field: 'version' },
+            { id: 'supplierFilter', field: 'supplier' }
+        ];
+        
+        filterConfigs.forEach(config => {
+            const input = document.getElementById(config.id);
+            if (!input) {
+                console.log('❌ 找不到输入框:', config.id);
+                return;
+            }
+            
+            console.log('✅ 为输入框添加事件监听器:', config.id);
+            
+            // 键盘事件处理
+            input._keydownHandler = function(e) {
+                const dropdown = document.getElementById(config.id + 'Suggestions');
+                const items = dropdown.querySelectorAll('.suggestion-item');
+                const highlighted = dropdown.querySelector('.suggestion-item.highlighted');
+                
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlighted) {
+                        input.value = highlighted.textContent;
+                        hideSuggestions(dropdown);
+                        searchReviews();
+                    } else {
+                        searchReviews();
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (highlighted) {
+                        highlighted.classList.remove('highlighted');
+                        const next = highlighted.nextElementSibling;
+                        if (next) {
+                            next.classList.add('highlighted');
+                        } else {
+                            items[0]?.classList.add('highlighted');
+                        }
+                    } else if (items.length > 0) {
+                        items[0].classList.add('highlighted');
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (highlighted) {
+                        highlighted.classList.remove('highlighted');
+                        const prev = highlighted.previousElementSibling;
+                        if (prev) {
+                            prev.classList.add('highlighted');
+                        } else {
+                            items[items.length - 1]?.classList.add('highlighted');
+                        }
+                    } else if (items.length > 0) {
+                        items[items.length - 1].classList.add('highlighted');
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions(dropdown);
+                }
+            };
+
+            // 输入事件 - 显示建议（防抖处理）
+            input._inputHandler = function(e) {
+                const query = e.target.value.trim();
+                console.log('⌨️ 输入事件:', config.id, '查询:', query);
+                
+                // 清除之前的定时器
+                if (input._debounceTimer) {
+                    clearTimeout(input._debounceTimer);
+                }
+                
+                // 设置防抖延迟，用户停止输入500ms后才开始搜索
+                input._debounceTimer = setTimeout(() => {
+                    const suggestions = filterSuggestions(config.field, query);
+                    console.log('📋 建议数量:', suggestions.length);
+                    showSuggestions(config.id, suggestions);
+                }, 500);
+            };
+
+            // 获得焦点事件 - 显示所有建议（防抖处理）
+            input._focusHandler = function(e) {
+                const query = e.target.value.trim();
+                
+                // 清除之前的定时器
+                if (input._debounceTimer) {
+                    clearTimeout(input._debounceTimer);
+                }
+                
+                // 获得焦点时立即显示建议，但也要防抖
+                input._debounceTimer = setTimeout(() => {
+                    const suggestions = filterSuggestions(config.field, query);
+                    showSuggestions(config.id, suggestions);
+                }, 100);
+            };
+
+            // 失去焦点事件 - 延迟隐藏建议
+            input._blurHandler = function(e) {
+                // 清除防抖定时器
+                if (input._debounceTimer) {
+                    clearTimeout(input._debounceTimer);
+                }
+                
+                setTimeout(() => {
+                    const dropdown = document.getElementById(config.id + 'Suggestions');
+                    hideSuggestions(dropdown);
+                }, 200);
+            };
+
+            // 绑定事件监听器
+            input.addEventListener('keydown', input._keydownHandler);
+            input.addEventListener('input', input._inputHandler);
+            input.addEventListener('focus', input._focusHandler);
+            input.addEventListener('blur', input._blurHandler);
+        });
+        
+        console.log('✅ 过滤器建议功能初始化完成');
+    }
+
+    // 显示建议下拉框
+    function showSuggestions(inputId, suggestions) {
+        console.log('🎯 显示建议:', inputId, '建议数量:', suggestions.length);
+        const dropdown = document.getElementById(inputId + 'Suggestions');
+        if (!dropdown) {
+            console.log('❌ 找不到下拉框:', inputId + 'Suggestions');
+            return;
+        }
+        console.log('✅ 找到下拉框');
+
+        dropdown.innerHTML = '';
+        
+        if (suggestions.length === 0) {
+            console.log('📭 没有建议，隐藏下拉框');
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = suggestion;
+            item.addEventListener('click', () => {
+                document.getElementById(inputId).value = suggestion;
+                hideSuggestions(dropdown);
+                searchReviews();
+            });
+            dropdown.appendChild(item);
+        });
+
+        dropdown.classList.add('show');
+        console.log('✅ 下拉框已显示');
+    }
+
+    // 隐藏建议下拉框
+    function hideSuggestions(dropdown) {
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // 过滤建议
+    function filterSuggestions(field, query) {
+        console.log('🔍 过滤建议:', field, '查询:', query);
+        const allValues = getUniqueValues(field);
+        if (!query || query.trim() === '') {
+            return allValues.slice(0, 10); // 限制显示前10个
+        }
+        
+        const filtered = allValues.filter(value => 
+            value.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        return filtered.slice(0, 10); // 限制显示前10个
+    }
+
+    // 获取字段的唯一值
+    function getUniqueValues(field) {
+        // 优先使用全部搜索数据，如果没有则使用当前页数据
+        const dataSource = allSearchData.length > 0 ? allSearchData : allData;
+        
+        if (!dataSource || dataSource.length === 0) {
+            console.log('⚠️ 没有可用的数据源用于建议功能');
+            return [];
+        }
+        
+        const values = dataSource.map(item => item[field]).filter(value => value && value.trim() !== '');
+        const uniqueValues = [...new Set(values)];
+        console.log(`📊 字段 ${field} 的唯一值数量:`, uniqueValues.length, '数据源:', allSearchData.length > 0 ? '全部搜索数据' : '当前页数据');
+        return uniqueValues.sort();
+    }
+
+    // 添加全局点击事件，隐藏所有建议框
+    document.addEventListener('click', function(e) {
+        // 检查点击是否在建议框或输入框内
+        const isInSuggestions = e.target.closest('.input-with-suggestions');
+        
+        if (!isInSuggestions) {
+            // 隐藏所有建议框
+            document.querySelectorAll('.suggestions-dropdown').forEach(suggestions => {
+                hideSuggestions(suggestions);
+            });
+        }
+    });
 
     // 显示收藏夹模态框
     function showCartModal() {
