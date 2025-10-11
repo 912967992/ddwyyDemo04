@@ -92,10 +92,50 @@
             border-radius: 0 0 8px 8px;
             transition: width 0.1s linear;
         }
+
+        /* 只读模式样式 */
+        .readonly-mode {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .readonly-mode::before {
+            content: "🔒 ";
+        }
+
+        .edit-mode {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .edit-mode::before {
+            content: "✏️ ";
+        }
     </style>
 
 </head>
 <body>
+
+<!-- 权限状态指示器 -->
+<div id="permissionIndicator"></div>
 
 <div class="pool-container">
     <div id="projectList" class="project-container">
@@ -184,7 +224,7 @@
             <span>至</span>
             <input type="date" id="endDate" class="date-picker">
             <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
-            <button class="save-schedule-btn" onclick="saveSchedule()">保存排期</button>
+            <button class="save-schedule-btn" onclick="saveScheduleWithPermission()">保存排期</button>
         </div>
     </div>
     <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
@@ -713,6 +753,9 @@
 
     //默认让endDate+14天，进入页面的时候
     document.addEventListener('DOMContentLoaded', function () {
+        // 初始化权限状态指示器
+        updatePermissionIndicator();
+        
         // 获取当前 UTC 时间
         const now = new Date();
 
@@ -749,6 +792,121 @@
     
     // 全局变量用于跟踪高亮状态
     let currentHighlightedTester = null;
+    
+    // 权限控制相关变量
+    let canEdit = false;
+    const allowedEditors = ['许梦瑶', '卢绮敏', '卢健', '李良健'];
+
+    // 检查用户是否有编辑权限
+    function checkEditPermission() {
+        const currentUser = localStorage.getItem('username') || sessionStorage.getItem('username');
+        canEdit = allowedEditors.includes(currentUser);
+        return canEdit;
+    }
+
+    // 自定义Alert函数
+    function showAlert(message, duration = 3000) {
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-alert-overlay';
+        overlay.style.display = 'flex';
+        
+        const alert = document.createElement('div');
+        alert.className = 'custom-alert';
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'custom-alert-message';
+        messageDiv.textContent = message;
+        
+        const button = document.createElement('button');
+        button.className = 'custom-alert-button';
+        button.textContent = '确定';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'custom-alert-close';
+        closeBtn.innerHTML = '&times;';
+        
+        alert.appendChild(closeBtn);
+        alert.appendChild(messageDiv);
+        alert.appendChild(button);
+        overlay.appendChild(alert);
+        document.body.appendChild(overlay);
+        
+        // 自动关闭
+        if (duration > 0) {
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, duration);
+        }
+        
+        // 点击关闭
+        const close = () => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        };
+        
+        button.onclick = close;
+        closeBtn.onclick = close;
+        overlay.onclick = (e) => {
+            if (e.target === overlay) close();
+        };
+    }
+
+    // 显示权限提示
+    function showPermissionAlert() {
+        showAlert('您没有编辑权限，只能查看内容', 3000);
+    }
+
+    // 带权限检查的保存排期函数
+    function saveScheduleWithPermission() {
+        if (!checkEditPermission()) {
+            showPermissionAlert();
+            return;
+        }
+        saveSchedule();
+    }
+
+    // 更新权限状态指示器
+    function updatePermissionIndicator() {
+        const indicator = document.getElementById('permissionIndicator');
+        if (checkEditPermission()) {
+            indicator.className = 'edit-mode';
+            indicator.textContent = '编辑模式';
+        } else {
+            indicator.className = 'readonly-mode';
+            indicator.textContent = '只读模式';
+        }
+    }
+
+    // 显示右键菜单（根据权限显示不同选项）
+    function showContextMenu(x, y) {
+        const contextMenu = document.getElementById('contextMenu');
+        
+        // 清空现有菜单项
+        contextMenu.innerHTML = '';
+        
+        // 所有用户都可以查看属性
+        const viewAttrDiv = document.createElement('div');
+        viewAttrDiv.textContent = '查看属性';
+        viewAttrDiv.onclick = showProjectAttributes;
+        contextMenu.appendChild(viewAttrDiv);
+        
+        // 只有编辑用户才能看到编辑选项
+        if (checkEditPermission()) {
+            // 这里可以添加更多编辑选项，比如：
+            // const editDiv = document.createElement('div');
+            // editDiv.textContent = '编辑项目';
+            // editDiv.onclick = editProject;
+            // contextMenu.appendChild(editDiv);
+        }
+        
+        // 显示菜单
+        contextMenu.style.top = y + 'px';
+        contextMenu.style.left = x + 'px';
+        contextMenu.style.display = 'block';
+    }
 
     // 设置拖拽
     function setDraggable(projectEl, isProject) {
@@ -756,6 +914,12 @@
         projectEl.addEventListener('dblclick', e => {
             e.preventDefault();
             e.stopPropagation();
+
+            // 检查编辑权限
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
 
             // 收集拖拽数据
             dragData = {
@@ -801,6 +965,7 @@
         }else{
             projectEl.addEventListener('contextmenu', e => {
                 e.preventDefault();
+                // 右键菜单允许所有用户查看，不检查编辑权限
                 currentRightClickProject = projectEl;
                 // 原代码中 projectMenu 未定义，这里注释掉
                 // projectMenu.style.top = e.pageY + 'px';
@@ -1159,6 +1324,12 @@
                     e.preventDefault();
                     e.stopPropagation();
 
+                    // 检查编辑权限
+                    if (!checkEditPermission()) {
+                        showPermissionAlert();
+                        return;
+                    }
+
                     // 收集拖拽数据
                     const taskData = {};
                     const attributes = [
@@ -1188,11 +1359,10 @@
                 draggedElement.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     if (draggedElement.innerText.trim() === '') return;
+                    
+                    // 右键菜单允许所有用户查看，不检查编辑权限
                     currentRightClickCell = draggedElement;
-                    const contextMenu = document.getElementById('contextMenu');
-                    contextMenu.style.top = e.pageY + 'px';
-                    contextMenu.style.left = e.pageX + 'px';
-                    contextMenu.style.display = 'block';
+                    showContextMenu(e.pageX, e.pageY);
                 });
             }
             
@@ -1481,23 +1651,83 @@
 
             document.getElementById('sampleRemark').value = item.remark;
 
-            document.getElementById('saveScheduleBtn').onclick = function () {
-                saveScheduleAndColor(card,item);
-            };
+            // 根据用户权限设置输入框状态
+            if (!checkEditPermission()) {
+                // 只读用户：禁用输入框
+                document.getElementById('scheduleDays').disabled = true;
+                document.getElementById('scheduleDays').style.opacity = '0.5';
+                document.getElementById('sampleRemark').disabled = true;
+                document.getElementById('sampleRemark').style.opacity = '0.5';
+                document.getElementById('editSampleId').disabled = true;
+                document.getElementById('editSampleId').style.opacity = '0.5';
+                
+                // 禁用颜色选择
+                document.querySelectorAll('input[name="schedule_color"]').forEach(radio => {
+                    radio.disabled = true;
+                    radio.style.opacity = '0.5';
+                });
+            } else {
+                // 编辑用户：启用输入框
+                document.getElementById('scheduleDays').disabled = false;
+                document.getElementById('scheduleDays').style.opacity = '1';
+                document.getElementById('sampleRemark').disabled = false;
+                document.getElementById('sampleRemark').style.opacity = '1';
+                document.getElementById('editSampleId').disabled = false;
+                document.getElementById('editSampleId').style.opacity = '1';
+                
+                // 启用颜色选择
+                document.querySelectorAll('input[name="schedule_color"]').forEach(radio => {
+                    radio.disabled = false;
+                    radio.style.opacity = '1';
+                });
+            }
 
-            document.getElementById('confirmColorBtn').onclick = function () {
-                saveScheduleAndColor(card,item);
-            };
+            // 根据用户权限设置按钮事件
+            if (checkEditPermission()) {
+                // 编辑用户：正常功能
+                document.getElementById('saveScheduleBtn').onclick = function () {
+                    saveScheduleAndColor(card,item);
+                };
 
-            document.getElementById('saveRemarkBtn').onclick = function () {
-                saveScheduleAndColor(card,item);
-            };
+                document.getElementById('confirmColorBtn').onclick = function () {
+                    saveScheduleAndColor(card,item);
+                };
+
+                document.getElementById('saveRemarkBtn').onclick = function () {
+                    saveScheduleAndColor(card,item);
+                };
+            } else {
+                // 只读用户：禁用按钮并显示提示
+                document.getElementById('saveScheduleBtn').onclick = function () {
+                    showPermissionAlert();
+                };
+                document.getElementById('saveScheduleBtn').style.opacity = '0.5';
+                document.getElementById('saveScheduleBtn').style.cursor = 'not-allowed';
+
+                document.getElementById('confirmColorBtn').onclick = function () {
+                    showPermissionAlert();
+                };
+                document.getElementById('confirmColorBtn').style.opacity = '0.5';
+                document.getElementById('confirmColorBtn').style.cursor = 'not-allowed';
+
+                document.getElementById('saveRemarkBtn').onclick = function () {
+                    showPermissionAlert();
+                };
+                document.getElementById('saveRemarkBtn').style.opacity = '0.5';
+                document.getElementById('saveRemarkBtn').style.cursor = 'not-allowed';
+            }
 
 
             document.getElementById('modal').style.display = 'block';
 
             // 绑定修改电气编号按钮点击事件
             document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+                // 检查编辑权限
+                if (!checkEditPermission()) {
+                    showPermissionAlert();
+                    return;
+                }
+
                 const newSampleId = document.getElementById('editSampleId').value;
                 const oldSampleId = item.sample_id;
 
@@ -1528,6 +1758,12 @@
                         alert('修改电气编号时出错，请稍后重试');
                     });
             });
+
+            // 根据用户权限设置电气编号修改按钮状态
+            if (!checkEditPermission()) {
+                document.getElementById('editSampleIdBtn').style.opacity = '0.5';
+                document.getElementById('editSampleIdBtn').style.cursor = 'not-allowed';
+            }
 
         };
 
@@ -2179,6 +2415,12 @@
                 e.preventDefault();
                 e.stopPropagation();
 
+                // 检查编辑权限
+                if (!checkEditPermission()) {
+                    showPermissionAlert();
+                    return;
+                }
+
                 // 收集拖拽数据
                 const taskData = {};
                 const attributes = [
@@ -2599,6 +2841,12 @@
                                                         e.preventDefault();
                                                         e.stopPropagation();
 
+                                                        // 检查编辑权限
+                                                        if (!checkEditPermission()) {
+                                                            showPermissionAlert();
+                                                            return;
+                                                        }
+
                                                         // 收集拖拽数据
                                                         const taskData = {};
                                                         const attributes = [
@@ -2629,10 +2877,7 @@
                                                         e.preventDefault();
                                                         if (originalCell.innerText.trim() === '') return;
                                                         currentRightClickCell = originalCell;
-                                                        const contextMenu = document.getElementById('contextMenu');
-                                                        contextMenu.style.top = e.pageY + 'px';
-                                                        contextMenu.style.left = e.pageX + 'px';
-                                                        contextMenu.style.display = 'block';
+                                                        showContextMenu(e.pageX, e.pageY);
                                                     });
                                                 }
                                             } else {
@@ -2950,6 +3195,12 @@
                                 e.preventDefault();
                                 e.stopPropagation();
 
+                                // 检查编辑权限
+                                if (!checkEditPermission()) {
+                                    showPermissionAlert();
+                                    return;
+                                }
+
                                 // 收集拖拽数据
                                 const taskData = {};
                                 const attributes = [
@@ -2979,10 +3230,7 @@
                                 e.preventDefault();
                                 if (originalCell.innerText.trim() === '') return;
                                 currentRightClickCell = originalCell;
-                                const contextMenu = document.getElementById('contextMenu');
-                                contextMenu.style.top = e.pageY + 'px';
-                                contextMenu.style.left = e.pageX + 'px';
-                                contextMenu.style.display = 'block';
+                                showContextMenu(e.pageX, e.pageY);
                             });
                         }
                         // 获取颜色值并渲染单元格颜色
@@ -3010,11 +3258,10 @@
             cell.addEventListener('contextmenu', e => {
                 e.preventDefault();
                 if (cell.innerText.trim() === '') return;
+                
+                // 右键菜单允许所有用户查看，不检查编辑权限
                 currentRightClickCell = cell;
-                const contextMenu = document.getElementById('contextMenu');
-                contextMenu.style.top = e.pageY + 'px';
-                contextMenu.style.left = e.pageX + 'px';
-                contextMenu.style.display = 'block';
+                showContextMenu(e.pageX, e.pageY);
             });
         });
 
@@ -3249,6 +3496,12 @@
                     e.preventDefault();
                     e.stopPropagation();
 
+                    // 检查编辑权限
+                    if (!checkEditPermission()) {
+                        showPermissionAlert();
+                        return;
+                    }
+
                     // 收集拖拽数据
                     const taskData = {};
                     const attributes = [
@@ -3376,6 +3629,12 @@
             e.preventDefault();
             e.stopPropagation();
 
+            // 检查编辑权限
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
+
             // 收集拖拽数据
             const taskData = {};
             const attributes = [
@@ -3493,6 +3752,12 @@
                 originalCell.addEventListener('dblclick', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    // 检查编辑权限
+                    if (!checkEditPermission()) {
+                        showPermissionAlert();
+                        return;
+                    }
 
                     // 收集拖拽数据
                     const taskData = {};
@@ -3730,53 +3995,113 @@
 
         document.getElementById('sampleRemark').value = taskData.remark != null? taskData.remark : '';
 
-        document.getElementById('saveScheduleBtn').onclick = function () {
-            // 检查是否有多个项目合并
-            let hasMultipleProjects = false;
-            [...currentRightClickCell.attributes].forEach(attr => {
-                if (attr.name.match(/^data\d+-sample_id$/)) {
-                    hasMultipleProjects = true;
-                }
+        // 根据用户权限设置输入框状态
+        if (!checkEditPermission()) {
+            // 只读用户：禁用输入框
+            document.getElementById('scheduleDays').disabled = true;
+            document.getElementById('scheduleDays').style.opacity = '0.5';
+            document.getElementById('sampleRemark').disabled = true;
+            document.getElementById('sampleRemark').style.opacity = '0.5';
+            document.getElementById('editSampleId').disabled = true;
+            document.getElementById('editSampleId').style.opacity = '0.5';
+            
+            // 禁用颜色选择
+            document.querySelectorAll('input[name="schedule_color"]').forEach(radio => {
+                radio.disabled = true;
+                radio.style.opacity = '0.5';
             });
-
-            if (hasMultipleProjects) {
-                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
-                return; // 阻止后续操作
-            }
-            saveScheduleAndColor(null, taskData);
-        };
-
-        document.getElementById('confirmColorBtn').onclick = function () {
-            // 检查是否有多个项目合并
-            let hasMultipleProjects = false;
-            [...currentRightClickCell.attributes].forEach(attr => {
-                if (attr.name.match(/^data\d+-sample_id$/)) {
-                    hasMultipleProjects = true;
-                }
+        } else {
+            // 编辑用户：启用输入框
+            document.getElementById('scheduleDays').disabled = false;
+            document.getElementById('scheduleDays').style.opacity = '1';
+            document.getElementById('sampleRemark').disabled = false;
+            document.getElementById('sampleRemark').style.opacity = '1';
+            document.getElementById('editSampleId').disabled = false;
+            document.getElementById('editSampleId').style.opacity = '1';
+            
+            // 启用颜色选择
+            document.querySelectorAll('input[name="schedule_color"]').forEach(radio => {
+                radio.disabled = false;
+                radio.style.opacity = '1';
             });
+        }
 
-            if (hasMultipleProjects) {
-                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
-                return; // 阻止后续操作
-            }
-            saveScheduleAndColor(null, taskData);
-        };
+        // 根据用户权限设置按钮事件
+        if (checkEditPermission()) {
+            // 编辑用户：正常功能
+            document.getElementById('saveScheduleBtn').onclick = function () {
+                // 检查是否有多个项目合并
+                let hasMultipleProjects = false;
+                [...currentRightClickCell.attributes].forEach(attr => {
+                    if (attr.name.match(/^data\d+-sample_id$/)) {
+                        hasMultipleProjects = true;
+                    }
+                });
 
-        document.getElementById('saveRemarkBtn').onclick = function () {
-            // 检查是否有多个项目合并
-            let hasMultipleProjects = false;
-            [...currentRightClickCell.attributes].forEach(attr => {
-                if (attr.name.match(/^data\d+-sample_id$/)) {
-                    hasMultipleProjects = true;
+                if (hasMultipleProjects) {
+                    alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                    return; // 阻止后续操作
                 }
-            });
+                saveScheduleAndColor(null, taskData);
+            };
 
-            if (hasMultipleProjects) {
-                alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
-                return; // 阻止后续操作
-            }
-            saveScheduleAndColor(null, taskData);
-        };
+            document.getElementById('confirmColorBtn').onclick = function () {
+                // 检查是否有多个项目合并
+                let hasMultipleProjects = false;
+                [...currentRightClickCell.attributes].forEach(attr => {
+                    if (attr.name.match(/^data\d+-sample_id$/)) {
+                        hasMultipleProjects = true;
+                    }
+                });
+
+                if (hasMultipleProjects) {
+                    alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                    return; // 阻止后续操作
+                }
+                saveScheduleAndColor(null, taskData);
+            };
+
+            document.getElementById('saveRemarkBtn').onclick = function () {
+                // 检查是否有多个项目合并
+                let hasMultipleProjects = false;
+                [...currentRightClickCell.attributes].forEach(attr => {
+                    if (attr.name.match(/^data\d+-sample_id$/)) {
+                        hasMultipleProjects = true;
+                    }
+                });
+
+                if (hasMultipleProjects) {
+                    alert("这是多个相同天数项目合并的单元格，只允许先拆分再设置其他电气编号，排期天数、颜色和备注。");
+                    return; // 阻止后续操作
+                }
+                saveScheduleAndColor(null, taskData);
+            };
+        } else {
+            // 只读用户：禁用按钮并显示提示
+            document.getElementById('saveScheduleBtn').onclick = function () {
+                showPermissionAlert();
+            };
+            document.getElementById('saveScheduleBtn').style.opacity = '0.5';
+            document.getElementById('saveScheduleBtn').style.cursor = 'not-allowed';
+
+            document.getElementById('confirmColorBtn').onclick = function () {
+                showPermissionAlert();
+            };
+            document.getElementById('confirmColorBtn').style.opacity = '0.5';
+            document.getElementById('confirmColorBtn').style.cursor = 'not-allowed';
+
+            document.getElementById('saveRemarkBtn').onclick = function () {
+                showPermissionAlert();
+            };
+            document.getElementById('saveRemarkBtn').style.opacity = '0.5';
+            document.getElementById('saveRemarkBtn').style.cursor = 'not-allowed';
+
+            document.getElementById('editSampleIdBtn').onclick = function () {
+                showPermissionAlert();
+            };
+            document.getElementById('editSampleIdBtn').style.opacity = '0.5';
+            document.getElementById('editSampleIdBtn').style.cursor = 'not-allowed';
+        }
 
         document.getElementById('modal').style.display = 'block';
 
@@ -3786,6 +4111,12 @@
 
         // 绑定修改电气编号按钮点击事件
         document.getElementById('editSampleIdBtn').addEventListener('click', function () {
+            // 检查编辑权限
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
+
             const sampleId = currentRightClickCell.getAttribute('data1-sample_id');
 
             if (sampleId) {
@@ -4199,6 +4530,10 @@
         const refreshColorBtn = document.getElementById('refreshColorBtn');
 
         refreshColorBtn.addEventListener('click', function () {
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
             if (!confirm('确定要刷新颜色吗？')) {
                 return;
             }
@@ -4228,6 +4563,10 @@
 
         // 点击新增项目按钮显示模态框
         addProjectBtn.addEventListener('click', function () {
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
             addProjectModal.style.display = 'block';
         });
 
@@ -4523,11 +4862,35 @@
         document.getElementById('detail_cancel_date').textContent = project.cancel_date;
         document.getElementById('detail_cancel_reason').textContent = project.cancel_reason;
 
+        // 根据用户权限设置恢复按钮状态
+        const recoverBtn = document.getElementById('recoverBtn');
+        if (checkEditPermission()) {
+            // 编辑用户：正常功能
+            recoverBtn.onclick = recoverProject;
+            recoverBtn.style.opacity = '1';
+            recoverBtn.style.cursor = 'pointer';
+            recoverBtn.disabled = false;
+        } else {
+            // 只读用户：禁用按钮并显示提示
+            recoverBtn.onclick = function() {
+                showPermissionAlert();
+            };
+            recoverBtn.style.opacity = '0.5';
+            recoverBtn.style.cursor = 'not-allowed';
+            recoverBtn.disabled = true;
+        }
+
         // 显示详情弹窗
         document.getElementById('projectDetailModal').style.display = 'block';
     }
 
     function recoverProject() {
+        // 检查编辑权限
+        if (!checkEditPermission()) {
+            showPermissionAlert();
+            return;
+        }
+
         const sampleId = document.getElementById('detail_sample_id').textContent;
 
         fetch('/scheduleBoard/recoverProject', {
@@ -4696,6 +5059,10 @@
 
         // 点击管理节假日按钮显示模态框
         manageHolidaysBtn.addEventListener('click', function () {
+            if (!checkEditPermission()) {
+                showPermissionAlert();
+                return;
+            }
             loadHolidays();
             holidayModalBackground.style.display = 'block';
         });
@@ -4889,6 +5256,10 @@
 
     // 显示管理测试人员模态框
     function showManageTestersModal() {
+        if (!checkEditPermission()) {
+            showPermissionAlert();
+            return;
+        }
         loadTestersData();
         document.getElementById('manageTestersOverlay').style.display = 'block';
         document.getElementById('manageTestersModal').style.display = 'block';

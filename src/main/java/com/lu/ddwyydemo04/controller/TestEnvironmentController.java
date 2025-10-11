@@ -997,7 +997,7 @@ public class TestEnvironmentController {
     @GetMapping("/scheduleBoard/getHolidays")
     @ResponseBody
     public List<Holiday> getHolidays() {
-        System.out.println("getHolidays:"+testManIndexService.getAllHolidays());
+//        System.out.println("getHolidays:"+testManIndexService.getAllHolidays());
         return testManIndexService.getAllHolidays();
     }
 
