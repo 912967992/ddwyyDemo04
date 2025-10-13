@@ -13,6 +13,7 @@ import com.lu.ddwyydemo04.Service.DQE.ScheduleBoardService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
 import com.lu.ddwyydemo04.controller.TestEnvironmentController;
 import com.lu.ddwyydemo04.pojo.*;
+import com.lu.ddwyydemo04.pojo.Holiday;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -495,6 +496,9 @@ public class ScheduleBoardController {
         List<Map<String, Object>> scheduleData = getScheduleBoardWithTime(startDate, endDate);
         List<TestEngineerInfo> testers = getTestersInOrder();
         
+        // 获取节假日数据
+        List<Holiday> holidays = testManIndexService.getAllHolidays();
+        
         // 创建Excel工作簿
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("排期面板");
@@ -511,26 +515,93 @@ public class ScheduleBoardController {
         int rowIndex = 0;
         Row headerRow = sheet.createRow(rowIndex++);
         
-        // 第一列：测试人员
-        Cell testerHeaderCell = headerRow.createCell(0);
+        // 第一列：组别
+        Cell groupHeaderCell = headerRow.createCell(0);
+        groupHeaderCell.setCellValue("组别");
+        groupHeaderCell.setCellStyle(headerStyle);
+        
+        // 第二列：测试人员
+        Cell testerHeaderCell = headerRow.createCell(1);
         testerHeaderCell.setCellValue("测试人员");
         testerHeaderCell.setCellStyle(headerStyle);
         
         // 日期列
         for (int i = 0; i < dateList.size(); i++) {
-            Cell dateCell = headerRow.createCell(i + 1);
-            dateCell.setCellValue(dateList.get(i).format(DateTimeFormatter.ofPattern("MM-dd")));
-            dateCell.setCellStyle(dateStyle);
+            Cell dateCell = headerRow.createCell(i + 2);
+            LocalDate currentDate = dateList.get(i);
+            
+            // 获取日期显示文本（包含周末和节假日信息）
+            String displayText = getDateDisplayText(currentDate, holidays);
+            dateCell.setCellValue(displayText);
+            
+            // 根据日期类型设置不同的样式
+            CellStyle cellStyle = workbook.createCellStyle();
+            cellStyle.cloneStyleFrom(dateStyle);
+            
+            if (isHoliday(currentDate, holidays)) {
+                // 节假日：红色背景
+                cellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            } else if (isWeekend(currentDate)) {
+                // 周末：橙色背景
+                cellStyle.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
+                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            }
+            
+            dateCell.setCellStyle(cellStyle);
         }
         
-        // 创建数据行
+        // 创建数据行，保持原有顺序，但按组别分组显示
+        String currentGroup = null;
+        int groupStartRow = 0;
+        
         for (TestEngineerInfo tester : testers) {
+            String testerGroup = tester.getResponsible_category();
+            if (testerGroup == null || testerGroup.trim().isEmpty()) {
+                testerGroup = "未分组";
+            }
+            
+            // 如果组别发生变化，合并上一个组别的单元格
+            if (currentGroup != null && !currentGroup.equals(testerGroup)) {
+                if (rowIndex - 1 > groupStartRow) {
+                    CellRangeAddress groupMergedRegion = new CellRangeAddress(groupStartRow, rowIndex - 1, 0, 0);
+                    sheet.addMergedRegion(groupMergedRegion);
+                }
+                groupStartRow = rowIndex;
+            }
+            
+            // 如果是第一个测试人员，设置起始行
+            if (currentGroup == null) {
+                groupStartRow = rowIndex;
+            }
+            
+            currentGroup = testerGroup;
+            
             Row dataRow = sheet.createRow(rowIndex++);
             
-            // 测试人员姓名
-            Cell testerCell = dataRow.createCell(0);
+            // 第一列：组别（只在组别变化时设置）
+            if (rowIndex - 1 == groupStartRow) {
+                Cell groupCell = dataRow.createCell(0);
+                groupCell.setCellValue(testerGroup);
+                
+                // 创建组别样式
+                CellStyle groupStyle = workbook.createCellStyle();
+                groupStyle.cloneStyleFrom(headerStyle);
+                groupStyle.setFillForegroundColor(getGroupBackgroundColor(testerGroup).getIndex());
+                groupStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                groupCell.setCellStyle(groupStyle);
+            }
+            
+            // 第二列：测试人员姓名
+            Cell testerCell = dataRow.createCell(1);
             testerCell.setCellValue(tester.getTest_engineer_name());
-            testerCell.setCellStyle(headerStyle);
+            
+            // 创建测试人员样式（使用与组别相同的颜色）
+            CellStyle testerStyle = workbook.createCellStyle();
+            testerStyle.cloneStyleFrom(headerStyle);
+            testerStyle.setFillForegroundColor(getGroupBackgroundColor(testerGroup).getIndex());
+            testerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            testerCell.setCellStyle(testerStyle);
             
             // 为每个日期创建单元格，并处理合并单元格
             boolean[] processedCells = new boolean[dateList.size()]; // 标记已处理的单元格
@@ -540,7 +611,7 @@ public class ScheduleBoardController {
                     continue; // 跳过已处理的单元格
                 }
                 
-                Cell cell = dataRow.createCell(i + 1);
+                Cell cell = dataRow.createCell(i + 2);
                 cell.setCellStyle(projectStyle);
                 
                 // 查找该测试人员在该日期的排期项目
@@ -559,8 +630,8 @@ public class ScheduleBoardController {
                         }
                         
                         // 创建合并单元格（从当前列到结束列）
-                        if (endColIndex > i + 1) {
-                            CellRangeAddress mergedRegion = new CellRangeAddress(rowIndex - 1, rowIndex - 1, i + 1, endColIndex);
+                        if (endColIndex > i + 2) {
+                            CellRangeAddress mergedRegion = new CellRangeAddress(rowIndex - 1, rowIndex - 1, i + 2, endColIndex + 1);
                             sheet.addMergedRegion(mergedRegion);
                             
                             // 设置合并单元格的样式
@@ -585,15 +656,47 @@ public class ScheduleBoardController {
             }
         }
         
-        // 设置列宽
-        sheet.setColumnWidth(0, 4000); // 测试人员列
-        for (int i = 1; i <= dateList.size(); i++) {
-            sheet.setColumnWidth(i, 2000); // 日期列
+        // 合并最后一个组别的单元格
+        if (currentGroup != null && rowIndex - 1 > groupStartRow) {
+            CellRangeAddress groupMergedRegion = new CellRangeAddress(groupStartRow, rowIndex - 1, 0, 0);
+            sheet.addMergedRegion(groupMergedRegion);
+        }
+        
+        // 设置列宽（单位：1/256字符宽度）
+        sheet.setColumnWidth(0, 3000); // 组别列
+        sheet.setColumnWidth(1, 5000); // 测试人员列
+        for (int i = 2; i <= dateList.size() + 1; i++) {
+            sheet.setColumnWidth(i, 3840); // 日期列 - 15个字符宽度 (15 * 256 = 3840)
+        }
+        
+        // 设置行高（单位：1/20点）
+        // 表头行高
+        Row headerRowForHeight = sheet.getRow(0);
+        if (headerRowForHeight != null) {
+            headerRowForHeight.setHeightInPoints(45); // 表头行高45点
+        }
+        
+        // 数据行高
+        for (int i = 1; i < rowIndex; i++) {
+            Row dataRow = sheet.getRow(i);
+            if (dataRow != null) {
+                dataRow.setHeightInPoints(45); // 数据行高45点
+            }
         }
         
         // 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=排期面板_" + startDate + "_" + endDate + ".xlsx");
+        
+        // 生成文件名并正确编码
+        String fileName = "排期面板_" + startDate + "_" + endDate + ".xlsx";
+        try {
+            // 对文件名进行URL编码，确保中文字符正确显示
+            fileName = java.net.URLEncoder.encode(fileName, "UTF-8");
+        } catch (Exception e) {
+            // 如果编码失败，使用原始文件名
+            fileName = "排期面板_" + startDate + "_" + endDate + ".xlsx";
+        }
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         
         // 写入响应
         workbook.write(response.getOutputStream());
@@ -704,14 +807,17 @@ public class ScheduleBoardController {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setBold(true);
-        font.setFontHeightInPoints((short) 12);
+        font.setFontHeightInPoints((short) 14); // 增大字体
         style.setFont(font);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.MEDIUM); // 加粗边框
+        style.setBorderTop(BorderStyle.MEDIUM);
+        style.setBorderLeft(BorderStyle.MEDIUM);
+        style.setBorderRight(BorderStyle.MEDIUM);
+        // 设置背景色
+        style.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return style;
     }
     
@@ -721,14 +827,18 @@ public class ScheduleBoardController {
     private CellStyle createDateStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        font.setFontHeightInPoints((short) 10);
+        font.setFontHeightInPoints((short) 12); // 增大字体
+        font.setBold(true); // 加粗
         style.setFont(font);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.MEDIUM); // 加粗边框
+        style.setBorderTop(BorderStyle.MEDIUM);
+        style.setBorderLeft(BorderStyle.MEDIUM);
+        style.setBorderRight(BorderStyle.MEDIUM);
+        // 设置背景色
+        style.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return style;
     }
     
@@ -738,15 +848,17 @@ public class ScheduleBoardController {
     private CellStyle createProjectStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        font.setFontHeightInPoints((short) 9);
+        font.setFontHeightInPoints((short) 11); // 增大字体
         style.setFont(font);
         style.setAlignment(HorizontalAlignment.LEFT);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setWrapText(true);
+        style.setBorderBottom(BorderStyle.MEDIUM); // 加粗边框
+        style.setBorderTop(BorderStyle.MEDIUM);
+        style.setBorderLeft(BorderStyle.MEDIUM);
+        style.setBorderRight(BorderStyle.MEDIUM);
+        style.setWrapText(true); // 自动换行
+        // 设置内边距
+        style.setIndention((short) 2); // 左缩进
         return style;
     }
     
@@ -866,6 +978,92 @@ public class ScheduleBoardController {
         
         style.setFillForegroundColor(indexedColor.getIndex());
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    }
+    
+    /**
+     * 获取组别背景颜色
+     */
+    private IndexedColors getGroupBackgroundColor(String groupName) {
+        if (groupName == null) {
+            groupName = "未分组";
+        }
+        
+        // 使用组别名称的哈希值来选择颜色，确保相同组别总是相同颜色
+        int hash = Math.abs(groupName.hashCode());
+        IndexedColors[] groupColors = {
+            IndexedColors.LIGHT_BLUE,      // 浅蓝色
+            IndexedColors.LIGHT_GREEN,     // 浅绿色
+            IndexedColors.LIGHT_ORANGE,    // 浅橙色
+            IndexedColors.LIGHT_YELLOW,    // 浅黄色
+            IndexedColors.LIGHT_TURQUOISE, // 浅青绿色
+            IndexedColors.LIGHT_CORNFLOWER_BLUE, // 浅矢车菊蓝
+            IndexedColors.ROSE,            // 玫瑰色
+            IndexedColors.LAVENDER         // 薰衣草色
+        };
+        
+        return groupColors[hash % groupColors.length];
+    }
+    
+    /**
+     * 判断是否为周末
+     */
+    private boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek() == java.time.DayOfWeek.SATURDAY || 
+               date.getDayOfWeek() == java.time.DayOfWeek.SUNDAY;
+    }
+    
+    /**
+     * 判断是否为节假日
+     */
+    private boolean isHoliday(LocalDate date, List<Holiday> holidays) {
+        if (holidays == null || holidays.isEmpty()) {
+            return false;
+        }
+        
+        String dateStr = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return holidays.stream()
+                .anyMatch(holiday -> dateStr.equals(holiday.getHoliday_date()));
+    }
+    
+    /**
+     * 获取日期显示文本（只显示周末和节假日信息）
+     * 如果周六周日跟节假日碰在一起，只显示节假日的名字
+     */
+    private String getDateDisplayText(LocalDate date, List<Holiday> holidays) {
+        String monthDay = date.format(DateTimeFormatter.ofPattern("MM-dd"));
+        
+        if (isHoliday(date, holidays)) {
+            // 查找节假日名称
+            String dateStr = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String holidayName = holidays.stream()
+                    .filter(holiday -> dateStr.equals(holiday.getHoliday_date()))
+                    .map(Holiday::getHoliday_name)
+                    .findFirst()
+                    .orElse("节假日");
+            return monthDay + "\n" + holidayName;
+        } else if (isWeekend(date)) {
+            String dayOfWeek = getDayOfWeekChinese(date.getDayOfWeek());
+            return monthDay + "\n" + dayOfWeek;
+        } else {
+            // 工作日只显示日期
+            return monthDay;
+        }
+    }
+    
+    /**
+     * 获取中文星期
+     */
+    private String getDayOfWeekChinese(java.time.DayOfWeek dayOfWeek) {
+        switch (dayOfWeek) {
+            case MONDAY: return "周一";
+            case TUESDAY: return "周二";
+            case WEDNESDAY: return "周三";
+            case THURSDAY: return "周四";
+            case FRIDAY: return "周五";
+            case SATURDAY: return "周六";
+            case SUNDAY: return "周日";
+            default: return "";
+        }
     }
 
 
