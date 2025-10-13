@@ -937,6 +937,11 @@ body {
     z-index: 1000;
 }
 
+/* 隐藏底部导航栏（用于tester角色） */
+.bottom-nav.hidden {
+    display: none;
+}
+
 .nav-btn {
     display: flex;
     flex-direction: column;

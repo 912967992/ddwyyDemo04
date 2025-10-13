@@ -2497,6 +2497,14 @@
 
             // 根据权限控制界面元素
             controlEditPermissions();
+            
+            // 如果是tester角色，隐藏底部导航栏的返回和主页按钮
+            if (currentRole === 'tester') {
+                const bottomNav = document.querySelector('.bottom-nav');
+                if (bottomNav) {
+                    bottomNav.classList.add('hidden');
+                }
+            }
         }
 
         // 控制编辑权限
@@ -3781,9 +3789,62 @@
             });
         }
 
+        // 获取用于问题类别选项的数据（基于其他过滤器条件，排除问题类别过滤器）
+        function getDataForCategoryOptions() {
+            if (!allProblemData || allProblemData.length === 0) {
+                return [];
+            }
+
+            // 获取当前过滤器的值（排除问题类别过滤器）
+            const filters = {
+                fullModel: document.getElementById('fullModelFilter').value,
+                sampleStage: document.getElementById('sampleStageFilter').value,
+                version: document.getElementById('versionFilter').value,
+                bigSpecies: document.getElementById('bigSpeciesFilter').value,
+                smallSpecies: document.getElementById('smallSpeciesFilter').value,
+                defectLevel: document.getElementById('defectLevelFilter').value,
+                currentStatus: document.getElementById('currentStatusFilter').value,
+                tester: document.getElementById('testerFilter').value,
+                responsibleDepartment: document.getElementById('responsibleDepartmentFilter').value,
+                startDate: document.getElementById('startDateFilter').value,
+                endDate: document.getElementById('endDateFilter').value,
+                dqe: document.getElementById('dqeFilter').value,
+                problem: document.getElementById('problemFilter').value,
+                testPlatform: document.getElementById('testPlatformFilter').value,
+                testDevice: document.getElementById('testDeviceFilter').value,
+                otherDevice: document.getElementById('otherDeviceFilter').value
+            };
+
+            // 基于其他过滤器条件过滤数据（排除问题类别过滤器）
+            return allProblemData.filter(item => {
+                // 应用所有过滤器条件（除了问题类别）
+                if (filters.fullModel && !item.full_model?.toLowerCase().includes(filters.fullModel.toLowerCase())) return false;
+                if (filters.sampleStage && !item.sample_stage?.toLowerCase().includes(filters.sampleStage.toLowerCase())) return false;
+                if (filters.version && !item.version?.toLowerCase().includes(filters.version.toLowerCase())) return false;
+                if (filters.bigSpecies && !item.big_species?.toLowerCase().includes(filters.bigSpecies.toLowerCase())) return false;
+                if (filters.smallSpecies && !item.small_species?.toLowerCase().includes(filters.smallSpecies.toLowerCase())) return false;
+                if (filters.defectLevel && item.defect_level !== filters.defectLevel) return false;
+                if (filters.currentStatus && item.current_status !== filters.currentStatus) return false;
+                if (filters.tester && !item.tester?.toLowerCase().includes(filters.tester.toLowerCase())) return false;
+                if (filters.responsibleDepartment && !item.responsible_department?.toLowerCase().includes(filters.responsibleDepartment.toLowerCase())) return false;
+                if (filters.startDate && item.submit_time && new Date(item.submit_time) < new Date(filters.startDate)) return false;
+                if (filters.endDate && item.submit_time && new Date(item.submit_time) > new Date(filters.endDate)) return false;
+                if (filters.dqe && !item.dqe?.toLowerCase().includes(filters.dqe.toLowerCase())) return false;
+                if (filters.problem && !item.problem?.toLowerCase().includes(filters.problem.toLowerCase())) return false;
+                if (filters.testPlatform && !item.test_platform?.toLowerCase().includes(filters.testPlatform.toLowerCase())) return false;
+                if (filters.testDevice && !item.test_device?.toLowerCase().includes(filters.testDevice.toLowerCase())) return false;
+                if (filters.otherDevice && !item.other_device?.toLowerCase().includes(filters.otherDevice.toLowerCase())) return false;
+                
+                return true;
+            });
+        }
+
         // 从当前搜索数据中提取问题类别选项并更新下拉框
         function updateProblemCategoryOptionsFromCurrentData() {
-            if (!filteredData || filteredData.length === 0) {
+            // 获取基于其他过滤器条件筛选的数据（排除问题类别过滤器）
+            const dataForCategoryOptions = getDataForCategoryOptions();
+            
+            if (!dataForCategoryOptions || dataForCategoryOptions.length === 0) {
                 return;
             }
 
@@ -3793,7 +3854,7 @@
             const currentLevel3 = document.getElementById('problemCategoryLevel3Filter').value;
 
             // 提取所有问题类别
-            const problemCategories = filteredData
+            const problemCategories = dataForCategoryOptions
                 .map(item => item.problemCategory)
                 .filter(category => category && category.trim() !== '')
                 .map(category => category.trim());
@@ -3839,7 +3900,7 @@
                 updateLevel2OptionsFromCurrentData(currentLevel1, currentLevel2, currentLevel3);
             }
 
-            console.log('问题类别选项已根据当前搜索数据更新');
+            console.log('问题类别选项已根据其他过滤器条件更新');
             console.log('一级类别:', Array.from(level1Categories));
             console.log('二级类别:', Array.from(level2Categories));
             console.log('三级类别:', Array.from(level3Categories));
@@ -3872,13 +3933,14 @@
 
         // 从当前数据中提取二级分类
         function extractLevel2FromCurrentData(selectedLevel1) {
-            if (!filteredData || filteredData.length === 0) {
+            const dataForCategoryOptions = getDataForCategoryOptions();
+            if (!dataForCategoryOptions || dataForCategoryOptions.length === 0) {
                 return [];
             }
 
             const level2Categories = new Set();
             
-            filteredData.forEach(item => {
+            dataForCategoryOptions.forEach(item => {
                 const category = item.problemCategory;
                 if (category && category.trim() !== '') {
                     const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
@@ -3896,13 +3958,14 @@
 
         // 从当前数据中提取三级分类
         function extractLevel3FromCurrentData(selectedLevel1, selectedLevel2) {
-            if (!filteredData || filteredData.length === 0) {
+            const dataForCategoryOptions = getDataForCategoryOptions();
+            if (!dataForCategoryOptions || dataForCategoryOptions.length === 0) {
                 return [];
             }
 
             const level3Categories = new Set();
             
-            filteredData.forEach(item => {
+            dataForCategoryOptions.forEach(item => {
                 const category = item.problemCategory;
                 if (category && category.trim() !== '') {
                     const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');

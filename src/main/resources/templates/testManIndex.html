@@ -26,6 +26,8 @@
 <div class="title-container">
     <button id="announcement-btn">查看公告(v2.2，20250706新增回传问题点功能)</button>
     <div class="title">主页</div>
+    <!-- 问题库管理按钮 -->
+    <button id="problem-library-btn" class="problem-library-btn">问题库管理</button>
     <!-- 数据看板按钮 -->
     <button id="dashboard-btn" class="dashboard-btn">数据看板</button>
     <!-- 排期项目面板按钮 -->
@@ -490,14 +492,14 @@
 
 
     // 此路径是指文件模板的位置BASE_DIRECTORY
-    const BASE_DIRECTORY = sessionStorage.getItem('templatespath');
-    const savepath = sessionStorage.getItem('savepath');
-    const corp_id = sessionStorage.getItem('corp_id');
+    const BASE_DIRECTORY = localStorage.getItem('templatespath');
+    const savepath = localStorage.getItem('savepath');
+    const corp_id = localStorage.getItem('corp_id');
 
     let isEditing = false; // 新增状态标志
 
-    const username = sessionStorage.getItem('username');
-    const job =sessionStorage.getItem('job');
+    const username = localStorage.getItem('username');
+    const job =localStorage.getItem('job');
     //调试用
     // const username = "卢健";
     // const job = "tester";
@@ -587,8 +589,8 @@
         loadData();
         // 加载数据的函数
         function loadData() {
-            // 从 sessionStorage 中获取 username
-            // var username = sessionStorage.getItem('username');
+            // 从 localStorage 中获取 username
+            // var username = localStorage.getItem('username');
 
             // 检查 username 是否存在
             if (!username) {
@@ -3842,6 +3844,48 @@
                 console.error('上传出错:', error);
                 // 在这里处理错误情况，比如提示用户
             });
+    }
+
+    // 问题库管理按钮功能
+    const problemLibraryBtn = document.getElementById("problem-library-btn");
+    
+    // 问题库管理按钮点击事件
+    problemLibraryBtn.addEventListener("click", () => {
+        goToProblemLibrary();
+    });
+    
+    // 跳转到问题库管理页面
+    function goToProblemLibrary() {
+        if (!username) {
+            alert("请先输入用户名！");
+            return;
+        }
+        
+        if (!job) {
+            alert("请先选择角色！");
+            return;
+        }
+
+        // 检查是否在钉钉环境中
+        const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+        // const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        const url = 'http://e5f3985c.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+        if (isDingTalk) {
+            dd.openLink({
+                url: url,
+                success: function() {
+                    console.log('成功打开问题库管理');
+                },
+                fail: function(err) {
+                    alert('打开页面失败：' + JSON.stringify(err));
+                    console.error('dd.openLink fail:', err);
+                }
+            });
+        } else {
+            // 非钉钉环境使用普通跳转
+            window.location.href = url;
+        }
     }
 
     // 数据看板按钮功能

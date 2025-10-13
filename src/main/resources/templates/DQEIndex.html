@@ -244,6 +244,10 @@
         <div class="panel-section">
             <h4 class="section-title">角色切换</h4>
             <div id="buttonsDiv" class="role-buttons">
+                <button id="testerBtn" class="role-btn">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>tester</span>
+                </button>
                 <button id="dqeBtn" class="role-btn">
                     <i class="fas fa-shield-alt"></i>
                     <span>DQE</span>
@@ -1315,6 +1319,10 @@
     });
     document.getElementById('managerBtn').addEventListener('click', function() {
         updateUserInfo('manager');
+        updateProjectSummary();
+    });
+    document.getElementById('testerBtn').addEventListener('click', function() {
+        updateUserInfo('tester');
         updateProjectSummary();
     });
 
