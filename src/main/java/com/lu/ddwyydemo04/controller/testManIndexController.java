@@ -1487,41 +1487,59 @@ public class testManIndexController {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
-            Sheet sheet = workbook.createSheet("SystemInfo");
+            Sheet sheet = workbook.createSheet("实验室数据");
 
-            // 定义列标题
+            // 定义列标题 - 匹配新的字段结构
             String[] columns = {
-                    "设备ID","统计人", "名称", "品牌", "区域","设备类型", "操作系统版本", "操作系统详细版本号",
-                    "版本号", "系统架构", "记录更新时间", "处理器",
-                    "内存", "显卡", "最大分辨率", "最大刷新率", "接口信息" , "设备发布日期", "设备购买日期", "设备维修记录"
+                    "序号", "设备分类", "存放区域", "品牌", "设备名称", "型号（铭牌型号）", 
+                    "接口类型&数量", "显卡接口类型&数量", "最高输出规格", "内建屏幕尺寸", 
+                    "屏幕比例", "上市日期", "购买日期", "维修记录", "来源", "显卡来源"
             };
 
             // 创建样式（居中）
             CellStyle style = workbook.createCellStyle();
             style.setAlignment(HorizontalAlignment.CENTER);
             style.setVerticalAlignment(VerticalAlignment.CENTER);
+            // 设置自动换行
+            style.setWrapText(true);
 
-            // 表头行
-            Row headerRow = sheet.createRow(0);
+            // 第一行添加说明
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("实验室设备信息数据表");
+            CellStyle titleStyle = workbook.createCellStyle();
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+            titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            titleCell.setCellStyle(titleStyle);
+            
+            // 合并第一行的所有列
+            sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, columns.length - 1));
+
+            // 表头行 - 放在第二行（索引1）
+            Row headerRow = sheet.createRow(1);
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
                 cell.setCellStyle(style);
-
-                // 设置列宽（根据内容稍作不同设置）
-                if (i == 0) {
+                
+                // 设置列宽
+                if (i == 0) { // 序号
                     sheet.setColumnWidth(i, 8 * 256);
-                } else if (i >= 1 && i <= 4) {
+                } else if (i == 1 || i == 2 || i == 4) { // 设备分类、存放区域、实验室名称
+                    sheet.setColumnWidth(i, 15 * 256);
+                } else if (i == 5) { // 型号（铭牌型号）
+                    sheet.setColumnWidth(i, 20 * 256);
+                } else if (i == 6 || i == 7) { // 接口类型&数量、显卡接口类型&数量
                     sheet.setColumnWidth(i, 25 * 256);
                 } else {
-                    sheet.setColumnWidth(i, 20 * 256);
+                    sheet.setColumnWidth(i, 18 * 256);
                 }
             }
 
-            // 写入数据
+            // 写入数据 - 从第三行开始（索引2）
             for (int i = 0; i < data.size(); i++) {
                 Map<String, Object> item = data.get(i);
-                Row row = sheet.createRow(i + 1);
+                Row row = sheet.createRow(i + 2);
 
                 for (int j = 0; j < columns.length; j++) {
                     Cell cell = row.createCell(j);
@@ -1529,28 +1547,30 @@ public class testManIndexController {
 
                     switch (j) {
                         case 0: value = item.get("id"); break;
-                        case 1: value = item.get("personCharge"); break;
-                        case 2: value = item.get("computerName"); break;
+                        case 1: value = item.get("deviceCategory"); break;
+                        case 2: value = item.get("storageArea"); break;
                         case 3: value = item.get("brand"); break;
-                        case 4: value = item.get("area"); break;
-                        case 5: value = item.get("deviceType"); break;
-                        case 6: value = item.get("version"); break;
-                        case 7: value = item.get("osVersion"); break;
-                        case 8: value = item.get("fullOS"); break;
-                        case 9: value = item.get("architecture"); break;
-                        case 10: value = item.get("created_at"); break;
-                        case 11: value = item.get("cpu"); break;
-                        case 12: value = item.get("memory"); break;
-                        case 13: value = item.get("displays"); break;
-                        case 14: value = item.get("maxResolution"); break;
-                        case 15: value = item.get("maxRefreshRate"); break;
-                        case 16: value = item.get("interfaceInfo"); break;
-                        case 17: value = item.get("deviceReleaseDate"); break;
-                        case 18: value = item.get("devicePurchaseDate"); break;
-                        case 19: value = item.get("deviceRepairHistory"); break;
+                        case 4: value = item.get("deviceName"); break;
+                        case 5: value = item.get("modelNumber"); break;
+                        case 6: value = item.get("interfaceTypeAndQuantity"); break;
+                        case 7: value = item.get("graphicsInterfaceTypeAndQuantity"); break;
+                        case 8: value = item.get("maxOutputSpec"); break;
+                        case 9: value = item.get("screenSize"); break;
+                        case 10: value = item.get("screenRatio"); break;
+                        case 11: value = item.get("releaseDate"); break;
+                        case 12: value = item.get("devicePurchaseDate"); break;
+                        case 13: value = item.get("deviceRepairHistory"); break;
+                        case 14: value = item.get("source"); break;
+                        case 15: value = item.get("graphicsSource"); break;
                     }
 
-                    cell.setCellValue(value != null ? value.toString() : "");
+                    // 处理换行符，确保在Excel中正确显示
+                    String cellValue = value != null ? value.toString() : "";
+                    if (cellValue.contains("\n")) {
+                        cellValue = cellValue.replace("\n", "\n"); // 保持换行符
+                    }
+                    
+                    cell.setCellValue(cellValue);
                     cell.setCellStyle(style);
                 }
             }
@@ -1561,7 +1581,7 @@ public class testManIndexController {
 
             // 设置响应头
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment; filename=system_info.xlsx");
+            headers.add("Content-Disposition", "attachment; filename=实验室设备信息导出.xlsx");
             headers.add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
             return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
@@ -1575,93 +1595,174 @@ public class testManIndexController {
     @ResponseBody
     public ResponseEntity<String> importSystemInfo(@RequestParam("file") MultipartFile file) {
         try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
-            Sheet sheet = workbook.getSheetAt(0);
-            List<Map<String, Object>> parsedData = new ArrayList<>();
+            // 获取"实验室数据"工作表
+            Sheet sheet = workbook.getSheet("实验室数据");
+            if (sheet == null) {
+                return ResponseEntity.badRequest().body("未找到'实验室数据'工作表");
+            }
 
-            // 假设第一行是表头，从第二行开始读
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            // 获取第二行作为列名（索引为1）
+            Row headerRow = sheet.getRow(1);
+            if (headerRow == null) {
+                return ResponseEntity.badRequest().body("未找到列名行（第二行）");
+            }
+
+            // 创建列名到数据库字段的映射
+            Map<String, String> columnMapping = new HashMap<>();
+            columnMapping.put("序号", "id");
+            columnMapping.put("设备分类", "deviceCategory");
+            columnMapping.put("存放区域", "storageArea");
+            columnMapping.put("品牌", "brand");
+                    columnMapping.put("设备名称", "deviceName");
+            columnMapping.put("型号（铭牌型号）", "modelNumber");
+            columnMapping.put("接口类型&数量", "interfaceTypeAndQuantity");
+            columnMapping.put("显卡接口类型&数量", "graphicsInterfaceTypeAndQuantity");
+            columnMapping.put("最高输出规格", "maxOutputSpec");
+            columnMapping.put("内建屏幕尺寸", "screenSize");
+            columnMapping.put("屏幕比例", "screenRatio");
+            columnMapping.put("上市日期", "releaseDate");
+            columnMapping.put("购买日期", "devicePurchaseDate");
+            columnMapping.put("维修记录", "deviceRepairHistory");
+            columnMapping.put("来源", "source");
+            columnMapping.put("显卡来源", "graphicsSource");
+
+            // 读取列名并建立索引映射
+            Map<Integer, String> columnIndexToField = new HashMap<>();
+            for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+                Cell cell = headerRow.getCell(i);
+                if (cell != null) {
+                    String columnName = getCellStringValue(cell).trim();
+                    if (columnMapping.containsKey(columnName)) {
+                        columnIndexToField.put(i, columnMapping.get(columnName));
+                    }
+                }
+            }
+
+            // 从第三行开始读取数据（索引为2）
+            List<SystemInfo> systemInfoList = new ArrayList<>();
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("id", getCellStringValue(row.getCell(0)));
-                item.put("personCharge", getCellStringValue(row.getCell(1)));
-                item.put("computerName", getCellStringValue(row.getCell(2)));
-                item.put("brand", getCellStringValue(row.getCell(3)));
-                item.put("area", getCellStringValue(row.getCell(4)));
-                item.put("deviceType", getCellStringValue(row.getCell(5)));
-                item.put("version", getCellStringValue(row.getCell(6)));
-//                item.put("installationDate", getCellStringValue(row.getCell(4)));
-                item.put("osVersion", getCellStringValue(row.getCell(7)));
-                item.put("fullOS", getCellStringValue(row.getCell(8)));
-                item.put("architecture", getCellStringValue(row.getCell(9)));
-//                item.put("systemModel", getCellStringValue(row.getCell(8)));
-                item.put("created_at", getCellStringValue(row.getCell(10)));
-                item.put("cpu", getCellStringValue(row.getCell(11)));
-                item.put("memory", getCellStringValue(row.getCell(12)));
-                item.put("displays", getCellStringValue(row.getCell(13)));
-//                item.put("networkAdapters", getCellStringValue(row.getCell(13)));
-                item.put("maxResolution", getCellStringValue(row.getCell(14)));
-                item.put("maxRefreshRate", getCellStringValue(row.getCell(15)));
-                item.put("interfaceInfo", getCellStringValue(row.getCell(16)));
-                item.put("deviceReleaseDate", getCellStringValue(row.getCell(17)));
-                item.put("devicePurchaseDate", getCellStringValue(row.getCell(18)));
-                item.put("deviceRepairHistory", getCellStringValue(row.getCell(19)));
-
-                parsedData.add(item);
-            }
-
-            // 打印整理后的数据
-//            System.out.println("解析到的系统信息：");
-            for (Map<String, Object> item : parsedData) {
-                String computerName = (String) item.get("computerName");
-                if (computerName == null || computerName.trim().isEmpty()) continue;
-
-//                System.out.println("computerName:"+computerName);
-                int existing = testManIndexService.findByComputerName(computerName);
                 SystemInfo info = new SystemInfo();
+                boolean hasData = false;
 
-                info.setComputerName(computerName);
-                info.setDeviceType((String) item.get("deviceType"));
-                info.setVersion((String) item.get("version"));
+                // 根据列索引映射读取数据
+                for (Map.Entry<Integer, String> entry : columnIndexToField.entrySet()) {
+                    int columnIndex = entry.getKey();
+                    String fieldName = entry.getValue();
+                    String cellValue = getCellStringValue(row.getCell(columnIndex));
+                    
+                    if (cellValue != null && !cellValue.trim().isEmpty()) {
+                        hasData = true;
+                    }
 
-                // 处理 installationDate，空字符串转为 null
-//                String installationDate = (String) item.get("installationDate");
-//                if (installationDate.isEmpty()) {
-//                    installationDate = null;  // 如果为空字符串，将其转换为 null
-//                }
-//                info.setInstallationDate(installationDate);
-
-                info.setPersonCharge((String) item.get("personCharge"));
-                info.setBrand((String) item.get("brand"));
-                info.setArea((String) item.get("area"));
-
-                info.setOsVersion((String) item.get("osVersion"));
-                info.setFullOS((String) item.get("fullOS"));
-                info.setArchitecture((String) item.get("architecture"));
-
-                info.setCpu((String) item.get("cpu"));
-                info.setMemory((String) item.get("memory"));
-                info.setDisplays((String) item.get("displays"));
-                info.setMaxResolution((String) item.get("maxResolution"));
-                info.setMaxRefreshRate((String) item.get("maxRefreshRate"));
-                info.setInterfaceInfo((String) item.get("interfaceInfo"));
-                info.setDeviceReleaseDate((String) item.get("deviceReleaseDate"));
-                info.setDevicePurchaseDate((String) item.get("devicePurchaseDate"));
-                info.setDeviceRepairHistory((String) item.get("deviceRepairHistory"));
-
-                if(existing > 0){
-                    testManIndexService.updateSystemInfoByXlsx(info);
-                }else{
-                    testManIndexService.insertSystemInfoByXlsx(info);
+                    // 根据字段名设置对应的属性
+                    switch (fieldName) {
+                        case "id":
+                            if (cellValue != null && !cellValue.trim().isEmpty()) {
+                                try {
+                                    info.setId(Integer.parseInt(cellValue.trim()));
+                                } catch (NumberFormatException e) {
+                                    // 忽略无效的ID
+                                }
+                            }
+                            break;
+                        case "deviceCategory":
+                            info.setDeviceCategory(cellValue);
+                            break;
+                        case "storageArea":
+                            info.setStorageArea(cellValue);
+                            break;
+                        case "brand":
+                            info.setBrand(cellValue);
+                            break;
+                        case "deviceName":
+                            info.setDeviceName(cellValue);
+                            break;
+                        case "modelNumber":
+                            info.setModelNumber(cellValue);
+                            break;
+                        case "interfaceTypeAndQuantity":
+                            info.setInterfaceTypeAndQuantity(cellValue);
+                            break;
+                        case "graphicsInterfaceTypeAndQuantity":
+                            info.setGraphicsInterfaceTypeAndQuantity(cellValue);
+                            break;
+                        case "maxOutputSpec":
+                            info.setMaxOutputSpec(cellValue);
+                            break;
+                        case "screenSize":
+                            // 对于屏幕尺寸，直接获取原始单元格内容，不进行日期转换
+                            info.setScreenSize(getCellRawValue(row.getCell(columnIndex)));
+                            break;
+                        case "screenRatio":
+                            // 对于屏幕比例，直接获取原始单元格内容，不进行日期转换
+                            info.setScreenRatio(getCellRawValue(row.getCell(columnIndex)));
+                            break;
+                        case "releaseDate":
+                            info.setReleaseDate(cellValue);
+                            break;
+                        case "devicePurchaseDate":
+                            info.setDevicePurchaseDate(cellValue);
+                            break;
+                        case "deviceRepairHistory":
+                            info.setDeviceRepairHistory(cellValue);
+                            break;
+                        case "source":
+                            info.setSource(cellValue);
+                            break;
+                        case "graphicsSource":
+                            info.setGraphicsSource(cellValue);
+                            break;
+                    }
                 }
 
+                // 只有当行中有数据时才添加到列表
+                if (hasData) {
+                    systemInfoList.add(info);
+                }
             }
 
-            return ResponseEntity.ok("文件解析成功，共解析到 " + parsedData.size() + " 条记录。");
+            // 处理解析到的数据
+            int successCount = 0;
+            int updateCount = 0;
+            int insertCount = 0;
+
+            System.out.println("开始处理导入数据，共 " + systemInfoList.size() + " 条记录");
+
+            for (SystemInfo info : systemInfoList) {
+                        String deviceName = info.getDeviceName();
+                        if (deviceName == null || deviceName.trim().isEmpty()) {
+                            System.out.println("跳过空设备名称的记录");
+                            continue;
+                        }
+
+                try {
+                    int existing = testManIndexService.findByComputerName(deviceName);
+
+                    if (existing > 0) {
+                        testManIndexService.updateSystemInfoByXlsx(info);
+                        updateCount++;
+                        System.out.println("更新记录: " + deviceName);
+                    } else {
+                        testManIndexService.insertSystemInfoByXlsx(info);
+                        insertCount++;
+                        System.out.println("插入记录: " + deviceName);
+                    }
+                    successCount++;
+                } catch (Exception e) {
+                    System.err.println("处理记录失败: " + deviceName + ", 错误: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("导入完成 - 成功: " + successCount + ", 更新: " + updateCount + ", 新增: " + insertCount);
+
+            return ResponseEntity.ok("文件导入成功！共处理 " + successCount + " 条记录（更新: " + updateCount + ", 新增: " + insertCount + "）");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("文件解析失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body("文件解析失败: " + e.getMessage());
         }
     }
 
@@ -1712,6 +1813,64 @@ public class testManIndexController {
                     }
                 } catch (Exception e) {
                     return String.valueOf(cell.getNumericCellValue());
+                }
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * 获取单元格的原始值，原封不动读取内容
+     * 用于处理可能被Excel误识别为日期或时间的文本内容
+     * 保留换行符等特殊字符
+     */
+    private String getCellRawValue(Cell cell) {
+        if (cell == null) return "";
+
+        switch (cell.getCellType()) {
+            case STRING:
+                // 保留换行符，只去除首尾空白字符
+                String stringValue = cell.getStringCellValue();
+                // 只去除首尾空白，保留中间的换行符和空格
+                return stringValue.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+            case NUMERIC:
+                // 检查是否被Excel识别为时间格式
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    // 如果是时间格式，尝试按时间格式解析并保持原始格式
+                    try {
+                        // 获取时间值（以天为单位的小数）
+                        double timeValue = cell.getNumericCellValue();
+                        
+                        // 将时间值转换回 HH:mm:ss 格式
+                        int totalSeconds = (int) (timeValue * 24 * 60 * 60);
+                        int hours = totalSeconds / 3600;
+                        int minutes = (totalSeconds % 3600) / 60;
+                        int seconds = totalSeconds % 60;
+                        
+                        return String.format("%d:%02d:%02d", hours, minutes, seconds);
+                    } catch (Exception e) {
+                        // 如果转换失败，返回原始数字
+                        return String.valueOf(cell.getNumericCellValue());
+                    }
+                } else {
+                    // 普通数字，直接转换为字符串
+                    double numericValue = cell.getNumericCellValue();
+                    // 如果是整数，不显示小数点
+                    if (numericValue == (long) numericValue) {
+                        return String.valueOf((long) numericValue);
+                    } else {
+                        return String.valueOf(numericValue);
+                    }
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    // 尝试获取公式计算结果，保留换行符
+                    String formulaResult = cell.getStringCellValue();
+                    return formulaResult.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+                } catch (Exception e) {
+                    return cell.getCellFormula();
                 }
             default:
                 return "";

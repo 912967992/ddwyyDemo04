@@ -462,38 +462,42 @@
 
     <!-- 插入系统信息 -->
     <insert id="insertSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
-        INSERT INTO system_info (version, osVersion,
-                                 architecture, computerName, fullOS,
-                                 cpu, memory, displays  , created_at,
-                                 maxResolution,maxRefreshRate)
-        VALUES (#{version},#{osVersion},
-                #{architecture}, #{computerName}, #{fullOS},
-                #{cpu},#{memory},#{displays}, NOW(),
-                #{maxResolution},#{maxRefreshRate})
+        INSERT INTO system_info (deviceCategory, storageArea, brand, deviceName, modelNumber,
+                                 interfaceTypeAndQuantity, graphicsInterfaceTypeAndQuantity, maxOutputSpec,
+                                 screenSize, screenRatio, releaseDate, devicePurchaseDate, deviceRepairHistory,
+                                 source, graphicsSource)
+        VALUES (#{deviceCategory}, #{storageArea}, #{brand}, #{deviceName}, #{modelNumber},
+                #{interfaceTypeAndQuantity}, #{graphicsInterfaceTypeAndQuantity}, #{maxOutputSpec},
+                #{screenSize}, #{screenRatio}, #{releaseDate}, #{devicePurchaseDate}, #{deviceRepairHistory},
+                #{source}, #{graphicsSource})
     </insert>
 
     <!-- 查询 Computer Name 是否存在 -->
     <select id="checkIfComputerNameExists" resultType="int" parameterType="String">
         SELECT COUNT(*)
         FROM system_info
-        WHERE computerName = #{computerName}
+        WHERE deviceName = #{computerName}
     </select>
 
     <!-- 更新系统信息 -->
     <update id="updateSys" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
         UPDATE system_info
         SET
-        version = #{version},
-        osVersion = #{osVersion},
-        architecture = #{architecture},
-        fullOS = #{fullOS},
-        cpu = #{cpu},
-        memory = #{memory},
-        displays = #{displays},
-        created_at =  NOW(),
-        maxResolution = #{maxResolution},
-        maxRefreshRate = #{maxRefreshRate}
-        WHERE computerName = #{computerName}
+        deviceCategory = #{deviceCategory},
+        storageArea = #{storageArea},
+        brand = #{brand},
+        modelNumber = #{modelNumber},
+        interfaceTypeAndQuantity = #{interfaceTypeAndQuantity},
+        graphicsInterfaceTypeAndQuantity = #{graphicsInterfaceTypeAndQuantity},
+        maxOutputSpec = #{maxOutputSpec},
+        screenSize = #{screenSize},
+        screenRatio = #{screenRatio},
+        releaseDate = #{releaseDate},
+        devicePurchaseDate = #{devicePurchaseDate},
+        deviceRepairHistory = #{deviceRepairHistory},
+        source = #{source},
+        graphicsSource = #{graphicsSource}
+        WHERE deviceName = #{deviceName}
     </update>
 
 
@@ -512,21 +516,21 @@
         SELECT * FROM system_info
         WHERE
             (#{id} IS NULL OR id LIKE CONCAT('%', #{id}, '%'))
-          AND (#{personCharge} IS NULL OR personCharge LIKE CONCAT('%', #{personCharge}, '%'))
-          AND (#{computerName} IS NULL OR computerName LIKE CONCAT('%', #{computerName}, '%'))
+          AND (#{deviceCategory} IS NULL OR deviceCategory LIKE CONCAT('%', #{deviceCategory}, '%'))
+          AND (#{storageArea} IS NULL OR storageArea LIKE CONCAT('%', #{storageArea}, '%'))
           AND (#{brand} IS NULL OR brand LIKE CONCAT('%', #{brand}, '%'))
-          AND (#{area} IS NULL OR area LIKE CONCAT('%', #{area}, '%'))
-          AND (#{deviceType} IS NULL OR deviceType LIKE CONCAT('%', #{deviceType}, '%'))
-          AND (#{version} IS NULL OR version LIKE CONCAT('%', #{version}, '%'))
-          AND (#{osVersion} IS NULL OR osVersion LIKE CONCAT('%', #{osVersion}, '%'))
-          AND (#{fullOS} IS NULL OR fullOS LIKE CONCAT('%', #{fullOS}, '%'))
-          AND (#{architecture} IS NULL OR architecture LIKE CONCAT('%', #{architecture}, '%'))
-          AND (#{cpu} IS NULL OR cpu LIKE CONCAT('%', #{cpu}, '%'))
-          AND (#{memory} IS NULL OR memory LIKE CONCAT('%', #{memory}, '%'))
-          AND (#{displays} IS NULL OR displays LIKE CONCAT('%', #{displays}, '%'))
-          AND (#{maxResolution} IS NULL OR maxResolution LIKE CONCAT('%', #{maxResolution}, '%'))
-          AND (#{maxRefreshRate} IS NULL OR maxRefreshRate LIKE CONCAT('%', #{maxRefreshRate}, '%'))
-          AND (#{interfaceInfo} IS NULL OR interfaceInfo LIKE CONCAT('%', #{interfaceInfo}, '%'))
+                  AND (#{deviceName} IS NULL OR deviceName LIKE CONCAT('%', #{deviceName}, '%'))
+          AND (#{modelNumber} IS NULL OR modelNumber LIKE CONCAT('%', #{modelNumber}, '%'))
+          AND (#{interfaceTypeAndQuantity} IS NULL OR interfaceTypeAndQuantity LIKE CONCAT('%', #{interfaceTypeAndQuantity}, '%'))
+          AND (#{graphicsInterfaceTypeAndQuantity} IS NULL OR graphicsInterfaceTypeAndQuantity LIKE CONCAT('%', #{graphicsInterfaceTypeAndQuantity}, '%'))
+          AND (#{maxOutputSpec} IS NULL OR maxOutputSpec LIKE CONCAT('%', #{maxOutputSpec}, '%'))
+          AND (#{screenSize} IS NULL OR screenSize LIKE CONCAT('%', #{screenSize}, '%'))
+          AND (#{screenRatio} IS NULL OR screenRatio LIKE CONCAT('%', #{screenRatio}, '%'))
+          AND (#{releaseDate} IS NULL OR releaseDate LIKE CONCAT('%', #{releaseDate}, '%'))
+          AND (#{devicePurchaseDate} IS NULL OR devicePurchaseDate LIKE CONCAT('%', #{devicePurchaseDate}, '%'))
+          AND (#{deviceRepairHistory} IS NULL OR deviceRepairHistory LIKE CONCAT('%', #{deviceRepairHistory}, '%'))
+          AND (#{source} IS NULL OR source LIKE CONCAT('%', #{source}, '%'))
+          AND (#{graphicsSource} IS NULL OR graphicsSource LIKE CONCAT('%', #{graphicsSource}, '%'))
     </select>
 
     <select id="getJobFromUsers" resultType="String">

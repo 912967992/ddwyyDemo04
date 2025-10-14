@@ -23,8 +23,8 @@ public class LabModuleController {
     @ResponseBody
     public ResponseEntity<String> uploadSystemInfo(@RequestBody SystemInfo systemInfo) {
 
-        // 判断 Computer Name 是否在数据库中存在
-        int exists = labModuleService.checkIfComputerNameExists(systemInfo.getComputerName());
+        // 判断实验室名称是否在数据库中存在
+        int exists = labModuleService.checkIfComputerNameExists(systemInfo.getDeviceName());
 
         // 如果存在，执行更新逻辑；如果不存在，执行插入逻辑
         int result;
@@ -51,48 +51,44 @@ public class LabModuleController {
     @GetMapping("/labModule/performSysInfo")
     @ResponseBody
     public List<SystemInfo> performSysInfo(@RequestParam(required = false) String id,
-                                           @RequestParam(required = false) String personCharge,
-                                          @RequestParam(required = false) String computerName,
+                                          @RequestParam(required = false) String deviceCategory,
+                                          @RequestParam(required = false) String storageArea,
                                           @RequestParam(required = false) String brand,
-                                          @RequestParam(required = false) String area,
-                                          @RequestParam(required = false) String deviceType,
-                                          @RequestParam(required = false) String version,
-                                          @RequestParam(required = false) String osVersion,
-                                          @RequestParam(required = false) String fullOS,
-                                          @RequestParam(required = false) String architecture,
-                                          @RequestParam(required = false) String cpu,
-                                          @RequestParam(required = false) String memory,
-                                          @RequestParam(required = false) String displays,
-                                          @RequestParam(required = false) String maxResolution,
-                                          @RequestParam(required = false) String maxRefreshRate,
-                                          @RequestParam(required = false) String interfaceInfo
+                                          @RequestParam(required = false) String deviceName,
+                                          @RequestParam(required = false) String modelNumber,
+                                          @RequestParam(required = false) String interfaceTypeAndQuantity,
+                                          @RequestParam(required = false) String graphicsInterfaceTypeAndQuantity,
+                                          @RequestParam(required = false) String maxOutputSpec,
+                                          @RequestParam(required = false) String screenSize,
+                                          @RequestParam(required = false) String screenRatio,
+                                          @RequestParam(required = false) String releaseDate,
+                                          @RequestParam(required = false) String devicePurchaseDate,
+                                          @RequestParam(required = false) String deviceRepairHistory,
+                                          @RequestParam(required = false) String source,
+                                          @RequestParam(required = false) String graphicsSource
                                           ) {
 
         // 将空字符串转换为 null
         id = (id != null && !id.isEmpty()) ? id : null;
-        computerName = (computerName != null && !computerName.isEmpty()) ? computerName : null;
-        personCharge = (personCharge != null && !personCharge.isEmpty()) ? personCharge : null;
+        deviceCategory = (deviceCategory != null && !deviceCategory.isEmpty()) ? deviceCategory : null;
+        storageArea = (storageArea != null && !storageArea.isEmpty()) ? storageArea : null;
         brand = (brand != null && !brand.isEmpty()) ? brand : null;
-        area = (area != null && !area.isEmpty()) ? area : null;
-        deviceType = (deviceType != null && !deviceType.isEmpty()) ? deviceType : null;
-        version = (version != null && !version.isEmpty()) ? version : null;
-        osVersion = (osVersion != null && !osVersion.isEmpty()) ? osVersion : null;
-        fullOS = (fullOS != null && !fullOS.isEmpty()) ? fullOS : null;
+        deviceName = (deviceName != null && !deviceName.isEmpty()) ? deviceName : null;
+        modelNumber = (modelNumber != null && !modelNumber.isEmpty()) ? modelNumber : null;
+        interfaceTypeAndQuantity = (interfaceTypeAndQuantity != null && !interfaceTypeAndQuantity.isEmpty()) ? interfaceTypeAndQuantity : null;
+        graphicsInterfaceTypeAndQuantity = (graphicsInterfaceTypeAndQuantity != null && !graphicsInterfaceTypeAndQuantity.isEmpty()) ? graphicsInterfaceTypeAndQuantity : null;
+        maxOutputSpec = (maxOutputSpec != null && !maxOutputSpec.isEmpty()) ? maxOutputSpec : null;
+        screenSize = (screenSize != null && !screenSize.isEmpty()) ? screenSize : null;
+        screenRatio = (screenRatio != null && !screenRatio.isEmpty()) ? screenRatio : null;
+        releaseDate = (releaseDate != null && !releaseDate.isEmpty()) ? releaseDate : null;
+        devicePurchaseDate = (devicePurchaseDate != null && !devicePurchaseDate.isEmpty()) ? devicePurchaseDate : null;
+        deviceRepairHistory = (deviceRepairHistory != null && !deviceRepairHistory.isEmpty()) ? deviceRepairHistory : null;
+        source = (source != null && !source.isEmpty()) ? source : null;
+        graphicsSource = (graphicsSource != null && !graphicsSource.isEmpty()) ? graphicsSource : null;
 
-        architecture = (architecture != null && !architecture.isEmpty()) ? architecture : null;
-
-        cpu = (cpu != null && !cpu.isEmpty()) ? cpu : null;
-        memory = (memory != null && !memory.isEmpty()) ? memory : null;
-        displays = (displays != null && !displays.isEmpty()) ? displays : null;
-
-        maxResolution = (maxResolution != null && !maxResolution.isEmpty()) ? maxResolution : null;
-        maxRefreshRate = (maxRefreshRate != null && !maxRefreshRate.isEmpty()) ? maxRefreshRate : null;
-
-        interfaceInfo = (interfaceInfo != null && !interfaceInfo.isEmpty()) ? interfaceInfo : null;
-
-
-        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id,personCharge,computerName,brand,area,deviceType,version,osVersion,fullOS,
-                architecture,cpu,memory,displays,maxResolution,maxRefreshRate,interfaceInfo);
+        List<SystemInfo> systemInfos = labModuleService.performSysInfo(id, deviceCategory, storageArea, brand, deviceName, modelNumber,
+                interfaceTypeAndQuantity, graphicsInterfaceTypeAndQuantity, maxOutputSpec, screenSize, screenRatio,
+                releaseDate, devicePurchaseDate, deviceRepairHistory, source, graphicsSource);
 //        System.out.println(systemInfos);
 
         return systemInfos;

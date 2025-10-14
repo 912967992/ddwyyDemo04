@@ -939,75 +939,63 @@
     <update id="saveSystemInfoChange" parameterType="com.lu.ddwyydemo04.pojo.SystemInfo">
         UPDATE system_info
         SET
-            personCharge = #{personCharge},
+            deviceCategory = #{deviceCategory},
+            storageArea = #{storageArea},
             brand = #{brand},
-            area = #{area},
-            deviceType = #{deviceType},
-            version = #{version},
-            osVersion = #{osVersion},
-            architecture = #{architecture},
-            computerName = #{computerName},
-            fullOS = #{fullOS},
-            cpu = #{cpu},
-            memory = #{memory},
-            displays = #{displays},
-            maxResolution = #{maxResolution},
-            maxRefreshRate = #{maxRefreshRate},
-            created_at = NOW(),
-            deviceReleaseDate = #{deviceReleaseDate},
-            devicePurchaseDate= #{devicePurchaseDate},
-            deviceRepairHistory = #{deviceRepairHistory}
-
+            deviceName = #{deviceName},
+            modelNumber = #{modelNumber},
+            interfaceTypeAndQuantity = #{interfaceTypeAndQuantity},
+            graphicsInterfaceTypeAndQuantity = #{graphicsInterfaceTypeAndQuantity},
+            maxOutputSpec = #{maxOutputSpec},
+            screenSize = #{screenSize},
+            screenRatio = #{screenRatio},
+            releaseDate = #{releaseDate},
+            devicePurchaseDate = #{devicePurchaseDate},
+            deviceRepairHistory = #{deviceRepairHistory},
+            source = #{source},
+            graphicsSource = #{graphicsSource}
         WHERE id = #{id}
     </update>
 
 
     <select id="findByComputerName" parameterType="String" resultType="int">
-        SELECT count(*) From system_info WHERE computerName = #{computerName}
+        SELECT count(*) From system_info WHERE deviceName = #{computerName}
 
     </select>
 
     <insert id="insertSystemInfoByXlsx" parameterType="SystemInfo">
         INSERT INTO system_info (
-            personCharge,
+            deviceCategory,
+            storageArea,
             brand,
-            area,
-            deviceType,
-            version,
-            osVersion,
-            architecture,
-            computerName,
-            created_at,
-            fullOS,
-            cpu,
-            memory,
-            displays,
-            maxResolution,
-            maxRefreshRate,
-            interfaceInfo,
-            deviceReleaseDate,
+            deviceName,
+            modelNumber,
+            interfaceTypeAndQuantity,
+            graphicsInterfaceTypeAndQuantity,
+            maxOutputSpec,
+            screenSize,
+            screenRatio,
+            releaseDate,
             devicePurchaseDate,
-            deviceRepairHistory
+            deviceRepairHistory,
+            source,
+            graphicsSource
         ) VALUES (
-                     #{personCharge},
+                     #{deviceCategory},
+                     #{storageArea},
                      #{brand},
-                     #{area},
-                     #{deviceType},
-                     #{version},
-                     #{osVersion},
-                     #{architecture},
-                     #{computerName},
-                     NOW(),
-                     #{fullOS},
-                     #{cpu},
-                     #{memory},
-                     #{displays},
-                     #{maxResolution},
-                     #{maxRefreshRate},
-                     #{interfaceInfo},
-                     #{deviceReleaseDate},
+                     #{deviceName},
+                     #{modelNumber},
+                     #{interfaceTypeAndQuantity},
+                     #{graphicsInterfaceTypeAndQuantity},
+                     #{maxOutputSpec},
+                     #{screenSize},
+                     #{screenRatio},
+                     #{releaseDate},
                      #{devicePurchaseDate},
-                     #{deviceRepairHistory}
+                     #{deviceRepairHistory},
+                     #{source},
+                     #{graphicsSource}
                  );
 
     </insert>
@@ -1015,26 +1003,22 @@
     <update id="updateSystemInfoByXlsx" parameterType="SystemInfo">
         UPDATE system_info
         SET
-        personCharge = #{personCharge},
+        deviceCategory = #{deviceCategory},
+        storageArea = #{storageArea},
         brand = #{brand},
-        area = #{area},
-        deviceType = #{deviceType},
-        version = #{version},
-        osVersion = #{osVersion},
-        architecture = #{architecture},
-        fullOS = #{fullOS},
-        cpu = #{cpu},
-        memory = #{memory},
-        displays = #{displays},
-        maxResolution = #{maxResolution},
-        maxRefreshRate = #{maxRefreshRate},
-        interfaceInfo = #{interfaceInfo},
-        created_at = NOW(),
-        deviceReleaseDate = #{deviceReleaseDate},
+        modelNumber = #{modelNumber},
+        interfaceTypeAndQuantity = #{interfaceTypeAndQuantity},
+        graphicsInterfaceTypeAndQuantity = #{graphicsInterfaceTypeAndQuantity},
+        maxOutputSpec = #{maxOutputSpec},
+        screenSize = #{screenSize},
+        screenRatio = #{screenRatio},
+        releaseDate = #{releaseDate},
         devicePurchaseDate = #{devicePurchaseDate},
-        deviceRepairHistory = #{deviceRepairHistory}
+        deviceRepairHistory = #{deviceRepairHistory},
+        source = #{source},
+        graphicsSource = #{graphicsSource}
 
-        WHERE computerName = #{computerName};
+        WHERE deviceName = #{deviceName};
     </update>
 
     <delete id="deleteSystemInfoById">

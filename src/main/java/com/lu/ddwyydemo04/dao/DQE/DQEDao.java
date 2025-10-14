@@ -108,17 +108,19 @@ public interface DQEDao {
 
 
     List<SystemInfo> performSysInfo(@Param("id")String id,
-                                    @Param("personCharge")String personCharge,@Param("computerName")String computerName,
-                                    @Param("brand")String brand,@Param("area")String area,
-                                    @Param("deviceType")String deviceType,
-                                    @Param("version")String version,
-                                    @Param("osVersion")String osVersion,
-                                    @Param("fullOS")String fullOS,
-                                    @Param("architecture")String architecture,
-                                    @Param("cpu")String cpu,@Param("memory")String memory,
-                                    @Param("displays")String displays,
-                                    @Param("maxResolution")String maxResolution,
-                                    @Param("maxRefreshRate")String maxRefreshRate,@Param("interfaceInfo")String interfaceInfo);
+                                    @Param("deviceCategory")String deviceCategory,@Param("storageArea")String storageArea,
+                                    @Param("brand")String brand,@Param("deviceName")String deviceName,
+                                    @Param("modelNumber")String modelNumber,
+                                    @Param("interfaceTypeAndQuantity")String interfaceTypeAndQuantity,
+                                    @Param("graphicsInterfaceTypeAndQuantity")String graphicsInterfaceTypeAndQuantity,
+                                    @Param("maxOutputSpec")String maxOutputSpec,
+                                    @Param("screenSize")String screenSize,
+                                    @Param("screenRatio")String screenRatio,
+                                    @Param("releaseDate")String releaseDate,
+                                    @Param("devicePurchaseDate")String devicePurchaseDate,
+                                    @Param("deviceRepairHistory")String deviceRepairHistory,
+                                    @Param("source")String source,
+                                    @Param("graphicsSource")String graphicsSource);
 
 
     String getJobFromUsers(@Param("username")String username);

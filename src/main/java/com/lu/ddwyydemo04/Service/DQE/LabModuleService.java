@@ -27,15 +27,13 @@ public class LabModuleService {
 
 
 
-    public List<SystemInfo> performSysInfo(String id,String personCharge, String computerName,String brand,String area,
-                                           String deviceType,String version,
-                                           String osVersion, String fullOS,
-                                           String architecture, String cpu,String memory,
-                                           String displays,
-                                           String maxResolution, String maxRefreshRate,String interfaceInfo){
-        return dqeDao.performSysInfo(id,personCharge,computerName,brand,area,deviceType , version,osVersion, fullOS,
-                architecture,cpu,memory,displays,
-                maxResolution,maxRefreshRate,interfaceInfo);
+    public List<SystemInfo> performSysInfo(String id, String deviceCategory, String storageArea, String brand, String deviceName,
+                                           String modelNumber, String interfaceTypeAndQuantity, String graphicsInterfaceTypeAndQuantity,
+                                           String maxOutputSpec, String screenSize, String screenRatio, String releaseDate,
+                                           String devicePurchaseDate, String deviceRepairHistory, String source, String graphicsSource){
+        return dqeDao.performSysInfo(id, deviceCategory, storageArea, brand, deviceName, modelNumber, interfaceTypeAndQuantity,
+                graphicsInterfaceTypeAndQuantity, maxOutputSpec, screenSize, screenRatio, releaseDate, devicePurchaseDate,
+                deviceRepairHistory, source, graphicsSource);
     }
 
 

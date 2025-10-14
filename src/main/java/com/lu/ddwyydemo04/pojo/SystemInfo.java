@@ -1,37 +1,22 @@
 package com.lu.ddwyydemo04.pojo;
 
 public class SystemInfo {
-    private int id;                          // 自增主键
-    private String personCharge;                          //  负责统计的人
-
-    private String computerName;             // 计算机名称
-    private String brand;             // 品牌
-    private String area;             // 区域
-
-    private String deviceType;   // 设备类型：屏幕，主机，显示器，游戏机等
-    private String version;                  // 操作系统版本
-    private String osVersion;                // 操作系统详细版本号
-
-    private String fullOS;
-    private String architecture;             // 系统架构
-
-    private String created_at;
-
-    private String cpu;
-    private String memory;
-    private String displays;
-
-//    private double roundedScreenSize;  //屏幕尺寸
-    private String maxResolution;  //最大分辨率
-    private String maxRefreshRate;  //刷新率
-    private String interfaceInfo;  //接口信息
-
-    private String deviceReleaseDate;
-
-    private String devicePurchaseDate;
-    private String deviceRepairHistory;
-
-
+    private int id;                          // 序号
+    private String deviceCategory;           // 设备分类
+    private String storageArea;              // 存放区域
+    private String brand;                    // 品牌
+    private String deviceName;                  // 设备名称
+    private String modelNumber;              // 型号（铭牌型号）
+    private String interfaceTypeAndQuantity; // 接口类型&数量
+    private String graphicsInterfaceTypeAndQuantity; // 显卡接口类型&数量
+    private String maxOutputSpec;            // 最高输出规格
+    private String screenSize;               // 内建屏幕尺寸
+    private String screenRatio;              // 屏幕比例
+    private String releaseDate;              // 上市日期
+    private String devicePurchaseDate;       // 购买日期
+    private String deviceRepairHistory;      // 维修记录
+    private String source;                   // 来源
+    private String graphicsSource;           // 显卡来源
 
     // Getter 和 Setter 方法
     public int getId() {
@@ -42,124 +27,20 @@ public class SystemInfo {
         this.id = id;
     }
 
-    public String getVersion() {
-        return version;
+    public String getDeviceCategory() {
+        return deviceCategory;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setDeviceCategory(String deviceCategory) {
+        this.deviceCategory = deviceCategory;
     }
 
-
-
-    public String getOsVersion() {
-        return osVersion;
+    public String getStorageArea() {
+        return storageArea;
     }
 
-    public void setOsVersion(String osVersion) {
-        this.osVersion = osVersion;
-    }
-
-    public String getArchitecture() {
-        return architecture;
-    }
-
-    public void setArchitecture(String architecture) {
-        this.architecture = architecture;
-    }
-
-    public String getComputerName() {
-        return computerName;
-    }
-
-    public void setComputerName(String computerName) {
-        this.computerName = computerName;
-    }
-
-
-    public String getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(String created_at) {
-        this.created_at = created_at;
-    }
-
-    public String getFullOS() {
-        return fullOS;
-    }
-
-    public void setFullOS(String fullOS) {
-        this.fullOS = fullOS;
-    }
-
-    public String getCpu() {
-        return cpu;
-    }
-
-    public void setCpu(String cpu) {
-        this.cpu = cpu;
-    }
-
-    public String getMemory() {
-        return memory;
-    }
-
-    public void setMemory(String memory) {
-        this.memory = memory;
-    }
-
-    public String getDisplays() {
-        return displays;
-    }
-
-    public void setDisplays(String displays) {
-        this.displays = displays;
-    }
-
-
-
-
-    public String getMaxResolution() {
-        return maxResolution;
-    }
-
-    public void setMaxResolution(String maxResolution) {
-        this.maxResolution = maxResolution;
-    }
-
-    public String getMaxRefreshRate() {
-        return maxRefreshRate;
-    }
-
-    public void setMaxRefreshRate(String maxRefreshRate) {
-        this.maxRefreshRate = maxRefreshRate;
-    }
-
-
-    public String getInterfaceInfo() {
-        return interfaceInfo;
-    }
-
-    public void setInterfaceInfo(String interfaceInfo) {
-        this.interfaceInfo = interfaceInfo;
-    }
-
-
-    public String getDeviceType() {
-        return deviceType;
-    }
-
-    public void setDeviceType(String deviceType) {
-        this.deviceType = deviceType;
-    }
-
-    public String getPersonCharge() {
-        return personCharge;
-    }
-
-    public void setPersonCharge(String personCharge) {
-        this.personCharge = personCharge;
+    public void setStorageArea(String storageArea) {
+        this.storageArea = storageArea;
     }
 
     public String getBrand() {
@@ -170,20 +51,68 @@ public class SystemInfo {
         this.brand = brand;
     }
 
-    public String getArea() {
-        return area;
+    public String getDeviceName() {
+        return deviceName;
     }
 
-    public void setArea(String area) {
-        this.area = area;
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
     }
 
-    public String getDeviceReleaseDate() {
-        return deviceReleaseDate;
+    public String getModelNumber() {
+        return modelNumber;
     }
 
-    public void setDeviceReleaseDate(String deviceReleaseDate) {
-        this.deviceReleaseDate = deviceReleaseDate;
+    public void setModelNumber(String modelNumber) {
+        this.modelNumber = modelNumber;
+    }
+
+    public String getInterfaceTypeAndQuantity() {
+        return interfaceTypeAndQuantity;
+    }
+
+    public void setInterfaceTypeAndQuantity(String interfaceTypeAndQuantity) {
+        this.interfaceTypeAndQuantity = interfaceTypeAndQuantity;
+    }
+
+    public String getGraphicsInterfaceTypeAndQuantity() {
+        return graphicsInterfaceTypeAndQuantity;
+    }
+
+    public void setGraphicsInterfaceTypeAndQuantity(String graphicsInterfaceTypeAndQuantity) {
+        this.graphicsInterfaceTypeAndQuantity = graphicsInterfaceTypeAndQuantity;
+    }
+
+    public String getMaxOutputSpec() {
+        return maxOutputSpec;
+    }
+
+    public void setMaxOutputSpec(String maxOutputSpec) {
+        this.maxOutputSpec = maxOutputSpec;
+    }
+
+    public String getScreenSize() {
+        return screenSize;
+    }
+
+    public void setScreenSize(String screenSize) {
+        this.screenSize = screenSize;
+    }
+
+    public String getScreenRatio() {
+        return screenRatio;
+    }
+
+    public void setScreenRatio(String screenRatio) {
+        this.screenRatio = screenRatio;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(String releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public String getDevicePurchaseDate() {
@@ -202,29 +131,41 @@ public class SystemInfo {
         this.deviceRepairHistory = deviceRepairHistory;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getGraphicsSource() {
+        return graphicsSource;
+    }
+
+    public void setGraphicsSource(String graphicsSource) {
+        this.graphicsSource = graphicsSource;
+    }
+
     @Override
     public String toString() {
         return "SystemInfo{" +
                 "id=" + id +
-                ", personCharge='" + personCharge + '\'' +
-                ", computerName='" + computerName + '\'' +
+                ", deviceCategory='" + deviceCategory + '\'' +
+                ", storageArea='" + storageArea + '\'' +
                 ", brand='" + brand + '\'' +
-                ", area='" + area + '\'' +
-                ", deviceType='" + deviceType + '\'' +
-                ", version='" + version + '\'' +
-                ", osVersion='" + osVersion + '\'' +
-                ", fullOS='" + fullOS + '\'' +
-                ", architecture='" + architecture + '\'' +
-                ", created_at='" + created_at + '\'' +
-                ", cpu='" + cpu + '\'' +
-                ", memory='" + memory + '\'' +
-                ", displays='" + displays + '\'' +
-                ", maxResolution='" + maxResolution + '\'' +
-                ", maxRefreshRate='" + maxRefreshRate + '\'' +
-                ", interfaceInfo='" + interfaceInfo + '\'' +
-                ", deviceReleaseDate='" + deviceReleaseDate + '\'' +
+                ", deviceName='" + deviceName + '\'' +
+                ", modelNumber='" + modelNumber + '\'' +
+                ", interfaceTypeAndQuantity='" + interfaceTypeAndQuantity + '\'' +
+                ", graphicsInterfaceTypeAndQuantity='" + graphicsInterfaceTypeAndQuantity + '\'' +
+                ", maxOutputSpec='" + maxOutputSpec + '\'' +
+                ", screenSize='" + screenSize + '\'' +
+                ", screenRatio='" + screenRatio + '\'' +
+                ", releaseDate='" + releaseDate + '\'' +
                 ", devicePurchaseDate='" + devicePurchaseDate + '\'' +
                 ", deviceRepairHistory='" + deviceRepairHistory + '\'' +
+                ", source='" + source + '\'' +
+                ", graphicsSource='" + graphicsSource + '\'' +
                 '}';
     }
 }
