@@ -121,6 +121,15 @@
                 sessionStorage.setItem('savepath', response.savepath);
                 sessionStorage.setItem('imagepath', response.imagepath);
 
+                localStorage.setItem('userId', response.userId);
+                localStorage.setItem('username', response.username);
+                localStorage.setItem('job', response.job);
+                localStorage.setItem('departmentId', response.departmentId);
+                localStorage.setItem('corp_id', response.corp_id);
+                localStorage.setItem('templatespath', response.templatespath);
+                localStorage.setItem('savepath', response.savepath);
+                localStorage.setItem('imagepath', response.imagepath);
+
                 setLocalStorageItem("username", response.username);
                 setLocalStorageItem("job", response.job);
                 setLocalStorageItem("corp_id", response.corp_id);

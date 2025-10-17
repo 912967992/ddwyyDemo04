@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.ProjectTableMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.lu.ddwyydemo04.pojo.ProjectTable">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="sample_receipt_time" property="sampleReceiptTime" jdbcType="TIMESTAMP"/>
+        <result column="sample_week" property="sampleWeek" jdbcType="VARCHAR"/>
+        <result column="supplier" property="supplier" jdbcType="VARCHAR"/>
+        <result column="sample_count" property="sampleCount" jdbcType="INTEGER"/>
+        <result column="sample_model" property="sampleModel" jdbcType="VARCHAR"/>
+        <result column="small_code" property="smallCode" jdbcType="VARCHAR"/>
+        <result column="sample_name" property="sampleName" jdbcType="VARCHAR"/>
+        <result column="category_detail" property="categoryDetail" jdbcType="VARCHAR"/>
+        <result column="version_number" property="versionNumber" jdbcType="VARCHAR"/>
+        <result column="test_number" property="testNumber" jdbcType="VARCHAR"/>
+        <result column="required_duration" property="requiredDuration" jdbcType="DECIMAL"/>
+        <result column="total_quantity" property="totalQuantity" jdbcType="INTEGER"/>
+        <result column="electrical_compatibility_quantity" property="electricalCompatibilityQuantity" jdbcType="INTEGER"/>
+        <result column="high_frequency_quantity" property="highFrequencyQuantity" jdbcType="INTEGER"/>
+        <result column="conduction_rf_quantity" property="conductionRfQuantity" jdbcType="INTEGER"/>
+        <result column="reliability_quantity" property="reliabilityQuantity" jdbcType="INTEGER"/>
+        <result column="environmental_quantity" property="environmentalQuantity" jdbcType="INTEGER"/>
+        <result column="sample_category" property="sampleCategory" jdbcType="VARCHAR"/>
+        <result column="sample_nature" property="sampleNature" jdbcType="VARCHAR"/>
+        <result column="project_attribute" property="projectAttribute" jdbcType="VARCHAR"/>
+        <result column="electrical_test_plan_start" property="electricalTestPlanStart" jdbcType="TIMESTAMP"/>
+        <result column="electrical_test_plan_end" property="electricalTestPlanEnd" jdbcType="TIMESTAMP"/>
+        <result column="electrical_test_actual_start" property="electricalTestActualStart" jdbcType="TIMESTAMP"/>
+        <result column="electrical_test_actual_end" property="electricalTestActualEnd" jdbcType="TIMESTAMP"/>
+        <result column="actual_completion_week" property="actualCompletionWeek" jdbcType="VARCHAR"/>
+        <result column="engineer_dqe_confirm_start" property="engineerDqeConfirmStart" jdbcType="TIMESTAMP"/>
+        <result column="engineer_dqe_confirm_end" property="engineerDqeConfirmEnd" jdbcType="TIMESTAMP"/>
+        <result column="test_duration_days" property="testDurationDays" jdbcType="DECIMAL"/>
+        <result column="actual_start_vs_receipt_days" property="actualStartVsReceiptDays" jdbcType="DECIMAL"/>
+        <result column="actual_start_vs_plan_start_days" property="actualStartVsPlanStartDays" jdbcType="DECIMAL"/>
+        <result column="plan_total_duration_days" property="planTotalDurationDays" jdbcType="DECIMAL"/>
+        <result column="actual_total_duration_days" property="actualTotalDurationDays" jdbcType="DECIMAL"/>
+        <result column="actual_overtime_days" property="actualOvertimeDays" jdbcType="DECIMAL"/>
+        <result column="problem_confirm_total_duration_days" property="problemConfirmTotalDurationDays" jdbcType="DECIMAL"/>
+        <result column="problem_confirm_overtime_days" property="problemConfirmOvertimeDays" jdbcType="DECIMAL"/>
+        <result column="verification_count" property="verificationCount" jdbcType="INTEGER"/>
+        <result column="tester" property="tester" jdbcType="VARCHAR"/>
+        <result column="electronic_engineer" property="electronicEngineer" jdbcType="VARCHAR"/>
+        <result column="project_engineer" property="projectEngineer" jdbcType="VARCHAR"/>
+        <result column="dqe" property="dqe" jdbcType="VARCHAR"/>
+        <result column="dqe_category_detail" property="dqeCategoryDetail" jdbcType="VARCHAR"/>
+        <result column="new_category" property="newCategory" jdbcType="VARCHAR"/>
+        <result column="urgent_sync" property="urgentSync" jdbcType="VARCHAR"/>
+        <result column="is_in_plan" property="isInPlan" jdbcType="VARCHAR"/>
+        <result column="sample_cycle" property="sampleCycle" jdbcType="DECIMAL"/>
+        <result column="test_cycle" property="testCycle" jdbcType="DECIMAL"/>
+        <result column="queue_cycle" property="queueCycle" jdbcType="DECIMAL"/>
+        <result column="judgment_result" property="judgmentResult" jdbcType="VARCHAR"/>
+        <result column="is_signed" property="isSigned" jdbcType="VARCHAR"/>
+        <result column="domestic_foreign" property="domesticForeign" jdbcType="VARCHAR"/>
+        <result column="supplier_preposition" property="supplierPreposition" jdbcType="VARCHAR"/>
+        <result column="sample_remarks" property="sampleRemarks" jdbcType="VARCHAR"/>
+        <result column="problem_definition" property="problemDefinition" jdbcType="VARCHAR"/>
+        <result column="s_class_problem_count" property="sClassProblemCount" jdbcType="INTEGER"/>
+        <result column="a_class_problem_count" property="aClassProblemCount" jdbcType="INTEGER"/>
+        <result column="b_class_problem_count" property="bClassProblemCount" jdbcType="INTEGER"/>
+        <result column="c_class_problem_count" property="cClassProblemCount" jdbcType="INTEGER"/>
+        <result column="d_class_problem_count" property="dClassProblemCount" jdbcType="INTEGER"/>
+        <result column="total_problem_count" property="totalProblemCount" jdbcType="INTEGER"/>
+        <result column="open_count" property="openCount" jdbcType="INTEGER"/>
+        <result column="close_count" property="closeCount" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, sample_receipt_time, sample_week, supplier, sample_count,
+        sample_model, small_code, sample_name, category_detail, version_number, test_number,
+        required_duration, total_quantity, electrical_compatibility_quantity, high_frequency_quantity,
+        conduction_rf_quantity, reliability_quantity, environmental_quantity, sample_category,
+        sample_nature, project_attribute, electrical_test_plan_start, electrical_test_plan_end,
+        electrical_test_actual_start, electrical_test_actual_end, actual_completion_week,
+        engineer_dqe_confirm_start, engineer_dqe_confirm_end, test_duration_days,
+        actual_start_vs_receipt_days, actual_start_vs_plan_start_days, plan_total_duration_days,
+        actual_total_duration_days, actual_overtime_days, problem_confirm_total_duration_days,
+        problem_confirm_overtime_days, verification_count, tester, electronic_engineer,
+        project_engineer, dqe, dqe_category_detail, new_category, urgent_sync, is_in_plan,
+        sample_cycle, test_cycle, queue_cycle, judgment_result, is_signed, domestic_foreign,
+        supplier_preposition, sample_remarks, problem_definition, s_class_problem_count,
+        a_class_problem_count, b_class_problem_count, c_class_problem_count, d_class_problem_count,
+        total_problem_count, open_count, close_count, create_time, update_time
+    </sql>
+
+    <!-- 查询所有数据 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM project_table
+        ORDER BY id DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM project_table
+        WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM project_table
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM project_table
+    </select>
+
+    <!-- 根据条件查询 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM project_table
+        <where>
+            <if test="supplier != null and supplier != ''">
+                AND supplier LIKE CONCAT('%', #{supplier}, '%')
+            </if>
+            <if test="sampleModel != null and sampleModel != ''">
+                AND sample_model LIKE CONCAT('%', #{sampleModel}, '%')
+            </if>
+            <if test="sampleName != null and sampleName != ''">
+                AND sample_name LIKE CONCAT('%', #{sampleName}, '%')
+            </if>
+            <if test="categoryDetail != null and categoryDetail != ''">
+                AND category_detail LIKE CONCAT('%', #{categoryDetail}, '%')
+            </if>
+            <if test="tester != null and tester != ''">
+                AND tester LIKE CONCAT('%', #{tester}, '%')
+            </if>
+            <if test="dqe != null and dqe != ''">
+                AND dqe LIKE CONCAT('%', #{dqe}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 根据条件查询总数 -->
+    <select id="countByCondition" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM project_table
+        <where>
+            <if test="supplier != null and supplier != ''">
+                AND supplier LIKE CONCAT('%', #{supplier}, '%')
+            </if>
+            <if test="sampleModel != null and sampleModel != ''">
+                AND sample_model LIKE CONCAT('%', #{sampleModel}, '%')
+            </if>
+            <if test="sampleName != null and sampleName != ''">
+                AND sample_name LIKE CONCAT('%', #{sampleName}, '%')
+            </if>
+            <if test="categoryDetail != null and categoryDetail != ''">
+                AND category_detail LIKE CONCAT('%', #{categoryDetail}, '%')
+            </if>
+            <if test="tester != null and tester != ''">
+                AND tester LIKE CONCAT('%', #{tester}, '%')
+            </if>
+            <if test="dqe != null and dqe != ''">
+                AND dqe LIKE CONCAT('%', #{dqe}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="com.lu.ddwyydemo04.pojo.ProjectTable" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO project_table (
+            sample_receipt_time, sample_week, supplier, sample_count,
+            sample_model, small_code, sample_name, category_detail, version_number, test_number,
+            required_duration, total_quantity, electrical_compatibility_quantity, high_frequency_quantity,
+            conduction_rf_quantity, reliability_quantity, environmental_quantity, sample_category,
+            sample_nature, project_attribute, electrical_test_plan_start, electrical_test_plan_end,
+            electrical_test_actual_start, electrical_test_actual_end, actual_completion_week,
+            engineer_dqe_confirm_start, engineer_dqe_confirm_end, test_duration_days,
+            actual_start_vs_receipt_days, actual_start_vs_plan_start_days, plan_total_duration_days,
+            actual_total_duration_days, actual_overtime_days, problem_confirm_total_duration_days,
+            problem_confirm_overtime_days, verification_count, tester, electronic_engineer,
+            project_engineer, dqe, dqe_category_detail, new_category, urgent_sync, is_in_plan,
+            sample_cycle, test_cycle, queue_cycle, judgment_result, is_signed, domestic_foreign,
+            supplier_preposition, sample_remarks, problem_definition, s_class_problem_count,
+            a_class_problem_count, b_class_problem_count, c_class_problem_count, d_class_problem_count,
+            total_problem_count, open_count, close_count
+        ) VALUES (
+            #{sampleReceiptTime}, #{sampleWeek}, #{supplier}, #{sampleCount},
+            #{sampleModel}, #{smallCode}, #{sampleName}, #{categoryDetail}, #{versionNumber}, #{testNumber},
+            #{requiredDuration}, #{totalQuantity}, #{electricalCompatibilityQuantity}, #{highFrequencyQuantity},
+            #{conductionRfQuantity}, #{reliabilityQuantity}, #{environmentalQuantity}, #{sampleCategory},
+            #{sampleNature}, #{projectAttribute}, #{electricalTestPlanStart}, #{electricalTestPlanEnd},
+            #{electricalTestActualStart}, #{electricalTestActualEnd}, #{actualCompletionWeek},
+            #{engineerDqeConfirmStart}, #{engineerDqeConfirmEnd}, #{testDurationDays},
+            #{actualStartVsReceiptDays}, #{actualStartVsPlanStartDays}, #{planTotalDurationDays},
+            #{actualTotalDurationDays}, #{actualOvertimeDays}, #{problemConfirmTotalDurationDays},
+            #{problemConfirmOvertimeDays}, #{verificationCount}, #{tester}, #{electronicEngineer},
+            #{projectEngineer}, #{dqe}, #{dqeCategoryDetail}, #{newCategory}, #{urgentSync}, #{isInPlan},
+            #{sampleCycle}, #{testCycle}, #{queueCycle}, #{judgmentResult}, #{isSigned}, #{domesticForeign},
+            #{supplierPreposition}, #{sampleRemarks}, #{problemDefinition}, #{sClassProblemCount},
+            #{aClassProblemCount}, #{bClassProblemCount}, #{cClassProblemCount}, #{dClassProblemCount},
+            #{totalProblemCount}, #{openCount}, #{closeCount}
+        )
+    </insert>
+
+    <!-- 更新数据 -->
+    <update id="update" parameterType="com.lu.ddwyydemo04.pojo.ProjectTable">
+        UPDATE project_table
+        <set>
+            <if test="sampleReceiptTime != null">sample_receipt_time = #{sampleReceiptTime},</if>
+            <if test="sampleWeek != null">sample_week = #{sampleWeek},</if>
+            <if test="supplier != null">supplier = #{supplier},</if>
+            <if test="sampleCount != null">sample_count = #{sampleCount},</if>
+            <if test="sampleModel != null">sample_model = #{sampleModel},</if>
+            <if test="smallCode != null">small_code = #{smallCode},</if>
+            <if test="sampleName != null">sample_name = #{sampleName},</if>
+            <if test="categoryDetail != null">category_detail = #{categoryDetail},</if>
+            <if test="versionNumber != null">version_number = #{versionNumber},</if>
+            <if test="testNumber != null">test_number = #{testNumber},</if>
+            <if test="requiredDuration != null">required_duration = #{requiredDuration},</if>
+            <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+            <if test="electricalCompatibilityQuantity != null">electrical_compatibility_quantity = #{electricalCompatibilityQuantity},</if>
+            <if test="highFrequencyQuantity != null">high_frequency_quantity = #{highFrequencyQuantity},</if>
+            <if test="conductionRfQuantity != null">conduction_rf_quantity = #{conductionRfQuantity},</if>
+            <if test="reliabilityQuantity != null">reliability_quantity = #{reliabilityQuantity},</if>
+            <if test="environmentalQuantity != null">environmental_quantity = #{environmentalQuantity},</if>
+            <if test="sampleCategory != null">sample_category = #{sampleCategory},</if>
+            <if test="sampleNature != null">sample_nature = #{sampleNature},</if>
+            <if test="projectAttribute != null">project_attribute = #{projectAttribute},</if>
+            <if test="electricalTestPlanStart != null">electrical_test_plan_start = #{electricalTestPlanStart},</if>
+            <if test="electricalTestPlanEnd != null">electrical_test_plan_end = #{electricalTestPlanEnd},</if>
+            <if test="electricalTestActualStart != null">electrical_test_actual_start = #{electricalTestActualStart},</if>
+            <if test="electricalTestActualEnd != null">electrical_test_actual_end = #{electricalTestActualEnd},</if>
+            <if test="actualCompletionWeek != null">actual_completion_week = #{actualCompletionWeek},</if>
+            <if test="engineerDqeConfirmStart != null">engineer_dqe_confirm_start = #{engineerDqeConfirmStart},</if>
+            <if test="engineerDqeConfirmEnd != null">engineer_dqe_confirm_end = #{engineerDqeConfirmEnd},</if>
+            <if test="testDurationDays != null">test_duration_days = #{testDurationDays},</if>
+            <if test="actualStartVsReceiptDays != null">actual_start_vs_receipt_days = #{actualStartVsReceiptDays},</if>
+            <if test="actualStartVsPlanStartDays != null">actual_start_vs_plan_start_days = #{actualStartVsPlanStartDays},</if>
+            <if test="planTotalDurationDays != null">plan_total_duration_days = #{planTotalDurationDays},</if>
+            <if test="actualTotalDurationDays != null">actual_total_duration_days = #{actualTotalDurationDays},</if>
+            <if test="actualOvertimeDays != null">actual_overtime_days = #{actualOvertimeDays},</if>
+            <if test="problemConfirmTotalDurationDays != null">problem_confirm_total_duration_days = #{problemConfirmTotalDurationDays},</if>
+            <if test="problemConfirmOvertimeDays != null">problem_confirm_overtime_days = #{problemConfirmOvertimeDays},</if>
+            <if test="verificationCount != null">verification_count = #{verificationCount},</if>
+            <if test="tester != null">tester = #{tester},</if>
+            <if test="electronicEngineer != null">electronic_engineer = #{electronicEngineer},</if>
+            <if test="projectEngineer != null">project_engineer = #{projectEngineer},</if>
+            <if test="dqe != null">dqe = #{dqe},</if>
+            <if test="dqeCategoryDetail != null">dqe_category_detail = #{dqeCategoryDetail},</if>
+            <if test="newCategory != null">new_category = #{newCategory},</if>
+            <if test="urgentSync != null">urgent_sync = #{urgentSync},</if>
+            <if test="isInPlan != null">is_in_plan = #{isInPlan},</if>
+            <if test="sampleCycle != null">sample_cycle = #{sampleCycle},</if>
+            <if test="testCycle != null">test_cycle = #{testCycle},</if>
+            <if test="queueCycle != null">queue_cycle = #{queueCycle},</if>
+            <if test="judgmentResult != null">judgment_result = #{judgmentResult},</if>
+            <if test="isSigned != null">is_signed = #{isSigned},</if>
+            <if test="domesticForeign != null">domestic_foreign = #{domesticForeign},</if>
+            <if test="supplierPreposition != null">supplier_preposition = #{supplierPreposition},</if>
+            <if test="sampleRemarks != null">sample_remarks = #{sampleRemarks},</if>
+            <if test="problemDefinition != null">problem_definition = #{problemDefinition},</if>
+            <if test="sClassProblemCount != null">s_class_problem_count = #{sClassProblemCount},</if>
+            <if test="aClassProblemCount != null">a_class_problem_count = #{aClassProblemCount},</if>
+            <if test="bClassProblemCount != null">b_class_problem_count = #{bClassProblemCount},</if>
+            <if test="cClassProblemCount != null">c_class_problem_count = #{cClassProblemCount},</if>
+            <if test="dClassProblemCount != null">d_class_problem_count = #{dClassProblemCount},</if>
+            <if test="totalProblemCount != null">total_problem_count = #{totalProblemCount},</if>
+            <if test="openCount != null">open_count = #{openCount},</if>
+            <if test="closeCount != null">close_count = #{closeCount},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM project_table WHERE id = #{id}
+    </delete>
+
+</mapper>
+
