@@ -172,33 +172,48 @@ public class ExcelShowController {
     }
 
     @RequestMapping("/copyClickFile")
-    public ModelAndView copyClickFile(@RequestParam String filePath, @RequestParam String model, @RequestParam String coding,
+    @ResponseBody
+    public Map<String, Object> copyClickFile(@RequestParam String filePath, @RequestParam String model, @RequestParam String coding,
                                       @RequestParam String category, @RequestParam String version, @RequestParam String sample_name,
                                       @RequestParam String username,@RequestParam String sample_frequencyStr,@RequestParam String sample_quantityStr,
                                       @RequestParam String big_species, @RequestParam String small_species,@RequestParam String high_frequency,@RequestParam String questStats,
                                       @RequestParam String scheduleStartTime,@RequestParam String scheduleEndTime,@RequestParam String scheduleTestCycle,
                                       @RequestParam String electric_sample_id){
         System.out.println("electric_sample_id:"+electric_sample_id);
+        Map<String, Object> response = new HashMap<>();
+        
         if (username == null){
-            throw new SessionTimeoutException("会话已超时，请重新登录");
+            response.put("status", "error");
+            response.put("message", "会话已超时，请重新登录");
+            return response;
         }
 
-        // 获取当前时间
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String create_time = now.format(formatter);
+        try {
+            // 获取当前时间
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String create_time = now.format(formatter);
 
-        //样品进度0是测试中的意思
-        String sample_schedule = "0";
+            //样品进度0是测试中的意思
+            String sample_schedule = "0";
 
-        int sample_frequency = Integer.parseInt(sample_frequencyStr.trim()); // 使用trim()去除可能的前后空格
-        int sample_quantity = Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
+            int sample_frequency = Integer.parseInt(sample_frequencyStr.trim()); // 使用trim()去除可能的前后空格
+            int sample_quantity = Integer.parseInt(sample_quantityStr.trim()); // 使用trim()去除可能的前后空格
 
-        String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
-        excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,
-                scheduleStartTime,scheduleEndTime,scheduleTestCycle,electric_sample_id);
-        return  new ModelAndView("redirect:/excelShow")
-                .addObject("filePath", copyFilepath);
+            String copyFilepath = copyFile(filePath,model,coding,category,version,sample_name,sample_frequency,high_frequency,questStats);
+            excelShowService.insertSample(username,copyFilepath,model,coding,category,version,sample_name,create_time,sample_schedule,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,
+                    scheduleStartTime,scheduleEndTime,scheduleTestCycle,electric_sample_id);
+            
+            response.put("status", "success");
+            response.put("message", "文件复制成功");
+            response.put("filePath", copyFilepath);
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("status", "error");
+            response.put("message", "文件复制失败: " + e.getMessage());
+            return response;
+        }
     }
 
 

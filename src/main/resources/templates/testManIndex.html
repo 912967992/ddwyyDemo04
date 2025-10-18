@@ -24,7 +24,7 @@
 <!--    <meta name="wpk-bid" content="dta_1_3078576183">-->
 
 <div class="title-container">
-    <button id="announcement-btn">查看公告(v2.2，20250706新增回传问题点功能)</button>
+    <button id="announcement-btn">查看公告(v2.3，20251018去除进入报告操作)</button>
     <div class="title">主页</div>
     <!-- 问题库管理按钮 -->
     <button id="problem-library-btn" class="problem-library-btn">问题库管理</button>
@@ -110,8 +110,10 @@
     <div id="log-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，新增"问题类别"一列。)</span></h2>
-            <p>20250111:创建报告现在需要填写的是计划表卢绮敏提供的三个排期内容：排期时间，排期天数，请写准确，不允许修改的！
+            <h2>更新日志<span style="color: red;">(！！！简化提交步骤，不用再进入报告了！)</span></h2>
+            <p>20251017:提交报告的时候去除进入报告这一步，总算抽空优化这一步骤了。
+                <br>
+                20250111:创建报告现在需要填写的是计划表卢绮敏提供的三个排期内容：排期时间，排期天数，请写准确，不允许修改的！
                 <br>
                 2024.11.18<br>
                 1. 打通测试报告审核签样流程：测试人员提交->DQE审核问题点->研发审核判定->DQE最终判定->返回通知测试及DQE判定结果。此过程中任何一方角色都可以同步查看修改问题点，并且有操作记录,每个流程节点都会有OA消息通知对应人。<br>
@@ -687,6 +689,8 @@
             const editModal = document.getElementById('editModal');
             if (event.target === editModal) {
                 editModal.style.display = 'none';
+                // 关闭修改产品信息模态框时触发搜索方法刷新列表
+                performSearch();
             }
 
         }
@@ -827,14 +831,19 @@
                                 localStorage.setItem(`sample_name_` ,sample_name);
                                 localStorage.setItem(`tester_` ,username);
 
+                                // 注释掉跳转到报告页面的代码，改为刷新当前页面
                                 // window.location.href = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
-                                let redirectUrl = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
-                                if (redirectUrl.indexOf('?') !== -1) {
-                                    redirectUrl += '&dd_orientation=landscape';
-                                } else {
-                                    redirectUrl += '?dd_orientation=landscape';
-                                }
-                                window.location.href = redirectUrl;
+                                // let redirectUrl = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
+                                // if (redirectUrl.indexOf('?') !== -1) {
+                                //     redirectUrl += '&dd_orientation=landscape';
+                                // } else {
+                                //     redirectUrl += '?dd_orientation=landscape';
+                                // }
+                                // window.location.href = redirectUrl;
+                                
+                                // 创建报告成功后刷新当前页面
+                                alert('报告创建成功！');
+                                window.location.reload();
                             }else{
                                 // addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
                                 addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,
@@ -880,32 +889,44 @@
             localStorage.setItem(`sample_name_` ,sample_name);
             localStorage.setItem(`tester_` ,username);
 
-            let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
-                + '&model=' + encodeURIComponent(model)
-                + '&coding=' + encodeURIComponent(coding)
-                + '&category=' + encodeURIComponent(category)
-                + '&version=' + encodeURIComponent(version)
-                + '&sample_name=' + encodeURIComponent(sample_name)
-                // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
-                + '&username=' + encodeURIComponent(username)
-                + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
-                + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
-                + '&big_species=' + encodeURIComponent(big_species)
-                + '&small_species=' + encodeURIComponent(small_species)
-                + '&high_frequency=' + encodeURIComponent(high_frequency)
-                + '&questStats=' + encodeURIComponent(questStats)
-                + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
-                + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
-                + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
-
-            if (redirectUrl.indexOf('?') !== -1) {
-                redirectUrl += '&dd_orientation=landscape';
-            } else {
-                redirectUrl += '?dd_orientation=landscape';
-            }
-
-            window.location.href = redirectUrl;
+            // 直接调用复制文件接口，不跳转到ExcelShow
+            $.ajax({
+                url: '/copyClickFile',
+                type: 'POST',
+                data: {
+                    filePath: selectedFilePath,
+                    model: model,
+                    coding: coding,
+                    category: category,
+                    version: version,
+                    sample_name: sample_name,
+                    username: username,
+                    sample_frequencyStr: sample_frequencyStr,
+                    sample_quantityStr: sample_quantityStr,
+                    big_species: big_species,
+                    small_species: small_species,
+                    high_frequency: high_frequency,
+                    questStats: questStats,
+                    scheduleStartTime: scheduleStartTime,
+                    scheduleEndTime: scheduleEndTime,
+                    scheduleTestCycle: scheduleTestCycle,
+                    electric_sample_id: electric_sample_id
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // 关闭模态框
+                        existModal.style.display = "none";
+                        alert('报告创建成功！');
+                        window.location.reload();
+                    } else {
+                        alert('文件复制失败: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('复制文件失败:', status, error);
+                    alert('文件复制失败，请重试！');
+                }
+            });
         };
         originalFileLink.textContent = selectedFilePath;
         originalFileLink.style.fontWeight = 'bold'; // 加粗
@@ -926,34 +947,44 @@
                 localStorage.setItem(`sample_name_` ,sample_name);
                 localStorage.setItem(`tester_` ,username);
 
-                let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
-                    + '&model=' + encodeURIComponent(model)
-                    + '&coding=' + encodeURIComponent(coding)
-                    + '&category=' + encodeURIComponent(category)
-                    + '&version=' + encodeURIComponent(version)
-                    + '&sample_name=' + encodeURIComponent(sample_name)
-                    // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
-                    + '&username=' + encodeURIComponent(username)
-                    + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
-                    + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
-                    + '&big_species=' + encodeURIComponent(big_species)
-                    + '&small_species=' + encodeURIComponent(small_species)
-                    + '&high_frequency=' + encodeURIComponent(high_frequency)
-                    + '&questStats=' + encodeURIComponent(questStats)
-                    + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
-                    + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                    + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
-                    + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
-
-// Check if the URL already contains a query string (i.e., '?')
-                if (redirectUrl.indexOf('?') !== -1) {
-                    redirectUrl += '&dd_orientation=landscape';
-                } else {
-                    redirectUrl += '?dd_orientation=landscape';
-                }
-
-// Redirect the user to the constructed URL
-                window.location.href = redirectUrl;
+                // 直接调用复制文件接口，不跳转到ExcelShow
+                $.ajax({
+                    url: '/copyClickFile',
+                    type: 'POST',
+                    data: {
+                        filePath: selectedFilePath,
+                        model: model,
+                        coding: coding,
+                        category: category,
+                        version: version,
+                        sample_name: sample_name,
+                        username: username,
+                        sample_frequencyStr: sample_frequencyStr,
+                        sample_quantityStr: sample_quantityStr,
+                        big_species: big_species,
+                        small_species: small_species,
+                        high_frequency: high_frequency,
+                        questStats: questStats,
+                        scheduleStartTime: scheduleStartTime,
+                        scheduleEndTime: scheduleEndTime,
+                        scheduleTestCycle: scheduleTestCycle,
+                        electric_sample_id: electric_sample_id
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // 关闭模态框
+                            existModal.style.display = "none";
+                            alert('报告创建成功！');
+                            window.location.reload();
+                        } else {
+                            alert('文件复制失败: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('复制文件失败:', status, error);
+                        alert('文件复制失败，请重试！');
+                    }
+                });
             };
             fileLink.textContent = selectedFilePath;
             existModalContent.appendChild(fileLink);
@@ -971,7 +1002,7 @@
                     <div class="editinputModal-content">
                         <span class="close">&times;</span>
                         <div class="edith2-container">
-                            <h2>请输入产品信息</h2>
+                            <h2>修改产品信息</h2>
                             <div class="button-group">
                                 <!-- 问题点确认状态复选框 -->
                                 <div class="confirm-checkbox-container">
@@ -988,7 +1019,7 @@
                                  <!-- 隐藏的文件输入框 -->
                                 <input type="file" id="fileInput" accept=".xlsx" style="display:none;" />
                                 <button type="button" id="replaceButton">替换<br>报告</button>
-                                <button type="button" id="jumpButton">进入<br>报告</button>
+                                <!-- <button type="button" id="jumpButton">进入<br>报告</button> -->
                             </div>
                         </div>
                         <form id="fileEditForm">
@@ -1252,6 +1283,20 @@
         // 显示模态框
         document.getElementById('editModal').style.display = 'block';
 
+        // 添加ESC键事件监听器
+        const handleEscapeKey = (event) => {
+            if (event.key === 'Escape') {
+                const editModal = document.getElementById('editModal');
+                if (editModal && editModal.style.display === 'block') {
+                    editModal.style.display = 'none';
+                    editModal.remove();
+                    // 关闭修改产品信息模态框时触发搜索方法刷新列表
+                    performSearch();
+                }
+            }
+        };
+        document.addEventListener('keydown', handleEscapeKey);
+
         // 点击关闭按钮时关闭模态框
         document.querySelector('#editModal .close').onclick = function() {
             // 在关闭模态框前，将更新后的状态同步到页面的数据中
@@ -1267,6 +1312,9 @@
                     console.log('模态框关闭时，已同步 product.passbackConfirm 为:', currentStatus);
                 }
             }
+            
+            // 移除ESC键事件监听器
+            document.removeEventListener('keydown', handleEscapeKey);
             
             document.getElementById('editModal').remove();
             //保存之后会更新数据库，此时需要重新从后端获取到新的数据才准，所以需要再走一遍获取数据的方法
@@ -1353,6 +1401,8 @@
         };
 
 
+        // 注释掉"进入报告"按钮功能 - 暂时不使用
+        /*
         document.querySelector('#jumpButton').onclick = function() {
             // 显示模态框
             document.getElementById('loadingModal').style.display = 'block';
@@ -1476,6 +1526,7 @@
                 });
             }
         };
+        */
 
         // 为 passbackProblemBtn 添加点击事件
         document.getElementById('passbackProblemBtn').addEventListener('click', async function() {
@@ -3636,7 +3687,7 @@
                 if (type === 'copyable') {
                     showCustomAlertWithCopy(message);
                 } else {
-                    alert(message);
+                    alert(text);
                 }
             })
             .catch((error) => {
@@ -3868,8 +3919,8 @@
 
         // 检查是否在钉钉环境中
         const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-        // const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-        const url = 'http://e5f3985c.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        // const url = 'http://e5f3985c.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
         if (isDingTalk) {
             dd.openLink({
@@ -4139,6 +4190,8 @@
 
             alert(data.message);
             document.getElementById("project-detail-modal").style.display = "none";
+            // 调用搜索方法刷新列表数据
+            performSearch();
 
         } catch (err) {
             console.error("提交失败", err);

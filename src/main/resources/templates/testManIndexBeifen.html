@@ -7,6 +7,9 @@
     <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
+    <!-- 引入 jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
     <!-- 引入外部CSS文件 -->
     <link rel="stylesheet" href="/css/testManIndexStyle.css">
 
@@ -21,8 +24,12 @@
     <!--    <meta name="wpk-bid" content="dta_1_3078576183">-->
 
     <div class="title-container">
-        <button id="announcement-btn">查看公告(v2.2，20250706新增回传问题点功能)</button>
+        <button id="announcement-btn">查看公告(v2.3，20251018去除进入报告操作)</button>
         <div class="title">主页</div>
+        <!-- 问题库管理按钮 -->
+        <button id="problem-library-btn" class="problem-library-btn">问题库管理</button>
+        <!-- 数据看板按钮 -->
+        <button id="dashboard-btn" class="dashboard-btn">数据看板</button>
         <!-- 排期项目面板按钮 -->
         <button id="schedule-panel-btn" class="schedule-panel-btn">排期项目按钮</button>
     </div>
@@ -103,8 +110,10 @@
     <div id="log-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>更新日志<span style="color: red;">(！！！更新问题点汇总工作表，新增"问题类别"一列。)</span></h2>
-            <p>20250111:创建报告现在需要填写的是计划表卢绮敏提供的三个排期内容：排期时间，排期天数，请写准确，不允许修改的！
+            <h2>更新日志<span style="color: red;">(！！！简化提交步骤，不用再进入报告了！)</span></h2>
+            <p>20251017:提交报告的时候去除进入报告这一步，总算抽空优化这一步骤了。
+                <br>
+                20250111:创建报告现在需要填写的是计划表卢绮敏提供的三个排期内容：排期时间，排期天数，请写准确，不允许修改的！
                 <br>
                 2024.11.18<br>
                 1. 打通测试报告审核签样流程：测试人员提交->DQE审核问题点->研发审核判定->DQE最终判定->返回通知测试及DQE判定结果。此过程中任何一方角色都可以同步查看修改问题点，并且有操作记录,每个流程节点都会有OA消息通知对应人。<br>
@@ -134,7 +143,7 @@
                 4. 解析文件限制最大的列数100，行数则如果连续10行为空则停止往下解析。(防止文件右方和下方出现太多空格加载冗余)<br>
                 5. 新增字段测试时长和预计测试时长，在UI展示。<br>
                 6. 解决bug: xlsx文件中的浮点数解析到程序里会向上取整为整数，实际上文件内容还是小数点，已解决，现在对浮点数类型不进行小数点限制。--龙运发现<br>
-                7. 提交报告的时候新增对缺少”测试问题点汇总“工作表的提示，方便找到提交失败的问题。<br>
+                7. 提交报告的时候新增对缺少"测试问题点汇总"工作表的提示，方便找到提交失败的问题。<br>
                 8. 设置逾期判断，从2024.9.23号0点创建的文件开始计算。<br>
                 9. 可以查看各组员报告用时情况，可以导出为一份xlsx文件。<br>
 
@@ -413,8 +422,7 @@
 
 
 
-    <!-- 引入 jQuery -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
     <script>
 
         //排期项目的属性
@@ -466,14 +474,14 @@
                 overlay.style.display = 'block';
                 modal.style.display = 'block';
 
-                // 点击“确认”按钮时，关闭模态框并返回 true
+                // 点击"确认"按钮时，关闭模态框并返回 true
                 yesButton.onclick = () => {
                     overlay.style.display = 'none';
                     modal.style.display = 'none';
                     resolve(true); // 返回 true 表示用户点击了确认
                 };
 
-                // 点击“取消”按钮时，关闭模态框并返回 false
+                // 点击"取消"按钮时，关闭模态框并返回 false
                 noButton.onclick = () => {
                     overlay.style.display = 'none';
                     modal.style.display = 'none';
@@ -486,14 +494,14 @@
 
 
         // 此路径是指文件模板的位置BASE_DIRECTORY
-        const BASE_DIRECTORY = sessionStorage.getItem('templatespath');
-        const savepath = sessionStorage.getItem('savepath');
-        const corp_id = sessionStorage.getItem('corp_id');
+        const BASE_DIRECTORY = localStorage.getItem('templatespath');
+        const savepath = localStorage.getItem('savepath');
+        const corp_id = localStorage.getItem('corp_id');
 
         let isEditing = false; // 新增状态标志
 
-        const username = sessionStorage.getItem('username');
-        const job =sessionStorage.getItem('job');
+        const username = localStorage.getItem('username');
+        const job =localStorage.getItem('job');
         //调试用
         // const username = "卢健";
         // const job = "tester";
@@ -583,8 +591,8 @@
             loadData();
             // 加载数据的函数
             function loadData() {
-                // 从 sessionStorage 中获取 username
-                // var username = sessionStorage.getItem('username');
+                // 从 localStorage 中获取 username
+                // var username = localStorage.getItem('username');
 
                 // 检查 username 是否存在
                 if (!username) {
@@ -681,6 +689,8 @@
                 const editModal = document.getElementById('editModal');
                 if (event.target === editModal) {
                     editModal.style.display = 'none';
+                    // 关闭修改产品信息模态框时触发搜索方法刷新列表
+                    performSearch();
                 }
 
             }
@@ -821,14 +831,19 @@
                                     localStorage.setItem(`sample_name_` ,sample_name);
                                     localStorage.setItem(`tester_` ,username);
 
+                                    // 注释掉跳转到报告页面的代码，改为刷新当前页面
                                     // window.location.href = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
-                                    let redirectUrl = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
-                                    if (redirectUrl.indexOf('?') !== -1) {
-                                        redirectUrl += '&dd_orientation=landscape';
-                                    } else {
-                                        redirectUrl += '?dd_orientation=landscape';
-                                    }
-                                    window.location.href = redirectUrl;
+                                    // let redirectUrl = '/excelShow?filePath=' + encodeURIComponent(filepaths[0]);
+                                    // if (redirectUrl.indexOf('?') !== -1) {
+                                    //     redirectUrl += '&dd_orientation=landscape';
+                                    // } else {
+                                    //     redirectUrl += '?dd_orientation=landscape';
+                                    // }
+                                    // window.location.href = redirectUrl;
+
+                                    // 创建报告成功后刷新当前页面
+                                    alert('报告创建成功！');
+                                    window.location.reload();
                                 }else{
                                     // addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,planfinish_time,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats);
                                     addexistModal(filepaths,selectedFilePath,model,coding,category,version,sample_name,sample_frequency,sample_quantity,big_species,small_species,high_frequency,questStats,scheduleStartTime,scheduleEndTime,scheduleTestCycle,
@@ -874,32 +889,44 @@
                 localStorage.setItem(`sample_name_` ,sample_name);
                 localStorage.setItem(`tester_` ,username);
 
-                let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
-                    + '&model=' + encodeURIComponent(model)
-                    + '&coding=' + encodeURIComponent(coding)
-                    + '&category=' + encodeURIComponent(category)
-                    + '&version=' + encodeURIComponent(version)
-                    + '&sample_name=' + encodeURIComponent(sample_name)
-                    // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
-                    + '&username=' + encodeURIComponent(username)
-                    + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
-                    + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
-                    + '&big_species=' + encodeURIComponent(big_species)
-                    + '&small_species=' + encodeURIComponent(small_species)
-                    + '&high_frequency=' + encodeURIComponent(high_frequency)
-                    + '&questStats=' + encodeURIComponent(questStats)
-                    + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
-                    + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                    + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
-                    + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
-
-                if (redirectUrl.indexOf('?') !== -1) {
-                    redirectUrl += '&dd_orientation=landscape';
-                } else {
-                    redirectUrl += '?dd_orientation=landscape';
-                }
-
-                window.location.href = redirectUrl;
+                // 直接调用复制文件接口，不跳转到ExcelShow
+                $.ajax({
+                    url: '/copyClickFile',
+                    type: 'POST',
+                    data: {
+                        filePath: selectedFilePath,
+                        model: model,
+                        coding: coding,
+                        category: category,
+                        version: version,
+                        sample_name: sample_name,
+                        username: username,
+                        sample_frequencyStr: sample_frequencyStr,
+                        sample_quantityStr: sample_quantityStr,
+                        big_species: big_species,
+                        small_species: small_species,
+                        high_frequency: high_frequency,
+                        questStats: questStats,
+                        scheduleStartTime: scheduleStartTime,
+                        scheduleEndTime: scheduleEndTime,
+                        scheduleTestCycle: scheduleTestCycle,
+                        electric_sample_id: electric_sample_id
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // 关闭模态框
+                            existModal.style.display = "none";
+                            alert('报告创建成功！');
+                            window.location.reload();
+                        } else {
+                            alert('文件复制失败: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('复制文件失败:', status, error);
+                        alert('文件复制失败，请重试！');
+                    }
+                });
             };
             originalFileLink.textContent = selectedFilePath;
             originalFileLink.style.fontWeight = 'bold'; // 加粗
@@ -920,34 +947,44 @@
                     localStorage.setItem(`sample_name_` ,sample_name);
                     localStorage.setItem(`tester_` ,username);
 
-                    let redirectUrl = '/copyClickFile?filePath=' + encodeURIComponent(selectedFilePath)
-                        + '&model=' + encodeURIComponent(model)
-                        + '&coding=' + encodeURIComponent(coding)
-                        + '&category=' + encodeURIComponent(category)
-                        + '&version=' + encodeURIComponent(version)
-                        + '&sample_name=' + encodeURIComponent(sample_name)
-                        // + '&planfinish_time=' + encodeURIComponent(planfinish_time)
-                        + '&username=' + encodeURIComponent(username)
-                        + '&sample_frequencyStr=' + encodeURIComponent(sample_frequencyStr)
-                        + '&sample_quantityStr=' + encodeURIComponent(sample_quantityStr)
-                        + '&big_species=' + encodeURIComponent(big_species)
-                        + '&small_species=' + encodeURIComponent(small_species)
-                        + '&high_frequency=' + encodeURIComponent(high_frequency)
-                        + '&questStats=' + encodeURIComponent(questStats)
-                        + '&scheduleStartTime=' + encodeURIComponent(scheduleStartTime)
-                        + '&scheduleEndTime=' + encodeURIComponent(scheduleEndTime)
-                        + '&scheduleTestCycle=' + encodeURIComponent(scheduleTestCycle)
-                        + '&electric_sample_id=' + encodeURIComponent(electric_sample_id);
-
-// Check if the URL already contains a query string (i.e., '?')
-                    if (redirectUrl.indexOf('?') !== -1) {
-                        redirectUrl += '&dd_orientation=landscape';
-                    } else {
-                        redirectUrl += '?dd_orientation=landscape';
-                    }
-
-// Redirect the user to the constructed URL
-                    window.location.href = redirectUrl;
+                    // 直接调用复制文件接口，不跳转到ExcelShow
+                    $.ajax({
+                        url: '/copyClickFile',
+                        type: 'POST',
+                        data: {
+                            filePath: selectedFilePath,
+                            model: model,
+                            coding: coding,
+                            category: category,
+                            version: version,
+                            sample_name: sample_name,
+                            username: username,
+                            sample_frequencyStr: sample_frequencyStr,
+                            sample_quantityStr: sample_quantityStr,
+                            big_species: big_species,
+                            small_species: small_species,
+                            high_frequency: high_frequency,
+                            questStats: questStats,
+                            scheduleStartTime: scheduleStartTime,
+                            scheduleEndTime: scheduleEndTime,
+                            scheduleTestCycle: scheduleTestCycle,
+                            electric_sample_id: electric_sample_id
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                // 关闭模态框
+                                existModal.style.display = "none";
+                                alert('报告创建成功！');
+                                window.location.reload();
+                            } else {
+                                alert('文件复制失败: ' + response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('复制文件失败:', status, error);
+                            alert('文件复制失败，请重试！');
+                        }
+                    });
                 };
                 fileLink.textContent = selectedFilePath;
                 existModalContent.appendChild(fileLink);
@@ -965,8 +1002,15 @@
                     <div class="editinputModal-content">
                         <span class="close">&times;</span>
                         <div class="edith2-container">
-                            <h2>请输入产品信息</h2>
+                            <h2>修改产品信息</h2>
                             <div class="button-group">
+                                <!-- 问题点确认状态复选框 -->
+                                <div class="confirm-checkbox-container">
+                                    <label for="passbackConfirmCheckbox" class="confirm-checkbox-label">
+                                        <input type="checkbox" id="passbackConfirmCheckbox" name="passbackConfirm">
+                                        已回传问题点
+                                    </label>
+                                </div>
                                 <button type="button" id="passbackProblemBtn">回传<br>问题点页面</button>
                                 <button type="button" id="copyLinkBtn">复制<br>链接</button>
                                 <button type="button" id="viewTestItemsBtn">查看<br>测试项</button>
@@ -975,7 +1019,7 @@
                                  <!-- 隐藏的文件输入框 -->
                                 <input type="file" id="fileInput" accept=".xlsx" style="display:none;" />
                                 <button type="button" id="replaceButton">替换<br>报告</button>
-                                <button type="button" id="jumpButton">进入<br>报告</button>
+                                <!-- <button type="button" id="jumpButton">进入<br>报告</button> -->
                             </div>
                         </div>
                         <form id="fileEditForm">
@@ -1056,6 +1100,12 @@
                             <label for="tester">当前测试者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <select id="tester" name="tester" >
                                 <option value="" disabled>如需更换测试者选择此项</option>
+                                <option value="卢绮敏">卢绮敏</option>
+                                <option value="易湄洁">易湄洁</option>
+                                <option value="夏祎">夏祎</option>
+                                <option value="缪宇欢">缪宇欢</option>
+                                <option value="胡铭">胡铭</option>
+                                <option value="劳钰雯">劳钰雯</option>
                                 <option value="翟世鸿">翟世鸿</option>
                                 <option value="骆书英">骆书英</option>
                                 <option value="梁秋宇">梁秋宇</option>
@@ -1066,7 +1116,7 @@
                                 <option value="冯兴旺">冯兴旺</option>
                                 <option value="郭喆">郭喆</option>
                                 <option value="游宏">游宏</option>
-                                <option value="殷嘉俊">殷嘉俊</option>
+<!--                                <option value="殷嘉俊">殷嘉俊</option>-->
                                 <option value="唐日顺">唐日顺</option>
                                 <option value="官旺华">官旺华</option>
                                 <option value="刘鹏飞">刘鹏飞</option>
@@ -1135,6 +1185,64 @@
             document.getElementById('tester').value = product.tester;
             document.getElementById('edit_electric_id').value = product.electric_sample_id;
 
+            // 设置问题点确认状态复选框的初始值
+            console.log('product对象:', product); // 调试信息
+            console.log('passbackConfirm值:', product.passbackConfirm); // 调试信息
+
+            // 延迟设置复选框值，确保DOM完全渲染
+            setTimeout(() => {
+                const checkbox = document.getElementById('passbackConfirmCheckbox');
+                if (checkbox) {
+                    console.log('找到复选框元素，ID:', checkbox.id); // 调试信息
+
+                    // 优先使用 localStorage 中保存的状态，如果没有则使用 product.passbackConfirm
+                    const storageKey = `passbackConfirm_${product.sample_id}`;
+                    const savedStatus = localStorage.getItem(storageKey);
+                    let isChecked = false;
+
+                    if (savedStatus) {
+                        // 如果有保存的状态，使用保存的状态
+                        isChecked = savedStatus === '已回传';
+                        console.log('使用 localStorage 中保存的状态:', savedStatus, '复选框设置为:', isChecked);
+                    } else if (product.passbackConfirm !== undefined && product.passbackConfirm !== null) {
+                        // 如果没有保存的状态，使用 product.passbackConfirm
+                        isChecked = product.passbackConfirm === '已回传';
+                        console.log('使用 product.passbackConfirm 的值:', product.passbackConfirm, '复选框设置为:', isChecked);
+                    } else {
+                        // 默认值
+                        isChecked = false;
+                        console.log('使用默认值，复选框设置为:', isChecked);
+                    }
+
+                    // 使用多种方式设置复选框
+                    checkbox.checked = isChecked;
+                    checkbox.setAttribute('checked', isChecked);
+
+                    // 强制触发change事件
+                    if (isChecked) {
+                        checkbox.setAttribute('checked', 'checked');
+                    } else {
+                        checkbox.removeAttribute('checked');
+                    }
+
+                    console.log('复选框最终设置为:', isChecked); // 调试信息
+                    console.log('复选框checked属性:', checkbox.checked); // 调试信息
+                    console.log('复选框checked属性（getAttribute）:', checkbox.getAttribute('checked')); // 调试信息
+                } else {
+                    console.error('未找到复选框元素，请检查ID是否正确'); // 调试信息
+                }
+            }, 200); // 增加延迟时间
+
+            // 为复选框添加change事件监听器，当状态改变时自动保存到数据库
+            document.getElementById('passbackConfirmCheckbox').addEventListener('change', function() {
+                const isChecked = this.checked;
+                const sample_id = $('#edit_sample_id').val();
+
+                // 立即保存到数据库
+                updatePassbackConfirmInDatabase(sample_id, isChecked, product);
+
+            });
+
             document.getElementById('edit_sample_name').addEventListener('input', function(e) {
                 // this.value = this.value.replace(/[\\\/]/g, '_');
                 // this.value = this.value.replace(/[\\\/:*?"<>|]/g, '_');
@@ -1142,7 +1250,7 @@
                 this.value = this.value.replace(/[\/\\:*?"<>|\t]/g, "_");
             });
 
-            // 因为手机端需要有“T”才可以在前端展示这个数据，不然会显示空
+            // 因为手机端需要有"T"才可以在前端展示这个数据，不然会显示空
             // const formattedPlanFinishTime = product.planfinish_time.replace(' ', 'T');
             // document.getElementById('edit_planfinish_time').value = formattedPlanFinishTime;
             // 检查并更新 scheduleStartTime
@@ -1175,8 +1283,39 @@
             // 显示模态框
             document.getElementById('editModal').style.display = 'block';
 
+            // 添加ESC键事件监听器
+            const handleEscapeKey = (event) => {
+                if (event.key === 'Escape') {
+                    const editModal = document.getElementById('editModal');
+                    if (editModal && editModal.style.display === 'block') {
+                        editModal.style.display = 'none';
+                        editModal.remove();
+                        // 关闭修改产品信息模态框时触发搜索方法刷新列表
+                        performSearch();
+                    }
+                }
+            };
+            document.addEventListener('keydown', handleEscapeKey);
+
             // 点击关闭按钮时关闭模态框
             document.querySelector('#editModal .close').onclick = function() {
+                // 在关闭模态框前，将更新后的状态同步到页面的数据中
+                const checkbox = document.getElementById('passbackConfirmCheckbox');
+                if (checkbox) {
+                    const sample_id = $('#edit_sample_id').val();
+                    const storageKey = `passbackConfirm_${sample_id}`;
+                    const currentStatus = localStorage.getItem(storageKey);
+
+                    if (currentStatus) {
+                        // 更新 product 对象中的 passbackConfirm 值
+                        product.passbackConfirm = currentStatus;
+                        console.log('模态框关闭时，已同步 product.passbackConfirm 为:', currentStatus);
+                    }
+                }
+
+                // 移除ESC键事件监听器
+                document.removeEventListener('keydown', handleEscapeKey);
+
                 document.getElementById('editModal').remove();
                 //保存之后会更新数据库，此时需要重新从后端获取到新的数据才准，所以需要再走一遍获取数据的方法
                 // window.location.href = '/testManIndex';
@@ -1262,134 +1401,140 @@
             };
 
 
-            document.querySelector('#jumpButton').onclick = function() {
-                // 显示模态框
-                document.getElementById('loadingModal').style.display = 'block';
+            // 注释掉"进入报告"按钮功能 - 暂时不使用
+            /*
+        document.querySelector('#jumpButton').onclick = function() {
+            // 显示模态框
+            document.getElementById('loadingModal').style.display = 'block';
 
-                let countdownElement = document.getElementById('countdown');
-                let countdownTime = 5;
-                let countdownInterval;
+            let countdownElement = document.getElementById('countdown');
+            let countdownTime = 5;
+            let countdownInterval;
 
-                // 更新倒数计时
-                function updateCountdown() {
-                    countdownTime--;
-                    countdownElement.innerText = countdownTime;
-                    if (countdownTime <= 0) {
-                        clearInterval(countdownInterval);
-                        proceedWithRequest();
-                    }
-                }
-
-                // 启动倒数计时
-                countdownInterval = setInterval(updateCountdown, 1000);
-
-                // 取消按钮点击事件
-                document.getElementById('cancelButton').onclick = function() {
-                    // 清除倒数计时
+            // 更新倒数计时
+            function updateCountdown() {
+                countdownTime--;
+                countdownElement.innerText = countdownTime;
+                if (countdownTime <= 0) {
                     clearInterval(countdownInterval);
-                    countdownElement.innerText = 5;
-                    // 隐藏模态框
-                    document.getElementById('loadingModal').style.display = 'none';
-                };
-
-                // 关闭按钮点击事件
-                document.getElementById('closeModal').onclick = function() {
-                    // 清除倒数计时
-                    clearInterval(countdownInterval);
-                    countdownElement.innerText = 5;
-                    // 隐藏模态框
-                    document.getElementById('loadingModal').style.display = 'none';
-                };
-
-                // 执行实际的Ajax请求
-                function proceedWithRequest() {
-                    // 20241226改成通过id去跳转文件地址
-                    var sample_id = $('#edit_sample_id').val();
-
-                    var model = $('#edit_model').val();
-                    var coding = $('#edit_coding').val();
-                    // var category = $('#edit_category').val();
-                    // var version = $('#edit_version').val();
-                    // var big_species = $('#edit_big_species').val();
-                    // var small_species = $('#edit_small_species').val();
-                    // var high_frequency = $('#edit_high_frequency').val();
-                    // var questStats = $('#edit_questStats').val();
-                    // var sample_frequency = $('#edit_sample_frequency').val();
-                    var sample_name = $('#edit_sample_name').val();
-                    var supplier = $('#edit_supplier').val();
-
-                    var sample_DQE = $('#edit_sample_DQE').val();
-                    var sample_Developer = $('#edit_sample_Developer').val();
-                    var tester = $('#tester').val();
-
-                    $.ajax({
-                        url: '/testManIndex/getjumpFilepath',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            sample_id: sample_id
-                            // model: model,
-                            // coding: coding,
-                            // category: category,
-                            // version: version,
-                            // big_species: big_species,
-                            // small_species: small_species,
-                            // high_frequency: high_frequency,
-                            // questStats: questStats,
-                            // sample_frequency: sample_frequency
-                        }),
-                        success: function(jumpfilepath){
-                            $.ajax({
-                                url: '/loginExcelShow',
-                                type: 'POST',
-                                data: {
-                                    filePath: jumpfilepath
-                                },
-                                success: function(response){
-                                    if (response.status === 'success') {
-                                        localStorage.setItem(`DQE_` ,sample_DQE);
-                                        localStorage.setItem(`Developer_` ,sample_Developer);
-                                        localStorage.setItem(`model_` ,model);
-                                        localStorage.setItem(`coding_` ,coding);
-                                        localStorage.setItem(`sample_name_` ,sample_name);
-                                        localStorage.setItem(`supplier_` ,supplier);
-                                        localStorage.setItem(`tester_` ,tester);
-
-
-                                        var redirectUrl = response.redirectUrl;
-                                        if (redirectUrl.indexOf('?') !== -1) {
-                                            redirectUrl += '&dd_orientation=landscape';
-                                        } else {
-                                            redirectUrl += '?dd_orientation=landscape';
-                                        }
-                                        window.location.href = redirectUrl;
-                                        // window.location.href = response.redirectUrl;
-                                    } else {
-                                        alert(response.message);
-                                    }
-                                },
-                                error: function(xhr, status, error){
-                                    console.log("文件处理失败", error);
-                                    alert("文件处理失败，请稍后再试！");
-                                }
-                            });
-                        },
-                        error: function(xhr, status, error){
-                            console.log("获取不到文件路径", error);
-                            alert("获取不到文件路径!");
-                        },
-                        complete: function() {
-                            // 请求完成后隐藏模态框
-                            document.getElementById('loadingModal').style.display = 'none';
-                        }
-                    });
+                    proceedWithRequest();
                 }
+            }
+
+            // 启动倒数计时
+            countdownInterval = setInterval(updateCountdown, 1000);
+
+            // 取消按钮点击事件
+            document.getElementById('cancelButton').onclick = function() {
+                // 清除倒数计时
+                clearInterval(countdownInterval);
+                countdownElement.innerText = 5;
+                // 隐藏模态框
+                document.getElementById('loadingModal').style.display = 'none';
             };
+
+            // 关闭按钮点击事件
+            document.getElementById('closeModal').onclick = function() {
+                // 清除倒数计时
+                clearInterval(countdownInterval);
+                countdownElement.innerText = 5;
+                // 隐藏模态框
+                document.getElementById('loadingModal').style.display = 'none';
+            };
+
+            // 执行实际的Ajax请求
+            function proceedWithRequest() {
+                // 20241226改成通过id去跳转文件地址
+                var sample_id = $('#edit_sample_id').val();
+
+                var model = $('#edit_model').val();
+                var coding = $('#edit_coding').val();
+                // var category = $('#edit_category').val();
+                // var version = $('#edit_version').val();
+                // var big_species = $('#edit_big_species').val();
+                // var small_species = $('#edit_small_species').val();
+                // var high_frequency = $('#edit_high_frequency').val();
+                // var questStats = $('#edit_questStats').val();
+                // var sample_frequency = $('#edit_sample_frequency').val();
+                var sample_name = $('#edit_sample_name').val();
+                var supplier = $('#edit_supplier').val();
+
+                var sample_DQE = $('#edit_sample_DQE').val();
+                var sample_Developer = $('#edit_sample_Developer').val();
+                var tester = $('#tester').val();
+
+                $.ajax({
+                    url: '/testManIndex/getjumpFilepath',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        sample_id: sample_id
+                        // model: model,
+                        // coding: coding,
+                        // category: category,
+                        // version: version,
+                        // big_species: big_species,
+                        // small_species: small_species,
+                        // high_frequency: high_frequency,
+                        // questStats: questStats,
+                        // sample_frequency: sample_frequency
+                    }),
+                    success: function(jumpfilepath){
+                        $.ajax({
+                            url: '/loginExcelShow',
+                            type: 'POST',
+                            data: {
+                                filePath: jumpfilepath
+                            },
+                            success: function(response){
+                                if (response.status === 'success') {
+                                    localStorage.setItem(`DQE_` ,sample_DQE);
+                                    localStorage.setItem(`Developer_` ,sample_Developer);
+                                    localStorage.setItem(`model_` ,model);
+                                    localStorage.setItem(`coding_` ,coding);
+                                    localStorage.setItem(`sample_name_` ,sample_name);
+                                    localStorage.setItem(`supplier_` ,supplier);
+                                    localStorage.setItem(`tester_` ,tester);
+
+
+                                    var redirectUrl = response.redirectUrl;
+                                    if (redirectUrl.indexOf('?') !== -1) {
+                                        redirectUrl += '&dd_orientation=landscape';
+                                    } else {
+                                        redirectUrl += '?dd_orientation=landscape';
+                                    }
+                                    window.location.href = redirectUrl;
+                                    // window.location.href = response.redirectUrl;
+                                } else {
+                                    alert(response.message);
+                                }
+                            },
+                            error: function(xhr, status, error){
+                                console.log("文件处理失败", error);
+                                alert("文件处理失败，请稍后再试！");
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error){
+                        console.log("获取不到文件路径", error);
+                        alert("获取不到文件路径!");
+                    },
+                    complete: function() {
+                        // 请求完成后隐藏模态框
+                        document.getElementById('loadingModal').style.display = 'none';
+                    }
+                });
+            }
+        };
+        */
 
             // 为 passbackProblemBtn 添加点击事件
             document.getElementById('passbackProblemBtn').addEventListener('click', async function() {
 
                 var sample_id = $('#edit_sample_id').val();
+
+                // 获取问题点确认状态复选框的值
+                const passbackConfirm = document.getElementById('passbackConfirmCheckbox').checked;
 
                 // 检查 checkJudge 状态
                 const checkJudge = await checkSampleResult(sample_id);
@@ -1427,6 +1572,7 @@
                     formData.append('excelFile', file);
                     formData.append('sample_id', sample_id);
                     formData.append('job', job);
+                    formData.append('passbackConfirm', passbackConfirm);
 
                     try {
                         // 显示上传提示
@@ -1459,12 +1605,14 @@
 
                 // 构建中转页面URL
                 const redirectMidPageUrl = `http://219.134.191.195:64000/authRedirect?sample_id=${encodeURIComponent(sampleId)}`;
+                // const redirectMidPageUrl = `http://ua6fbe8b.natappfree.cc/authRedirect?sample_id=${encodeURIComponent(sampleId)}`;
 
                 // 构建钉钉跳转链接
                 const messageUrl = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+`dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectMidPageUrl)}`;
+                // const messageUrl = "您好！电气性能测试报告已完成，请点击以下链接跳转审核：\n"+`dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=${encodeURIComponent(redirectMidPageUrl)}`;
 
-                // 调用showCustomAlertWithCopy函数显示链接
-                showCustomAlertWithCopy(messageUrl);
+                // 直接复制链接到剪贴板
+                copyTextToClipboard(messageUrl);
             });
 
 
@@ -1479,7 +1627,9 @@
                 // 更新sample_name的值
                 $('#edit_sample_name').val(edit_sample_name);
 
-                var formData = $(this).serialize();
+                // 获取复选框的值并添加到表单数据中
+                var passbackConfirm = document.getElementById('passbackConfirmCheckbox').checked;
+                var formData = $(this).serialize() + '&passbackConfirm=' + passbackConfirm;
 
                 $.ajax({
                     url: '/testManIndex/updateSamples',
@@ -1496,10 +1646,10 @@
                                 document.getElementById('editModal').remove();
                                 performSearch();
                             }
-                            document.getElementById('edit_sample_DQE').value = $('#edit_sample_DQE').val();
-                            document.getElementById('edit_sample_Developer').value = $('#edit_sample_Developer').val();
-                            document.getElementById('edit_supplier').value = $('#edit_supplier').val();
-                            document.getElementById('edit_sample_name').value = $('#edit_sample_name').val();
+                            document.getElementById('edit_sample_DQE').value = $('#edit_sample_DQE').val().trim();
+                            document.getElementById('edit_sample_Developer').value = $('#edit_sample_Developer').val().trim();
+                            document.getElementById('edit_supplier').value = $('#edit_supplier').val().trim();
+                            document.getElementById('edit_sample_name').value = $('#edit_sample_name').val().trim();
                             // 优先显示 warning，如果没有才显示 message
                             if (response.warning && response.warning.trim() !== "") {
                                 alert(response.warning);
@@ -1583,6 +1733,10 @@
                     return "特采";
                 case 4:
                     return "会议评审接受";
+                case 5:
+                    return "验证样品合格";
+                case 6:
+                    return "验证样品不合格";
                 default:
                     return "未知"; // 默认返回值
             }
@@ -1598,10 +1752,23 @@
                     // 创建表格和按钮的容器
                     var tableAndButtons = '<div class="table-and-buttons">';
 
-                    var isDanger = (product.danger && product.danger.trim() !== "") ||
-                        (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
-                        (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
-                        (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+                    // var isDanger = (product.danger && product.danger.trim() !== "") ||
+                    //     (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                    //     (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                    //     (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+
+                    var isDanger = false;
+// 定义一个基准日期：2025年8月11日
+                    var thresholdDate = new Date('2025-08-05T00:00:00');
+// 只有当 product.create 存在且大于 2025-08-11 时，才进行危险判断
+                    if (product.create_time && new Date(product.create_time) > thresholdDate) {
+                        isDanger = (product.danger && product.danger.trim() !== "") ||
+                            (product.finish_time && new Date(product.finish_time).getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                            (!product.finish_time && new Date().getTime() > new Date(product.scheduleEndTime).getTime()) ||
+                            (product.finish_time && product.sample_schedule === '0' && new Date().getTime() > new Date(product.scheduleEndTime).getTime());
+                    }
+
+
 
                     // 如果 scheduleEndTime 为 null，则 isDanger 一定为 false
                     if (product.scheduleEndTime === null) {
@@ -2032,7 +2199,7 @@
                         updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                         // 等待 2 秒后发送给绮敏
                         setTimeout(() => {
-                            updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                            updateSchedule("9", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                         }, 2000); // 2000 毫秒 = 2 秒
 
                     }else if(response.message.includes("竞品文件完成")){
@@ -2051,7 +2218,7 @@
 
                         // 等待 2 秒后发送给绮敏
                         setTimeout(() => {
-                            updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                            updateSchedule("10", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                         }, 2000); // 2000 毫秒 = 2 秒
                     }
                     initData();
@@ -2384,7 +2551,7 @@
                                 value = item[attr.field];
                             }
 
-                            // 获取“提出人”列的值
+                            // 获取"提出人"列的值
                             const responsiblePersonValue = item['tester']; // 假设 'responsiblePerson' 为提出人列的字段名
 
 
@@ -2413,7 +2580,7 @@
                                         valueDiv.appendChild(img);  // 添加图片到 valueDiv 中
                                     }else{
                                         const uploadText = document.createElement('div');
-                                        uploadText.textContent = '上传图片';  // 显示“上传图片”
+                                        uploadText.textContent = '上传图片';  // 显示"上传图片"
                                         uploadText.style.cursor = 'pointer';  // 设置点击样式
                                         uploadText.style.color = '#8a4e07';  // 设置文本颜色
 
@@ -2436,11 +2603,11 @@
                                             });
                                         }
 
-                                        valueDiv.appendChild(uploadText);  // 添加“上传图片”到 valueDiv 中
+                                        valueDiv.appendChild(uploadText);  // 添加"上传图片"到 valueDiv 中
                                     }
                                 }else if(index === 7){
                                     // 定义需要转换为下拉框的选项
-                                    const validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
+                                    let validOptions = ['OPEN', 'CLOSED', 'FOLLOW UP', '待确定'];
 
                                     // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                     let normalizedValue = String(value).toUpperCase();
@@ -2449,8 +2616,10 @@
                                         normalizedValue = 'CLOSED';  // 自动将CLOSE转换为CLOSED
                                     }
 
-                                    // 如果值不在有效选项内，则将值设置为“待确定”
-                                    if (!validOptions.includes(normalizedValue)) {
+                                    // 如果值不在有效选项内，将其添加到选项中
+                                    if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                        validOptions.push(normalizedValue);
+                                    } else if (normalizedValue.trim() === '') {
                                         normalizedValue = '待确定';
                                     }
 
@@ -2500,13 +2669,15 @@
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 }else if(index === 8){
                                     // 定义需要转换为下拉框的选项
-                                    const validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
+                                    let validOptions = ['电气性能', '兼容性','可靠性', '工艺' ,'待确定'];
 
                                     // 将传递过来的值转换为统一格式，并检查是否需要转换CLOSE为CLOSED
                                     let normalizedValue = String(value);
 
-                                    // 如果值不在有效选项内，则将值设置为“待确定”
-                                    if (!validOptions.includes(normalizedValue)) {
+                                    // 如果值不在有效选项内，将其添加到选项中
+                                    if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                        validOptions.push(normalizedValue);
+                                    } else if (normalizedValue.trim() === '') {
                                         normalizedValue = '待确定';
                                     }
 
@@ -2556,16 +2727,15 @@
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 } else if(index === 6){
                                     // 定义需要转换为下拉框的等级选项
-                                    const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+                                    let validOptions = ['S', 'A', 'B', 'C', '待确定'];
 
                                     // 将传递过来的值转换为统一格式（大写）
                                     let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 使用输入的值创建下拉框
-                                    } else {
-                                        // 如果值不在有效选项范围内，将值设为“待确定”
+                                    // 如果值不在有效选项内，将其添加到选项中
+                                    if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                        validOptions.push(normalizedValue);
+                                    } else if (normalizedValue.trim() === '') {
                                         normalizedValue = '待确定';
                                     }
 
@@ -2615,16 +2785,15 @@
                                     valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                                 }else if(index === 1){
                                     // 定义需要转换为下拉框的等级选项
-                                    const validOptions = ['产品', '项目', '结构', 'ID', '研发' ,'DQE' ,'SQE' ,'CQE','待确定'];
+                                    let validOptions = ['产品', '项目', '结构', 'ID', '研发' ,'DQE' ,'SQE' ,'CQE','待确定'];
 
                                     // 将传递过来的值转换为统一格式（大写）
                                     let normalizedValue = String(value).toUpperCase();
 
-                                    // 如果输入的值在有效选项内，使用下拉框，否则将值改为“待确定”
-                                    if (validOptions.includes(normalizedValue)) {
-                                        // 使用输入的值创建下拉框
-                                    } else {
-                                        // 如果值不在有效选项范围内，将值设为“待确定”
+                                    // 如果值不在有效选项内，将其添加到选项中
+                                    if (!validOptions.includes(normalizedValue) && normalizedValue.trim() !== '') {
+                                        validOptions.push(normalizedValue);
+                                    } else if (normalizedValue.trim() === '') {
                                         normalizedValue = '待确定';
                                     }
 
@@ -3260,7 +3429,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“待确定”
+                                    // 设置默认选中的选项为"待确定"
                                     if (option === '待确定') {
                                         optionElement.selected = true;
                                     }
@@ -3281,7 +3450,7 @@
                                 });
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
-                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“待确定”
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为"待确定"
                                 newDiv.style.color = '#8a4e07'; // 设置字体颜色
                                 value = '待确定';
 
@@ -3298,7 +3467,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === 'OPEN') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -3320,8 +3489,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = 'OPEN'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = 'OPEN'; // 初始化该字段的值为"OPEN"
                                 value = 'OPEN';
 
                                 // 设置字体颜色
@@ -3339,7 +3508,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === '待确定') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -3361,8 +3530,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为"OPEN"
                                 value = '待确定';
 
                                 // 设置字体颜色
@@ -3380,7 +3549,7 @@
                                     optionElement.value = option;
                                     optionElement.textContent = option;
 
-                                    // 设置默认选中的选项为“OPEN”
+                                    // 设置默认选中的选项为"OPEN"
                                     if (option === '待确定') {
                                         optionElement.selected = true; // 确保 "OPEN" 是默认选中的选项
                                     }
@@ -3402,8 +3571,8 @@
 
                                 newDiv.appendChild(select);  // 添加下拉框到 newDiv 中
 
-                                // 确保在创建时，newItem[attr.field] 被设置为“OPEN”
-                                newItem[attr.field] = '待确定'; // 初始化该字段的值为“OPEN”
+                                // 确保在创建时，newItem[attr.field] 被设置为"OPEN"
+                                newItem[attr.field] = '待确定'; // 初始化该字段的值为"OPEN"
                                 value = '待确定';
 
                                 // 设置字体颜色
@@ -3441,175 +3610,50 @@
                 });
         }
 
-        function exportProblemXlsx(data, exportButton) {
-            // console.log(data);
+        function exportProblemXlsx(data) {
+            const requestData = { issues: data };
 
-            // 选择联系人
-            dd.biz.contact.choose({
-                multiple: false,
-                users: [],
-                corpId: corp_id,
-                max: 1,
-                onSuccess: function(contactData) {
-                    const selectedUserId = contactData[0].emplId; // 获取单个用户ID
+            $.ajax({
+                url: '/problemMoudle/exportProblemXlsx',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                xhrFields: { responseType: 'blob' },
+                success: function (blob, status, xhr) {
+                    // 解析文件名：同时支持 filename 与 filename*
+                    const cd = xhr.getResponseHeader('Content-Disposition') || '';
+                    let fileName = '测试问题点.xlsx';
 
-                    // 选择钉盘目录
-                    dd.chooseDingTalkDir({
-                        corpId: corp_id, // 企业ID
-                        onSuccess: function(res) {
-                            const selectedDirId = res.data[0].dirId; // 获取选中的目录ID
-                            const selectedSpaceId = res.data[0].spaceId; // 获取选中的空间ID
+                    // 匹配 filename*=
+                    const fnStar = /filename\*\=UTF-8''([^;]+)/i.exec(cd);
+                    if (fnStar && fnStar[1]) {
+                        fileName = decodeURIComponent(fnStar[1]);
+                    } else {
+                        // 匹配 filename=
+                        const fnNormal = /filename\=\"?([^\";]+)\"?/i.exec(cd);
+                        if (fnNormal && fnNormal[1]) fileName = fnNormal[1];
+                    }
 
-                            // 获取应用免登授权码
-                            dd.runtime.permission.requestAuthCode({
-                                corpId: corp_id,
-                                onSuccess: function(result) {
-                                    const authCode = result.code; // 获取到授权码
-
-                                    // 创建一个对象，将 issues 和其他参数包装在一起
-                                    const requestData = {
-                                        issues: data  // 包含多个问题的数组
-                                    };
-
-                                    // 发送 AJAX 请求
-                                    $.ajax({
-                                        url: `/problemMoudle/exportProblemXlsx?dirId=${selectedDirId}&spaceId=${selectedSpaceId}&receiverId=${selectedUserId}&authCode=${authCode}`,
-                                        type: 'POST',
-                                        contentType: 'application/json',
-                                        data: JSON.stringify(requestData), // 将对象序列化为 JSON
-                                        success: function(response) {
-                                            alert("发送成功");
-                                            // 成功后恢复按钮的状态
-                                            exportButton.disabled = false;
-                                        },
-                                        error: function(xhr, status, error) {
-                                            alert('导出测试报告失败: ' + error);
-                                            // 失败后恢复按钮的状态
-                                            exportButton.disabled = false;
-                                        }
-                                    });
-                                },
-                                onFail: function(err) {
-                                    alert('获取授权码失败：' + JSON.stringify(err));
-                                    // hideLoading(); // 隐藏加载提示框
-                                    // 失败后恢复按钮的状态
-                                    exportButton.disabled = false;
-                                }
-                            });
-                        },
-                        fail: function(err) {
-                            alert('选择目录失败：' + JSON.stringify(err));
-                            // hideLoading(); // 隐藏加载提示框
-                            // 失败后恢复按钮的状态
-                            exportButton.disabled = false;
-                        },
-                        onCancel: function() {
-                            alert('选择目录取消');
-                            // 取消选择目录时恢复按钮的状态
-                            exportButton.disabled = false;
-                            return; // 在这里直接返回，阻止后续代码执行
-                        }
-                    });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
                 },
-                onFail: function(err) {
-                    alert("选择联系人出错" + err);
-                    // hideLoading(); // 隐藏加载提示框
-                    // 失败后恢复按钮的状态
-                    exportButton.disabled = false;
-                },
-                onCancel: function() {
-                    alert("选择联系人取消");
-                    // 取消选择联系人时恢复按钮的状态
-                    exportButton.disabled = false;
-                    return; // 在这里直接返回，阻止后续代码执行
+                error: function (xhr) {
+                    const msg = xhr.responseText || '导出失败';
+                    alert(msg);
                 }
             });
         }
 
         function exportFile(sampleId) {
-            // 首先通过 sampleId 获取文件路径
-            $.ajax({
-                url: `/problemMoudle/getFilePath?sampleId=${sampleId}`,
-                type: 'GET',
-                success: function(data) {
-                    const filePath = data.filePath; // 后端返回的完整 URL
-                    const fileName = data.fileName; // 后端返回的文件名
-
-                    // if (!confirm('文件较大，转发可能需要较长时间。是否继续？')) {
-                    //     return; // 用户选择不上传
-                    // }
-
-                    // 选择联系人
-                    dd.biz.contact.choose({
-                        multiple: false,
-                        users: [],
-                        corpId: corp_id,
-                        max: 1,
-                        onSuccess: function(data) {
-                            const selectedUserId = data[0].emplId; // 获取单个用户ID
-
-                            // 选择钉盘目录
-                            dd.chooseDingTalkDir({
-                                corpId: corp_id, // 企业ID
-                                onSuccess: function(res) {
-                                    const selectedDirId = res.data[0].dirId; // 获取选中的目录ID
-                                    const selectedSpaceId = res.data[0].spaceId; // 获取选中的空间ID
-
-                                    // 获取应用免登授权码
-                                    dd.runtime.permission.requestAuthCode({
-                                        corpId: corp_id,
-                                        onSuccess: function(result) {
-                                            const authCode = result.code; // 获取到授权码
-                                            // 发起后端请求上传文件和发送文件
-                                            $.ajax({
-                                                url: '/testManIndex/uploadFileToDingtalk',
-                                                type: 'POST',
-                                                data: {
-                                                    filepath: filePath, // 使用从后端获取的文件路径
-                                                    dirId: selectedDirId,
-                                                    spaceId: selectedSpaceId,
-                                                    authCode: authCode,
-                                                    receiverId: selectedUserId,
-                                                    username : username
-                                                },
-                                                success: function(response) {
-                                                    alert('文件上传并发送成功');
-                                                    // hideLoading(); // 隐藏加载提示框
-                                                },
-                                                error: function(xhr, status, error) {
-                                                    alert('文件上传发送失败: ' + error);
-                                                    // hideLoading(); // 隐藏加载提示框
-                                                }
-                                            });
-                                        },
-                                        onFail: function(err) {
-                                            alert('获取授权码失败：' + JSON.stringify(err));
-                                            // hideLoading(); // 隐藏加载提示框
-                                        }
-                                    });
-                                },
-                                fail: function(err) {
-                                    alert('选择目录失败：' + JSON.stringify(err));
-                                    // hideLoading(); // 隐藏加载提示框
-                                },
-                                onCancel: function() {
-                                    alert('选择目录取消');
-                                    // hideLoading(); // 隐藏加载提示框
-                                }
-                            });
-                        },
-                        onFail: function(err) {
-                            alert("选择联系人出错" + err);
-                            // hideLoading(); // 隐藏加载提示框
-                        }
-                    });
-                },
-                error: function(xhr, status, error) {
-                    alert('获取文件路径失败: ' + error);
-                }
-            });
+            // 直接访问后端的下载接口，让浏览器自动下载
+            window.location.href = `/problemMoudle/downloadFile?sampleId=${sampleId}`;
         }
-
 
         function updateSchedule(sample_schedule, sample_id, receiver, statusBarBgColor, sender, job ,selectedOption,isReceiverTester) {
             fetch('/problemMoudle/updateSchedule', {
@@ -3643,7 +3687,7 @@
                     if (type === 'copyable') {
                         showCustomAlertWithCopy(message);
                     } else {
-                        alert(message);
+                        alert(text);
                     }
                 })
                 .catch((error) => {
@@ -3694,6 +3738,22 @@
 
 
         function copyTextToClipboard(text) {
+            // 优先使用现代的 Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('链接已复制到剪贴板！');
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    // 如果 Clipboard API 失败，回退到传统方法
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                // 回退到传统方法
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
             textarea.style.position = 'fixed';  // 避免页面滚动
@@ -3705,7 +3765,7 @@
             try {
                 const successful = document.execCommand('copy');
                 if (successful) {
-                    alert('已复制到剪贴板！');
+                    alert('链接已复制到剪贴板！');
                 } else {
                     alert('复制失败，请手动复制');
                 }
@@ -3820,7 +3880,7 @@
                 })
                 .then(data => {
                     if (data.message && data.message.includes("上传成功")) {
-                        alert(data.message); // 只在消息中包含“上传成功”时弹出]
+                        alert(data.message); // 只在消息中包含"上传成功"时弹出]
                         // 检查 modifiedData 是否不为空数组
                         if (Array.isArray(modifiedData) && modifiedData.length > 0) {
                             saveChanges(modifiedData, sampleId,true);
@@ -3835,6 +3895,89 @@
                     console.error('上传出错:', error);
                     // 在这里处理错误情况，比如提示用户
                 });
+        }
+
+        // 问题库管理按钮功能
+        const problemLibraryBtn = document.getElementById("problem-library-btn");
+
+        // 问题库管理按钮点击事件
+        problemLibraryBtn.addEventListener("click", () => {
+            goToProblemLibrary();
+        });
+
+        // 跳转到问题库管理页面
+        function goToProblemLibrary() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // const url = 'http://e5f3985c.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+            if (isDingTalk) {
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开问题库管理');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
+            } else {
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
+            }
+        }
+
+        // 数据看板按钮功能
+        const dashboardBtn = document.getElementById("dashboard-btn");
+
+        // 数据看板按钮点击事件
+        dashboardBtn.addEventListener("click", () => {
+            goToDashboard();
+        });
+
+        // 根据角色跳转到不同的数据看板页面
+        function goToDashboard() {
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
+            }
+
+            if (!job) {
+                alert("请先选择角色！");
+                return;
+            }
+
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+            const url = 'http://219.134.191.195:64000/dqeDashboard?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+
+            if (isDingTalk) {
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开数据看板');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
+            } else {
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
+            }
         }
 
         // 20250506 加排期项目按钮
@@ -3919,8 +4062,8 @@
                 <p><strong>当前进度：</strong> ${data.schedule || ''}</p>
                 <p><strong>创建时间：</strong> ${data.create_time || ''}</p>
                 <p><strong>排期天数：</strong> ${data.scheduleDays || ''}</p>
-                <p><strong>排期开始时间：</strong> ${data.schedule_start_date || ''}</p>
-                <p><strong>排期结束时间：</strong> ${data.schedule_end_date || ''}</p>
+                <p><strong>排期开始时间：</strong> ${data.schedule_start_date ? data.schedule_start_date.substring(0, 10) + ' 10:00:00' : ''}</p>
+                <p><strong>排期结束时间：</strong> ${data.schedule_end_date ? data.schedule_end_date.substring(0, 10) + ' 18:30:00' : ''}</p>
                 <p><strong>是否作废：</strong> ${data.isCancel === 1 ? '已作废' : '正常'}</p>
                 <p><strong>作废原因：</strong> ${data.cancel_reason || ''}</p>
                 <p><strong>作废人：</strong> ${data.cancel_by || ''}</p>
@@ -4047,6 +4190,8 @@
 
                 alert(data.message);
                 document.getElementById("project-detail-modal").style.display = "none";
+                // 调用搜索方法刷新列表数据
+                performSearch();
 
             } catch (err) {
                 console.error("提交失败", err);
@@ -4170,6 +4315,93 @@
             } catch (error) {
                 console.error("fetchSampleInfo 出错：", error);
                 return null;  // 出错时返回 null
+            }
+        }
+
+        // 更新问题点确认状态到数据库
+        async function updatePassbackConfirmInDatabase(sampleId, passbackConfirm, product) {
+            try {
+                const response = await fetch('/testManIndex/updatePassbackConfirm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sample_id: sampleId,
+                        passbackConfirm: passbackConfirm
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`更新失败，状态码: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    console.log('问题点确认状态更新成功');
+
+                    // 更新复选框的显示状态
+                    const checkbox = document.getElementById('passbackConfirmCheckbox');
+                    if (checkbox) {
+                        // 根据数据库更新结果，确保复选框状态与数据库一致
+                        if (passbackConfirm) {
+                            // 如果用户勾选了复选框，确保显示为勾选状态
+                            checkbox.checked = true;
+                            checkbox.setAttribute('checked', 'checked');
+                            product.passbackConfirm = "已回传";
+                        } else {
+                            // 如果用户取消了勾选，确保显示为未勾选状态
+                            checkbox.checked = false;
+                            checkbox.removeAttribute('checked');
+                            product.passbackConfirm = "未回传";
+                        }
+
+                        console.log('复选框状态已同步更新，当前状态:', checkbox.checked);
+                        console.log('product.passbackConfirm 已更新为:', product.passbackConfirm);
+                    }
+
+                    // 将更新后的状态保存到 localStorage，这样下次打开模态框时就能保持状态
+                    const storageKey = `passbackConfirm_${sampleId}`;
+                    localStorage.setItem(storageKey, product.passbackConfirm);
+                    console.log('状态已保存到 localStorage:', storageKey, product.passbackConfirm);
+
+                    // 可选：显示成功提示
+                    // alert('问题点确认状态已更新');
+                } else {
+                    console.error('更新失败:', result.message);
+
+                    // 如果更新失败，恢复复选框的原始状态
+                    const checkbox = document.getElementById('passbackConfirmCheckbox');
+                    if (checkbox) {
+                        checkbox.checked = !passbackConfirm; // 恢复到之前的状态
+                        if (checkbox.checked) {
+                            checkbox.setAttribute('checked', 'checked');
+                        } else {
+                            checkbox.removeAttribute('checked');
+                        }
+                        console.log('更新失败，复选框状态已恢复到:', checkbox.checked);
+                    }
+
+                    // 可选：显示错误提示
+                    // alert('更新失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('更新问题点确认状态时出错:', error);
+
+                // 如果发生异常，恢复复选框的原始状态
+                const checkbox = document.getElementById('passbackConfirmCheckbox');
+                if (checkbox) {
+                    checkbox.checked = !passbackConfirm; // 恢复到之前的状态
+                    if (checkbox.checked) {
+                        checkbox.setAttribute('checked', 'checked');
+                    } else {
+                        checkbox.removeAttribute('checked');
+                    }
+                    console.log('发生异常，复选框状态已恢复到:', checkbox.checked);
+                }
+
+                // 可选：显示错误提示
+                // alert('更新失败: ' + error.message);
             }
         }
 

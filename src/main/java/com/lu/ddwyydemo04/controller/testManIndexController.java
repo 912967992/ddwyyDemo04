@@ -843,85 +843,37 @@ public class testManIndexController {
 
 
     private String getProblemFromJson(String filepath,String model,String coding){
-        // 获取文件名并去除扩展名
-        File file = new File(filepath);
-        String fileName = file.getName();
-        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
-        String jsonFilePath = jsonpath + File.separator + baseName + ".json";
-
-        // 检查JSON文件是否存在
-        File jsonFile = new File(jsonFilePath);
-        if (!jsonFile.exists()) {
+        // 检查Excel文件是否存在
+        File excelFile = new File(filepath);
+        if (!excelFile.exists()) {
             return "需要进入页面查看问题点是否存在才可提交"; // 返回错误信息
         }
-        boolean foundSheet = false; // 标志变量，初始为 false
 
-
-        try {
-            // 创建ObjectMapper实例
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // 读取JSON文件为JsonNode对象
-            JsonNode rootNode = objectMapper.readTree(new File(jsonFilePath));
-
-            // 定义目标sheetName
-            String targetSheetName = "测试问题点汇总";
-
-
-            // 用于存储所有数据行
-            List<List<String>> dataRows = new ArrayList<>();
-
-            // 遍历JSON数组
-            if (rootNode.isArray()) {
-                for (JsonNode outerArrayNode : rootNode) {
-                    if (outerArrayNode.isArray()) {
-                        for (JsonNode innerArrayNode : outerArrayNode) {
-                            // 筛选sheetName为目标名称的数据
-                            List<JsonNode> matchedNodes = getMatchedNodes(innerArrayNode, targetSheetName);
-
-                            if (!matchedNodes.isEmpty()) {
-                                foundSheet = true; // 找到目标工作表
-                            }
-                            // 提取所有数据行
-                            for (JsonNode node : matchedNodes) {
-                                if (node.has("row") && node.has("column")) {
-                                    int rowIndex = node.get("row").asInt();
-                                    int colIndex = node.get("column").asInt();
-
-                                    // 确保rowIndex和colIndex为正数
-                                    if (rowIndex > 0 && colIndex > 0) {
-                                        // 确保行列表存在
-                                        while (dataRows.size() < rowIndex) {
-                                            dataRows.add(new ArrayList<>());
-                                        }
-
-                                        // 获取对应行数据
-                                        List<String> rowData = dataRows.get(rowIndex - 1);
-                                        String value = node.get("value").asText().replace("\n", "").trim();
-
-                                        // 确保列列表存在
-                                        while (rowData.size() < colIndex) {
-                                            rowData.add("");
-                                        }
-
-                                        // 如果列索引有效，设置值
-                                        if (colIndex > 0) {
-                                            rowData.set(colIndex - 1, value);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+        try (InputStream inputStream = new FileInputStream(excelFile); 
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+            
+            // 查找包含"测试问题点汇总"的工作表（支持前后空格）
+            Sheet sheet = null;
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                String sheetName = workbook.getSheetName(i);
+                if (sheetName != null && sheetName.trim().equals("测试问题点汇总")) {
+                    sheet = workbook.getSheetAt(i);
+                    break;
                 }
             }
-
-            // 如果目标工作表没有找到，则返回相应信息
-            if (!foundSheet) {
+            
+            if (sheet == null) {
                 return "工作表'测试问题点汇总'不存在！提交失败，请检查。"; // 返回错误信息
             }
 
-            List<Map<String, String>> filteredRows = filterAndPrintRows(dataRows);
+            // 读取表头
+            List<String> headers = new ArrayList<>();
+            Row headerRow = sheet.getRow(1); // 假设第二行是表头
+            if (headerRow != null) {
+                for (Cell cell : headerRow) {
+                    headers.add(cell.toString().replaceAll("\\s+", "").replaceAll("\n", ""));
+                }
+            }
 
             // 定义需要的列名
             List<String> requiredColumns = Arrays.asList(
@@ -937,9 +889,16 @@ public class testManIndexController {
 
             // 检查缺少的列名
             Set<String> missingColumns = new HashSet<>();
-            for (Map<String, String> rowMap : filteredRows) {
-                for (String column : requiredColumns) {
-                    if (!skipColumns.contains(column) && !rowMap.containsKey(column)) {
+            for (String column : requiredColumns) {
+                if (!skipColumns.contains(column)) {
+                    boolean found = false;
+                    for (String header : headers) {
+                        if (header.equals(column)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
                         missingColumns.add(column);
                     }
                 }
@@ -950,15 +909,75 @@ public class testManIndexController {
                 return "缺少列: " + String.join(", ", missingColumns); // 返回缺少列的错误信息
             }
 
-            // 检查问题类别的值是否包含"-"符号
-            for (Map<String, String> rowMap : filteredRows) {
-                String problemCategory = rowMap.get("问题类别");
-                if (problemCategory != null && !problemCategory.trim().isEmpty() && !problemCategory.contains("-")) {
-                    System.out.println("problemCategory:"+problemCategory);
-                    return "问题类别的值请按标准库有\"-\"来写";
-                }
-            }
+            // 读取数据行并进行验证
+            List<Map<String, String>> filteredRows = new ArrayList<>();
+            Iterator<Row> rowIterator = sheet.iterator();
+            
+            if (rowIterator.hasNext()) rowIterator.next(); // 跳过第一行
+            if (rowIterator.hasNext()) rowIterator.next(); // 跳过表头行
 
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                Map<String, String> rowMap = new LinkedHashMap<>();
+
+                for (int i = 0; i < headers.size(); i++) {
+                    Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    cell.setCellType(CellType.STRING);
+                    rowMap.put(headers.get(i), cell.getStringCellValue().trim());
+                }
+
+                // 跳过空行
+                boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
+                if (isEmpty) continue;
+
+                // 检查是否为只有序号的行（序号列有值但其他重要字段都为空）
+                if (isOnlySequenceNumberRow(rowMap)) {
+                    continue; // 跳过只有序号的行
+                }
+
+                // 检查问题类别的值是否为空或是否包含"-"符号
+                String problemCategory = rowMap.get("问题类别");
+                if (problemCategory == null || problemCategory.trim().isEmpty()) {
+                    return "问题类别不能为空，请填写问题类别，问题类别的值同时必须包含'-'";
+                }
+                if (!problemCategory.contains("-")) {
+                    return "问题类别的值请按标准库有\"-\"来写，当前值：" + problemCategory;
+                }
+
+                // 检查复现概率不能为空
+                String reproductionProbability = rowMap.get("复现概率");
+                if (reproductionProbability == null || reproductionProbability.trim().isEmpty()) {
+                    return "复现概率不能为空，请填写复现概率";
+                }
+
+                // 检查当前状态必须为open、close、follow up三个其中一个，兼容大小写和close、closed
+                String currentStatus = rowMap.get("当前状态");
+                if (currentStatus == null || currentStatus.trim().isEmpty()) {
+                    return "当前状态不能为空，请填写当前状态";
+                }
+                String normalizedStatus = currentStatus.trim().toLowerCase();
+                if (!normalizedStatus.equals("open") && 
+                    !normalizedStatus.equals("close") && 
+                    !normalizedStatus.equals("closed") && 
+                    !normalizedStatus.equals("follow up")) {
+                    return "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus;
+                }
+
+                // 检查缺陷等级的值必须为S、A、B、C之一，要求必须为大写
+                String defectLevel = rowMap.get("缺陷等级");
+                if (defectLevel == null || defectLevel.trim().isEmpty()) {
+                    return "缺陷等级不能为空，请填写缺陷等级";
+                }
+                String normalizedDefectLevel = defectLevel.trim().toUpperCase();
+                if (!normalizedDefectLevel.equals("S") && 
+                    !normalizedDefectLevel.equals("A") && 
+                    !normalizedDefectLevel.equals("B") && 
+                    !normalizedDefectLevel.equals("C")) {
+                    return "缺陷等级必须为S、A、B、C中的一个（大写），当前值：" + defectLevel;
+                }
+
+                filteredRows.add(rowMap);
+            }
 
             // 获取当前时间
             LocalDateTime now = LocalDateTime.now();
@@ -968,13 +987,10 @@ public class testManIndexController {
             String created_at = now.format(formatter);
             // 使用相同的格式化器解析字符串
             LocalDateTime parsedDateTime = LocalDateTime.parse(created_at, formatter);
-//            System.out.println("Parsed LocalDateTime: " + parsedDateTime);
+            
             //要先获取samples的id主键，然后搜索历史版本id，没有的话就是0，有就加1
             int sample_id = testManIndexService.querySampleId(filepath);
-//            System.out.println("sample_id:"+sample_id);
             int history_id = testManIndexService.queryHistoryid(sample_id);
-//            System.out.println("history_id:"+history_id);
-
 
             for (Map<String, String> rowMap : filteredRows) {
                 TestIssues testIssues = new TestIssues();
@@ -997,9 +1013,6 @@ public class testManIndexController {
                 String defect_level = rowMap.get("缺陷等级");
                 String current_status = rowMap.get("当前状态");
                 String comparison_with_previous = rowMap.get("对比上一版或竞品");
-//                 20241230按李喜明的新模板他说改善对策（研发回复）删了，DQE&研发确认要拆分成两个
-//                String dqe_and_development_confirm = rowMap.get("DQE&研发确认");
-//                String improvement_plan = rowMap.get("改善对策（研发回复）");    20241230按李喜明的新模板他说删了
                 String responsible_person = rowMap.get("分析责任人");
                 String post_improvement_risk = rowMap.get("改善后风险");
                 String next_version_regression_test = rowMap.get("下一版回归测试");
@@ -1032,8 +1045,6 @@ public class testManIndexController {
                 testIssues.setDefect_level(defect_level);
                 testIssues.setCurrent_status(current_status);
                 testIssues.setComparison_with_previous(comparison_with_previous);
-//                testIssues.setDqe_and_development_confirm(dqe_and_development_confirm);
-//                testIssues.setImprovement_plan(improvement_plan);
                 testIssues.setResponsible_person(responsible_person);
                 testIssues.setPost_improvement_risk(post_improvement_risk);
                 testIssues.setNext_version_regression_test(next_version_regression_test);
@@ -1053,68 +1064,20 @@ public class testManIndexController {
                 testIssues.setSample_id(sampleidStr);
                 testIssues.setHistory_id(history_id);
 
-//                testIssues.setResponsibleDepartment("研发");//这里设置为研发， 是为了默认让责任部门选项展示为研发
-//                System.out.println("testIssues:"+testIssues);
-
                 int insertProblem = testManIndexService.insertTestIssues(testIssues);
 
                 if(insertProblem > 0){
                     logger.info("问题点上传成功："+filepath);
                 }
-
-
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return "文件读取失败: " + e.getMessage();
         }
 
         return "getProblem";
     }
 
-    private static List<JsonNode> getMatchedNodes(JsonNode node, String targetSheetName) {
-        List<JsonNode> matchedNodes = new ArrayList<>();
-        if (node.isArray()) {
-            for (JsonNode item : node) {
-                // 检查是否匹配目标sheetName
-                if (item.has("sheetName") && targetSheetName.equals(item.get("sheetName").asText().trim())) {
-                    matchedNodes.add(item);
-                }
-            }
-        }
-        return matchedNodes;
-    }
-
-    private List<Map<String, String>> filterAndPrintRows(List<List<String>> dataRows) {
-        // 获取第一行作为列名
-        List<String> columnNames = dataRows.get(0);
-
-        // 用于存储过滤后的数据行
-        List<Map<String, String>> filteredRows = new ArrayList<>();
-
-        // 从第二行开始处理数据
-        for (int i = 1; i < dataRows.size(); i++) {
-            List<String> row = dataRows.get(i);
-
-            // 检查第十列是否为空（索引为9）
-            if (row.size() >= 10 && !row.get(9).trim().isEmpty()) {
-                // 使用一个Map来存储列名和值的对应关系
-                Map<String, String> rowMap = new HashMap<>();
-
-                for (int j = 0; j < row.size() && j < columnNames.size(); j++) {
-                    // 将列名和值放入Map中
-                    rowMap.put(columnNames.get(j), row.get(j));
-                }
-
-                // 将这个Map添加到过滤后的数据行列表中
-                filteredRows.add(rowMap);
-            }
-        }
-//        System.out.println("filteredRows如下:");
-//        for (Map<String, String> row : filteredRows) {
-//            System.out.println(row);
-//        }
-        return filteredRows;
-    }
 
 
 
@@ -2057,13 +2020,13 @@ public class testManIndexController {
 
                         String fileDir = savepath;
                         String filePath = fileDir + "/" + fileName;
-//                        System.out.println("filePath:"+filePath);
+                        System.out.println("filePath:"+filePath);
 
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
                                 int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
-//                                System.out.println("count:"+count);
+                                System.out.println("count:"+count);
                                 if(count == 0){
                                     workbook.write(out);
                                     sample.setFilepath(filePath);
