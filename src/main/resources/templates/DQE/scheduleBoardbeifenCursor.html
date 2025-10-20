@@ -503,7 +503,7 @@
         <option value="false">不展示</option>
       </select>
       <input type="number" id="newGroupOrder" placeholder="展示权重" style="width: 100px;">
-      <button id="addGroupBtn">新增组</button>
+      <button id="addDisplayGroupBtn">新增组</button>
     </div>
   </div>
 </div>
@@ -515,7 +515,10 @@
   <div id="searchModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3>搜索项目</h3>
-      <button id="closeSearchModalBtn" class="modal-button">关闭</button>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="manageDqeGroupBtn" class="modal-button" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">管理DQE分组</button>
+        <button id="closeSearchModalBtn" class="modal-button">关闭</button>
+      </div>
     </div>
     <!-- 修改 searchModalBody 的样式 -->
     <div id="searchModalBody" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 10px;">
@@ -540,6 +543,17 @@
           <option value="">全部类别</option>
         </select>
       </div>
+      <div>
+        <strong>送样人：</strong><input type="text" id="searchSampleSender">
+      </div>
+      <div>
+        <strong>DQE组名：</strong>
+        <div style="position: relative; display: inline-block;">
+          <input type="text" id="searchDqeGroup" placeholder="点击选择分组" readonly style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 150px; cursor: pointer;">
+          <div id="dqeGroupDropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+          </div>
+        </div>
+      </div>
       <button id="executeSearchBtn" class="modal-button">搜索</button>
     </div>
     <div id="searchResultsContainer">
@@ -547,6 +561,41 @@
         搜索结果：<span id="searchCount">0</span> 条记录
       </div>
       <div id="searchResults"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DQE分组管理模态框 -->
+<div id="dqeGroupManageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1002;">
+  <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 80%; max-width: 1000px; height: 80%; max-height: 600px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; font-size: 24px;">🔧 DQE分组管理</h2>
+      <button id="closeDqeGroupManageModal" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 16px;">✕ 关闭</button>
+    </div>
+
+    <div style="padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
+
+      <!-- 添加人员到分组 -->
+      <div id="addMemberSection" style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; display: none;">
+        <h3 style="margin-top: 0; color: #333;">添加人员到分组</h3>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+          <input type="text" id="newMemberName" placeholder="输入人员姓名" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <select id="selectGroupForMember" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">选择分组</option>
+          </select>
+          <button id="addMemberBtn" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">添加人员</button>
+        </div>
+      </div>
+
+      <!-- 分组列表 -->
+      <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="padding: 20px; border-bottom: 1px solid #eee;">
+          <h3 style="margin: 0; color: #333;">分组列表</h3>
+        </div>
+        <div id="groupListContainer" style="max-height: 400px; overflow-y: auto;">
+          <!-- 分组列表将在这里动态加载 -->
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -5757,7 +5806,7 @@
 
 
 
-  document.getElementById('addGroupBtn').addEventListener('click', async function () {
+  document.getElementById('addDisplayGroupBtn').addEventListener('click', async function () {
     const name = document.getElementById('newGroupName').value.trim();
     const display = document.getElementById('newGroupDisplay').value === 'true';
     const order = document.getElementById('newGroupOrder').value.trim();
@@ -5849,8 +5898,322 @@
               });
     }
 
-    // 页面加载时获取品类选项
+    // 加载DQE分组选项
+    function loadDqeGroups() {
+      fetch('/scheduleBoardController/getDqeGroups')
+              .then(response => response.json())
+              .then(groups => {
+                const dropdown = document.getElementById('dqeGroupDropdown');
+                // 清空现有选项
+                dropdown.innerHTML = '';
+
+                // 添加"全部分组"选项
+                const allOption = document.createElement('div');
+                allOption.className = 'dropdown-item';
+                allOption.textContent = '全部分组';
+                allOption.style.padding = '8px 12px';
+                allOption.style.cursor = 'pointer';
+                allOption.style.borderBottom = '1px solid #eee';
+                allOption.style.transition = 'background-color 0.2s';
+                allOption.onmouseover = function() { this.style.backgroundColor = '#f5f5f5'; };
+                allOption.onmouseout = function() { this.style.backgroundColor = 'white'; };
+                allOption.onclick = function() {
+                  document.getElementById('searchDqeGroup').value = '';
+                  dropdown.style.display = 'none';
+                };
+                dropdown.appendChild(allOption);
+
+                // 添加从数据库获取的分组选项（现在groups是字符串数组）
+                groups.forEach(group => {
+                  const option = document.createElement('div');
+                  option.className = 'dropdown-item';
+                  option.textContent = group;
+                  option.style.padding = '8px 12px';
+                  option.style.cursor = 'pointer';
+                  option.style.borderBottom = '1px solid #eee';
+                  option.style.transition = 'background-color 0.2s';
+                  option.onmouseover = function() { this.style.backgroundColor = '#f5f5f5'; };
+                  option.onmouseout = function() { this.style.backgroundColor = 'white'; };
+                  option.onclick = function() {
+                    document.getElementById('searchDqeGroup').value = group;
+                    dropdown.style.display = 'none';
+                  };
+                  dropdown.appendChild(option);
+                });
+              })
+              .catch(error => {
+                console.error('加载DQE分组选项失败:', error);
+              });
+    }
+
+    // 页面加载时获取品类选项和DQE分组选项
     loadSampleCategories();
+    loadDqeGroups();
+
+    // DQE分组输入框点击事件
+    document.getElementById('searchDqeGroup').addEventListener('click', function() {
+      const dropdown = document.getElementById('dqeGroupDropdown');
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // 点击其他地方关闭下拉框
+    document.addEventListener('click', function(event) {
+      const dqeGroupInput = document.getElementById('searchDqeGroup');
+      const dropdown = document.getElementById('dqeGroupDropdown');
+      if (!dqeGroupInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    // DQE分组管理相关功能
+    const manageDqeGroupBtn = document.getElementById('manageDqeGroupBtn');
+    const dqeGroupManageModal = document.getElementById('dqeGroupManageModal');
+    const closeDqeGroupManageModal = document.getElementById('closeDqeGroupManageModal');
+    const addMemberSection = document.getElementById('addMemberSection');
+    const groupListContainer = document.getElementById('groupListContainer');
+    const newMemberNameInput = document.getElementById('newMemberName');
+    const selectGroupForMember = document.getElementById('selectGroupForMember');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+
+    // 权限控制 - 只有指定用户可以修改
+    const allowedUsers = ['许梦瑶', '卢健', '李良健', '卢绮敏'];
+
+    // 获取当前用户信息
+    function getCurrentUser() {
+      // 从URL参数或存储中获取username
+      const urlParams = new URLSearchParams(window.location.search);
+      let username = urlParams.get('username');
+
+      if (username === null) {
+        username = sessionStorage.getItem('username');
+      }
+
+      if (username === null) {
+        username = localStorage.getItem('username');
+      }
+
+      return username || '';
+    }
+
+    // 检查是否有编辑权限
+    function checkEditPermission() {
+      const currentUser = getCurrentUser();
+      return allowedUsers.includes(currentUser);
+    }
+
+    // 打开DQE分组管理模态框
+    manageDqeGroupBtn.addEventListener('click', function() {
+      dqeGroupManageModal.style.display = 'block';
+      loadDqeGroupList();
+      loadGroupOptions();
+
+      // 根据权限显示/隐藏功能
+      const hasEditPermission = checkEditPermission();
+      if (hasEditPermission) {
+        addMemberSection.style.display = 'block';
+      } else {
+        addMemberSection.style.display = 'none';
+      }
+    });
+
+    // 关闭DQE分组管理模态框
+    closeDqeGroupManageModal.addEventListener('click', function() {
+      dqeGroupManageModal.style.display = 'none';
+    });
+
+    // 点击模态框外部关闭
+    dqeGroupManageModal.addEventListener('click', function(e) {
+      if (e.target === dqeGroupManageModal) {
+        dqeGroupManageModal.style.display = 'none';
+      }
+    });
+
+    // 加载DQE分组列表
+    function loadDqeGroupList() {
+      fetch('/scheduleBoardController/getDqeGroupDetails')
+              .then(response => response.json())
+              .then(data => {
+                groupListContainer.innerHTML = '';
+
+                if (data.length === 0) {
+                  groupListContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">暂无分组数据</div>';
+                  return;
+                }
+
+                // 检查编辑权限
+                const hasEditPermission = checkEditPermission();
+
+                // 按分组名称分组
+                const groupedData = {};
+                data.forEach(item => {
+                  if (!groupedData[item.group_name]) {
+                    groupedData[item.group_name] = [];
+                  }
+                  groupedData[item.group_name].push(item.dqe_name);
+                });
+
+                // 渲染分组列表
+                Object.keys(groupedData).sort().forEach(groupName => {
+                  const groupDiv = document.createElement('div');
+                  groupDiv.style.borderBottom = '1px solid #eee';
+                  groupDiv.style.padding = '15px 20px';
+
+                  groupDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin: 0; color: #333;">${groupName}</h4>
+                                <div>
+                                    <span style="background: #007bff; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                                        ${groupedData[groupName].length}人
+                                    </span>
+                                    ${hasEditPermission ? `
+                                        <button onclick="deleteGroup('${groupName}')" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; margin-left: 8px; cursor: pointer; font-size: 12px;">删除分组</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${groupedData[groupName].map(member => `
+                                    <span style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #666;">
+                                        ${member}
+                                        ${hasEditPermission ? `
+                                            <button onclick="removeMemberFromGroup('${member}', '${groupName}')" style="background: none; border: none; color: #dc3545; margin-left: 4px; cursor: pointer;">×</button>
+                                        ` : ''}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        `;
+
+                  groupListContainer.appendChild(groupDiv);
+                });
+              })
+              .catch(error => {
+                console.error('加载分组列表失败:', error);
+                groupListContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #dc3545;">加载失败，请稍后重试</div>';
+              });
+    }
+
+    // 加载分组选项
+    function loadGroupOptions() {
+      fetch('/scheduleBoardController/getDqeGroups')
+              .then(response => response.json())
+              .then(groups => {
+                selectGroupForMember.innerHTML = '<option value="">选择分组</option>';
+                groups.forEach(group => {
+                  const option = document.createElement('option');
+                  option.value = group;
+                  option.textContent = group;
+                  selectGroupForMember.appendChild(option);
+                });
+              })
+              .catch(error => {
+                console.error('加载分组选项失败:', error);
+              });
+    }
+
+
+    // 添加人员到分组
+    addMemberBtn.addEventListener('click', function() {
+      const memberName = newMemberNameInput.value.trim();
+      const groupName = selectGroupForMember.value;
+
+      if (!memberName) {
+        alert('请输入人员姓名');
+        return;
+      }
+
+      if (!groupName) {
+        alert('请选择分组');
+        return;
+      }
+
+      fetch('/scheduleBoardController/addMemberToGroup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          memberName: memberName,
+          groupName: groupName
+        })
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  alert('人员添加成功');
+                  newMemberNameInput.value = '';
+                  selectGroupForMember.value = '';
+                  loadDqeGroupList();
+                  loadDqeGroups(); // 刷新搜索下拉框
+                } else {
+                  alert('添加失败：' + data.message);
+                }
+              })
+              .catch(error => {
+                console.error('添加人员失败:', error);
+                alert('添加失败，请稍后重试');
+              });
+    });
+
+    // 删除分组
+    window.deleteGroup = function(groupName) {
+      if (!confirm(`确定要删除分组"${groupName}"吗？这将删除该分组下的所有人员分配。`)) {
+        return;
+      }
+
+      fetch('/scheduleBoardController/deleteDqeGroup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          groupName: groupName
+        })
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  alert('分组删除成功');
+                  loadDqeGroupList();
+                  loadDqeGroups(); // 刷新搜索下拉框
+                } else {
+                  alert('删除失败：' + data.message);
+                }
+              })
+              .catch(error => {
+                console.error('删除分组失败:', error);
+                alert('删除失败，请稍后重试');
+              });
+    };
+
+    // 从分组中移除人员
+    window.removeMemberFromGroup = function(memberName, groupName) {
+      if (!confirm(`确定要将"${memberName}"从"${groupName}"分组中移除吗？`)) {
+        return;
+      }
+
+      fetch('/scheduleBoardController/removeMemberFromGroup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          memberName: memberName,
+          groupName: groupName
+        })
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  alert('移除成功');
+                  loadDqeGroupList();
+                } else {
+                  alert('移除失败：' + data.message);
+                }
+              })
+              .catch(error => {
+                console.error('移除人员失败:', error);
+                alert('移除失败，请稍后重试');
+              });
+    };
 
     // 打开模态框时显示遮罩和模态框（你自己调用）
     function openSearchModal() {
@@ -5899,6 +6262,8 @@
       const createTimeStart = document.getElementById('searchCreateTimeStart').value;
       const createTimeEnd = document.getElementById('searchCreateTimeEnd').value;
       const sampleCategory = document.getElementById('searchSampleCategory').value;
+      const sampleSender = document.getElementById('searchSampleSender').value;
+      const dqeGroup = document.getElementById('searchDqeGroup').value;
 
       // 发送搜索请求
       fetch('/scheduleBoardController/searchProjects', {
@@ -5912,7 +6277,9 @@
           tester: tester,
           createTimeStart: createTimeStart,
           createTimeEnd: createTimeEnd,
-          sampleCategory: sampleCategory
+          sampleCategory: sampleCategory,
+          sampleSender: sampleSender,
+          dqeGroup: dqeGroup
         })
       })
               .then(response => response.json())
@@ -5930,8 +6297,17 @@
                   categoryCount[category] = (categoryCount[category] || 0) + 1;
                 });
 
+                // 按分组统计计数
+                const groupCount = {};
+                data.forEach(item => {
+                  const group = item.dqe_group || '未分组';
+                  groupCount[group] = (groupCount[group] || 0) + 1;
+                });
+
                 // 更新计数显示
                 let countHtml = `搜索结果：<span id="searchCount">${data.length}</span> 条记录`;
+
+                // 按类别统计
                 if (Object.keys(categoryCount).length > 1) {
                   countHtml += '<br><div style="margin-top: 5px; font-size: 12px; color: #666;">按类别统计：';
                   Object.entries(categoryCount).forEach(([category, count]) => {
@@ -5939,6 +6315,16 @@
                   });
                   countHtml += '</div>';
                 }
+
+                // 按DQE分组统计
+                if (Object.keys(groupCount).length > 0) {
+                  countHtml += '<br><div style="margin-top: 5px; font-size: 12px; color: #666;">按DQE分组：';
+                  Object.entries(groupCount).forEach(([group, count]) => {
+                    countHtml += `<span style="margin-right: 10px;">${group}: ${count}条</span>`;
+                  });
+                  countHtml += '</div>';
+                }
+
                 countContainer.innerHTML = countHtml;
                 countContainer.style.display = data.length > 0 ? 'block' : 'none';
 
@@ -5957,6 +6343,7 @@
                                 <th>预计排期结束时间</th>
                                 <th>排期天数</th>
                                 <th>测试人</th>
+                                <th>送样人</th>
                                 <th>实际测试开始时间</th>
                                 <th>实际测试结束时间</th>
                                 <th>实测时长</th>
@@ -5982,6 +6369,7 @@
                                 <td>${endDate}</td>
                                 <td>${item.scheduleDays}</td>
                                 <td>${item.tester}</td>
+                                <td>${item.sample_sender || '-'}</td>
                                 <td>${item.actual_start_time}</td>
                                 <td>${item.actual_finish_time}</td>
                                 <td>${item.testDuration}</td>

@@ -69,6 +69,135 @@ public class ScheduleBoardController {
         return scheduleBoardService.getSampleCategories();
     }
 
+    @GetMapping("/scheduleBoardController/getDqeGroups")
+    @ResponseBody
+    public List<String> getDqeGroups() {
+        return scheduleBoardService.getAllDqeGroupNames();
+    }
+
+    @GetMapping("/scheduleBoardController/getDqeGroupDetails")
+    @ResponseBody
+    public List<Map<String, String>> getDqeGroupDetails() {
+        return scheduleBoardService.getAllDqeGroupDetails();
+    }
+
+    @PostMapping("/scheduleBoardController/addDqeGroup")
+    @ResponseBody
+    public Map<String, Object> addDqeGroup(@RequestBody Map<String, String> requestData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String groupName = requestData.get("groupName");
+            if (groupName == null || groupName.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "分组名称不能为空");
+                return result;
+            }
+            
+            boolean success = scheduleBoardService.addDqeGroup(groupName.trim());
+            if (success) {
+                result.put("success", true);
+                result.put("message", "分组添加成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "分组已存在或添加失败");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "添加失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    @PostMapping("/scheduleBoardController/deleteDqeGroup")
+    @ResponseBody
+    public Map<String, Object> deleteDqeGroup(@RequestBody Map<String, String> requestData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String groupName = requestData.get("groupName");
+            if (groupName == null || groupName.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "分组名称不能为空");
+                return result;
+            }
+            
+            boolean success = scheduleBoardService.deleteDqeGroup(groupName.trim());
+            if (success) {
+                result.put("success", true);
+                result.put("message", "分组删除成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "分组不存在或删除失败");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "删除失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    @PostMapping("/scheduleBoardController/removeMemberFromGroup")
+    @ResponseBody
+    public Map<String, Object> removeMemberFromGroup(@RequestBody Map<String, String> requestData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String memberName = requestData.get("memberName");
+            String groupName = requestData.get("groupName");
+            if (memberName == null || memberName.trim().isEmpty() || groupName == null || groupName.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "参数不能为空");
+                return result;
+            }
+            
+            boolean success = scheduleBoardService.removeMemberFromGroup(memberName.trim(), groupName.trim());
+            if (success) {
+                result.put("success", true);
+                result.put("message", "移除成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "移除失败");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "移除失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    @PostMapping("/scheduleBoardController/addMemberToGroup")
+    @ResponseBody
+    public Map<String, Object> addMemberToGroup(@RequestBody Map<String, String> request) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String memberName = request.get("memberName");
+            String groupName = request.get("groupName");
+            
+            if (memberName == null || memberName.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "人员姓名不能为空");
+                return result;
+            }
+            
+            if (groupName == null || groupName.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "分组名称不能为空");
+                return result;
+            }
+            
+            boolean success = scheduleBoardService.addMemberToGroup(memberName.trim(), groupName.trim());
+            if (success) {
+                result.put("success", true);
+                result.put("message", "添加成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "添加失败");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "添加失败：" + e.getMessage());
+        }
+        return result;
+    }
+
     @PostMapping("/scheduleBoardController/updateTesterInfo")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateTesterInfo(@RequestBody List<TesterInfo> testerInfoList) {
@@ -217,17 +346,25 @@ public class ScheduleBoardController {
         String createTimeStart = requestData.get("createTimeStart");
         String createTimeEnd = requestData.get("createTimeEnd");
         String sampleCategory = requestData.get("sampleCategory");
+        String sampleSender = requestData.get("sampleSender");
+        String dqeGroup = requestData.get("dqeGroup");
 
         // 查询结果
-        List<PassbackData> results = scheduleBoardService.searchProjects(sampleId, sampleModel, tester, createTimeStart, createTimeEnd, sampleCategory);
+        List<PassbackData> results = scheduleBoardService.searchProjects(sampleId, sampleModel, tester, createTimeStart, createTimeEnd, sampleCategory, sampleSender, dqeGroup);
 
-        // 遍历结果，补全 materialCode
+        // 遍历结果，补全 materialCode 和 DQE分组信息
         for (PassbackData data : results) {
             if (data.getMaterialCode() == null || data.getMaterialCode().trim().isEmpty()) {
                 String projectId = data.getSample_id(); // 或者 data.getProjectId()，看你数据结构
                 List<String> materialItems = testManIndexService.getMaterialCodes(projectId);
                 String materialItemsStr = String.join("，", materialItems);
                 data.setMaterialCode(materialItemsStr);
+            }
+            
+            // 根据送样人获取DQE分组信息
+            if (data.getSample_sender() != null && !data.getSample_sender().trim().isEmpty()) {
+                String dqeGroupName = scheduleBoardService.getDqeGroupBySender(data.getSample_sender());
+                data.setDqe_group(dqeGroupName);
             }
         }
 

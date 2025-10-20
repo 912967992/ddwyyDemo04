@@ -60,8 +60,64 @@ public class ScheduleBoardService {
         scheduleBoardDao.addGroup(group);
     }
 
-    public List<PassbackData> searchProjects(String sample_id , String sample_model, String tester, String createTimeStart, String createTimeEnd, String sampleCategory){
-        return scheduleBoardDao.searchProjects(sample_id, sample_model, tester, createTimeStart, createTimeEnd, sampleCategory);
+    public List<PassbackData> searchProjects(String sample_id , String sample_model, String tester, String createTimeStart, String createTimeEnd, String sampleCategory, String sampleSender, String dqeGroup){
+        return scheduleBoardDao.searchProjects(sample_id, sample_model, tester, createTimeStart, createTimeEnd, sampleCategory, sampleSender, dqeGroup);
+    }
+
+    /**
+     * 根据送样人获取DQE分组
+     */
+    public String getDqeGroupBySender(String senderName) {
+        return scheduleBoardDao.getDqeGroupBySender(senderName);
+    }
+
+    /**
+     * 获取所有DQE分组信息
+     */
+    public Map<String, String> getAllDqeGroups() {
+        return scheduleBoardDao.getAllDqeGroups();
+    }
+
+    /**
+     * 获取所有DQE分组名称列表
+     */
+    public List<String> getAllDqeGroupNames() {
+        return scheduleBoardDao.getAllDqeGroupNames();
+    }
+
+    /**
+     * 获取所有DQE分组详细信息
+     */
+    public List<Map<String, String>> getAllDqeGroupDetails() {
+        return scheduleBoardDao.getAllDqeGroupDetails();
+    }
+
+    /**
+     * 添加DQE分组
+     */
+    public boolean addDqeGroup(String groupName) {
+        return scheduleBoardDao.addDqeGroup(groupName);
+    }
+
+    /**
+     * 删除DQE分组
+     */
+    public boolean deleteDqeGroup(String groupName) {
+        return scheduleBoardDao.deleteDqeGroup(groupName);
+    }
+
+    /**
+     * 从分组中移除人员
+     */
+    public boolean removeMemberFromGroup(String memberName, String groupName) {
+        return scheduleBoardDao.removeMemberFromGroup(memberName, groupName);
+    }
+
+    /**
+     * 添加人员到分组
+     */
+    public boolean addMemberToGroup(String memberName, String groupName) {
+        return scheduleBoardDao.addMemberToGroup(memberName, groupName);
     }
 
     /**

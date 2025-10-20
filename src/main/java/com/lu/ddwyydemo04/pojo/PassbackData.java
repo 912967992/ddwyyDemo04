@@ -69,6 +69,7 @@ public class PassbackData {
     private String high_frequency;   // 是否高频
     private String productRequirement;   // 产品开发要求
     private String productApprovalDoc;   // 产品承认书
+    private String dqe_group;   // DQE分组
 
 
     // 0707新增字段，送养人，样品状态，送样备注，电气测试数量，是否含高频，产品开发要求，产品承认书
@@ -427,6 +428,14 @@ public class PassbackData {
         this.productApprovalDoc = productApprovalDoc;
     }
 
+    public String getDqe_group() {
+        return dqe_group;
+    }
+
+    public void setDqe_group(String dqe_group) {
+        this.dqe_group = dqe_group;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -474,6 +483,7 @@ public class PassbackData {
                 ", high_frequency='" + high_frequency + '\'' +
                 ", productRequirement='" + productRequirement + '\'' +
                 ", productApprovalDoc='" + productApprovalDoc + '\'' +
+                ", dqe_group='" + dqe_group + '\'' +
                 '}';
     }
 }

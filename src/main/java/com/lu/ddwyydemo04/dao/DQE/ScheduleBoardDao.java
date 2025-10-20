@@ -26,7 +26,47 @@ public interface ScheduleBoardDao {
 
     List<Group> getAllGroupsOrderByDisplayOrder();
 
-    List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester, @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd, @Param("sampleCategory")String sampleCategory);
+    List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester, @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd, @Param("sampleCategory")String sampleCategory, @Param("sampleSender")String sampleSender, @Param("dqeGroup")String dqeGroup);
+
+    /**
+     * 根据送样人获取DQE分组
+     */
+    String getDqeGroupBySender(@Param("senderName") String senderName);
+
+    /**
+     * 获取所有DQE分组信息
+     */
+    Map<String, String> getAllDqeGroups();
+
+    /**
+     * 获取所有DQE分组名称列表
+     */
+    List<String> getAllDqeGroupNames();
+
+    /**
+     * 获取所有DQE分组详细信息
+     */
+    List<Map<String, String>> getAllDqeGroupDetails();
+
+    /**
+     * 添加DQE分组
+     */
+    boolean addDqeGroup(@Param("groupName") String groupName);
+
+    /**
+     * 删除DQE分组
+     */
+    boolean deleteDqeGroup(@Param("groupName") String groupName);
+
+    /**
+     * 从分组中移除人员
+     */
+    boolean removeMemberFromGroup(@Param("memberName") String memberName, @Param("groupName") String groupName);
+
+    /**
+     * 添加人员到分组
+     */
+    boolean addMemberToGroup(@Param("memberName") String memberName, @Param("groupName") String groupName);
 
     /**
      * 基于 changeRecord 的搜索功能

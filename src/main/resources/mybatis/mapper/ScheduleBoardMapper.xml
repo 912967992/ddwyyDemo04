@@ -79,36 +79,100 @@
     </insert>
 
     <select id="searchProjects" resultType="PassbackData">
-        SELECT *
-        FROM electric_info
+        SELECT ei.*
+        FROM electric_info ei
+        <if test="dqeGroup != null and dqeGroup != ''">
+            LEFT JOIN dqe_member_groups dmg ON ei.sample_sender COLLATE utf8mb4_unicode_ci = dmg.dqe_name COLLATE utf8mb4_unicode_ci
+        </if>
         <where>
             <!-- 处理 sample_id 模糊查询，若传入参数不为空则拼接条件 -->
             <if test="sample_id != null and sample_id != ''">
-                AND sample_id LIKE CONCAT('%', #{sample_id}, '%')
+                AND ei.sample_id LIKE CONCAT('%', #{sample_id}, '%')
             </if>
             <!-- 处理 sample_model 模糊查询，若传入参数不为空则拼接条件 -->
             <if test="sample_model != null and sample_model != ''">
-                AND sample_model LIKE CONCAT('%', #{sample_model}, '%')
+                AND ei.sample_model LIKE CONCAT('%', #{sample_model}, '%')
             </if>
             <!-- 处理 tester 模糊查询，若传入参数不为空则拼接条件 -->
             <if test="tester != null and tester != ''">
-                AND tester LIKE CONCAT('%', #{tester}, '%')
+                AND ei.tester LIKE CONCAT('%', #{tester}, '%')
             </if>
             <!-- 处理接收时间开始时间过滤 -->
             <if test="createTimeStart != null and createTimeStart != ''">
-                AND create_time >= CONCAT(#{createTimeStart}, ' 00:00:00')
+                AND ei.create_time >= CONCAT(#{createTimeStart}, ' 00:00:00')
             </if>
             <!-- 处理接收时间结束时间过滤 -->
             <if test="createTimeEnd != null and createTimeEnd != ''">
-                AND create_time &lt;= CONCAT(#{createTimeEnd}, ' 23:59:59')
+                AND ei.create_time &lt;= CONCAT(#{createTimeEnd}, ' 23:59:59')
             </if>
             <!-- 处理产品类别过滤 -->
             <if test="sampleCategory != null and sampleCategory != ''">
-                AND sample_category = #{sampleCategory}
+                AND ei.sample_category = #{sampleCategory}
+            </if>
+            <!-- 处理送样人过滤 -->
+            <if test="sampleSender != null and sampleSender != ''">
+                AND ei.sample_sender LIKE CONCAT('%', #{sampleSender}, '%')
+            </if>
+            <!-- 处理DQE组名过滤 -->
+            <if test="dqeGroup != null and dqeGroup != ''">
+                AND dmg.group_name COLLATE utf8mb4_unicode_ci = #{dqeGroup} COLLATE utf8mb4_unicode_ci
             </if>
         </where>
-        ORDER BY create_time DESC
+        ORDER BY ei.create_time DESC
     </select>
+
+    <!-- 根据送样人获取DQE分组 -->
+    <select id="getDqeGroupBySender" resultType="String">
+        SELECT group_name 
+        FROM dqe_member_groups 
+        WHERE dqe_name = #{senderName}
+        LIMIT 1
+    </select>
+
+    <!-- 获取所有DQE分组信息 -->
+    <select id="getAllDqeGroups" resultType="map">
+        SELECT dqe_name, group_name 
+        FROM dqe_member_groups
+    </select>
+
+    <!-- 获取所有DQE分组名称列表 -->
+    <select id="getAllDqeGroupNames" resultType="String">
+        SELECT DISTINCT group_name 
+        FROM dqe_member_groups 
+        ORDER BY group_name
+    </select>
+
+    <!-- 获取所有DQE分组详细信息 -->
+    <select id="getAllDqeGroupDetails" resultType="map">
+        SELECT dqe_name, group_name 
+        FROM dqe_member_groups 
+        WHERE dqe_name != '_GROUP_PLACEHOLDER_'
+        ORDER BY group_name, dqe_name
+    </select>
+
+    <!-- 添加DQE分组 -->
+    <insert id="addDqeGroup">
+        INSERT INTO dqe_member_groups (dqe_name, group_name) 
+        VALUES ('_GROUP_PLACEHOLDER_', #{groupName})
+    </insert>
+
+    <!-- 删除DQE分组 -->
+    <delete id="deleteDqeGroup">
+        DELETE FROM dqe_member_groups 
+        WHERE group_name = #{groupName}
+    </delete>
+
+    <!-- 从分组中移除人员 -->
+    <delete id="removeMemberFromGroup">
+        DELETE FROM dqe_member_groups 
+        WHERE dqe_name = #{memberName} AND group_name = #{groupName}
+    </delete>
+
+    <!-- 添加人员到分组 -->
+    <insert id="addMemberToGroup">
+        INSERT INTO dqe_member_groups (dqe_name, group_name) 
+        VALUES (#{memberName}, #{groupName})
+    </insert>
 
     <!-- 基于 changeRecord 的搜索功能 -->
     <select id="searchByChangeRecord" resultType="map">
