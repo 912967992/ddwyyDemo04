@@ -6,6 +6,14 @@
     SELECT * FROM tb_test_engineer_info
 </select>
 
+<select id="getSampleCategories" resultType="String">
+    SELECT DISTINCT sample_category 
+    FROM electric_info 
+    WHERE sample_category IS NOT NULL 
+    AND sample_category != '' 
+    ORDER BY sample_category
+</select>
+
 
     <update id="updateTesterInfo">
         UPDATE tb_test_engineer_info
@@ -86,7 +94,20 @@
             <if test="tester != null and tester != ''">
                 AND tester LIKE CONCAT('%', #{tester}, '%')
             </if>
+            <!-- 处理接收时间开始时间过滤 -->
+            <if test="createTimeStart != null and createTimeStart != ''">
+                AND create_time >= CONCAT(#{createTimeStart}, ' 00:00:00')
+            </if>
+            <!-- 处理接收时间结束时间过滤 -->
+            <if test="createTimeEnd != null and createTimeEnd != ''">
+                AND create_time &lt;= CONCAT(#{createTimeEnd}, ' 23:59:59')
+            </if>
+            <!-- 处理产品类别过滤 -->
+            <if test="sampleCategory != null and sampleCategory != ''">
+                AND sample_category = #{sampleCategory}
+            </if>
         </where>
+        ORDER BY create_time DESC
     </select>
 
     <!-- 基于 changeRecord 的搜索功能 -->

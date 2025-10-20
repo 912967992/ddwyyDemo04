@@ -19,6 +19,10 @@ public class ScheduleBoardService {
         return scheduleBoardDao.getTestEngineers();
     }
 
+    public List<String> getSampleCategories() {
+        return scheduleBoardDao.getSampleCategories();
+    }
+
     public void updateTesterInfo(TesterInfo testerInfo){
         scheduleBoardDao.updateTesterInfo(testerInfo);
     }
@@ -56,8 +60,8 @@ public class ScheduleBoardService {
         scheduleBoardDao.addGroup(group);
     }
 
-    public List<PassbackData> searchProjects(String sample_id , String sample_model, String tester){
-        return scheduleBoardDao.searchProjects(sample_id, sample_model, tester);
+    public List<PassbackData> searchProjects(String sample_id , String sample_model, String tester, String createTimeStart, String createTimeEnd, String sampleCategory){
+        return scheduleBoardDao.searchProjects(sample_id, sample_model, tester, createTimeStart, createTimeEnd, sampleCategory);
     }
 
     /**

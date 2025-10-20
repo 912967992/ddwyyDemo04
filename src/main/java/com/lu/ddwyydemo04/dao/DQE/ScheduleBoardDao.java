@@ -11,6 +11,7 @@ import java.util.Map;
 public interface ScheduleBoardDao {
 
     List<TestEngineerInfo> getTestEngineers();
+    List<String> getSampleCategories();
     void updateTesterInfo(TesterInfo testerInfo);
 
     int queryExistTester(TesterInfo testerInfo);
@@ -25,7 +26,7 @@ public interface ScheduleBoardDao {
 
     List<Group> getAllGroupsOrderByDisplayOrder();
 
-    List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester);
+    List<PassbackData> searchProjects(@Param("sample_id")String sample_id, @Param("sample_model")String sample_model, @Param("tester")String tester, @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd, @Param("sampleCategory")String sampleCategory);
 
     /**
      * 基于 changeRecord 的搜索功能

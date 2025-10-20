@@ -63,6 +63,12 @@ public class ScheduleBoardController {
         return scheduleBoardService.getTestEngineers();
     }
 
+    @GetMapping("/scheduleBoardController/getSampleCategories")
+    @ResponseBody
+    public List<String> getSampleCategories() {
+        return scheduleBoardService.getSampleCategories();
+    }
+
     @PostMapping("/scheduleBoardController/updateTesterInfo")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateTesterInfo(@RequestBody List<TesterInfo> testerInfoList) {
@@ -208,9 +214,12 @@ public class ScheduleBoardController {
         String sampleId = requestData.get("sampleId");
         String sampleModel = requestData.get("sampleModel");
         String tester = requestData.get("tester");
+        String createTimeStart = requestData.get("createTimeStart");
+        String createTimeEnd = requestData.get("createTimeEnd");
+        String sampleCategory = requestData.get("sampleCategory");
 
         // 查询结果
-        List<PassbackData> results = scheduleBoardService.searchProjects(sampleId, sampleModel, tester);
+        List<PassbackData> results = scheduleBoardService.searchProjects(sampleId, sampleModel, tester, createTimeStart, createTimeEnd, sampleCategory);
 
         // 遍历结果，补全 materialCode
         for (PassbackData data : results) {

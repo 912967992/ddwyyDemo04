@@ -218,14 +218,16 @@
 <!-- 排期面板区域 -->
 <div class="schedule-board-container">
   <div class="schedule-board-header">
-    <h3>排期面板 <span style="font-size: 12px; color: #666; font-weight: normal;">(点击左侧测试人员姓名可高亮对应行)</span></h3>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3>排期面板 <span style="font-size: 12px; color: #666; font-weight: normal;">(点击左侧测试人员姓名可高亮对应行)</span></h3>
+      <button class="save-schedule-btn" onclick="exportScheduleToExcel()" style="background-color: #28a745; color: white; margin-left: 10px;">📊 导出Excel</button>
+    </div>
     <div class="schedule-controls">
       <input type="date" id="startDate" class="date-picker">
       <span>至</span>
       <input type="date" id="endDate" class="date-picker">
       <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
       <button class="save-schedule-btn" onclick="saveScheduleWithPermission()">保存排期</button>
-      <button class="save-schedule-btn" onclick="exportScheduleToExcel()" style="background-color: #28a745; color: white;">📊 导出Excel</button>
     </div>
   </div>
   <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
@@ -516,7 +518,7 @@
       <button id="closeSearchModalBtn" class="modal-button">关闭</button>
     </div>
     <!-- 修改 searchModalBody 的样式 -->
-    <div id="searchModalBody" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+    <div id="searchModalBody" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 10px;">
       <div>
         <strong>电气编号：</strong><input type="text" id="searchSampleId">
       </div>
@@ -526,9 +528,26 @@
       <div>
         <strong>测试人：</strong><input type="text" id="searchTester">
       </div>
+      <div>
+        <strong>接收时间开始：</strong><input type="date" id="searchCreateTimeStart">
+      </div>
+      <div>
+        <strong>接收时间结束：</strong><input type="date" id="searchCreateTimeEnd">
+      </div>
+      <div>
+        <strong>产品类别：</strong>
+        <select id="searchSampleCategory" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+          <option value="">全部类别</option>
+        </select>
+      </div>
       <button id="executeSearchBtn" class="modal-button">搜索</button>
     </div>
-    <div id="searchResults"></div>
+    <div id="searchResultsContainer">
+      <div id="searchResultsCount" style="margin-bottom: 10px; padding: 8px; background-color: #f8f9fa; border-radius: 4px; font-weight: bold; color: #495057; display: none;">
+        搜索结果：<span id="searchCount">0</span> 条记录
+      </div>
+      <div id="searchResults"></div>
+    </div>
   </div>
 </div>
 
@@ -5807,6 +5826,31 @@
     const modalContent = document.getElementById('searchModalContent');
     const overlay = document.getElementById('searchModalOverlay');
 
+    // 加载品类选项
+    function loadSampleCategories() {
+      fetch('/scheduleBoardController/getSampleCategories')
+              .then(response => response.json())
+              .then(categories => {
+                const select = document.getElementById('searchSampleCategory');
+                // 清空现有选项（保留"全部类别"）
+                select.innerHTML = '<option value="">全部类别</option>';
+
+                // 添加从数据库获取的品类选项
+                categories.forEach(category => {
+                  const option = document.createElement('option');
+                  option.value = category;
+                  option.textContent = category;
+                  select.appendChild(option);
+                });
+              })
+              .catch(error => {
+                console.error('加载品类选项失败:', error);
+              });
+    }
+
+    // 页面加载时获取品类选项
+    loadSampleCategories();
+
     // 打开模态框时显示遮罩和模态框（你自己调用）
     function openSearchModal() {
       overlay.style.display = 'block';
@@ -5851,6 +5895,9 @@
       const sampleId = document.getElementById('searchSampleId').value;
       const sampleModel = document.getElementById('searchSampleModel').value;
       const tester = document.getElementById('searchTester').value;
+      const createTimeStart = document.getElementById('searchCreateTimeStart').value;
+      const createTimeEnd = document.getElementById('searchCreateTimeEnd').value;
+      const sampleCategory = document.getElementById('searchSampleCategory').value;
 
       // 发送搜索请求
       fetch('/scheduleBoardController/searchProjects', {
@@ -5861,13 +5908,38 @@
         body: JSON.stringify({
           sampleId: sampleId,
           sampleModel: sampleModel,
-          tester: tester
+          tester: tester,
+          createTimeStart: createTimeStart,
+          createTimeEnd: createTimeEnd,
+          sampleCategory: sampleCategory
         })
       })
               .then(response => response.json())
               .then(data => {
                 const resultsContainer = document.getElementById('searchResults');
+                const countContainer = document.getElementById('searchResultsCount');
+                const countSpan = document.getElementById('searchCount');
+
                 resultsContainer.innerHTML = '';
+
+                // 按类别统计计数
+                const categoryCount = {};
+                data.forEach(item => {
+                  const category = item.sample_category || '未分类';
+                  categoryCount[category] = (categoryCount[category] || 0) + 1;
+                });
+
+                // 更新计数显示
+                let countHtml = `搜索结果：<span id="searchCount">${data.length}</span> 条记录`;
+                if (Object.keys(categoryCount).length > 1) {
+                  countHtml += '<br><div style="margin-top: 5px; font-size: 12px; color: #666;">按类别统计：';
+                  Object.entries(categoryCount).forEach(([category, count]) => {
+                    countHtml += `<span style="margin-right: 10px;">${category}: ${count}条</span>`;
+                  });
+                  countHtml += '</div>';
+                }
+                countContainer.innerHTML = countHtml;
+                countContainer.style.display = data.length > 0 ? 'block' : 'none';
 
                 if (data.length === 0) {
                   resultsContainer.innerHTML = '暂无搜索结果。';
@@ -5878,6 +5950,8 @@
                             <tr>
                                 <th>电气编号</th>
                                 <th>大小编码</th>
+                                <th>产品类别</th>
+                                <th>接收时间</th>
                                 <th>预计排期开始时间</th>
                                 <th>预计排期结束时间</th>
                                 <th>排期天数</th>
@@ -5896,10 +5970,13 @@
                   data.forEach(item => {
                     const startDate = item.schedule_start_date ? item.schedule_start_date.split('T')[0] : '';
                     const endDate = item.schedule_end_date ? item.schedule_end_date.split('T')[0] : '';
+                    const createTime = item.create_time ? item.create_time.split('T')[0] : '';
 
                     html += `<tr>
                                 <td>${item.sample_id}</td>
                                 <td>${item.sample_model} ${item.materialCode || ''}</td>
+                                <td>${item.sample_category || '未分类'}</td>
+                                <td>${createTime}</td>
                                 <td>${startDate}</td>
                                 <td>${endDate}</td>
                                 <td>${item.scheduleDays}</td>
@@ -5920,7 +5997,11 @@
               })
               .catch(error => {
                 console.error('搜索失败:', error);
-                document.getElementById('searchResults').innerHTML = '搜索失败，请稍后重试。';
+                const resultsContainer = document.getElementById('searchResults');
+                const countContainer = document.getElementById('searchResultsCount');
+
+                resultsContainer.innerHTML = '搜索失败，请稍后重试。';
+                countContainer.style.display = 'none';
               });
     });
 
