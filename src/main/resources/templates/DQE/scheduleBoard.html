@@ -687,6 +687,7 @@
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🕒 更新时间</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">✅ 是否使用</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">🗑️ 是否作废</th>
+                                <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">⚡ 操作类型</th>
                                 <th style="background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">📝 备注</th>
                             </tr>
                         </thead>
@@ -6071,7 +6072,7 @@
 
         // 显示加载状态
         document.getElementById('changeRecordResultsPanel').style.display = 'block';
-        document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
+        document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="16" style="text-align: center; padding: 40px; color: #6c757d;">🔍 正在搜索中...</td></tr>';
 
         // 优先使用新的搜索接口，如果失败则回退到旧接口
         fetch('/scheduleBoardController/searchByChangeRecordNew', {
@@ -6090,7 +6091,8 @@
         })
         .then(data => {
             console.log('变更记录搜索返回的数据:', data);
-            changeRecordAllResults = data;
+            // 为每条记录添加行号
+            changeRecordAllResults = addRowNumbers(data);
             changeRecordCurrentPage = 1;
             displayChangeRecordResults();
         })
@@ -6112,7 +6114,8 @@
             })
             .then(data => {
                 console.log('旧接口变更记录搜索返回的数据:', data);
-                changeRecordAllResults = data;
+                // 为每条记录添加行号
+                changeRecordAllResults = addRowNumbers(data);
                 changeRecordCurrentPage = 1;
                 displayChangeRecordResults();
             })
@@ -6123,7 +6126,7 @@
         })
         .catch(error => {
             console.error('变更记录搜索失败:', error);
-            document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
+            document.getElementById('changeRecordResultsTableBody').innerHTML = '<tr><td colspan="16" style="text-align: center; padding: 40px; color: #6c757d;">❌ 搜索失败，请重试</td></tr>';
         });
     }
 
@@ -6140,7 +6143,7 @@
 
         // 没有结果时
         if (!changeRecordAllResults || changeRecordAllResults.length === 0) {
-            resultsTableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
+            resultsTableBody.innerHTML = '<tr><td colspan="16" style="text-align: center; padding: 40px; color: #6c757d; font-style: italic;">📭 没有找到匹配的记录</td></tr>';
             pagination.style.display = 'none';
             resultsCount.textContent = '搜索结果：0 条记录';
             return;
@@ -6162,8 +6165,12 @@
         // 更新结果计数
         resultsCount.textContent = `搜索结果：${totalResults} 条记录`;
 
-        // 渲染表格 - 直接显示change_records表的数据
-        const tableHtml = changeRecordCurrentResults.map((item, index) => `
+        // 渲染表格 - 直接显示change_records表的数据，并判断操作类型
+        const tableHtml = changeRecordCurrentResults.map((item, index) => {
+            // 判断操作类型
+            const operationType = determineOperationType(item, changeRecordCurrentResults, index);
+            
+            return `
             <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.id || (startIndex + index + 1)}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top; font-weight: 500;">${item.electric_sample_id || item.sample_id || '-'}</td>
@@ -6181,9 +6188,16 @@
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${formatChangeRecordDate(item.update_time) || '-'}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_used}</td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.is_cancel === 1 ? '是' : item.is_cancel === 0 ? '否' : '-'}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">
+                    <span class="operation-type-tag operation-${getOperationTypeClass(operationType)}" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; ${getOperationTypeStyle(operationType)}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <span style="margin-right: 6px; font-size: 14px;">${getOperationTypeIcon(operationType)}</span>
+                        ${operationType}
+                    </span>
+                </td>
                 <td style="padding: 12px; border-bottom: 1px solid #e9ecef; vertical-align: top;">${item.remark || '-'}</td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
         resultsTableBody.innerHTML = tableHtml;
 
@@ -6202,11 +6216,197 @@
 
 
 
+    // 为变更记录添加行号
+    function addRowNumbers(data) {
+        if (!data || data.length === 0) return data;
+        
+        // 按电气编号分组
+        const groupedData = {};
+        data.forEach(item => {
+            const electricId = item.electric_sample_id || item.sample_id;
+            if (!groupedData[electricId]) {
+                groupedData[electricId] = [];
+            }
+            groupedData[electricId].push(item);
+        });
+        
+        // 为每个电气编号的记录按时间正序排序并添加行号
+        const result = [];
+        Object.keys(groupedData).forEach(electricId => {
+            const records = groupedData[electricId];
+            console.log(`处理电气编号 ${electricId}，记录数量: ${records.length}`);
+            
+            // 按更新时间正序排序（最老的在前）
+            records.sort((a, b) => new Date(a.update_time) - new Date(b.update_time));
+            
+            // 添加行号（最老的记录为第1条）
+            records.forEach((record, index) => {
+                record.row_num = index + 1;
+                console.log(`电气编号 ${electricId} 第 ${index + 1} 条记录（按时间正序）:`, {
+                    update_time: record.update_time,
+                    is_used: record.is_used,
+                    row_num: record.row_num
+                });
+                result.push(record);
+            });
+        });
+        
+        // 按更新时间倒序重新排序（全局倒序，最新的在前）
+        result.sort((a, b) => new Date(b.update_time) - new Date(a.update_time));
+        
+        console.log('添加行号后的数据（按时间倒序）:', result);
+        return result;
+    }
+
     // 格式化变更记录日期
     function formatChangeRecordDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        return date.toISOString().split('T')[0]; // 返回 YYYY-MM-DD 格式
+        // 返回完整的日期时间格式 YYYY-MM-DD HH:mm:ss
+        return date.getFullYear() + '-' + 
+               String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(date.getDate()).padStart(2, '0') + ' ' +
+               String(date.getHours()).padStart(2, '0') + ':' +
+               String(date.getMinutes()).padStart(2, '0') + ':' +
+               String(date.getSeconds()).padStart(2, '0');
+    }
+
+    // 判断操作类型
+    function determineOperationType(currentItem, currentPageResults, currentIndex) {
+        const electricSampleId = currentItem.electric_sample_id || currentItem.sample_id;
+        const currentIsUsed = currentItem.is_used; // 直接使用字符串值
+        const currentRowNum = parseInt(currentItem.row_num);
+        
+        // 添加调试信息
+        console.log('判断操作类型:', {
+            electricSampleId: electricSampleId,
+            currentIsUsed: currentIsUsed,
+            currentRowNum: currentRowNum,
+            isUsedType: typeof currentItem.is_used,
+            rowNumType: typeof currentItem.row_num
+        });
+        
+        // 如果is_used为"未使用"，则统一为删除操作
+        if (currentIsUsed === '未使用') {
+            console.log('判断为删除 - is_used=未使用');
+            return '删除';
+        }
+        
+        // 如果是第一条记录（最旧的记录）且is_used为"使用"，则为新增
+        if (currentRowNum === 1 && currentIsUsed === '使用') {
+            console.log('判断为新增 - 第一条记录（最旧）且is_used=使用');
+            return '新增';
+        }
+        
+        // 如果不是第一条记录，需要找到前一条记录进行比较
+        if (currentRowNum > 1) {
+            console.log('查找前一条记录...');
+            // 在全局结果中查找同电气编号的前一条记录（时间更早的记录）
+            const previousRecord = findPreviousRecord(electricSampleId, currentItem.update_time, changeRecordAllResults);
+            
+            console.log('前一条记录:', previousRecord);
+            
+            if (previousRecord) {
+                const previousIsUsed = previousRecord.is_used; // 直接使用字符串值
+                console.log('前一条记录（时间更早）is_used:', previousIsUsed, '当前记录is_used:', currentIsUsed);
+                console.log('前一条is_used类型:', typeof previousIsUsed, '当前is_used类型:', typeof currentIsUsed);
+                console.log('前一条is_used值:', JSON.stringify(previousIsUsed), '当前is_used值:', JSON.stringify(currentIsUsed));
+                
+                // 前一条（时间更早）是使用状态，当前也是使用状态，说明是修改操作
+                if ((previousIsUsed === '使用' || previousIsUsed?.trim() === '使用') && 
+                    (currentIsUsed === '使用' || currentIsUsed?.trim() === '使用')) {
+                    console.log('判断为修改 - 前一条（时间更早）和当前都使用');
+                    return '修改';
+                }
+                // 前一条（时间更早）是未使用状态，当前是使用状态，说明是新增操作
+                else if ((previousIsUsed === '未使用' || previousIsUsed?.trim() === '未使用') && 
+                         (currentIsUsed === '使用' || currentIsUsed?.trim() === '使用')) {
+                    console.log('判断为新增 - 前一条（时间更早）是删除，当前使用');
+                    return '新增';
+                }
+                else {
+                    console.log('未匹配任何条件 - 前一条:', previousIsUsed, '当前:', currentIsUsed);
+                }
+            } else {
+                console.log('未找到前一条记录');
+            }
+        } else {
+            console.log('是第一条记录，不需要查找前一条记录');
+        }
+        
+        // 默认情况
+        console.log('返回未知 - 未匹配任何条件');
+        return '未知';
+    }
+
+    // 查找同电气编号的前一条记录（按时间正序，前一条是时间更早的记录）
+    function findPreviousRecord(electricSampleId, currentUpdateTime, allResults) {
+        console.log('查找前一条记录 - 电气编号:', electricSampleId, '当前时间:', currentUpdateTime);
+        console.log('全局结果数量:', allResults ? allResults.length : 'undefined');
+        
+        // 按电气编号过滤，然后按更新时间正序排序（最旧的在前）
+        const sameElectricRecords = allResults
+            .filter(item => (item.electric_sample_id || item.sample_id) === electricSampleId)
+            .sort((a, b) => new Date(a.update_time) - new Date(b.update_time));
+        
+        console.log('同电气编号记录数量:', sameElectricRecords.length);
+        console.log('同电气编号记录（按时间正序）:', sameElectricRecords);
+        
+        const currentIndex = sameElectricRecords.findIndex(item => item.update_time === currentUpdateTime);
+        console.log('当前记录索引:', currentIndex);
+        
+        if (currentIndex > 0) {
+            console.log('找到前一条记录（时间更早的记录）:', sameElectricRecords[currentIndex - 1]);
+            return sameElectricRecords[currentIndex - 1];
+        }
+        
+        console.log('未找到前一条记录 - 可能原因：');
+        console.log('1. 当前记录是第一条记录（索引为0）');
+        console.log('2. 当前记录在过滤后的列表中未找到');
+        console.log('3. 电气编号不匹配');
+        return null;
+    }
+
+    // 获取操作类型的图标
+    function getOperationTypeIcon(operationType) {
+        switch (operationType) {
+            case '新增':
+                return '➕';
+            case '删除':
+                return '🗑️';
+            case '修改':
+                return '✏️';
+            default:
+                return '❓';
+        }
+    }
+
+    // 获取操作类型的CSS类名
+    function getOperationTypeClass(operationType) {
+        switch (operationType) {
+            case '新增':
+                return 'new';
+            case '删除':
+                return 'delete';
+            case '修改':
+                return 'modify';
+            default:
+                return 'unknown';
+        }
+    }
+
+    // 获取操作类型的样式
+    function getOperationTypeStyle(operationType) {
+        switch (operationType) {
+            case '新增':
+                return 'background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; border: 1px solid #c3e6cb;';
+            case '删除':
+                return 'background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; border: 1px solid #f5c6cb;';
+            case '修改':
+                return 'background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); color: #0c5460; border: 1px solid #bee5eb;';
+            default:
+                return 'background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%); color: #383d41; border: 1px solid #d6d8db;';
+        }
     }
 
     // 获取颜色值
@@ -6379,6 +6579,48 @@
         #changeRecordSearchForm button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* 操作类型标签悬停效果 */
+        .operation-type-tag {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .operation-type-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+        
+        /* 操作类型标签动画 */
+        .operation-type-tag.operation-new {
+            animation: pulse-green 2s infinite;
+        }
+        
+        .operation-type-tag.operation-delete {
+            animation: pulse-red 2s infinite;
+        }
+        
+        .operation-type-tag.operation-modify {
+            animation: pulse-blue 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(40, 167, 69, 0.4); }
+            70% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(0, 123, 255, 0.4); }
+            70% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 rgba(0, 123, 255, 0); }
         }
         
         /* 变更记录卡片悬停效果 */

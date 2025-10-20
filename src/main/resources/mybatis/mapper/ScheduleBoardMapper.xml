@@ -160,7 +160,7 @@
         LIMIT 100
     </select>
 
-    <!-- 基于新变更记录表的搜索功能 - 直接返回change_records表数据 -->
+    <!-- 基于新变更记录表的搜索功能 - 按电气编号分组并按更新时间排序，便于判断操作类型 -->
     <select id="searchByChangeRecordNew" resultType="map">
         SELECT 
             cr.id,
