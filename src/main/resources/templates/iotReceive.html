@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物联网数据接收页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+
+        .api-info {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .api-url {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+
+        .data-container {
+            padding: 20px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .data-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .data-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-timestamp {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .data-method {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: #d4edda; color: #155724; }
+        .method-post { background: #cce5ff; color: #004085; }
+        .method-put { background: #fff3cd; color: #856404; }
+        .method-delete { background: #f8d7da; color: #721c24; }
+
+        .data-content {
+            display: block;
+        }
+
+        .data-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .data-section h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .json-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-data i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4facfe;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        @media (max-width: 768px) {
+            .stats-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 物联网数据接收中心</h1>
+            <p>实时监控和展示来自各种设备的数据</p>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-number" id="totalRecords">0</div>
+                <div class="stat-label">总接收记录</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="maxRecords">1000</div>
+                <div class="stat-label">最大存储</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="lastUpdate">--</div>
+                <div class="stat-label">最后更新</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="loadData()">🔄 刷新数据</button>
+            <button class="btn btn-success" onclick="loadStats()">📊 更新统计</button>
+            <button class="btn btn-danger" onclick="clearData()">🗑️ 清空数据</button>
+            <div class="auto-refresh">
+                <label>自动刷新:</label>
+                <label class="switch">
+                    <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="api-info">
+            <h4>📡 API 接口信息</h4>
+            <p><strong>通用数据接收接口 (支持所有格式):</strong></p>
+            <div class="api-url">POST/GET/PUT/DELETE http://localhost:8080/iot/data</div>
+            <p><strong>JSON数据接收接口:</strong></p>
+            <div class="api-url">POST http://localhost:8080/iot/data/json</div>
+            <p><strong>数据查询接口:</strong></p>
+            <div class="api-url">GET http://localhost:8080/iot/data/list</div>
+            <p><strong>统计信息接口:</strong></p>
+            <div class="api-url">GET http://localhost:8080/iot/stats</div>
+        </div>
+
+        <div class="data-container" id="dataContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>正在加载数据...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefresh = false;
+
+        // 页面加载完成后自动加载数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            loadStats();
+        });
+
+        // 加载数据
+        async function loadData() {
+            try {
+                console.log('开始加载数据...');
+                const response = await fetch('/iot/data/list');
+                console.log('响应状态:', response.status);
+                const result = await response.json();
+                console.log('响应数据:', result);
+                
+                if (result.success) {
+                    console.log('数据加载成功，数据量:', result.data ? result.data.length : 0);
+                    displayData(result.data);
+                    updateLastUpdateTime();
+                } else {
+                    console.error('数据加载失败:', result.message);
+                    showError('加载数据失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('网络错误:', error);
+                showError('网络错误: ' + error.message);
+            }
+        }
+
+        // 加载统计信息
+        async function loadStats() {
+            try {
+                const response = await fetch('/iot/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.stats;
+                    document.getElementById('totalRecords').textContent = stats.totalRecords;
+                    document.getElementById('maxRecords').textContent = stats.maxRecords;
+                }
+            } catch (error) {
+                console.error('加载统计信息失败:', error);
+            }
+        }
+
+        // 清空数据
+        async function clearData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/iot/data', {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('数据已清空');
+                    loadData();
+                    loadStats();
+                } else {
+                    alert('清空失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+            }
+        }
+
+        // 显示数据
+        function displayData(data) {
+            console.log('displayData 被调用，数据:', data);
+            const container = document.getElementById('dataContainer');
+            
+            if (!data || data.length === 0) {
+                console.log('没有数据，显示空状态');
+                container.innerHTML = `
+                    <div class="no-data">
+                        <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">📡</div>
+                        <h3>暂无数据</h3>
+                        <p>等待设备发送数据...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('开始渲染数据，数据量:', data.length);
+
+            const html = data.map(item => {
+                // 格式化请求体数据
+                let bodyContent = '';
+                if (item.body) {
+                    if (item.body.jsonData) {
+                        bodyContent = JSON.stringify(item.body.jsonData, null, 2);
+                    } else if (item.body.formData) {
+                        bodyContent = JSON.stringify(item.body.formData, null, 2);
+                    } else if (item.body.rawBody) {
+                        bodyContent = item.body.rawBody;
+                    } else {
+                        bodyContent = JSON.stringify(item.body, null, 2);
+                    }
+                } else {
+                    bodyContent = '无请求体数据';
+                }
+                
+                return `
+                    <div class="data-item">
+                        <div class="data-header">
+                            <div class="data-timestamp">${item.timestamp}</div>
+                            <div class="data-method method-${item.method.toLowerCase()}">${item.method}</div>
+                        </div>
+                        <div class="data-content">
+                            <div class="data-section">
+                                <h4>📦 请求体数据</h4>
+                                <div class="json-display">${bodyContent}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const container = document.getElementById('dataContainer');
+            container.innerHTML = `
+                <div class="no-data">
+                    <div style="font-size: 4em; margin-bottom: 20px; color: #ff6b6b;">❌</div>
+                    <h3>加载失败</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // 更新最后更新时间
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+
+        // 切换自动刷新
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefresh');
+            isAutoRefresh = checkbox.checked;
+            
+            if (isAutoRefresh) {
+                autoRefreshInterval = setInterval(() => {
+                    loadData();
+                    loadStats();
+                }, 5000); // 每5秒刷新一次
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
+
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
