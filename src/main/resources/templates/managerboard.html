@@ -1546,12 +1546,19 @@
             const hasRecognizeResult = project.sampleRecognizeResult && project.sampleRecognizeResult.trim() !== '';
 
             if (!hasActualStart) {
-                // 对于未开始项目，需要应用过滤条件
-                if (project.high_frequency === '是' || 
-                    project.tester === '蔡义会' || 
-                    project.tester === '廖建伟') {
-                    // 过滤掉的项目不计入统计
-                    return;
+                // 特殊处理：测试负责人是蔡义会或廖建伟，且是高频项目，且排期结束时间已经过去一天
+                if ((project.tester === '蔡义会' || project.tester === '廖建伟') && project.high_frequency === '是') {
+                    if (project.schedule_end_date) {
+                        const today = new Date();
+                        const scheduleEnd = new Date(project.schedule_end_date);
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        
+                        // 如果排期结束时间已经过去了一天，则不统计在未开始项目中
+                        if (scheduleEnd < yesterday) {
+                            return;
+                        }
+                    }
                 }
                 distribution['未开始']++;
             } else if (hasActualStart && !hasActualFinish) {
@@ -3102,14 +3109,19 @@
                 return false;
             }
             
-            // 过滤掉是否高频为"是"的项目
-            if (p.high_frequency === '是') {
-                return false;
-            }
-            
-            // 过滤掉测试负责人是蔡义会或廖建伟的项目
-            if (p.tester === '蔡义会' || p.tester === '廖建伟') {
-                return false;
+            // 特殊处理：测试负责人是蔡义会或廖建伟，且是高频项目，且排期结束时间已经过去一天
+            if ((p.tester === '蔡义会' || p.tester === '廖建伟') && p.high_frequency === '是') {
+                if (p.schedule_end_date) {
+                    const today = new Date();
+                    const scheduleEnd = new Date(p.schedule_end_date);
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    
+                    // 如果排期结束时间已经过去了一天，则不统计在未开始项目中
+                    if (scheduleEnd < yesterday) {
+                        return false;
+                    }
+                }
             }
             
             return true;
@@ -3123,20 +3135,53 @@
             p.actual_finish_time && !p.sampleRecognizeResult
         ).length;
 
-        const confirmed = projectData.filter(p =>
-            p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-        ).length;
-
-        // 计算过滤后的项目总数（排除高频项目和指定测试负责人的项目）
-        const filteredTotal = projectData.filter(p => {
-            // 过滤掉是否高频为"是"的项目
-            if (p.high_frequency === '是') {
+        const confirmed = projectData.filter(p => {
+            // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+            if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                // 需要满足排期结束时间的第二天才算已确认
+                if (p.schedule_end_date) {
+                    const today = new Date();
+                    const scheduleEndDate = new Date(p.schedule_end_date);
+                    const nextDay = new Date(scheduleEndDate);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    nextDay.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+                    
+                    // 只有当前时间已过排期结束时间的第二天才算已确认
+                    if (today < nextDay) {
+                        return false;
+                    } else {
+                        return true; // 高频项目满足时间条件就直接通过，不需要DQE承认结果
+                    }
+                } else {
+                    // 如果没有排期结束时间，则不算已确认
+                    return false;
+                }
+            }
+            
+            // 普通项目：基本条件是有DQE承认结果
+            if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
                 return false;
             }
             
-            // 过滤掉测试负责人是蔡义会或廖建伟的项目
-            if (p.tester === '蔡义会' || p.tester === '廖建伟') {
-                return false;
+            return true;
+        }).length;
+
+        // 计算过滤后的项目总数（排除高频项目和指定测试负责人的项目）
+        const filteredTotal = projectData.filter(p => {
+            // 特殊处理：测试负责人是蔡义会或廖建伟，且是高频项目，且排期结束时间已经过去一天
+            if ((p.tester === '蔡义会' || p.tester === '廖建伟') && p.high_frequency === '是') {
+                if (p.schedule_end_date) {
+                    const today = new Date();
+                    const scheduleEnd = new Date(p.schedule_end_date);
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    
+                    // 如果排期结束时间已经过去了一天，则不统计在项目总数中
+                    if (scheduleEnd < yesterday) {
+                        return false;
+                    }
+                }
             }
             
             return true;
@@ -3362,14 +3407,19 @@
             case 'total':
                 title = '项目总数';
                 projects = projectData.filter(p => {
-                    // 过滤掉是否高频为"是"的项目
-                    if (p.high_frequency === '是') {
-                        return false;
-                    }
-                    
-                    // 过滤掉测试负责人是蔡义会或廖建伟的项目
-                    if (p.tester === '蔡义会' || p.tester === '廖建伟') {
-                        return false;
+                    // 特殊处理：测试负责人是蔡义会或廖建伟，且是高频项目，且排期结束时间已经过去一天
+                    if ((p.tester === '蔡义会' || p.tester === '廖建伟') && p.high_frequency === '是') {
+                        if (p.schedule_end_date) {
+                            const today = new Date();
+                            const scheduleEnd = new Date(p.schedule_end_date);
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            
+                            // 如果排期结束时间已经过去了一天，则不统计在项目总数中
+                            if (scheduleEnd < yesterday) {
+                                return false;
+                            }
+                        }
                     }
                     
                     return true;
@@ -3392,14 +3442,19 @@
                         return false;
                     }
                     
-                    // 过滤掉是否高频为"是"的项目
-                    if (p.high_frequency === '是') {
-                        return false;
-                    }
-                    
-                    // 过滤掉测试负责人是蔡义会或廖建伟的项目
-                    if (p.tester === '蔡义会' || p.tester === '廖建伟') {
-                        return false;
+                    // 特殊处理：测试负责人是蔡义会或廖建伟，且是高频项目，且排期结束时间已经过去一天
+                    if ((p.tester === '蔡义会' || p.tester === '廖建伟') && p.high_frequency === '是') {
+                        if (p.schedule_end_date) {
+                            const today = new Date();
+                            const scheduleEnd = new Date(p.schedule_end_date);
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            
+                            // 如果排期结束时间已经过去了一天，则不统计在未开始项目中
+                            if (scheduleEnd < yesterday) {
+                                return false;
+                            }
+                        }
                     }
                     
                     return true;
@@ -3419,9 +3474,102 @@
                 break;
             case 'overdue':
                 title = '已确认项目详情';
-                projects = projectData.filter(p =>
-                    p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
+                
+                // 先打印所有原始数据中的高频项目
+                console.log('=== 原始数据中的高频项目 ===');
+                const allHighFreqProjects = projectData.filter(p => 
+                    p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')
                 );
+                console.log('原始数据中高频项目数量:', allHighFreqProjects.length);
+                allHighFreqProjects.forEach((project, index) => {
+                    console.log(`原始高频项目 ${index + 1}:`, {
+                        样品编号: project.sample_number,
+                        产品名称: project.product_name,
+                        测试负责人: project.tester,
+                        是否高频: project.high_frequency,
+                        DQE承认结果: project.sampleRecognizeResult,
+                        排期结束时间: project.schedule_end_date,
+                        当前时间: new Date().toISOString().split('T')[0]
+                    });
+                });
+                
+                projects = projectData.filter(p => {
+                    // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                    if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                        console.log('处理高频项目:', {
+                            样品编号: p.sample_number,
+                            产品名称: p.product_name,
+                            测试负责人: p.tester,
+                            排期结束时间: p.schedule_end_date,
+                            DQE承认结果: p.sampleRecognizeResult
+                        });
+                        
+                        // 需要满足排期结束时间的第二天才算已确认
+                        if (p.schedule_end_date) {
+                            const today = new Date();
+                            const scheduleEndDate = new Date(p.schedule_end_date);
+                            const nextDay = new Date(scheduleEndDate);
+                            nextDay.setDate(nextDay.getDate() + 1);
+                            nextDay.setHours(0, 0, 0, 0);
+                            today.setHours(0, 0, 0, 0);
+                            
+                            console.log('时间计算:', {
+                                '排期结束时间': p.schedule_end_date,
+                                '排期结束时间对象': scheduleEndDate,
+                                '第二天': nextDay,
+                                '当前时间': today,
+                                '当前时间 < 第二天': today < nextDay,
+                                '是否通过': today >= nextDay
+                            });
+                            
+                            // 只有当前时间已过排期结束时间的第二天才算已确认
+                            if (today < nextDay) {
+                                console.log('高频项目被过滤掉（时间未到）:', p.sample_number);
+                                return false;
+                            } else {
+                                console.log('高频项目通过时间检查，直接算作已确认:', p.sample_number);
+                                return true; // 高频项目满足时间条件就直接通过，不需要DQE承认结果
+                            }
+                        } else {
+                            console.log('高频项目被过滤掉（无排期结束时间）:', p.sample_number);
+                            // 如果没有排期结束时间，则不算已确认
+                            return false;
+                        }
+                    }
+                    
+                    // 普通项目：基本条件是有DQE承认结果
+                    if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+                // 打印已确认项目数据到控制台
+                console.log('=== 已确认项目数据调试信息 ===');
+                console.log('过滤后的已确认项目数量:', projects.length);
+                console.log('已确认项目详细数据:', projects);
+                
+                // 打印高频项目特殊处理的数据
+                const highFrequencyProjects = projects.filter(p => 
+                    p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')
+                );
+                console.log('高频项目（蔡义会/廖建伟）数量:', highFrequencyProjects.length);
+                console.log('高频项目详细数据:', highFrequencyProjects);
+                
+                // 打印每个高频项目的时间信息
+                highFrequencyProjects.forEach((project, index) => {
+                    console.log(`高频项目 ${index + 1}:`, {
+                        样品编号: project.sample_number,
+                        产品名称: project.product_name,
+                        测试负责人: project.tester,
+                        排期结束时间: project.schedule_end_date,
+                        当前时间: new Date().toISOString().split('T')[0],
+                        是否满足时间条件: project.schedule_end_date ? 
+                            new Date() >= new Date(new Date(project.schedule_end_date).getTime() + 24 * 60 * 60 * 1000) : '无排期结束时间'
+                    });
+                });
+                console.log('=== 已确认项目数据调试信息结束 ===');
                 break;
         }
 
@@ -4978,9 +5126,36 @@
                     );
                     break;
                 case '已确认项目详情':
-                    originalProjects = projectData.filter(p =>
-                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-                    );
+                    originalProjects = projectData.filter(p => {
+                        // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                        if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                            // 需要满足排期结束时间的第二天才算已确认
+                            if (p.schedule_end_date) {
+                                const today = new Date();
+                                const scheduleEndDate = new Date(p.schedule_end_date);
+                                const nextDay = new Date(scheduleEndDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                nextDay.setHours(0, 0, 0, 0);
+                                today.setHours(0, 0, 0, 0);
+                                
+                                // 只有当前时间已过排期结束时间的第二天才算已确认
+                                if (today < nextDay) {
+                                    return false;
+                                }
+                                return true; // 高频项目满足时间条件就算已确认
+                            } else {
+                                // 如果没有排期结束时间，则不算已确认
+                                return false;
+                            }
+                        }
+                        
+                        // 普通项目：基本条件是有DQE承认结果
+                        if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
                     break;
             }
 
@@ -5396,9 +5571,36 @@
                     );
                     break;
                 case '已确认项目详情':
-                    projectsToExport = projectData.filter(p =>
-                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-                    );
+                    projectsToExport = projectData.filter(p => {
+                        // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                        if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                            // 需要满足排期结束时间的第二天才算已确认
+                            if (p.schedule_end_date) {
+                                const today = new Date();
+                                const scheduleEndDate = new Date(p.schedule_end_date);
+                                const nextDay = new Date(scheduleEndDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                nextDay.setHours(0, 0, 0, 0);
+                                today.setHours(0, 0, 0, 0);
+                                
+                                // 只有当前时间已过排期结束时间的第二天才算已确认
+                                if (today < nextDay) {
+                                    return false;
+                                }
+                                return true; // 高频项目满足时间条件就算已确认
+                            } else {
+                                // 如果没有排期结束时间，则不算已确认
+                                return false;
+                            }
+                        }
+                        
+                        // 普通项目：基本条件是有DQE承认结果
+                        if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
                     break;
                 default:
                     // 如果标题包含筛选信息（如"项目总数 - 产品类别"）
@@ -5427,9 +5629,36 @@
                                 );
                                 break;
                             case '已确认项目详情':
-                                baseProjects = projectData.filter(p =>
-                                    p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-                                );
+                                baseProjects = projectData.filter(p => {
+                                    // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                                    if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                                        // 需要满足排期结束时间的第二天才算已确认
+                                        if (p.schedule_end_date) {
+                                            const today = new Date();
+                                            const scheduleEndDate = new Date(p.schedule_end_date);
+                                            const nextDay = new Date(scheduleEndDate);
+                                            nextDay.setDate(nextDay.getDate() + 1);
+                                            nextDay.setHours(0, 0, 0, 0);
+                                            today.setHours(0, 0, 0, 0);
+                                            
+                                            // 只有当前时间已过排期结束时间的第二天才算已确认
+                                            if (today < nextDay) {
+                                                return false;
+                                            }
+                                            return true; // 高频项目满足时间条件就算已确认
+                                        } else {
+                                            // 如果没有排期结束时间，则不算已确认
+                                            return false;
+                                        }
+                                    }
+                                    
+                                    // 普通项目：基本条件是有DQE承认结果
+                                    if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                                        return false;
+                                    }
+                                    
+                                    return true;
+                                });
                                 break;
                         }
 
@@ -5684,9 +5913,36 @@
                     );
                     break;
                 case '已确认项目详情':
-                    originalProjects = projectData.filter(p =>
-                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-                    );
+                    originalProjects = projectData.filter(p => {
+                        // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                        if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                            // 需要满足排期结束时间的第二天才算已确认
+                            if (p.schedule_end_date) {
+                                const today = new Date();
+                                const scheduleEndDate = new Date(p.schedule_end_date);
+                                const nextDay = new Date(scheduleEndDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                nextDay.setHours(0, 0, 0, 0);
+                                today.setHours(0, 0, 0, 0);
+                                
+                                // 只有当前时间已过排期结束时间的第二天才算已确认
+                                if (today < nextDay) {
+                                    return false;
+                                }
+                                return true; // 高频项目满足时间条件就算已确认
+                            } else {
+                                // 如果没有排期结束时间，则不算已确认
+                                return false;
+                            }
+                        }
+                        
+                        // 普通项目：基本条件是有DQE承认结果
+                        if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
                     break;
             }
 
@@ -5813,9 +6069,36 @@
                     );
                     break;
                 case '已确认项目详情':
-                    originalProjects = projectData.filter(p =>
-                        p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
-                    );
+                    originalProjects = projectData.filter(p => {
+                        // 特殊处理：高频项目且测试负责人是蔡义会或廖建伟的情况
+                        if (p.high_frequency === '是' && (p.tester === '蔡义会' || p.tester === '廖建伟')) {
+                            // 需要满足排期结束时间的第二天才算已确认
+                            if (p.schedule_end_date) {
+                                const today = new Date();
+                                const scheduleEndDate = new Date(p.schedule_end_date);
+                                const nextDay = new Date(scheduleEndDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                nextDay.setHours(0, 0, 0, 0);
+                                today.setHours(0, 0, 0, 0);
+                                
+                                // 只有当前时间已过排期结束时间的第二天才算已确认
+                                if (today < nextDay) {
+                                    return false;
+                                }
+                                return true; // 高频项目满足时间条件就算已确认
+                            } else {
+                                // 如果没有排期结束时间，则不算已确认
+                                return false;
+                            }
+                        }
+                        
+                        // 普通项目：基本条件是有DQE承认结果
+                        if (!p.sampleRecognizeResult || p.sampleRecognizeResult.trim() === '') {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
                     break;
             }
 

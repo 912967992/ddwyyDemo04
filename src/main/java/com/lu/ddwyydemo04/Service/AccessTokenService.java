@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -1138,6 +1139,14 @@ public class AccessTokenService {
     @Scheduled(cron = "0 0 9 * * ?") // 每天早上9点执行
     public void checkUnconfirmedStatus() {
         logger.info("开始执行定时任务，检查 DQE 和研发未确认状态...");
+        
+        // 检查是否为周末，如果是周末则跳过提醒
+        LocalDateTime currentTime = LocalDateTime.now();
+        DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            logger.info("今天是周末（" + dayOfWeek + "），跳过未回传提醒功能");
+            return;
+        }
         
         try {
             // 查询 DQE 未确认的记录
