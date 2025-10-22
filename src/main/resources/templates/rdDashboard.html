@@ -455,9 +455,24 @@
     // 更新看板数据
     function updateDashboard() {
         // 根据electric_info表的数据结构来判断项目状态
-        const notStarted = projectData.filter(p =>
-            !p.actual_start_time && p.schedule !== '已完成'
-        ).length;
+        const notStarted = projectData.filter(p => {
+            // 基本条件：没有实际开始时间且进度不是已完成
+            if (p.actual_start_time || p.schedule === '已完成') {
+                return false;
+            }
+            
+            // 过滤掉是否高频为"是"的项目
+            if (p.high_frequency === '是') {
+                return false;
+            }
+            
+            // 过滤掉测试负责人是蔡义会或廖建伟的项目
+            if (p.tester === '蔡义会' || p.tester === '廖建伟') {
+                return false;
+            }
+            
+            return true;
+        }).length;
 
         const inProgress = projectData.filter(p =>
             p.actual_start_time && !p.actual_finish_time && p.schedule !== '已完成'
@@ -471,7 +486,22 @@
             p.sampleRecognizeResult && p.sampleRecognizeResult.trim() !== ''
         ).length;
 
-        document.getElementById('totalCount').textContent = projectData.length;
+        // 计算过滤后的项目总数（排除高频项目和指定测试负责人的项目）
+        const filteredTotal = projectData.filter(p => {
+            // 过滤掉是否高频为"是"的项目
+            if (p.high_frequency === '是') {
+                return false;
+            }
+            
+            // 过滤掉测试负责人是蔡义会或廖建伟的项目
+            if (p.tester === '蔡义会' || p.tester === '廖建伟') {
+                return false;
+            }
+            
+            return true;
+        }).length;
+
+        document.getElementById('totalCount').textContent = filteredTotal;
         document.getElementById('notStartedCount').textContent = notStarted;
         document.getElementById('inProgressCount').textContent = inProgress;
         document.getElementById('completedCount').textContent = completed;
@@ -690,7 +720,19 @@
         switch(status) {
             case 'total':
                 title = '项目总数';
-                projects = projectData;
+                projects = projectData.filter(p => {
+                    // 过滤掉是否高频为"是"的项目
+                    if (p.high_frequency === '是') {
+                        return false;
+                    }
+                    
+                    // 过滤掉测试负责人是蔡义会或廖建伟的项目
+                    if (p.tester === '蔡义会' || p.tester === '廖建伟') {
+                        return false;
+                    }
+                    
+                    return true;
+                });
                 break;
             case 'not-started':
                 title = '未开始项目详情';
@@ -705,7 +747,21 @@
                         }
                     }
                     // 只显示真正未开始的项目（没有实际开始时间）
-                    return !p.actual_start_time;
+                    if (p.actual_start_time) {
+                        return false;
+                    }
+                    
+                    // 过滤掉是否高频为"是"的项目
+                    if (p.high_frequency === '是') {
+                        return false;
+                    }
+                    
+                    // 过滤掉测试负责人是蔡义会或廖建伟的项目
+                    if (p.tester === '蔡义会' || p.tester === '廖建伟') {
+                        return false;
+                    }
+                    
+                    return true;
                 });
                 break;
             case 'in-progress':

@@ -725,6 +725,14 @@
             ei.sample_frequency,
             ei.sample_quantity,
             ei.changeRecord,
+            -- 获取change_records表中第一次排期时间（按update_time升序排列的第一条记录）
+            (
+                SELECT cr.update_time
+                FROM change_records cr
+                WHERE cr.electric_sample_id = ei.sample_id
+                ORDER BY cr.update_time ASC
+                LIMIT 1
+            ) as first_schedule_time_from_records,
                 -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
                 (
                     SELECT GROUP_CONCAT(
@@ -793,6 +801,14 @@
             ei.sample_frequency,
             ei.sample_quantity,
             ei.changeRecord,
+            -- 获取change_records表中第一次排期时间（按update_time升序排列的第一条记录）
+            (
+                SELECT cr.update_time
+                FROM change_records cr
+                WHERE cr.electric_sample_id = ei.sample_id
+                ORDER BY cr.update_time ASC
+                LIMIT 1
+            ) as first_schedule_time_from_records,
             -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
             (
                 SELECT GROUP_CONCAT(
@@ -869,6 +885,14 @@
             ei.sample_frequency,
             ei.sample_quantity,
             ei.changeRecord,
+            -- 获取change_records表中第一次排期时间（按update_time升序排列的第一条记录）
+            (
+                SELECT cr.update_time
+                FROM change_records cr
+                WHERE cr.electric_sample_id = ei.sample_id
+                ORDER BY cr.update_time ASC
+                LIMIT 1
+            ) as first_schedule_time_from_records,
             -- 获取物料编码，多个物料编码用逗号分隔，格式：物料编码-送样次数
             (
                 SELECT GROUP_CONCAT(
