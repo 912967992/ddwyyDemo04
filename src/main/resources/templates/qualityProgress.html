@@ -7,7 +7,7 @@
     <!-- 引入字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- 引入外部CSS文件 -->
-    <link rel="stylesheet" href="/css/reviewResultsStyle.css">
+    <link rel="stylesheet" href="/css/qualityProgressStyle.css">
     <!-- 引入jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- 引入钉钉JSAPI -->
@@ -6342,6 +6342,28 @@
 
     // 显示新增模态框
     function showAddNewModal() {
+        // 检查当前是否在详细数据管理页面
+        const detailView = document.getElementById('detailView');
+        const dashboardView = document.getElementById('dashboardView');
+        
+        // 如果当前在首页看板，先进入详细数据管理页面
+        if (detailView && detailView.style.display === 'none' && 
+            dashboardView && dashboardView.style.display !== 'none') {
+            console.log('🔄 检测到在首页看板，先进入详细数据管理页面');
+            enterDetailView();
+            
+            // 延迟显示模态框，确保页面切换完成
+            setTimeout(() => {
+                showAddNewModalInternal();
+            }, 100);
+        } else {
+            // 已经在详细数据管理页面，直接显示模态框
+            showAddNewModalInternal();
+        }
+    }
+    
+    // 内部新增模态框显示函数
+    function showAddNewModalInternal() {
         // 重置编辑状态
         resetReviewEditMode();
 
@@ -6354,8 +6376,12 @@
         // 直接进入编辑模式
         enterReviewEditMode();
 
-        // 显示模态框
-        document.getElementById('reviewDetailModal').style.display = 'block';
+        // 显示模态框，确保z-index足够高
+        const modal = document.getElementById('reviewDetailModal');
+        modal.style.display = 'block';
+        modal.style.zIndex = '10000'; // 设置更高的z-index确保显示在最前面
+        
+        console.log('✅ 新增数据模态框已显示');
     }
 
     // 清空新品质量进度详情字段
