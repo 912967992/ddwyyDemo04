@@ -5772,7 +5772,7 @@
                 document.querySelectorAll('.delete-group-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
                         const groupId = this.getAttribute('data-group-id');
-                        deleteGroup(groupId);
+                        deleteGroupById(groupId);
                     });
                 });
             })
@@ -5784,23 +5784,30 @@
 
 
     // 删除组的按钮
-    function deleteGroup(groupId) {
+    function deleteGroupById(groupId) {
         if (!confirm('确定要删除这个组别吗？')) return;
 
         fetch(`/scheduleBoardController/deleteGroup/${groupId}`, {
             method: 'DELETE'
         })
             .then(response => {
+                console.log('删除响应状态:', response.status);
                 if (response.ok) {
-                    alert('组别删除成功！');
-                    loadGroupData(); // 重新加载数据
+                    return response.text();
                 } else {
-                    alert('删除失败，请稍后再试。');
+                    return response.text().then(text => {
+                        throw new Error(`删除失败: ${text}`);
+                    });
                 }
+            })
+            .then(data => {
+                console.log('删除成功:', data);
+                alert('组别删除成功！');
+                loadGroupData(); // 重新加载数据
             })
             .catch(error => {
                 console.error('删除组别失败:', error);
-                alert('删除组别失败，请稍后重试。');
+                alert('删除组别失败: ' + error.message);
             });
     }
 

@@ -607,9 +607,20 @@ public class ScheduleBoardController {
 
     @DeleteMapping("/scheduleBoardController/deleteGroup/{id}")
     public ResponseEntity<String> deleteGroup(@PathVariable("id") String id) {
-        boolean success = scheduleBoardService.deleteGroupById(id);
-        System.out.println("success:"+success);
-        return success ? ResponseEntity.ok("删除成功") : ResponseEntity.status(500).body("删除失败");
+        try {
+            System.out.println("尝试删除组别，ID: " + id);
+            boolean success = scheduleBoardService.deleteGroupById(id);
+            System.out.println("删除结果: " + success);
+            if (success) {
+                return ResponseEntity.ok("删除成功");
+            } else {
+                return ResponseEntity.status(500).body("删除失败：组别不存在或删除操作失败");
+            }
+        } catch (Exception e) {
+            System.err.println("删除组别时发生异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("删除失败：" + e.getMessage());
+        }
     }
 
 
