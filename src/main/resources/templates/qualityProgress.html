@@ -419,6 +419,8 @@
             gap: 25px;
             justify-content: center;
             align-items: center;
+            margin-top: 10px;
+            position: relative;
         }
 
         .stat-button {
@@ -566,11 +568,11 @@
             left: 50%;
             transform: translate(-50%, -50%);
             width: 30px;
-            height: 4px;
-            background: linear-gradient(90deg, rgba(76, 175, 80, 0.6), rgba(33, 150, 243, 0.6));
-            border-radius: 2px;
-            z-index: 1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            height: 2px;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.3), rgba(33, 150, 243, 0.3));
+            border-radius: 1px;
+            z-index: 0;
+            box-shadow: none;
         }
 
         /* 已完成项目卡片整体增强效果 */
@@ -896,14 +898,16 @@
         .responsible-item {
             display: flex;
             align-items: center;
-            padding: 24px;
+            padding: 2rem 2rem 2rem 1rem;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-            border-radius: 16px;
+            border-radius: 1rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             position: relative;
             overflow: hidden;
+            margin-left: 0.5rem;
+            min-height: 5rem;
         }
 
         .responsible-item::before {
@@ -925,8 +929,10 @@
         }
 
         .responsible-name {
-            width: 56px;
-            height: 56px;
+            width: 3.5rem;
+            height: 3.5rem;
+            min-width: 3.5rem;
+            min-height: 3.5rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-radius: 50%;
@@ -934,8 +940,8 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 20px;
-            margin-right: 24px;
+            font-size: 1.25rem;
+            margin-right: 1.5rem;
             box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
             flex-shrink: 0;
             position: relative;
@@ -961,10 +967,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-left: -0.5rem;
+            min-width: 0;
         }
 
         .responsible-details {
             flex: 1;
+            margin-left: -0.25rem;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .responsible-nickname {
@@ -976,15 +987,19 @@
 
         .responsible-stats {
             display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 0.5rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            min-width: 0;
         }
 
         .responsible-stats .stat {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
+            font-size: 0.6875rem;
+            padding: 0.1875rem 0.375rem;
+            border-radius: 0.625rem;
             font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .responsible-stats .stat.completed {
@@ -992,14 +1007,25 @@
             color: #28a745;
         }
 
-        .responsible-stats .stat.in-progress {
+        .responsible-stats .stat.design {
+            background: rgba(52, 144, 220, 0.1);
+            color: #3490dc;
+        }
+
+        .responsible-stats .stat.evt {
             background: rgba(255, 193, 7, 0.1);
             color: #ffc107;
+        }
+
+        .responsible-stats .stat.dvt {
+            background: rgba(255, 87, 34, 0.1);
+            color: #ff5722;
         }
 
         .responsible-stats .stat.at-risk {
             background: rgba(220, 53, 69, 0.1);
             color: #dc3545;
+            margin-right: 8px;
         }
 
         .responsible-tasks {
@@ -1008,23 +1034,83 @@
             align-items: center;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            min-width: 80px;
+            min-width: 5rem;
+            flex-shrink: 0;
         }
 
         .task-count {
-            font-size: 20px;
+            font-size: 1.25rem;
             font-weight: 700;
             line-height: 1;
         }
 
         .completion-rate {
-            font-size: 12px;
+            font-size: 0.75rem;
             opacity: 0.9;
-            margin-top: 4px;
+            margin-top: 0.25rem;
+        }
+
+        /* 响应式设计 - 小屏幕优化 */
+        @media (max-width: 768px) {
+            .responsible-item {
+                padding: 1rem;
+                margin-left: 0;
+            }
+            
+            .responsible-name {
+                width: 3rem;
+                height: 3rem;
+                min-width: 3rem;
+                min-height: 3rem;
+                font-size: 1rem;
+                margin-right: 1rem;
+            }
+            
+            .responsible-stats {
+                gap: 0.25rem;
+            }
+            
+            .responsible-stats .stat {
+                font-size: 0.625rem;
+                padding: 0.125rem 0.25rem;
+            }
+            
+            .responsible-tasks {
+                min-width: 4rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .task-count {
+                font-size: 1rem;
+            }
+            
+            .completion-rate {
+                font-size: 0.625rem;
+            }
+        }
+
+        /* 响应式设计 - 超小屏幕优化 */
+        @media (max-width: 480px) {
+            .responsible-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+            
+            .responsible-info {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            
+            .responsible-name {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
         }
 
         .dashboard-actions {
@@ -2817,6 +2903,10 @@
                 <i class="fas fa-tachometer-alt"></i>
                 首页看板
             </button>
+            <button id="enterDetailBtnHeader" class="dashboard-btn" onclick="enterDetailView()" title="进入详细数据管理">
+                <i class="fas fa-database"></i>
+                数据管理
+            </button>
             <h1 class="page-title">
                 <i class="fas fa-clipboard-check"></i>
                 新品质量进度管理
@@ -4295,6 +4385,12 @@
             dashboardBtn.style.display = 'flex';
         }
         
+        // 隐藏数据管理按钮（因为已经在详细数据管理页面了）
+        const enterDetailBtnHeader = document.getElementById('enterDetailBtnHeader');
+        if (enterDetailBtnHeader) {
+            enterDetailBtnHeader.style.display = 'none';
+        }
+        
         // 隐藏筛选条件显示（除非是通过统计卡片进入的）
         const currentFiltersDisplay = document.getElementById('currentFiltersDisplay');
         if (currentFiltersDisplay) {
@@ -4506,11 +4602,13 @@
 
          // 计算图表数据（使用与统计卡片一致的计算逻辑）
          const completedTasks = completedProjects; // 已完成项目（PVT）
-         const inProgressTasks = inProgressProjects; // 进行中项目（设计中、EVT、DVT）
+         const designTasks = designProjects; // 设计中项目
+         const evtTasks = evtProjects; // EVT项目
+         const dvtTasks = dvtProjects; // DVT项目
          const atRiskTasks = 0; // 风险固定为0，暂时不定义
 
          // 更新任务状态分布饼状图
-         updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
+         updateTaskStatusChart(completedTasks, designTasks, evtTasks, dvtTasks, atRiskTasks);
          
          // 更新项目优先级分布饼状图
          updatePriorityChart(filteredData);
@@ -4530,7 +4628,9 @@
                          nickname: dqe, 
                          tasks: 0,
                          completed: 0,
-                         inProgress: 0,
+                         design: 0,
+                         evt: 0,
+                         dvt: 0,
                          atRisk: 0
                      };
                  }
@@ -4539,11 +4639,15 @@
                 // 统计各状态数量
                 if (item.stage === 'PVT' || item.stage === 'MP') {
                     responsibleMap[dqe].completed++;
-                } else if (['设计中', 'EVT', 'DVT'].includes(item.stage)) {
-                    responsibleMap[dqe].inProgress++;
+                } else if (item.stage === '设计中') {
+                    responsibleMap[dqe].design++;
+                } else if (item.stage === 'EVT') {
+                    responsibleMap[dqe].evt++;
+                } else if (item.stage === 'DVT') {
+                    responsibleMap[dqe].dvt++;
                 } else {
-                     // 其他状态暂时归类为进行中，风险固定为0
-                     responsibleMap[dqe].inProgress++;
+                     // 其他状态暂时归类为设计中，风险固定为0
+                     responsibleMap[dqe].design++;
                  }
              }
          });
@@ -4564,7 +4668,9 @@
              console.log(`${index + 1}. ${person.nickname} (${person.name}):`, {
                  总任务数: person.tasks,
                  已完成: person.completed,
-                 进行中: person.inProgress,
+                 设计中: person.design,
+                 EVT: person.evt,
+                 DVT: person.dvt,
                  有风险: person.atRisk,
                  完成率: person.tasks > 0 ? ((person.completed / person.tasks) * 100).toFixed(1) + '%' : '0%'
              });
@@ -4585,7 +4691,9 @@
                          <div class="responsible-nickname">${person.nickname}</div>
                          <div class="responsible-stats">
                              <span class="stat completed">已完成: ${person.completed}</span>
-                             <span class="stat in-progress">进行中: ${person.inProgress}</span>
+                             <span class="stat design">设计中: ${person.design}</span>
+                             <span class="stat evt">EVT: ${person.evt}</span>
+                             <span class="stat dvt">DVT: ${person.dvt}</span>
                              <span class="stat at-risk">有风险: ${person.atRisk}</span>
                          </div>
                      </div>
@@ -4623,7 +4731,7 @@
         // 更新统计数字
 
         // 更新任务状态分布饼状图
-        updateTaskStatusChart(completedTasks, inProgressTasks, atRiskTasks);
+        updateTaskStatusChart(completedProjects, designProjects, evtProjects, dvtProjects, 0);
         
         // 更新项目优先级分布饼状图
         updatePriorityChart(filteredData);
@@ -4633,13 +4741,15 @@
     }
 
     // 更新任务状态分布饼状图
-    function updateTaskStatusChart(completed, inProgress, atRisk) {
+    function updateTaskStatusChart(completed, design, evt, dvt, atRisk) {
         console.log('🎨 开始创建任务状态分布饼状图...');
         console.log('📊 饼状图数据:', {
             已完成: completed,
-            进行中: inProgress,
+            设计中: design,
+            EVT: evt,
+            DVT: dvt,
             有风险: atRisk,
-            总计: completed + inProgress + atRisk
+            总计: completed + design + evt + dvt + atRisk
         });
 
         const ctx = document.getElementById('taskStatusChart');
@@ -4651,17 +4761,21 @@
         }
 
         const data = {
-            labels: [`已完成 (${completed})`, `进行中 (${inProgress})`, `有风险 (${atRisk})`],
+            labels: [`已完成 (${completed})`, `设计中 (${design})`, `EVT (${evt})`, `DVT (${dvt})`, `有风险 (${atRisk})`],
             datasets: [{
-                data: [completed, inProgress, atRisk],
+                data: [completed, design, evt, dvt, atRisk],
                 backgroundColor: [
                     'rgba(40, 167, 69, 0.8)',
+                    'rgba(52, 144, 220, 0.8)',
                     'rgba(255, 193, 7, 0.8)',
+                    'rgba(255, 87, 34, 0.8)',
                     'rgba(220, 53, 69, 0.8)'
                 ],
                 borderColor: [
                     'rgba(40, 167, 69, 1)',
+                    'rgba(52, 144, 220, 1)',
                     'rgba(255, 193, 7, 1)',
+                    'rgba(255, 87, 34, 1)',
                     'rgba(220, 53, 69, 1)'
                 ],
                 borderWidth: 2
@@ -9271,6 +9385,12 @@
         const dashboardBtn = document.getElementById('dashboardBtn');
         if (dashboardBtn) {
             dashboardBtn.style.display = 'none';
+        }
+        
+        // 显示数据管理按钮（因为现在在首页看板了）
+        const enterDetailBtnHeader = document.getElementById('enterDetailBtnHeader');
+        if (enterDetailBtnHeader) {
+            enterDetailBtnHeader.style.display = 'flex';
         }
         
         // 隐藏筛选条件显示
