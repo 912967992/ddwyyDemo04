@@ -67,7 +67,13 @@ public class ReviewResultsService {
             
             if (reviewResultsList.isEmpty()) {
                 result.setSuccess(false);
-                result.setMessage("未找到符合条件的工作表或数据为空");
+                String errorMessage = "导入失败：未找到有效数据。";
+                if (!lastParseError.isEmpty()) {
+                    errorMessage += " " + lastParseError + "请检查数据行是否包含必填字段：大编码、小编码、项目阶段、供应商、问题点";
+                } else {
+                    errorMessage += " 可能原因：1)Excel文件中没有名为'问题汇总清单'的工作表；2)工作表存在但所有数据行都因必填字段缺失而被跳过。请检查数据行是否包含必填字段：大编码、小编码、项目阶段、供应商、问题点";
+                }
+                result.setMessage(errorMessage);
                 return result;
             }
 
@@ -78,12 +84,12 @@ public class ReviewResultsService {
 
             for (ReviewResults reviewResult : reviewResultsList) {
                 try {
-                    // 检查是否存在相同记录
+                    // 检查是否存在相同记录（版本字段可为空）
                     Long existingId = reviewResultsDao.findExistingRecord(
                         reviewResult.getMajorCode(),
                         reviewResult.getMinorCode(),
                         reviewResult.getProjectPhase(),
-                        reviewResult.getVersion(),
+                        reviewResult.getVersion(), // 版本字段可为null或空字符串
                         reviewResult.getSupplier(),
                         reviewResult.getProblemPoint()
                     );
@@ -129,23 +135,60 @@ public class ReviewResultsService {
      */
     private List<ReviewResults> parseExcelFile(MultipartFile file) throws IOException {
         List<ReviewResults> reviewResultsList = new ArrayList<>();
+        boolean foundTargetSheet = false;
+        int totalRows = 0;
+        int skippedRows = 0;
+        StringBuilder errorDetails = new StringBuilder();
         
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            System.out.println("Excel文件总工作表数量: " + workbook.getNumberOfSheets());
+            
             // 遍历所有工作表
             for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                 Sheet sheet = workbook.getSheetAt(sheetIndex);
                 String sheetName = sheet.getSheetName();
+                System.out.println("工作表 " + sheetIndex + ": " + sheetName);
                 
                 // 只处理工作表名字包含"问题汇总清单"的工作表
                 if (sheetName.contains("问题汇总清单")) {
+                    foundTargetSheet = true;
+                    System.out.println("找到匹配的工作表: " + sheetName);
+                    
+                    // 统计总行数和跳过的行数
+                    totalRows = sheet.getLastRowNum();
+                    System.out.println("工作表总行数: " + totalRows);
+                    
                     List<ReviewResults> sheetData = parseSheet(sheet);
+                    skippedRows = totalRows - sheetData.size();
+                    System.out.println("解析到数据条数: " + sheetData.size() + ", 跳过行数: " + skippedRows);
                     reviewResultsList.addAll(sheetData);
+                    
+                    // 如果跳过了很多行，记录详细信息
+                    if (skippedRows > 0) {
+                        errorDetails.append("工作表'").append(sheetName).append("'中跳过了").append(skippedRows).append("行数据，");
+                    }
                 }
             }
+            
+            System.out.println("最终解析结果总数: " + reviewResultsList.size());
+            
+            // 如果没有找到目标工作表，记录所有工作表名称
+            if (!foundTargetSheet) {
+                System.out.println("未找到包含'问题汇总清单'的工作表");
+                errorDetails.append("未找到名为'问题汇总清单'的工作表，");
+            }
+        }
+        
+        // 将错误详情存储到静态变量中，供调用方使用
+        if (errorDetails.length() > 0) {
+            this.lastParseError = errorDetails.toString();
         }
         
         return reviewResultsList;
     }
+    
+    // 用于存储解析错误的静态变量
+    private String lastParseError = "";
 
     /**
      * 解析单个工作表
@@ -209,9 +252,7 @@ public class ReviewResultsService {
                     if (tempResult.getProjectPhase() == null || tempResult.getProjectPhase().trim().isEmpty()) {
                         missingFields.append("项目阶段 ");
                     }
-                    if (tempResult.getVersion() == null || tempResult.getVersion().trim().isEmpty()) {
-                        missingFields.append("版本 ");
-                    }
+                    // 版本字段已改为可选，不再检查
                     if (tempResult.getSupplier() == null || tempResult.getSupplier().trim().isEmpty()) {
                         missingFields.append("供应商 ");
                     }
@@ -325,7 +366,7 @@ public class ReviewResultsService {
         reviewResult.setProblemTag2(getCellValueAsString(getCellSafely(row, mapping.problemTag2Index)));
         reviewResult.setPreventionNotes(getCellValueAsString(getCellSafely(row, mapping.preventionNotesIndex)));
         
-        // 检查必填字段
+        // 检查必填字段（版本字段已改为可选）
         StringBuilder missingFields = new StringBuilder();
         
         if (reviewResult.getMajorCode() == null || reviewResult.getMajorCode().trim().isEmpty()) {
@@ -337,9 +378,7 @@ public class ReviewResultsService {
         if (reviewResult.getProjectPhase() == null || reviewResult.getProjectPhase().trim().isEmpty()) {
             missingFields.append("项目阶段 ");
         }
-        if (reviewResult.getVersion() == null || reviewResult.getVersion().trim().isEmpty()) {
-            missingFields.append("版本 ");
-        }
+        // 版本字段已改为可选，不再检查
         if (reviewResult.getSupplier() == null || reviewResult.getSupplier().trim().isEmpty()) {
             missingFields.append("供应商 ");
         }

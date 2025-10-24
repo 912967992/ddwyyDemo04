@@ -48,15 +48,20 @@
         )
     </insert>
 
-    <!-- 根据大编码、小编码、项目阶段、版本、供应商、问题点查询是否存在记录 -->
+    <!-- 根据大编码、小编码、项目阶段、供应商、问题点查询是否存在记录（版本字段可选） -->
     <select id="findExistingRecord" resultType="java.lang.Long">
         SELECT id FROM reviewResults 
         WHERE major_code = #{majorCode} 
         AND minor_code = #{minorCode} 
         AND project_phase = #{projectPhase} 
-        AND version = #{version} 
         AND supplier = #{supplier}
         AND problem_point = #{problemPoint}
+        <if test="version != null and version != ''">
+            AND version = #{version}
+        </if>
+        <if test="version == null or version == ''">
+            AND (version IS NULL OR version = '')
+        </if>
     </select>
 
     <!-- 更新评审结果数据 -->
