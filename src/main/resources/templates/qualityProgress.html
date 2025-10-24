@@ -6258,7 +6258,7 @@
                 if (data.success) {
                     allData = data.data || [];
                     filteredData = [...allData];
-                    totalCount = allData.length; // 使用本地数据长度
+                    totalCount = filteredData.length; // 使用筛选后的数据长度
                     totalPages = Math.ceil(totalCount / pageSize);
 
                     // 提取组别选项并填充下拉框
@@ -6468,6 +6468,10 @@
                     filteredData = baseData;
             }
             
+            // 重新计算分页信息
+            totalCount = filteredData.length;
+            totalPages = Math.ceil(totalCount / pageSize);
+            
             // 重置到第一页
             currentPage = 1;
             
@@ -6549,6 +6553,10 @@
             } else if (projectType === 'MP') {
                 filteredData = baseData.filter(item => item.stage === 'MP');
             }
+            
+            // 重新计算分页信息
+            totalCount = filteredData.length;
+            totalPages = Math.ceil(totalCount / pageSize);
             
             // 重置到第一页
             currentPage = 1;
