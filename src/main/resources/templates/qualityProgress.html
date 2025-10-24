@@ -872,9 +872,12 @@
             gap: 20px;
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             max-height: 320px;
             padding-right: 12px;
             padding-top: 8px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .responsible-chart::-webkit-scrollbar {
@@ -898,7 +901,7 @@
         .responsible-item {
             display: flex;
             align-items: center;
-            padding: 2rem 2rem 2rem 1rem;
+            padding: 1.5rem;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
             border-radius: 1rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -906,8 +909,10 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             position: relative;
             overflow: hidden;
-            margin-left: 0.5rem;
+            margin-left: 0;
             min-height: 5rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .responsible-item::before {
@@ -929,10 +934,10 @@
         }
 
         .responsible-name {
-            width: 3.5rem;
-            height: 3.5rem;
-            min-width: 3.5rem;
-            min-height: 3.5rem;
+            width: 3rem;
+            height: 3rem;
+            min-width: 3rem;
+            min-height: 3rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-radius: 50%;
@@ -940,8 +945,8 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.25rem;
-            margin-right: 1.5rem;
+            font-size: 1rem;
+            margin-right: 1rem;
             box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
             flex-shrink: 0;
             position: relative;
@@ -967,8 +972,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-left: -0.5rem;
+            margin-left: 0;
             min-width: 0;
+            width: 100%;
+            overflow: hidden;
         }
 
         .responsible-details {
@@ -983,6 +990,7 @@
             color: #2c3e50;
             font-size: 16px;
             margin-bottom: 8px;
+            margin-left: 5px;
         }
 
         .responsible-stats {
@@ -1059,19 +1067,28 @@
             .responsible-item {
                 padding: 1rem;
                 margin-left: 0;
+                flex-wrap: wrap;
             }
             
             .responsible-name {
-                width: 3rem;
-                height: 3rem;
-                min-width: 3rem;
-                min-height: 3rem;
-                font-size: 1rem;
-                margin-right: 1rem;
+                width: 2.5rem;
+                height: 2.5rem;
+                min-width: 2.5rem;
+                min-height: 2.5rem;
+                font-size: 0.875rem;
+                margin-right: 0.75rem;
+            }
+            
+            .responsible-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                width: 100%;
             }
             
             .responsible-stats {
                 gap: 0.25rem;
+                flex-wrap: wrap;
             }
             
             .responsible-stats .stat {
@@ -1080,12 +1097,12 @@
             }
             
             .responsible-tasks {
-                min-width: 4rem;
-                padding: 0.5rem 0.75rem;
+                min-width: 3rem;
+                padding: 0.375rem 0.5rem;
             }
             
             .task-count {
-                font-size: 1rem;
+                font-size: 0.875rem;
             }
             
             .completion-rate {
@@ -1098,18 +1115,35 @@
             .responsible-item {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 1rem;
+                padding: 0.75rem;
             }
             
             .responsible-info {
                 width: 100%;
                 margin-left: 0;
                 margin-top: 0.5rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
             }
             
             .responsible-name {
                 margin-right: 0;
                 margin-bottom: 0.5rem;
+                width: 2rem;
+                height: 2rem;
+                min-width: 2rem;
+                min-height: 2rem;
+                font-size: 0.75rem;
+            }
+            
+            .responsible-tasks {
+                min-width: 2.5rem;
+                padding: 0.25rem 0.375rem;
+            }
+            
+            .task-count {
+                font-size: 0.75rem;
             }
         }
 
@@ -2546,6 +2580,7 @@
             min-height: auto;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             position: relative;
+            z-index: 1000;
         }
 
         .basic-filters-container::before {
@@ -2700,6 +2735,7 @@
         .input-with-suggestions {
             position: relative;
             flex: 1;
+            z-index: 1001;
         }
 
         .suggestions-dropdown {
@@ -2713,7 +2749,7 @@
             border-radius: 0 0 8px 8px;
             max-height: 300px; /* 增加最大高度以显示更多选项 */
             overflow-y: auto;
-            z-index: 10000;
+            z-index: 99999;
             display: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
@@ -3168,6 +3204,13 @@
         <div class="filters-main-container">
             <div class="basic-filters-container">
                 <div class="filter-row">
+                    <div class="filter-group">
+                        <label>组别:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="filterGroup" placeholder="请输入组别" autocomplete="off" />
+                            <div id="filterGroupSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <label>品类:</label>
                         <div class="input-with-suggestions">
@@ -5406,6 +5449,7 @@
     function initFilterEventListeners() {
         // 为过滤器输入框添加事件监听器
         const filterConfigs = [
+            { id: 'filterGroup', field: 'group' },
             { id: 'filterProductCategory', field: 'productCategory' },
             { id: 'filterSku', field: 'sku' },
             { id: 'filterLeadDqe', field: 'leadDqe' },
@@ -5542,7 +5586,7 @@
     // 测试自动完成功能
     function testAutocomplete() {
         console.log('🧪 测试自动完成功能');
-        const testFields = ['productCategory', 'sku', 'leadDqe'];
+        const testFields = ['group', 'productCategory', 'sku', 'leadDqe'];
         testFields.forEach(field => {
             const values = getUniqueValues(field);
             console.log(`📊 ${field} 字段的唯一值数量:`, values.length);
@@ -5576,7 +5620,9 @@
         }
         allData.forEach(item => {
             let value = '';
-            if (field === 'productCategory') {
+            if (field === 'group') {
+                value = item.groupName || item.组别 || item.team;
+            } else if (field === 'productCategory') {
                 value = item.productCategoryLevel3;
             } else if (field === 'sku') {
                 value = item.sku;
@@ -6259,6 +6305,7 @@
         currentPage = 1; // 重置到第一页
         
         // 获取过滤器值
+        const group = document.getElementById('filterGroup').value.trim();
         const productCategory = document.getElementById('filterProductCategory').value.trim();
         const sku = document.getElementById('filterSku').value.trim();
         const leadDqe = document.getElementById('filterLeadDqe').value.trim();
@@ -6267,6 +6314,7 @@
         const status = document.getElementById('filterStatus').value.trim();
         
         console.log('📋 过滤器条件:', {
+            group,
             productCategory,
             sku,
             leadDqe,
@@ -6279,6 +6327,30 @@
         // 应用前端过滤
         filteredData = allData.filter(item => {
             let matches = true;
+            
+            // 组别过滤
+            if (group) {
+                const groupNameMatch = item.groupName?.toLowerCase().includes(group.toLowerCase());
+                const 组别Match = item.组别?.toLowerCase().includes(group.toLowerCase());
+                const teamMatch = item.team?.toLowerCase().includes(group.toLowerCase());
+                
+                if (!groupNameMatch && !组别Match && !teamMatch) {
+                    matches = false;
+                }
+                
+                // 调试信息
+                if (groupNameMatch || 组别Match || teamMatch) {
+                    console.log('✅ 组别匹配:', {
+                        input: group,
+                        groupName: item.groupName,
+                        groupNameMatch,
+                        组别: item.组别,
+                        组别Match,
+                        team: item.team,
+                        teamMatch
+                    });
+                }
+            }
             
             // 品类过滤
             if (productCategory && !item.productCategoryLevel3?.toLowerCase().includes(productCategory.toLowerCase())) {
@@ -6533,6 +6605,7 @@
         console.log('重置过滤器');
         
         // 清空过滤器输入框
+        document.getElementById('filterGroup').value = '';
         document.getElementById('filterProductCategory').value = '';
         document.getElementById('filterSku').value = '';
         document.getElementById('filterLeadDqe').value = '';
@@ -9604,6 +9677,7 @@
     // 获取当前筛选条件
     function getCurrentFilters() {
         return {
+            group: document.getElementById('filterGroup')?.value?.trim() || '',
             productCategory: document.getElementById('filterProductCategory')?.value?.trim() || '',
             sku: document.getElementById('filterSku')?.value?.trim() || '',
             leadDqe: document.getElementById('filterLeadDqe')?.value?.trim() || '',
@@ -9617,6 +9691,7 @@
     function generateFilterDescription(filters) {
         const descriptions = [];
 
+        if (filters.group) descriptions.push(`组别: ${filters.group}`);
         if (filters.productCategory) descriptions.push(`品类: ${filters.productCategory}`);
         if (filters.sku) descriptions.push(`SKU: ${filters.sku}`);
         if (filters.leadDqe) descriptions.push(`主导DQE: ${filters.leadDqe}`);
@@ -9739,6 +9814,9 @@
         resetFilters();
 
         // 应用筛选条件到过滤器输入框
+        if (filters.group) {
+            document.getElementById('filterGroup').value = filters.group;
+        }
         if (filters.productCategory) {
             document.getElementById('filterProductCategory').value = filters.productCategory;
         }
