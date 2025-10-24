@@ -1386,6 +1386,13 @@
                             <div id="supplierFilterSuggestions" class="suggestions-dropdown"></div>
                         </div>
                     </div>
+                    <div class="filter-group">
+                        <label>问题状态:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="problemStatusFilter" placeholder="输入问题状态" autocomplete="off" />
+                            <div id="problemStatusFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="filter-row">
@@ -2594,6 +2601,19 @@
         }
     }
 
+    // 标准化问题状态过滤器值 - 支持模糊搜索和大小写兼容
+    function normalizeProblemStatus(status) {
+        if (!status) return '';
+        
+        console.log('🔍 问题状态模糊搜索（支持包含匹配）:', status);
+        
+        // 支持模糊搜索，不区分大小写
+        // 用户输入"follow"可以匹配"followingUp"、"Follow"、"FOLLOW"等
+        // 用户输入"open"可以匹配"Open"、"OPEN"、"opening"等
+        // 用户输入"close"可以匹配"Closed"、"close"、"closing"等
+        return status.trim().toLowerCase();
+    }
+
     // 格式化日期显示
     function formatDate(dateString) {
         if (!dateString || dateString === '-') return '-';
@@ -2943,7 +2963,7 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'testStartDateFilter', 'testEndDateFilter'
+            'problemStatusFilter', 'testStartDateFilter', 'testEndDateFilter'
         ];
 
         // 为所有过滤器输入框添加键盘事件监听器
@@ -2958,6 +2978,7 @@
                 });
             }
         });
+
 
         // 全局键盘事件监听器
         document.addEventListener('keydown', function(e) {
@@ -3210,7 +3231,7 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'testStartDateFilter', 'testEndDateFilter'
+            'problemStatusFilter', 'testStartDateFilter', 'testEndDateFilter'
         ];
 
         filterInputs.forEach(inputId => {
@@ -3224,6 +3245,7 @@
                 });
             }
         });
+
 
         // 导入按钮 - 显示模态框
         document.getElementById('importBtn').addEventListener('click', function() {
@@ -3515,6 +3537,7 @@
         const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
         const version = document.getElementById('versionFilter').value.trim();
         const supplier = document.getElementById('supplierFilter').value.trim();
+        const problemStatus = document.getElementById('problemStatusFilter').value;
         const testStartDate = document.getElementById('testStartDateFilter').value;
         const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -3523,6 +3546,11 @@
         if (projectPhase) params.append('projectPhase', projectPhase);
         if (version) params.append('version', version);
         if (supplier) params.append('supplier', supplier);
+        if (problemStatus) {
+            // 标准化问题状态，兼容大小写
+            const normalizedStatus = normalizeProblemStatus(problemStatus);
+            params.append('problemStatus', normalizedStatus);
+        }
         if (testStartDate) params.append('testStartDate', testStartDate);
         if (testEndDate) params.append('testEndDate', testEndDate);
 
@@ -3587,6 +3615,7 @@
         const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
         const version = document.getElementById('versionFilter').value.trim();
         const supplier = document.getElementById('supplierFilter').value.trim();
+        const problemStatus = document.getElementById('problemStatusFilter').value;
         const testStartDate = document.getElementById('testStartDateFilter').value;
         const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -3595,6 +3624,11 @@
         if (projectPhase) params.append('projectPhase', projectPhase);
         if (version) params.append('version', version);
         if (supplier) params.append('supplier', supplier);
+        if (problemStatus) {
+            // 标准化问题状态，兼容大小写
+            const normalizedStatus = normalizeProblemStatus(problemStatus);
+            params.append('problemStatus', normalizedStatus);
+        }
         if (testStartDate) params.append('testStartDate', testStartDate);
         if (testEndDate) params.append('testEndDate', testEndDate);
 
@@ -3622,6 +3656,7 @@
         document.getElementById('projectPhaseFilter').value = '';
         document.getElementById('versionFilter').value = '';
         document.getElementById('supplierFilter').value = '';
+        document.getElementById('problemStatusFilter').value = '';
         document.getElementById('testStartDateFilter').value = '';
         document.getElementById('testEndDateFilter').value = '';
 
@@ -5629,6 +5664,7 @@
             projectPhase: document.getElementById('projectPhaseFilter').value,
             version: document.getElementById('versionFilter').value,
             supplier: document.getElementById('supplierFilter').value,
+            problemStatus: document.getElementById('problemStatusFilter').value,
             testStartDate: document.getElementById('testStartDateFilter').value,
             testEndDate: document.getElementById('testEndDateFilter').value
         };
@@ -5643,6 +5679,7 @@
         if (filters.projectPhase) descriptions.push(`项目阶段: ${filters.projectPhase}`);
         if (filters.version) descriptions.push(`版本: ${filters.version}`);
         if (filters.supplier) descriptions.push(`供应商: ${filters.supplier}`);
+        if (filters.problemStatus) descriptions.push(`问题状态: ${filters.problemStatus}`);
         if (filters.testStartDate) descriptions.push(`测试开始: ${filters.testStartDate}`);
         if (filters.testEndDate) descriptions.push(`测试结束: ${filters.testEndDate}`);
 
@@ -5659,7 +5696,8 @@
             { id: 'minorCodeFilter', field: 'minorCode' },
             { id: 'projectPhaseFilter', field: 'projectPhase' },
             { id: 'versionFilter', field: 'version' },
-            { id: 'supplierFilter', field: 'supplier' }
+            { id: 'supplierFilter', field: 'supplier' },
+            { id: 'problemStatusFilter', field: 'problemStatus' }
         ];
         
         filterConfigs.forEach(config => {
@@ -5818,6 +5856,21 @@
     // 过滤建议
     function filterSuggestions(field, query) {
         console.log('🔍 过滤建议:', field, '查询:', query);
+        
+        // 问题状态过滤器的特殊处理
+        if (field === 'problemStatus') {
+            const statusOptions = ['open', 'closed', 'follow'];
+            if (!query || query.trim() === '') {
+                return statusOptions;
+            }
+            
+            const filtered = statusOptions.filter(option => 
+                option.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            return filtered.slice(0, 10);
+        }
+        
         const allValues = getUniqueValues(field);
         if (!query || query.trim() === '') {
             return allValues.slice(0, 10); // 限制显示前10个
@@ -5976,6 +6029,7 @@
         if (filters.projectPhase) document.getElementById('projectPhaseFilter').value = filters.projectPhase;
         if (filters.version) document.getElementById('versionFilter').value = filters.version;
         if (filters.supplier) document.getElementById('supplierFilter').value = filters.supplier;
+        if (filters.problemStatus) document.getElementById('problemStatusFilter').value = filters.problemStatus;
         if (filters.testStartDate) document.getElementById('testStartDateFilter').value = filters.testStartDate;
         if (filters.testEndDate) document.getElementById('testEndDateFilter').value = filters.testEndDate;
 
@@ -6776,6 +6830,7 @@
             const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
             const version = document.getElementById('versionFilter').value.trim();
             const supplier = document.getElementById('supplierFilter').value.trim();
+            const problemStatus = document.getElementById('problemStatusFilter').value;
             const testStartDate = document.getElementById('testStartDateFilter').value;
             const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -6784,6 +6839,11 @@
             if (projectPhase) params.append('projectPhase', projectPhase);
             if (version) params.append('version', version);
             if (supplier) params.append('supplier', supplier);
+            if (problemStatus) {
+                // 标准化问题状态，兼容大小写
+                const normalizedStatus = normalizeProblemStatus(problemStatus);
+                params.append('problemStatus', normalizedStatus);
+            }
             if (testStartDate) params.append('testStartDate', testStartDate);
             if (testEndDate) params.append('testEndDate', testEndDate);
 

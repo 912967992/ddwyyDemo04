@@ -736,7 +736,7 @@ public class ReviewResultController {
     }
 
     /**
-     * 问题状态匹配方法，支持大小写不敏感和closed/close兼容
+     * 问题状态匹配方法，支持模糊搜索和大小写不敏感
      * @param dbStatus 数据库中的状态
      * @param filterStatus 筛选条件中的状态
      * @return 是否匹配
@@ -749,7 +749,29 @@ public class ReviewResultController {
         String dbStatusLower = dbStatus.toLowerCase().trim();
         String filterStatusLower = filterStatus.toLowerCase().trim();
         
-        // 直接匹配
+        // 如果数据库状态为空，不匹配任何筛选条件
+        if (dbStatusLower.isEmpty()) {
+            return false;
+        }
+        
+        // 如果筛选条件为空，不匹配任何数据库状态
+        if (filterStatusLower.isEmpty()) {
+            return false;
+        }
+        
+        // 模糊搜索：检查数据库状态是否包含筛选条件
+        // 例如：筛选条件"follow"可以匹配"followingUp"、"Follow"、"FOLLOW"等
+        if (dbStatusLower.contains(filterStatusLower)) {
+            return true;
+        }
+        
+        // 反向模糊搜索：检查筛选条件是否包含数据库状态
+        // 例如：筛选条件"followingUp"可以匹配"follow"
+        if (filterStatusLower.contains(dbStatusLower)) {
+            return true;
+        }
+        
+        // 直接匹配（保持原有精确匹配功能）
         if (dbStatusLower.equals(filterStatusLower)) {
             return true;
         }
