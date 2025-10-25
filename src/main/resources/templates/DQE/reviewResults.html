@@ -3767,7 +3767,7 @@
             fileName: `评审结果数据_${new Date().toISOString().slice(0, 10)}.xlsx`
         };
 
-        fetch('/problemLibrary/exportCartsData', {
+        fetch('/reviewResult/exportReviewResultsExcel', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

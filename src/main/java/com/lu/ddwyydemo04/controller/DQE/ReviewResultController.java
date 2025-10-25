@@ -23,6 +23,11 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * 评审结果页面控制器
@@ -659,6 +664,50 @@ public class ReviewResultController {
     }
 
     /**
+     * 导出评审结果Excel文件
+     * @param requestData 包含导出数据的请求体
+     * @return Excel文件
+     */
+    @PostMapping("/reviewResult/exportReviewResultsExcel")
+    public ResponseEntity<byte[]> exportReviewResultsExcel(@RequestBody Map<String, Object> requestData) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> data = (List<Map<String, Object>>) requestData.get("data");
+            String fileName = (String) requestData.get("fileName");
+            
+            if (data == null || data.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // 调试：打印前几条数据的日期字段格式
+            if (!data.isEmpty()) {
+                System.out.println("=== 导出数据调试信息 ===");
+                Map<String, Object> firstItem = data.get(0);
+                System.out.println("预计完成时间字段类型: " + firstItem.get("plannedCompletionTime").getClass().getSimpleName());
+                System.out.println("预计完成时间字段值: " + firstItem.get("plannedCompletionTime"));
+                System.out.println("实际完成时间字段类型: " + firstItem.get("actualCompletionTime").getClass().getSimpleName());
+                System.out.println("实际完成时间字段值: " + firstItem.get("actualCompletionTime"));
+                System.out.println("========================");
+            }
+
+            // 创建Excel文件
+            ByteArrayOutputStream outputStream = createReviewResultsExcelFile(data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "评审结果数据_" + java.time.LocalDate.now() + ".xlsx");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 下载评审结果导入模板
      * @return 模板文件信息
      */
@@ -795,6 +844,167 @@ public class ReviewResultController {
         }
         
         return false;
+    }
+
+    /**
+     * 创建评审结果Excel文件
+     * @param data 评审结果数据
+     * @return Excel文件输出流
+     * @throws IOException IO异常
+     */
+    private ByteArrayOutputStream createReviewResultsExcelFile(List<Map<String, Object>> data) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Workbook workbook = new XSSFWorkbook();
+        try {
+            Sheet sheet = workbook.createSheet("问题汇总清单");
+
+            // ====== 样式 ======
+            CellStyle centeredStyle = workbook.createCellStyle();
+            centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+            centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            centeredStyle.setBorderTop(BorderStyle.THIN);
+            centeredStyle.setBorderBottom(BorderStyle.THIN);
+            centeredStyle.setBorderLeft(BorderStyle.THIN);
+            centeredStyle.setBorderRight(BorderStyle.THIN);
+
+            // 列宽
+            for (int i = 0; i < 23; i++) sheet.setColumnWidth(i, 20 * 256);
+
+            // ====== 表头 ======
+            Row headerRow = sheet.createRow(0);
+            headerRow.setHeightInPoints(50);
+            String[] headers = {
+                    "序号", "测试日期", "大编码", "小编码", "项目阶段", "版本", "问题工序", "问题等级", 
+                    "开发方式", "供应商", "方案商", "问题点", "问题原因", "改善对策", "是否可预防", 
+                    "责任部门", "预计完成时间", "实际完成时间", "Delay天数", "问题状态", "问题打标1", 
+                    "问题打标2", "预防备注"
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(centeredStyle);
+            }
+
+            // ====== 数据行 ======
+            int rowNum = 1;
+            for (int i = 0; i < data.size(); i++) {
+                Map<String, Object> item = data.get(i);
+                Row row = sheet.createRow(rowNum);
+                row.setHeightInPoints(50);
+
+                // 序号（从1开始）
+                createReviewResultsCell(row, 0, i + 1, centeredStyle);
+                createReviewResultsCell(row, 1, item.get("testDate"), centeredStyle);
+                createReviewResultsCell(row, 2, item.get("majorCode"), centeredStyle);
+                createReviewResultsCell(row, 3, item.get("minorCode"), centeredStyle);
+                createReviewResultsCell(row, 4, item.get("projectPhase"), centeredStyle);
+                createReviewResultsCell(row, 5, item.get("version"), centeredStyle);
+                createReviewResultsCell(row, 6, item.get("problemProcess"), centeredStyle);
+                createReviewResultsCell(row, 7, item.get("problemLevel"), centeredStyle);
+                createReviewResultsCell(row, 8, item.get("developmentMethod"), centeredStyle);
+                createReviewResultsCell(row, 9, item.get("supplier"), centeredStyle);
+                createReviewResultsCell(row, 10, item.get("solutionProvider"), centeredStyle);
+                createReviewResultsCell(row, 11, item.get("problemPoint"), centeredStyle);
+                createReviewResultsCell(row, 12, item.get("problemReason"), centeredStyle);
+                createReviewResultsCell(row, 13, item.get("improvementMeasures"), centeredStyle);
+                createReviewResultsCell(row, 14, item.get("isPreventable"), centeredStyle);
+                createReviewResultsCell(row, 15, item.get("responsibleDepartment"), centeredStyle);
+                createReviewResultsCellWithDateFormat(row, 16, item.get("plannedCompletionTime"), centeredStyle);
+                createReviewResultsCellWithDateFormat(row, 17, item.get("actualCompletionTime"), centeredStyle);
+                createReviewResultsCell(row, 18, item.get("delayDays"), centeredStyle);
+                createReviewResultsCell(row, 19, item.get("problemStatus"), centeredStyle);
+                createReviewResultsCell(row, 20, item.get("problemTag1"), centeredStyle);
+                createReviewResultsCell(row, 21, item.get("problemTag2"), centeredStyle);
+                createReviewResultsCell(row, 22, item.get("preventionNotes"), centeredStyle);
+
+                rowNum++;
+            }
+
+            // 写入内存输出
+            workbook.write(out);
+            return out;
+
+        } finally {
+            try { workbook.close(); } catch (IOException ignored) {}
+        }
+    }
+
+    // 辅助方法用于创建评审结果单元格并设置样式
+    private void createReviewResultsCell(Row row, int columnIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(columnIndex);
+        if (value instanceof String) {
+            cell.setCellValue((String) value);
+        } else if (value instanceof Integer) {
+            cell.setCellValue((Integer) value);
+        } else if (value instanceof Double) {
+            cell.setCellValue((Double) value);
+        } else if (value instanceof java.time.LocalDateTime) {
+            cell.setCellValue(((java.time.LocalDateTime) value).toString());
+        } else if (value instanceof java.time.LocalDate) {
+            cell.setCellValue(((java.time.LocalDate) value).toString());
+        } else {
+            cell.setCellValue(value != null ? value.toString() : "");
+        }
+        cell.setCellStyle(style);
+    }
+
+    // 辅助方法用于创建日期格式的单元格
+    private void createReviewResultsCellWithDateFormat(Row row, int columnIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(columnIndex);
+        if (value instanceof java.time.LocalDateTime) {
+            java.time.LocalDateTime dateTime = (java.time.LocalDateTime) value;
+            // 格式化为 2025-09-15 格式
+            String formattedDate = String.format("%d-%02d-%02d", 
+                dateTime.getYear(), 
+                dateTime.getMonthValue(), 
+                dateTime.getDayOfMonth());
+            cell.setCellValue(formattedDate);
+        } else if (value instanceof java.time.LocalDate) {
+            java.time.LocalDate date = (java.time.LocalDate) value;
+            // 格式化为 2025-09-15 格式
+            String formattedDate = String.format("%d-%02d-%02d", 
+                date.getYear(), 
+                date.getMonthValue(), 
+                date.getDayOfMonth());
+            cell.setCellValue(formattedDate);
+        } else if (value instanceof String) {
+            String dateStr = (String) value;
+            // 处理字符串格式的日期，如 "2025-09-12T00:00:00"
+            if (dateStr.contains("T")) {
+                try {
+                    java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(dateStr);
+                    String formattedDate = String.format("%d-%02d-%02d", 
+                        dateTime.getYear(), 
+                        dateTime.getMonthValue(), 
+                        dateTime.getDayOfMonth());
+                    cell.setCellValue(formattedDate);
+                } catch (Exception e) {
+                    // 如果解析失败，直接使用原字符串
+                    cell.setCellValue(dateStr);
+                }
+            } else if (dateStr.contains("-")) {
+                try {
+                    java.time.LocalDate date = java.time.LocalDate.parse(dateStr);
+                    String formattedDate = String.format("%d-%02d-%02d", 
+                        date.getYear(), 
+                        date.getMonthValue(), 
+                        date.getDayOfMonth());
+                    cell.setCellValue(formattedDate);
+                } catch (Exception e) {
+                    // 如果解析失败，直接使用原字符串
+                    cell.setCellValue(dateStr);
+                }
+            } else {
+                cell.setCellValue(dateStr);
+            }
+        } else if (value instanceof Integer) {
+            cell.setCellValue((Integer) value);
+        } else if (value instanceof Double) {
+            cell.setCellValue((Double) value);
+        } else {
+            cell.setCellValue(value != null ? value.toString() : "");
+        }
+        cell.setCellStyle(style);
     }
 
 }
