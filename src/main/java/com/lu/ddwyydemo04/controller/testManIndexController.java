@@ -881,7 +881,7 @@ public class testManIndexController {
                     "显示设备", "其他设备", "问题点", "问题类别", "问题视频或图片", "复现手法", "恢复方法",
                     "复现概率", "缺陷等级", "当前状态", "对比上一版或竞品",
                     "分析责任人", "改善后风险", "下一版回归测试", "备注",
-                    "SKU","责任单位","DQE确认回复（每个版本的回复请勿删除）","研发确认回复（每个版本的回复请勿删除）","方案商","供应商","评审结论"
+                    "SKU","责任单位","DQE确认回复原因与对策（每个版本的回复请勿删除）","研发确认回复原因与对策（每个版本的回复请勿删除）","方案商","供应商","评审结论"
             );
 
             // 定义不需要判断的字段名
@@ -1020,8 +1020,8 @@ public class testManIndexController {
 
                 String sku = rowMap.get("SKU");
                 String responsibleDepartment = rowMap.get("责任单位");
-                String green_union_dqe = rowMap.get("DQE确认回复（每个版本的回复请勿删除）");
-                String green_union_rd = rowMap.get("研发确认回复（每个版本的回复请勿删除）");
+                String green_union_dqe = rowMap.get("DQE确认回复原因与对策（每个版本的回复请勿删除）");
+                String green_union_rd = rowMap.get("研发确认回复原因与对策（每个版本的回复请勿删除）");
                 String solution_provider = rowMap.get("方案商");
                 String supplier = rowMap.get("供应商");
                 String review_conclusion = rowMap.get("评审结论");
@@ -2224,8 +2224,8 @@ public class testManIndexController {
         fieldMapping.put("当前状态", "current_status");
         fieldMapping.put("对比上一版或竞品", "comparison_with_previous");
         fieldMapping.put("测试人员", "tester");
-        fieldMapping.put("DQE确认回复（每个版本的回复请勿删除）", "green_union_dqe");
-        fieldMapping.put("研发确认回复（每个版本的回复请勿删除）", "green_union_rd");
+        fieldMapping.put("DQE确认回复原因与对策（每个版本的回复请勿删除）", "green_union_dqe");
+        fieldMapping.put("研发确认回复原因与对策（每个版本的回复请勿删除）", "green_union_rd");
         fieldMapping.put("DQE责任人", "dqe");
         fieldMapping.put("分析责任人", "responsible_person");
         fieldMapping.put("责任单位", "responsibleDepartment");
