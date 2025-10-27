@@ -1318,7 +1318,7 @@
 
     <!-- 查询测试项数据 -->
     <select id="getTestItemsBySampleId" resultType="ElectricalTestItem">
-        SELECT
+        SELECT DISTINCT
             ETTestCode,
             testProjectCategory,
             testProjects,

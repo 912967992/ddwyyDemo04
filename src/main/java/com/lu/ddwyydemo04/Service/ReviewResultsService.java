@@ -77,8 +77,25 @@ public class ReviewResultsService {
                 return result;
             }
 
-            // 解析Excel文件
-            List<ReviewResults> reviewResultsList = parseExcelFile(file);
+            // 先进行预检查，获取所有解析的错误信息
+            List<String> validationErrors = new ArrayList<>();
+            List<ReviewResults> reviewResultsList = parseExcelFileWithValidation(file, validationErrors);
+            
+            // 如果有验证错误，直接返回错误信息，不允许导入
+            if (!validationErrors.isEmpty()) {
+                result.setSuccess(false);
+                StringBuilder errorMessage = new StringBuilder("导入失败：发现以下问题，请修正后再导入：\\n\\n");
+                int maxErrors = Math.min(validationErrors.size(), 10); // 最多显示10条错误
+                for (int i = 0; i < maxErrors; i++) {
+                    errorMessage.append((i + 1)).append(". ").append(validationErrors.get(i)).append("\\n");
+                }
+                if (validationErrors.size() > 10) {
+                    errorMessage.append("... 还有 ").append(validationErrors.size() - 10).append(" 条错误未显示\\n");
+                }
+                errorMessage.append("\\n必填数据字段：大编码、小编码、项目阶段、供应商、问题点");
+                result.setMessage(errorMessage.toString());
+                return result;
+            }
             
             if (reviewResultsList.isEmpty()) {
                 result.setSuccess(false);
@@ -144,6 +161,66 @@ public class ReviewResultsService {
     }
 
     /**
+     * 解析Excel文件并收集验证错误
+     * @param file Excel文件
+     * @param validationErrors 验证错误列表
+     * @return 评审结果列表
+     */
+    private List<ReviewResults> parseExcelFileWithValidation(MultipartFile file, List<String> validationErrors) throws IOException {
+        List<ReviewResults> reviewResultsList = new ArrayList<>();
+        boolean foundTargetSheet = false;
+        int totalRows = 0;
+        int skippedRows = 0;
+        StringBuilder errorDetails = new StringBuilder();
+        
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            System.out.println("Excel文件总工作表数量: " + workbook.getNumberOfSheets());
+            
+            // 遍历所有工作表
+            for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+                Sheet sheet = workbook.getSheetAt(sheetIndex);
+                String sheetName = sheet.getSheetName();
+                System.out.println("工作表 " + sheetIndex + ": " + sheetName);
+                
+                // 只处理工作表名字包含"问题汇总清单"的工作表
+                if (sheetName.contains("问题汇总清单")) {
+                    foundTargetSheet = true;
+                    System.out.println("找到匹配的工作表: " + sheetName);
+                    
+                    // 统计总行数和跳过的行数
+                    totalRows = sheet.getLastRowNum();
+                    System.out.println("工作表总行数: " + totalRows);
+                    
+                    List<ReviewResults> sheetData = parseSheetWithValidation(sheet, validationErrors);
+                    skippedRows = totalRows - sheetData.size();
+                    System.out.println("解析到数据条数: " + sheetData.size() + ", 跳过行数: " + skippedRows);
+                    reviewResultsList.addAll(sheetData);
+                    
+                    // 如果跳过了很多行，记录详细信息
+                    if (skippedRows > 0) {
+                        errorDetails.append("工作表'").append(sheetName).append("'中跳过了").append(skippedRows).append("行数据，");
+                    }
+                }
+            }
+            
+            System.out.println("最终解析结果总数: " + reviewResultsList.size());
+            
+            // 如果没有找到目标工作表，记录所有工作表名称
+            if (!foundTargetSheet) {
+                System.out.println("未找到包含'问题汇总清单'的工作表");
+                errorDetails.append("未找到名为'问题汇总清单'的工作表，");
+            }
+        }
+        
+        // 将错误详情存储到静态变量中，供调用方使用
+        if (errorDetails.length() > 0) {
+            this.lastParseError = errorDetails.toString();
+        }
+        
+        return reviewResultsList;
+    }
+
+    /**
      * 解析Excel文件
      * @param file Excel文件
      * @return 评审结果列表
@@ -204,6 +281,142 @@ public class ReviewResultsService {
     
     // 用于存储解析错误的静态变量
     private String lastParseError = "";
+
+    /**
+     * 解析单个工作表并收集验证错误
+     * @param sheet 工作表
+     * @param validationErrors 验证错误列表
+     * @return 评审结果列表
+     */
+    private List<ReviewResults> parseSheetWithValidation(Sheet sheet, List<String> validationErrors) {
+        List<ReviewResults> reviewResultsList = new ArrayList<>();
+        
+        // 获取表头行（假设第一行是表头）
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            validationErrors.add("Excel文件第一行（表头）为空");
+            return reviewResultsList;
+        }
+        
+        // 先验证表头是否包含所有必需字段
+        List<String> missingHeaders = validateHeaders(headerRow);
+        if (!missingHeaders.isEmpty()) {
+            StringBuilder headerError = new StringBuilder("第1行（表头）缺少以下字段列：");
+            for (int i = 0; i < missingHeaders.size(); i++) {
+                headerError.append(missingHeaders.get(i));
+                if (i < missingHeaders.size() - 1) {
+                    headerError.append("、");
+                }
+            }
+            headerError.append("（请确保上传的Excel文件包含所有必需的表头字段，请下载模板文件查看标准格式）");
+            validationErrors.add(headerError.toString());
+            return reviewResultsList; // 表头不完整，不进行数据解析
+        }
+        
+        // 创建列索引映射
+        ColumnMapping columnMapping = createColumnMapping(headerRow);
+        
+        // 从第二行开始解析数据
+        for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row == null) continue;
+            
+            try {
+                // 先检查各个格式字段
+                // 检查Delay天数字段
+                if (columnMapping.delayDaysIndex >= 0) {
+                    String delayDaysStr = getCellValueAsString(getCellSafely(row, columnMapping.delayDaysIndex));
+                    if (delayDaysStr != null && !delayDaysStr.trim().isEmpty()) {
+                        try {
+                            Integer.parseInt(delayDaysStr.trim());
+                        } catch (NumberFormatException e) {
+                            validationErrors.add("第" + (rowIndex + 1) + "行Delay天数格式错误：" + delayDaysStr + "（应为整数）");
+                        }
+                    }
+                }
+                
+                // 检查发生日期字段
+                if (columnMapping.testDateIndex >= 0) {
+                    String testDateStr = getCellValueAsString(getCellSafely(row, columnMapping.testDateIndex));
+                    if (testDateStr != null && !testDateStr.trim().isEmpty()) {
+                        LocalDate testDate = getCellValueAsDate(getCellSafely(row, columnMapping.testDateIndex));
+                        if (testDate == null) {
+                            validationErrors.add("第" + (rowIndex + 1) + "行发生日期格式错误：" + testDateStr + "（应为日期格式，如：2025-01-01）");
+                        }
+                    }
+                }
+                
+                // 检查预计完成时间字段
+                if (columnMapping.plannedCompletionTimeIndex >= 0) {
+                    String plannedTimeStr = getCellValueAsString(getCellSafely(row, columnMapping.plannedCompletionTimeIndex));
+                    if (plannedTimeStr != null && !plannedTimeStr.trim().isEmpty()) {
+                        LocalDateTime plannedTime = getCellValueAsDateTime(getCellSafely(row, columnMapping.plannedCompletionTimeIndex));
+                        if (plannedTime == null) {
+                            validationErrors.add("第" + (rowIndex + 1) + "行预计完成时间格式错误：" + plannedTimeStr + "（应为日期格式，如：2025-01-01）");
+                        }
+                    }
+                }
+                
+                // 检查实际完成时间字段
+                if (columnMapping.actualCompletionTimeIndex >= 0) {
+                    String actualTimeStr = getCellValueAsString(getCellSafely(row, columnMapping.actualCompletionTimeIndex));
+                    if (actualTimeStr != null && !actualTimeStr.trim().isEmpty()) {
+                        LocalDateTime actualTime = getCellValueAsDateTime(getCellSafely(row, columnMapping.actualCompletionTimeIndex));
+                        if (actualTime == null) {
+                            validationErrors.add("第" + (rowIndex + 1) + "行实际完成时间格式错误：" + actualTimeStr + "（应为日期格式，如：2025-01-01）");
+                        }
+                    }
+                }
+                
+                ReviewResults reviewResult = parseRow(row, columnMapping);
+                if (reviewResult != null) {
+                    reviewResultsList.add(reviewResult);
+                } else {
+                    // 创建临时对象来获取缺失字段信息
+                    ReviewResults tempResult = new ReviewResults();
+                    tempResult.setTestDate(getCellValueAsDate(getCellSafely(row, columnMapping.testDateIndex)));
+                    tempResult.setMajorCode(getCellValueAsString(getCellSafely(row, columnMapping.majorCodeIndex)));
+                    tempResult.setMinorCode(getCellValueAsString(getCellSafely(row, columnMapping.minorCodeIndex)));
+                    tempResult.setProjectPhase(getCellValueAsString(getCellSafely(row, columnMapping.projectPhaseIndex)));
+                    tempResult.setVersion(getCellValueAsString(getCellSafely(row, columnMapping.versionIndex)));
+                    tempResult.setSupplier(getCellValueAsString(getCellSafely(row, columnMapping.supplierIndex)));
+                    tempResult.setProblemPoint(getCellValueAsString(getCellSafely(row, columnMapping.problemPointIndex)));
+                    
+                    // 检查具体缺失的字段
+                    StringBuilder missingFields = new StringBuilder();
+                    if (tempResult.getMajorCode() == null || tempResult.getMajorCode().trim().isEmpty()) {
+                        missingFields.append("大编码 ");
+                    }
+                    if (tempResult.getMinorCode() == null || tempResult.getMinorCode().trim().isEmpty()) {
+                        missingFields.append("小编码 ");
+                    }
+                    if (tempResult.getProjectPhase() == null || tempResult.getProjectPhase().trim().isEmpty()) {
+                        missingFields.append("项目阶段 ");
+                    }
+                    if (tempResult.getSupplier() == null || tempResult.getSupplier().trim().isEmpty()) {
+                        missingFields.append("供应商 ");
+                    }
+                    if (tempResult.getProblemPoint() == null || tempResult.getProblemPoint().trim().isEmpty()) {
+                        missingFields.append("问题点 ");
+                    }
+                    
+                    // 收集错误信息
+                    if (missingFields.length() > 0) {
+                        validationErrors.add("第" + (rowIndex + 1) + "行缺少必填字段：" + missingFields.toString().trim());
+                    } else {
+                        // 如果所有必填字段都有值，但还是返回null，说明其他问题
+                        validationErrors.add("第" + (rowIndex + 1) + "行数据异常");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("解析第" + (rowIndex + 1) + "行数据时出错: " + e.getMessage());
+                e.printStackTrace();
+                validationErrors.add("第" + (rowIndex + 1) + "行数据解析失败: " + e.getMessage());
+            }
+        }
+        
+        return reviewResultsList;
+    }
 
     /**
      * 解析单个工作表
@@ -284,6 +497,75 @@ public class ReviewResultsService {
     }
 
     /**
+     * 验证表头是否包含所有必需字段
+     * @param headerRow 表头行
+     * @return 缺少的字段列表
+     */
+    private List<String> validateHeaders(Row headerRow) {
+        List<String> missingHeaders = new ArrayList<>();
+        
+        // 定义所有必需的字段及其可能的表头名称（与createColumnMapping保持一致）
+        List<String[]> requiredHeaders = new ArrayList<>();
+        requiredHeaders.add(new String[]{"发生日期", "发生日期", "测试日期"});
+        requiredHeaders.add(new String[]{"大编码", "大编码", "大码"});
+        requiredHeaders.add(new String[]{"小编码", "小编码", "小码"});
+        requiredHeaders.add(new String[]{"项目阶段", "项目阶段", "阶段"});
+        requiredHeaders.add(new String[]{"版本", "版本"});
+        requiredHeaders.add(new String[]{"问题工序", "问题工序", "工序"});
+        requiredHeaders.add(new String[]{"问题等级", "问题等级", "等级"});
+        requiredHeaders.add(new String[]{"开发方式", "开发方式", "开发"});
+        requiredHeaders.add(new String[]{"供应商", "供应商"});
+        requiredHeaders.add(new String[]{"方案商", "方案商"});
+        requiredHeaders.add(new String[]{"问题点", "问题点"});
+        requiredHeaders.add(new String[]{"问题原因", "问题原因", "原因"});
+        requiredHeaders.add(new String[]{"改善对策", "改善对策", "对策"});
+        requiredHeaders.add(new String[]{"是否可预防", "是否可预防", "可预防"});
+        requiredHeaders.add(new String[]{"责任部门", "责任部门"});
+        requiredHeaders.add(new String[]{"预计完成时间", "预计完成时间", "预计"});
+        requiredHeaders.add(new String[]{"实际完成时间", "实际完成时间", "实际"});
+        requiredHeaders.add(new String[]{"Delay天数", "Delay天数", "延迟"});
+        requiredHeaders.add(new String[]{"问题状态", "问题状态", "状态"});
+        requiredHeaders.add(new String[]{"问题打标1", "问题打标1", "打标1"});
+        requiredHeaders.add(new String[]{"问题打标2", "问题打标2", "打标2"});
+        requiredHeaders.add(new String[]{"预防备注", "预防备注", "备注"});
+        
+        // 获取所有表头内容
+        List<String> headerValues = new ArrayList<>();
+        for (int cellIndex = 0; cellIndex < headerRow.getLastCellNum(); cellIndex++) {
+            Cell cell = headerRow.getCell(cellIndex);
+            if (cell != null) {
+                String headerValue = getCellValueAsString(cell).trim();
+                if (!headerValue.isEmpty()) {
+                    headerValues.add(headerValue);
+                }
+            }
+        }
+        
+        // 检查每个必需字段是否存在
+        for (String[] requiredHeader : requiredHeaders) {
+            String fieldName = requiredHeader[0]; // 第一个元素是字段名称
+            boolean found = false;
+            
+            for (String headerValue : headerValues) {
+                // 检查是否匹配任一可能的表头名称
+                for (int i = 1; i < requiredHeader.length; i++) {
+                    if (headerValue.contains(requiredHeader[i])) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+            
+            if (!found) {
+                missingHeaders.add(fieldName);
+            }
+        }
+        
+        return missingHeaders;
+    }
+
+    /**
      * 创建列索引映射
      * @param headerRow 表头行
      * @return 列映射对象
@@ -298,7 +580,7 @@ public class ReviewResultsService {
             String headerValue = getCellValueAsString(cell).trim();
             
             // 根据表头内容映射到对应字段
-            if (headerValue.contains("测试日期") || headerValue.contains("日期")) {
+            if (headerValue.contains("发生日期") || headerValue.contains("测试日期")) {
                 mapping.testDateIndex = cellIndex;
             } else if (headerValue.contains("大编码") || headerValue.contains("大码")) {
                 mapping.majorCodeIndex = cellIndex;
@@ -375,6 +657,7 @@ public class ReviewResultsService {
         reviewResult.setResponsibleDepartment(getCellValueAsString(getCellSafely(row, mapping.responsibleDepartmentIndex)));
         reviewResult.setPlannedCompletionTime(getCellValueAsDateTime(getCellSafely(row, mapping.plannedCompletionTimeIndex)));
         reviewResult.setActualCompletionTime(getCellValueAsDateTime(getCellSafely(row, mapping.actualCompletionTimeIndex)));
+        
         reviewResult.setDelayDays(getCellValueAsInteger(getCellSafely(row, mapping.delayDaysIndex)));
         reviewResult.setProblemStatus(getCellValueAsString(getCellSafely(row, mapping.problemStatusIndex)));
         reviewResult.setProblemTag1(getCellValueAsString(getCellSafely(row, mapping.problemTag1Index)));
@@ -396,6 +679,9 @@ public class ReviewResultsService {
         // 版本字段已改为可选，不再检查
         if (reviewResult.getSupplier() == null || reviewResult.getSupplier().trim().isEmpty()) {
             missingFields.append("供应商 ");
+        }
+        if (reviewResult.getProblemPoint() == null || reviewResult.getProblemPoint().trim().isEmpty()) {
+            missingFields.append("问题点 ");
         }
         
         if (missingFields.length() > 0) {
@@ -495,10 +781,12 @@ public class ReviewResultsService {
             } else if (cell.getCellType() == CellType.STRING) {
                 String dateStr = cell.getStringCellValue().trim();
                 if (!dateStr.isEmpty()) {
-                    // 尝试多种日期格式
+                    // 尝试多种日期格式（包括月份和日期可以是1位或2位数字的格式）
                     String[] patterns = {
-                        "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy", "dd/MM/yyyy",
-                        "yyyy年MM月dd日", "MM月dd日", "yyyy-MM", "yyyy"
+                        "yyyy-MM-dd", "yyyy-M-d", "yyyy/MM/dd", "yyyy/M/d",
+                        "MM/dd/yyyy", "M/d/yyyy", "dd/MM/yyyy", "d/M/yyyy",
+                        "yyyy年MM月dd日", "yyyy年M月d日", "MM月dd日", "M月d日",
+                        "yyyy-MM", "yyyy-M", "yyyy"
                     };
                     
                     for (String pattern : patterns) {
@@ -542,11 +830,16 @@ public class ReviewResultsService {
             } else if (cell.getCellType() == CellType.STRING) {
                 String dateTimeStr = cell.getStringCellValue().trim();
                 if (!dateTimeStr.isEmpty()) {
-                    // 尝试多种日期时间格式
+                    // 尝试多种日期时间格式（包括月份和日期可以是1位或2位数字的格式）
                     String[] patterns = {
-                        "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd HH:mm:ss", "MM/dd/yyyy HH:mm:ss",
-                        "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy",
-                        "yyyy年MM月dd日 HH:mm:ss", "yyyy年MM月dd日"
+                        "yyyy-MM-dd HH:mm:ss", "yyyy-M-d HH:mm:ss",
+                        "yyyy/MM/dd HH:mm:ss", "yyyy/M/d HH:mm:ss",
+                        "MM/dd/yyyy HH:mm:ss", "M/d/yyyy HH:mm:ss",
+                        "yyyy-MM-dd", "yyyy-M-d",
+                        "yyyy/MM/dd", "yyyy/M/d",
+                        "MM/dd/yyyy", "M/d/yyyy",
+                        "yyyy年MM月dd日 HH:mm:ss", "yyyy年M月d日 HH:mm:ss",
+                        "yyyy年MM月dd日", "yyyy年M月d日"
                     };
                     
                     for (String pattern : patterns) {
@@ -908,7 +1201,7 @@ public class ReviewResultsService {
                 Row headerRow = sheet.createRow(0);
                 headerRow.setHeightInPoints(50);
                 String[] headers = {
-                        "序号", "测试日期", "大编码", "小编码", "项目阶段", "版本", "问题工序", "问题等级", 
+                        "序号", "发生日期", "大编码", "小编码", "项目阶段", "版本", "问题工序", "问题等级",
                         "开发方式", "供应商", "方案商", "问题点", "问题原因", "改善对策", "是否可预防", 
                         "责任部门", "预计完成时间", "实际完成时间", "Delay天数", "问题状态", "问题打标1", 
                         "问题打标2", "预防备注"

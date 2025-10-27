@@ -1124,7 +1124,7 @@
                 grid-template-columns: 1fr; /* 在小屏幕上改为单列 */
                 min-height: auto; /* 在小屏幕上允许高度自适应 */
             }
-            
+
             .filter-container,
             .chart-container {
                 height: auto; /* 在小屏幕上允许高度自适应 */
@@ -1143,7 +1143,7 @@
                 padding: 15px;
                 gap: 15px;
             }
-            
+
             .filter-container,
             .chart-container {
                 padding: 15px;
@@ -1618,7 +1618,7 @@
                 </select>
 
                 <button id="generateChartBtn1" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(1)">生成图表</button>
-                
+
                 <!-- 排序按钮组 -->
                 <div class="chart-sort-buttons" role="group">
                     <button id="sortAscBtn1" class="btn btn-outline-secondary" onclick="setChartSort('asc', 1)" title="按数值升序排列">
@@ -1681,7 +1681,7 @@
                 </select>
 
                 <button id="generateChartBtn2" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(2)">生成图表</button>
-                
+
                 <!-- 排序按钮组 -->
                 <div class="chart-sort-buttons" role="group">
                     <button id="sortAscBtn2" class="btn btn-outline-secondary" onclick="setChartSort('asc', 2)" title="按数值升序排列">
@@ -1710,7 +1710,7 @@
 </div>
 
 <!-- 数据表格区域 -->
-    <div class="table-section">
+<div class="table-section">
     <div class="table-container">
         <table id="reviewTable" class="data-table">
             <thead>
@@ -2439,7 +2439,7 @@
                     <span>总数据量: <strong id="mergedTotalCount">0</strong></span>
                     <span>去重后: <strong id="mergedUniqueCount">0</strong></span>
                 </div>
-                
+
                 <!-- 合并数据图表控制区域 -->
                 <div class="merged-chart-controls" style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
@@ -2465,7 +2465,7 @@
                             <option value="problemTag2">问题打标2</option>
                         </select>
                     </div>
-                    
+
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div class="chart-type-buttons">
                             <button class="chart-type-btn active" data-type="bar" onclick="switchMergedChartType('bar')">柱状图</button>
@@ -2477,7 +2477,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- 合并数据图表容器 -->
                 <div id="mergedChartContainer" class="merged-chart-container" style="display: none; margin-top: 20px; padding: 20px; background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div class="chart-canvas-container" style="position: relative; height: 400px; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
@@ -2642,7 +2642,7 @@
     // 切换图表类型函数 - 支持双图表
     function switchChartType(type, chartNumber) {
         console.log('🎯 switchChartType函数被调用，类型:', type, '图表编号:', chartNumber);
-        
+
         // 更新对应图表的类型
         if (chartNumber === 1) {
             currentChartType1 = type;
@@ -2651,7 +2651,7 @@
             currentChartType2 = type;
             console.log('✅ 图表2类型已更新为:', currentChartType2);
         }
-        
+
         // 更新对应图表的按钮状态
         const chartContainer = chartNumber === 1 ? '.chart-left' : '.chart-right';
         const chartTypeButtons = document.querySelectorAll(`${chartContainer} .chart-type-btn`);
@@ -2662,7 +2662,7 @@
                 console.log('✅ 按钮状态已更新:', btn.textContent, '-> active');
             }
         });
-        
+
         // 检查是否有现有图表并销毁
         if (chartNumber === 1 && currentChart1) {
             console.log('📊 销毁图表1');
@@ -2673,23 +2673,23 @@
             currentChart2.destroy();
             currentChart2 = null;
         }
-        
+
         // 如果已经有分组字段，自动重新生成图表（使用全部搜索结果数据）
         const groupFieldId = chartNumber === 1 ? 'groupField1' : 'groupField2';
         const groupField = document.getElementById(groupFieldId);
         const groupFieldValue = groupField ? groupField.value : null;
         const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
         const chartSortOrder = chartNumber === 1 ? chartSortOrder1 : chartSortOrder2;
-        
+
         console.log('📋 当前状态检查:', {
             groupField: groupFieldValue,
             currentChartType: currentChartType,
             chartNumber: chartNumber
         });
-        
+
         if (groupFieldValue) {
             console.log('🚀 开始重新生成图表', chartNumber, '，类型:', currentChartType, '，使用全部搜索结果数据');
-            
+
             // 重新获取全部搜索结果数据并生成图表
             getAllSearchData()
                 .then(allSearchData => {
@@ -2762,9 +2762,9 @@
     // 标准化问题状态过滤器值 - 支持模糊搜索和大小写兼容
     function normalizeProblemStatus(status) {
         if (!status) return '';
-        
+
         console.log('🔍 问题状态模糊搜索（支持包含匹配）:', status);
-        
+
         // 支持模糊搜索，不区分大小写
         // 用户输入"follow"可以匹配"followingUp"、"Follow"、"FOLLOW"等
         // 用户输入"open"可以匹配"Open"、"OPEN"、"opening"等
@@ -2775,19 +2775,19 @@
     // 格式化日期显示
     function formatDate(dateString) {
         if (!dateString || dateString === '-') return '-';
-        
+
         try {
             // 如果是ISO格式的日期时间字符串，提取日期部分
             if (dateString.includes('T')) {
                 return dateString.split('T')[0];
             }
-            
+
             // 如果是其他格式，尝试解析并格式化
             const date = new Date(dateString);
             if (!isNaN(date.getTime())) {
                 return date.toISOString().split('T')[0];
             }
-            
+
             // 如果解析失败，返回原值
             return dateString;
         } catch (error) {
@@ -2990,16 +2990,16 @@
         console.log('🚀 页面加载完成，开始初始化...');
         console.log('📊 Chart.js是否加载:', typeof Chart !== 'undefined');
         console.log('📊 ChartDataLabels是否加载:', typeof ChartDataLabels !== 'undefined');
-        
+
         // 检查用户权限
         checkUserPermission();
 
         // 初始化事件监听器
         initEventListeners();
-        
+
         // 初始化过滤器建议功能
         initFilterSuggestions();
-        
+
         // 加载初始的全部数据用于建议功能
         loadAllSearchDataForSuggestions();
 
@@ -3283,12 +3283,12 @@
             type: btn.dataset.type,
             hasOnclick: !!btn.onclick
         })));
-        
+
         if (chartTypeButtons.length === 0) {
             console.error('❌ 没有找到图表类型按钮！');
             return;
         }
-        
+
         chartTypeButtons.forEach((btn, index) => {
             console.log(`按钮${index}:`, {
                 element: btn,
@@ -3296,23 +3296,23 @@
                 text: btn.textContent,
                 hasClickHandler: btn.onclick !== null
             });
-            
+
             btn.addEventListener('click', function(e) {
                 console.log('🎯 按钮被点击!', {
                     type: this.dataset.type,
                     text: this.textContent,
                     event: e
                 });
-                
+
                 // 移除所有active类
                 chartTypeButtons.forEach(b => b.classList.remove('active'));
                 // 添加active类到当前按钮
                 this.classList.add('active');
-                
+
                 // 确定图表编号（通过父容器判断）
                 const chartContainer = this.closest('.chart-left, .chart-right');
                 const chartNumber = chartContainer && chartContainer.classList.contains('chart-left') ? 1 : 2;
-                
+
                 // 更新对应图表的类型
                 if (chartNumber === 1) {
                     currentChartType1 = this.dataset.type;
@@ -3321,7 +3321,7 @@
                     currentChartType2 = this.dataset.type;
                     console.log('✅ 图表2类型切换为:', currentChartType2);
                 }
-                
+
                 // 检查是否有现有图表并销毁
                 const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
                 if (currentChart) {
@@ -3333,21 +3333,21 @@
                         currentChart2 = null;
                     }
                 }
-                
+
                 // 如果已经有图表数据，自动重新生成图表
                 const groupFieldId = chartNumber === 1 ? 'groupField1' : 'groupField2';
                 const groupField = document.getElementById(groupFieldId);
                 const groupFieldValue = groupField ? groupField.value : null;
                 const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
                 const chartSortOrder = chartNumber === 1 ? chartSortOrder1 : chartSortOrder2;
-                
+
                 console.log('📋 当前状态检查:', {
                     groupField: groupFieldValue,
                     allDataLength: allData ? allData.length : 'undefined',
                     currentChartType: currentChartType,
                     chartNumber: chartNumber
                 });
-                
+
                 if (groupFieldValue && allData && allData.length > 0) {
                     console.log('🚀 开始重新生成图表', chartNumber, '，类型:', currentChartType);
                     try {
@@ -3361,7 +3361,7 @@
                     console.log('需要满足: groupField有值 && allData有数据');
                 }
             });
-            
+
             console.log(`✅ 按钮${index}事件监听器已添加`);
         });
         console.log('=== 图表类型按钮事件监听器初始化完成 ===');
@@ -3516,7 +3516,7 @@
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
-                
+
                 document.getElementById('uploadArea').innerHTML = `
                     <i class="fas fa-file-excel" style="color: #28a745;"></i>
                     <p style="color: #28a745; font-weight: 500;">已选择文件: ${file.name}</p>
@@ -3736,7 +3736,7 @@
                     console.log('每页大小:', pageSize);
                     renderTable();
                     updatePagination();
-                    
+
                     // 获取全部搜索数据用于建议功能
                     loadAllSearchDataForSuggestions();
                 } else {
@@ -3764,7 +3764,7 @@
     // 加载全部搜索数据用于建议功能
     function loadAllSearchDataForSuggestions() {
         console.log('🔄 加载全部搜索数据用于建议功能');
-        
+
         // 构建查询参数（不包含分页参数）
         const params = new URLSearchParams({
             username: currentUser,
@@ -3921,7 +3921,7 @@
     function exportFilteredData() {
         // 获取选中的行ID
         const selectedIds = getSelectedRowIds();
-        
+
         if (selectedIds.length === 0) {
             alert('请先选择要导出的数据行！');
             return;
@@ -3974,7 +3974,7 @@
     function exportAllSearchResults() {
         // 获取当前搜索条件
         const currentFilters = getCurrentFilters();
-        
+
         // 检查是否有筛选条件
         if (Object.keys(currentFilters).length === 0) {
             showToast('请先设置筛选条件！', 'warning');
@@ -4002,38 +4002,38 @@
             },
             body: JSON.stringify(exportData)
         })
-        .then(response => {
-            if (response.ok) {
-                return response.blob();
-            } else {
-                throw new Error('导出失败');
-            }
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = exportData.fileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            showToast('成功导出全部筛选结果数据！', 'success');
-        })
-        .catch(error => {
-            console.error('导出错误:', error);
-            showToast('导出时发生错误: ' + error.message, 'error');
-        })
-        .finally(() => {
-            hideLoading();
-        });
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('导出失败');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = exportData.fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showToast('成功导出全部筛选结果数据！', 'success');
+            })
+            .catch(error => {
+                console.error('导出错误:', error);
+                showToast('导出时发生错误: ' + error.message, 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
     }
 
     // 删除选中数据
     function deleteSelectedData() {
         // 获取选中的行ID
         const selectedIds = getSelectedRowIds();
-        
+
         if (selectedIds.length === 0) {
             showToast('请先选择要删除的数据行！', 'warning');
             return;
@@ -4059,29 +4059,29 @@
                 ids: idsToDelete
             })
         })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('删除失败');
-            }
-        })
-        .then(result => {
-            if (result.success) {
-                showToast(`成功删除 ${result.deletedCount} 条数据！`, 'success');
-                // 重新加载数据
-                loadReviewData();
-            } else {
-                throw new Error(result.message || '删除失败');
-            }
-        })
-        .catch(error => {
-            console.error('删除错误:', error);
-            showToast('删除时发生错误: ' + error.message, 'error');
-        })
-        .finally(() => {
-            hideLoading();
-        });
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('删除失败');
+                }
+            })
+            .then(result => {
+                if (result.success) {
+                    showToast(`成功删除 ${result.deletedCount} 条数据！`, 'success');
+                    // 重新加载数据
+                    loadReviewData();
+                } else {
+                    throw new Error(result.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('删除错误:', error);
+                showToast('删除时发生错误: ' + error.message, 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
     }
 
     // 删除全部搜索结果 - 已注释，操作过于危险
@@ -4089,7 +4089,7 @@
     function deleteAllSearchResults() {
         // 获取当前搜索条件
         const currentFilters = getCurrentFilters();
-        
+
         // 确认删除
         if (!confirm('确定要删除当前搜索结果的全部数据吗？此操作不可恢复！\n\n注意：这将删除所有符合当前筛选条件的数据，不仅仅是当前页面显示的数据。')) {
             return;
@@ -4136,7 +4136,7 @@
     // 获取当前搜索条件
     function getCurrentFilters() {
         const filters = {};
-        
+
         // 获取所有筛选条件
         const testDateFrom = document.getElementById('testDateFrom').value;
         const testDateTo = document.getElementById('testDateTo').value;
@@ -4188,16 +4188,16 @@
     function showAddNewModal() {
         // 重置编辑状态
         resetReviewEditMode();
-        
+
         // 设置模态框标题
         document.getElementById('reviewModalTitle').textContent = '新增评审结果';
-        
+
         // 清空所有字段
         clearReviewDetailFields();
-        
+
         // 直接进入编辑模式
         enterReviewEditMode();
-        
+
         // 显示模态框
         document.getElementById('reviewDetailModal').style.display = 'block';
     }
@@ -4213,7 +4213,7 @@
             'detailActualCompletionTime', 'detailDelayDays', 'detailProblemStatus', 'detailProblemTag1',
             'detailProblemTag2', 'detailPreventionNotes', 'detailCreatedTime', 'detailUpdatedTime'
         ];
-        
+
         fields.forEach(fieldId => {
             const element = document.getElementById(fieldId);
             if (element) {
@@ -4229,7 +4229,7 @@
 
         // 先重置编辑状态（防止之前的状态影响）
         resetReviewEditMode();
-        
+
         // 设置模态框标题
         document.getElementById('reviewModalTitle').textContent = '评审结果详情';
 
@@ -4325,7 +4325,7 @@
             if (element) {
                 const parent = element.parentElement;
                 const currentValue = element.textContent === '-' ? '' : element.textContent;
-                
+
                 // 创建新的输入元素
                 let inputElement;
                 if (field.type === 'textarea') {
@@ -4343,9 +4343,9 @@
                     inputElement = document.createElement('input');
                     inputElement.type = field.type;
                 }
-                
+
                 inputElement.id = 'edit' + field.id;
-                
+
                 // 特殊处理日期字段
                 if (field.type === 'date' && currentValue && currentValue !== '-') {
                     // 将日期转换为HTML date input所需的格式 (YYYY-MM-DD)
@@ -4358,9 +4358,9 @@
                 } else {
                     inputElement.value = currentValue;
                 }
-                
+
                 inputElement.className = 'form-control';
-                
+
                 // 替换原元素
                 parent.replaceChild(inputElement, element);
             }
@@ -4392,20 +4392,20 @@
             if (editElement) {
                 const parent = editElement.parentElement;
                 const currentValue = editElement.value || '-';
-                
+
                 // 创建新的显示元素
                 let displayElement;
-                if (fieldId.includes('ProblemPoint') || fieldId.includes('ProblemReason') || 
+                if (fieldId.includes('ProblemPoint') || fieldId.includes('ProblemReason') ||
                     fieldId.includes('ImprovementMeasures') || fieldId.includes('PreventionNotes')) {
                     displayElement = document.createElement('div');
                     displayElement.className = 'problem-desc';
                 } else {
                     displayElement = document.createElement('span');
                 }
-                
+
                 displayElement.id = fieldId;
                 displayElement.textContent = currentValue;
-                
+
                 // 替换编辑元素
                 parent.replaceChild(displayElement, editElement);
             }
@@ -4425,7 +4425,7 @@
     function saveReviewEdit() {
         // 判断是新增还是更新
         const isNewRecord = !currentEditingReviewId;
-        
+
         if (!isNewRecord && !currentEditingReviewId) {
             showToast('没有找到要编辑的评审结果', 'error');
             return;
@@ -4478,39 +4478,39 @@
             },
             body: JSON.stringify(editData)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(successMessage, 'success');
-                
-                if (isNewRecord) {
-                    // 新增成功后，重新加载数据
-                    loadReviewData();
-                } else {
-                    // 更新成功后，更新本地数据
-                    const reviewIndex = filteredData.findIndex(r => r.id === currentEditingReviewId);
-                    if (reviewIndex !== -1) {
-                        Object.assign(filteredData[reviewIndex], editData);
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(successMessage, 'success');
+
+                    if (isNewRecord) {
+                        // 新增成功后，重新加载数据
+                        loadReviewData();
+                    } else {
+                        // 更新成功后，更新本地数据
+                        const reviewIndex = filteredData.findIndex(r => r.id === currentEditingReviewId);
+                        if (reviewIndex !== -1) {
+                            Object.assign(filteredData[reviewIndex], editData);
+                        }
+                        // 刷新表格显示
+                        renderTable();
                     }
-                    // 刷新表格显示
-                    renderTable();
+
+                    // 退出编辑模式
+                    exitReviewEditMode();
+                    // 关闭模态框
+                    document.getElementById('reviewDetailModal').style.display = 'none';
+                } else {
+                    showToast(errorMessage + ': ' + (data.message || '未知错误'), 'error');
                 }
-                
-                // 退出编辑模式
-                exitReviewEditMode();
-                // 关闭模态框
-                document.getElementById('reviewDetailModal').style.display = 'none';
-            } else {
-                showToast(errorMessage + ': ' + (data.message || '未知错误'), 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast((isNewRecord ? '新增' : '更新') + '时发生错误', 'error');
-        })
-        .finally(() => {
-            hideLoading();
-        });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast((isNewRecord ? '新增' : '更新') + '时发生错误', 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
     }
 
     // 取消评审结果编辑
@@ -4527,7 +4527,7 @@
         const editBtn = document.getElementById('editReviewBtn');
         const saveBtn = document.getElementById('saveReviewBtn');
         const cancelBtn = document.getElementById('cancelEditReviewBtn');
-        
+
         if (editBtn && saveBtn && cancelBtn) {
             // 检查是否在编辑模式
             if (saveBtn.style.display !== 'none') {
@@ -4535,7 +4535,7 @@
                 exitReviewEditMode();
             }
         }
-        
+
         // 清空当前编辑的评审结果ID
         currentEditingReviewId = null;
     }
@@ -5243,7 +5243,7 @@
 
         // 更新按钮文本
         updateAddToCartButtonText();
-        
+
         // 更新行的选中样式
         updateTableRowSelectionStyles();
 
@@ -5865,7 +5865,7 @@
 
         // 更新加入收藏夹按钮的文本
         updateAddToCartButtonText();
-        
+
         // 更新行的选中样式
         updateTableRowSelectionStyles();
     }
@@ -5887,7 +5887,7 @@
     function updateAddToCartButtonText() {
         const selectedCount = document.querySelectorAll('.table-row-checkbox:checked').length;
         const addToCartBtn = document.getElementById('addToCartBtn');
-        
+
         if (selectedCount > 0) {
             addToCartBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> 加入收藏夹 (${selectedCount})`;
         } else {
@@ -5899,14 +5899,14 @@
     function clearTableSelection() {
         const selectAllCheckbox = document.getElementById('selectAllTableRows');
         const rowCheckboxes = document.querySelectorAll('.table-row-checkbox');
-        
+
         selectAllCheckbox.checked = false;
         rowCheckboxes.forEach(checkbox => {
             checkbox.checked = false;
         });
-        
+
         updateAddToCartButtonText();
-        
+
         // 更新行的选中样式
         updateTableRowSelectionStyles();
     }
@@ -5916,7 +5916,7 @@
         const selectAllCheckbox = document.getElementById('selectAllTableRows');
         const rowCheckboxes = document.querySelectorAll('.table-row-checkbox');
         const checkedCount = document.querySelectorAll('.table-row-checkbox:checked').length;
-        
+
         // 更新全选复选框状态
         if (checkedCount === 0) {
             selectAllCheckbox.checked = false;
@@ -5928,10 +5928,10 @@
             selectAllCheckbox.checked = false;
             selectAllCheckbox.indeterminate = true;
         }
-        
+
         // 更新按钮文本
         updateAddToCartButtonText();
-        
+
         // 更新行的选中样式
         updateTableRowSelectionStyles();
     }
@@ -5939,7 +5939,7 @@
     // 更新表格行选中样式
     function updateTableRowSelectionStyles() {
         const rowCheckboxes = document.querySelectorAll('.table-row-checkbox');
-        
+
         rowCheckboxes.forEach(checkbox => {
             const row = checkbox.closest('tr');
             if (checkbox.checked) {
@@ -5954,7 +5954,7 @@
     function addToCart() {
         // 获取选中的行ID
         const selectedIds = getSelectedRowIds();
-        
+
         if (selectedIds.length === 0) {
             alert('请先选择要加入收藏夹的数据行！');
             return;
@@ -5962,14 +5962,14 @@
 
         // 从当前页数据中获取选中的行（如果可能的话）
         const selectedRows = getSelectedTableRows();
-        
+
         // 如果当前页没有完整数据，则从allData中获取
         if (selectedRows.length === 0) {
             // 尝试从allData中获取
             const selectedCheckboxes = document.querySelectorAll('.table-row-checkbox:checked');
             const selectedIdsFromCheckboxes = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
             const rowsFromAllData = allData.filter(item => selectedIdsFromCheckboxes.includes(item.id));
-            
+
             if (rowsFromAllData.length > 0) {
                 // 使用从allData获取的数据
                 addToCartWithData(rowsFromAllData);
@@ -6049,7 +6049,7 @@
     // 初始化过滤器建议功能
     function initFilterSuggestions() {
         console.log('🎯 初始化过滤器建议功能');
-        
+
         // 为过滤器输入框添加事件监听器
         const filterConfigs = [
             { id: 'majorCodeFilter', field: 'majorCode' },
@@ -6059,22 +6059,22 @@
             { id: 'supplierFilter', field: 'supplier' },
             { id: 'problemStatusFilter', field: 'problemStatus' }
         ];
-        
+
         filterConfigs.forEach(config => {
             const input = document.getElementById(config.id);
             if (!input) {
                 console.log('❌ 找不到输入框:', config.id);
                 return;
             }
-            
+
             console.log('✅ 为输入框添加事件监听器:', config.id);
-            
+
             // 键盘事件处理
             input._keydownHandler = function(e) {
                 const dropdown = document.getElementById(config.id + 'Suggestions');
                 const items = dropdown.querySelectorAll('.suggestion-item');
                 const highlighted = dropdown.querySelector('.suggestion-item.highlighted');
-                
+
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     if (highlighted) {
@@ -6119,12 +6119,12 @@
             input._inputHandler = function(e) {
                 const query = e.target.value.trim();
                 console.log('⌨️ 输入事件:', config.id, '查询:', query);
-                
+
                 // 清除之前的定时器
                 if (input._debounceTimer) {
                     clearTimeout(input._debounceTimer);
                 }
-                
+
                 // 设置防抖延迟，用户停止输入500ms后才开始搜索
                 input._debounceTimer = setTimeout(() => {
                     const suggestions = filterSuggestions(config.field, query);
@@ -6136,12 +6136,12 @@
             // 获得焦点事件 - 显示所有建议（防抖处理）
             input._focusHandler = function(e) {
                 const query = e.target.value.trim();
-                
+
                 // 清除之前的定时器
                 if (input._debounceTimer) {
                     clearTimeout(input._debounceTimer);
                 }
-                
+
                 // 获得焦点时立即显示建议，但也要防抖
                 input._debounceTimer = setTimeout(() => {
                     const suggestions = filterSuggestions(config.field, query);
@@ -6155,7 +6155,7 @@
                 if (input._debounceTimer) {
                     clearTimeout(input._debounceTimer);
                 }
-                
+
                 setTimeout(() => {
                     const dropdown = document.getElementById(config.id + 'Suggestions');
                     hideSuggestions(dropdown);
@@ -6168,7 +6168,7 @@
             input.addEventListener('focus', input._focusHandler);
             input.addEventListener('blur', input._blurHandler);
         });
-        
+
         console.log('✅ 过滤器建议功能初始化完成');
     }
 
@@ -6183,7 +6183,7 @@
         console.log('✅ 找到下拉框');
 
         dropdown.innerHTML = '';
-        
+
         if (suggestions.length === 0) {
             console.log('📭 没有建议，隐藏下拉框');
             dropdown.style.display = 'none';
@@ -6216,30 +6216,30 @@
     // 过滤建议
     function filterSuggestions(field, query) {
         console.log('🔍 过滤建议:', field, '查询:', query);
-        
+
         // 问题状态过滤器的特殊处理
         if (field === 'problemStatus') {
             const statusOptions = ['open', 'closed', 'follow'];
             if (!query || query.trim() === '') {
                 return statusOptions;
             }
-            
-            const filtered = statusOptions.filter(option => 
+
+            const filtered = statusOptions.filter(option =>
                 option.toLowerCase().includes(query.toLowerCase())
             );
-            
+
             return filtered.slice(0, 10);
         }
-        
+
         const allValues = getUniqueValues(field);
         if (!query || query.trim() === '') {
             return allValues.slice(0, 10); // 限制显示前10个
         }
-        
-        const filtered = allValues.filter(value => 
+
+        const filtered = allValues.filter(value =>
             value.toLowerCase().includes(query.toLowerCase())
         );
-        
+
         return filtered.slice(0, 10); // 限制显示前10个
     }
 
@@ -6247,12 +6247,12 @@
     function getUniqueValues(field) {
         // 优先使用全部搜索数据，如果没有则使用当前页数据
         const dataSource = allSearchData.length > 0 ? allSearchData : allData;
-        
+
         if (!dataSource || dataSource.length === 0) {
             console.log('⚠️ 没有可用的数据源用于建议功能');
             return [];
         }
-        
+
         const values = dataSource.map(item => item[field]).filter(value => value && value.trim() !== '');
         const uniqueValues = [...new Set(values)];
         console.log(`📊 字段 ${field} 的唯一值数量:`, uniqueValues.length, '数据源:', allSearchData.length > 0 ? '全部搜索数据' : '当前页数据');
@@ -6263,7 +6263,7 @@
     document.addEventListener('click', function(e) {
         // 检查点击是否在建议框或输入框内
         const isInSuggestions = e.target.closest('.input-with-suggestions');
-        
+
         if (!isInSuggestions) {
             // 隐藏所有建议框
             document.querySelectorAll('.suggestions-dropdown').forEach(suggestions => {
@@ -6379,10 +6379,10 @@
         }
 
         const filters = window.currentCartItem.filters;
-        
+
         // 清空所有筛选条件
         resetFilters();
-        
+
         // 应用收藏夹中的筛选条件
         if (filters.majorCode) document.getElementById('majorCodeFilter').value = filters.majorCode;
         if (filters.minorCode) document.getElementById('minorCodeFilter').value = filters.minorCode;
@@ -6395,13 +6395,13 @@
 
         // 关闭收藏夹详情模态框
         closeSpecificModal('cartDetailModal');
-        
+
         // 关闭收藏夹模态框
         closeSpecificModal('cartModal');
-        
+
         // 执行搜索
         searchReviews();
-        
+
         // 显示成功提示
         showToast('已应用收藏夹中的筛选条件并重新搜索', 'success');
     }
@@ -6613,7 +6613,7 @@
             'rgba(255, 255, 99, 0.6)',
             'rgba(255, 99, 99, 0.6)'
         ];
-        
+
         const result = [];
         for (let i = 0; i < count; i++) {
             result.push(colors[i % colors.length]);
@@ -6650,7 +6650,7 @@
 
         // 显示合并数据区域
         showMergedData(selectedItems.length);
-        
+
         // 显示图表控制区域
         const chartControls = document.querySelector('.merged-chart-controls');
         if (chartControls) {
@@ -6663,7 +6663,7 @@
     // 切换合并数据图表类型
     function switchMergedChartType(type) {
         mergedChartType = type;
-        
+
         // 更新按钮状态
         const chartTypeButtons = document.querySelectorAll('.merged-chart-controls .chart-type-btn');
         chartTypeButtons.forEach(btn => {
@@ -6672,7 +6672,7 @@
                 btn.classList.add('active');
             }
         });
-        
+
         // 如果已经有图表，重新生成
         if (mergedChart && mergedData.length > 0) {
             const groupField = document.getElementById('mergedChartField').value;
@@ -6699,16 +6699,16 @@
         try {
             // 处理图表数据
             const chartData = processMergedChartData(mergedData, groupField, mergedChartType);
-            
+
             // 创建图表
             createMergedChart(chartData, mergedChartType);
-            
+
             // 显示图表容器
             const chartContainer = document.getElementById('mergedChartContainer');
             if (chartContainer) {
                 chartContainer.style.display = 'block';
             }
-            
+
             showToast('图表生成成功！', 'success');
         } catch (error) {
             console.error('生成合并数据图表失败:', error);
@@ -6738,7 +6738,7 @@
         });
 
         const ctx = document.getElementById('mergedDataChart').getContext('2d');
-        
+
         if (!ctx) {
             console.error('❌ 无法获取canvas上下文');
             return;
@@ -6987,26 +6987,26 @@
     // 设置图表排序 - 支持双图表
     function setChartSort(sortOrder, chartNumber) {
         console.log('设置图表排序:', sortOrder, '图表编号:', chartNumber);
-        
+
         // 更新对应图表的排序状态
         if (chartNumber === 1) {
             chartSortOrder1 = sortOrder;
         } else if (chartNumber === 2) {
             chartSortOrder2 = sortOrder;
         }
-        
+
         // 更新对应图表的按钮状态
         const ascBtnId = chartNumber === 1 ? 'sortAscBtn1' : 'sortAscBtn2';
         const descBtnId = chartNumber === 1 ? 'sortDescBtn1' : 'sortDescBtn2';
         const ascBtn = document.getElementById(ascBtnId);
         const descBtn = document.getElementById(descBtnId);
-        
+
         // 重置所有按钮状态
         ascBtn.classList.remove('active', 'btn-primary');
         ascBtn.classList.add('btn-outline-secondary');
         descBtn.classList.remove('active', 'btn-primary');
         descBtn.classList.add('btn-outline-secondary');
-        
+
         // 激活选中的按钮
         if (sortOrder === 'asc') {
             ascBtn.classList.remove('btn-outline-secondary');
@@ -7015,7 +7015,7 @@
             descBtn.classList.remove('btn-outline-secondary');
             descBtn.classList.add('btn-primary', 'active');
         }
-        
+
         // 如果已有图表，重新生成
         const currentChart = chartNumber === 1 ? currentChart1 : currentChart2;
         if (currentChart) {
@@ -7093,7 +7093,7 @@
             sortOrder: sortOrder,
             chartNumber: chartNumber
         });
-        
+
         if (!data || data.length === 0) {
             console.log('❌ 没有数据，显示无数据消息');
             showNoDataMessage(chartNumber);
@@ -7371,13 +7371,13 @@
 
         // 获取所有标签并排序
         let labels = Object.keys(groupedData);
-        
+
         // 根据排序设置对标签进行排序
         if (sortOrder !== 'none') {
             labels.sort((a, b) => {
                 const valueA = groupedData[a].total;
                 const valueB = groupedData[b].total;
-                
+
                 if (sortOrder === 'asc') {
                     return valueA - valueB;
                 } else if (sortOrder === 'desc') {
@@ -7387,7 +7387,7 @@
             });
             console.log('排序后的标签:', labels);
         }
-        
+
         const datasets = [];
 
         // 根据图表类型决定显示哪些数据系列
@@ -7618,7 +7618,7 @@
             if (typeof ChartDataLabels !== 'undefined') {
                 Chart.register(ChartDataLabels);
             }
-            
+
             // 根据图表编号创建对应的图表实例
             if (chartNumber === 1) {
                 currentChart1 = new Chart(ctx, config);
@@ -7645,7 +7645,7 @@
                 currentChart2 = null;
             }
         }
-        
+
         const noDataMessageId = chartNumber === 1 ? 'noDataMessage1' : 'noDataMessage2';
         document.getElementById(noDataMessageId).style.display = 'block';
         updateChartStatus('无数据可显示', 'warning', chartNumber);
@@ -7657,10 +7657,10 @@
         const statusTextId = chartNumber === 1 ? 'chartStatusText1' : 'chartStatusText2';
         const statusDiv = document.getElementById(statusDivId);
         const statusText = document.getElementById(statusTextId);
-        
+
         if (statusDiv && statusText) {
             statusText.textContent = message;
-            
+
             // 根据类型设置样式
             switch (type) {
                 case 'success':
@@ -7683,7 +7683,7 @@
                     statusDiv.style.borderLeftColor = '#6c757d';
                     statusDiv.style.color = '#495057';
             }
-            
+
             statusDiv.style.display = 'block';
         }
     }
@@ -7817,7 +7817,7 @@
                             afterLabel: function(context) {
                                 const groupValue = context.label;
                                 const groupData = data.groupedData ? data.groupedData[groupValue] : null;
-                                
+
                                 if (groupData) {
                                     return [
                                         `总数: ${groupData.total}`,
@@ -7964,7 +7964,7 @@
                     dataPoints: currentChart2.data.datasets[0] ? currentChart2.data.datasets[0].data.length : 0
                 });
             }
-            
+
             // 更新状态
             const currentChartType = chartNumber === 1 ? currentChartType1 : currentChartType2;
             updateChartStatus(`图表${chartNumber}创建成功 - ${currentChartType === 'pie' ? '饼状图' : currentChartType === 'bar' ? '柱状图' : '折线图'}`, 'success', chartNumber);
