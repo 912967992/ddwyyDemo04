@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 评审结果数据访问层
@@ -76,4 +77,25 @@ public interface ReviewResultsDao {
      * @return 评审结果列表
      */
     List<ReviewResults> findAll();
+
+    /**
+     * 根据ID列表查询评审结果
+     * @param ids ID列表
+     * @return 评审结果列表
+     */
+    List<ReviewResults> findByIds(@Param("ids") List<Long> ids);
+
+    /**
+     * 根据筛选条件删除评审结果
+     * @param filters 筛选条件
+     * @return 影响行数
+     */
+    int deleteByFilters(@Param("filters") Map<String, Object> filters);
+
+    /**
+     * 根据筛选条件查询评审结果
+     * @param filters 筛选条件
+     * @return 评审结果列表
+     */
+    List<ReviewResults> findByFilters(@Param("filters") Map<String, Object> filters);
 }

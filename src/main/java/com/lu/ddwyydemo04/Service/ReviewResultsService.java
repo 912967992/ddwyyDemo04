@@ -8,12 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 评审结果服务层
@@ -44,6 +47,18 @@ public class ReviewResultsService {
      */
     public ReviewResults getReviewResultById(Long id) {
         return reviewResultsDao.findById(id);
+    }
+
+    /**
+     * 根据ID列表获取评审结果
+     * @param ids ID列表
+     * @return 评审结果列表
+     */
+    public List<ReviewResults> getReviewResultsByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return reviewResultsDao.findByIds(ids);
     }
 
     /**
@@ -764,5 +779,270 @@ public class ReviewResultsService {
             e.printStackTrace();
             return 0;
         }
+    }
+
+    /**
+     * 根据筛选条件删除评审结果
+     * @param filters 筛选条件
+     * @return 删除的记录数
+     */
+    public int deleteByFilters(Map<String, Object> filters) {
+        try {
+            if (filters == null || filters.isEmpty()) {
+                return 0;
+            }
+            
+            // 调用DAO层根据条件删除
+            int deletedCount = reviewResultsDao.deleteByFilters(filters);
+            
+            System.out.println("根据筛选条件删除评审结果: 实际删除 " + deletedCount + " 条");
+            
+            return deletedCount;
+        } catch (Exception e) {
+            System.err.println("根据筛选条件删除评审结果失败: " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * 根据筛选条件查询评审结果
+     * @param filters 筛选条件
+     * @return 评审结果列表
+     */
+    public List<ReviewResults> findByFilters(Map<String, Object> filters) {
+        try {
+            if (filters == null || filters.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // 调用DAO层根据条件查询
+            List<ReviewResults> results = reviewResultsDao.findByFilters(filters);
+            
+            System.out.println("根据筛选条件查询评审结果: 找到 " + results.size() + " 条");
+            
+            return results;
+        } catch (Exception e) {
+            System.err.println("根据筛选条件查询评审结果失败: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 导出评审结果到Excel
+     * @param dataList 要导出的数据列表
+     * @return Excel文件的字节数组
+     */
+    public byte[] exportToExcel(List<ReviewResults> dataList) {
+        try {
+            if (dataList == null || dataList.isEmpty()) {
+                return new byte[0];
+            }
+            
+            // 将ReviewResults对象转换为Map格式，与现有导出逻辑保持一致
+            List<Map<String, Object>> data = new ArrayList<>();
+            for (ReviewResults reviewResult : dataList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", reviewResult.getId());
+                item.put("testDate", reviewResult.getTestDate());
+                item.put("majorCode", reviewResult.getMajorCode());
+                item.put("minorCode", reviewResult.getMinorCode());
+                item.put("projectPhase", reviewResult.getProjectPhase());
+                item.put("version", reviewResult.getVersion());
+                item.put("problemProcess", reviewResult.getProblemProcess());
+                item.put("problemLevel", reviewResult.getProblemLevel());
+                item.put("developmentMethod", reviewResult.getDevelopmentMethod());
+                item.put("supplier", reviewResult.getSupplier());
+                item.put("solutionProvider", reviewResult.getSolutionProvider());
+                item.put("problemPoint", reviewResult.getProblemPoint());
+                item.put("problemReason", reviewResult.getProblemReason());
+                item.put("improvementMeasures", reviewResult.getImprovementMeasures());
+                item.put("isPreventable", reviewResult.getIsPreventable());
+                item.put("responsibleDepartment", reviewResult.getResponsibleDepartment());
+                item.put("plannedCompletionTime", reviewResult.getPlannedCompletionTime());
+                item.put("actualCompletionTime", reviewResult.getActualCompletionTime());
+                item.put("delayDays", reviewResult.getDelayDays());
+                item.put("problemStatus", reviewResult.getProblemStatus());
+                item.put("problemTag1", reviewResult.getProblemTag1());
+                item.put("problemTag2", reviewResult.getProblemTag2());
+                item.put("preventionNotes", reviewResult.getPreventionNotes());
+                data.add(item);
+            }
+            
+            // 调用现有的Excel创建方法
+            return createReviewResultsExcelFile(data);
+            
+        } catch (Exception e) {
+            System.err.println("导出评审结果到Excel失败: " + e.getMessage());
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
+    /**
+     * 创建评审结果Excel文件
+     * @param data 数据列表
+     * @return Excel文件的字节数组
+     */
+    private byte[] createReviewResultsExcelFile(List<Map<String, Object>> data) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Workbook workbook = new XSSFWorkbook();
+            try {
+                Sheet sheet = workbook.createSheet("问题汇总清单");
+
+                // ====== 样式 ======
+                CellStyle centeredStyle = workbook.createCellStyle();
+                centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+                centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+                centeredStyle.setBorderTop(BorderStyle.THIN);
+                centeredStyle.setBorderBottom(BorderStyle.THIN);
+                centeredStyle.setBorderLeft(BorderStyle.THIN);
+                centeredStyle.setBorderRight(BorderStyle.THIN);
+
+                // 列宽
+                for (int i = 0; i < 23; i++) sheet.setColumnWidth(i, 20 * 256);
+
+                // ====== 表头 ======
+                Row headerRow = sheet.createRow(0);
+                headerRow.setHeightInPoints(50);
+                String[] headers = {
+                        "序号", "测试日期", "大编码", "小编码", "项目阶段", "版本", "问题工序", "问题等级", 
+                        "开发方式", "供应商", "方案商", "问题点", "问题原因", "改善对策", "是否可预防", 
+                        "责任部门", "预计完成时间", "实际完成时间", "Delay天数", "问题状态", "问题打标1", 
+                        "问题打标2", "预防备注"
+                };
+                for (int i = 0; i < headers.length; i++) {
+                    Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(headers[i]);
+                    cell.setCellStyle(centeredStyle);
+                }
+
+                // ====== 数据行 ======
+                int rowNum = 1;
+                for (int i = 0; i < data.size(); i++) {
+                    Map<String, Object> item = data.get(i);
+                    Row row = sheet.createRow(rowNum);
+                    row.setHeightInPoints(50);
+
+                    // 序号（从1开始）
+                    createReviewResultsCell(row, 0, i + 1, centeredStyle);
+                    createReviewResultsCell(row, 1, item.get("testDate"), centeredStyle);
+                    createReviewResultsCell(row, 2, item.get("majorCode"), centeredStyle);
+                    createReviewResultsCell(row, 3, item.get("minorCode"), centeredStyle);
+                    createReviewResultsCell(row, 4, item.get("projectPhase"), centeredStyle);
+                    createReviewResultsCell(row, 5, item.get("version"), centeredStyle);
+                    createReviewResultsCell(row, 6, item.get("problemProcess"), centeredStyle);
+                    createReviewResultsCell(row, 7, item.get("problemLevel"), centeredStyle);
+                    createReviewResultsCell(row, 8, item.get("developmentMethod"), centeredStyle);
+                    createReviewResultsCell(row, 9, item.get("supplier"), centeredStyle);
+                    createReviewResultsCell(row, 10, item.get("solutionProvider"), centeredStyle);
+                    createReviewResultsCell(row, 11, item.get("problemPoint"), centeredStyle);
+                    createReviewResultsCell(row, 12, item.get("problemReason"), centeredStyle);
+                    createReviewResultsCell(row, 13, item.get("improvementMeasures"), centeredStyle);
+                    createReviewResultsCell(row, 14, item.get("isPreventable"), centeredStyle);
+                    createReviewResultsCell(row, 15, item.get("responsibleDepartment"), centeredStyle);
+                    createReviewResultsCellWithDateFormat(row, 16, item.get("plannedCompletionTime"), centeredStyle);
+                    createReviewResultsCellWithDateFormat(row, 17, item.get("actualCompletionTime"), centeredStyle);
+                    createReviewResultsCell(row, 18, item.get("delayDays"), centeredStyle);
+                    createReviewResultsCell(row, 19, item.get("problemStatus"), centeredStyle);
+                    createReviewResultsCell(row, 20, item.get("problemTag1"), centeredStyle);
+                    createReviewResultsCell(row, 21, item.get("problemTag2"), centeredStyle);
+                    createReviewResultsCell(row, 22, item.get("preventionNotes"), centeredStyle);
+
+                    rowNum++;
+                }
+
+                // 写入内存输出
+                workbook.write(out);
+                return out.toByteArray();
+
+            } finally {
+                try { workbook.close(); } catch (IOException ignored) {}
+            }
+        } catch (Exception e) {
+            System.err.println("创建评审结果Excel文件失败: " + e.getMessage());
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
+    // 辅助方法用于创建评审结果单元格并设置样式
+    private void createReviewResultsCell(Row row, int columnIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(columnIndex);
+        if (value instanceof String) {
+            cell.setCellValue((String) value);
+        } else if (value instanceof Integer) {
+            cell.setCellValue((Integer) value);
+        } else if (value instanceof Double) {
+            cell.setCellValue((Double) value);
+        } else if (value instanceof java.time.LocalDateTime) {
+            cell.setCellValue(((java.time.LocalDateTime) value).toString());
+        } else if (value instanceof java.time.LocalDate) {
+            cell.setCellValue(((java.time.LocalDate) value).toString());
+        } else {
+            cell.setCellValue(value != null ? value.toString() : "");
+        }
+        cell.setCellStyle(style);
+    }
+
+    // 辅助方法用于创建日期格式的单元格
+    private void createReviewResultsCellWithDateFormat(Row row, int columnIndex, Object value, CellStyle style) {
+        Cell cell = row.createCell(columnIndex);
+        if (value instanceof java.time.LocalDateTime) {
+            java.time.LocalDateTime dateTime = (java.time.LocalDateTime) value;
+            // 格式化为 2025-09-15 格式
+            String formattedDate = String.format("%d-%02d-%02d", 
+                dateTime.getYear(), 
+                dateTime.getMonthValue(), 
+                dateTime.getDayOfMonth());
+            cell.setCellValue(formattedDate);
+        } else if (value instanceof java.time.LocalDate) {
+            java.time.LocalDate date = (java.time.LocalDate) value;
+            // 格式化为 2025-09-15 格式
+            String formattedDate = String.format("%d-%02d-%02d", 
+                date.getYear(), 
+                date.getMonthValue(), 
+                date.getDayOfMonth());
+            cell.setCellValue(formattedDate);
+        } else if (value instanceof String) {
+            String dateStr = (String) value;
+            // 处理字符串格式的日期，如 "2025-09-12T00:00:00"
+            if (dateStr.contains("T")) {
+                try {
+                    java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(dateStr);
+                    String formattedDate = String.format("%d-%02d-%02d", 
+                        dateTime.getYear(), 
+                        dateTime.getMonthValue(), 
+                        dateTime.getDayOfMonth());
+                    cell.setCellValue(formattedDate);
+                } catch (Exception e) {
+                    // 如果解析失败，直接使用原字符串
+                    cell.setCellValue(dateStr);
+                }
+            } else if (dateStr.contains("-")) {
+                try {
+                    java.time.LocalDate date = java.time.LocalDate.parse(dateStr);
+                    String formattedDate = String.format("%d-%02d-%02d", 
+                        date.getYear(), 
+                        date.getMonthValue(), 
+                        date.getDayOfMonth());
+                    cell.setCellValue(formattedDate);
+                } catch (Exception e) {
+                    // 如果解析失败，直接使用原字符串
+                    cell.setCellValue(dateStr);
+                }
+            } else {
+                cell.setCellValue(dateStr);
+            }
+        } else if (value instanceof Integer) {
+            cell.setCellValue((Integer) value);
+        } else if (value instanceof Double) {
+            cell.setCellValue((Double) value);
+        } else {
+            cell.setCellValue(value != null ? value.toString() : "");
+        }
+        cell.setCellStyle(style);
     }
 }

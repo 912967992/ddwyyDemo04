@@ -534,6 +534,88 @@ public class ReviewResultController {
     }
 
     /**
+     * 根据筛选条件删除全部搜索结果
+     * @param requestData 包含筛选条件的请求数据
+     * @return 删除结果
+     */
+    @PostMapping("/reviewResult/deleteAllByFilters")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteAllByFilters(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取筛选条件
+            @SuppressWarnings("unchecked")
+            Map<String, Object> filters = (Map<String, Object>) requestData.get("filters");
+            
+            // 参数验证
+            if (filters == null || filters.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "筛选条件不能为空");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 调用Service层根据条件删除
+            int deletedCount = reviewResultsService.deleteByFilters(filters);
+            
+            result.put("success", true);
+            result.put("message", "根据筛选条件删除成功");
+            result.put("deletedCount", deletedCount);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "根据筛选条件删除失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 根据筛选条件导出全部搜索结果
+     * @param requestData 包含筛选条件的请求数据
+     * @return 导出结果
+     */
+    @PostMapping("/reviewResult/exportAllByFilters")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportAllByFilters(@RequestBody Map<String, Object> requestData) {
+        try {
+            // 获取筛选条件
+            @SuppressWarnings("unchecked")
+            Map<String, Object> filters = (Map<String, Object>) requestData.get("filters");
+            
+            // 参数验证
+            if (filters == null || filters.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // 调用Service层根据条件查询数据
+            List<ReviewResults> dataList = reviewResultsService.findByFilters(filters);
+            
+            if (dataList.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            // 调用Service层导出Excel
+            byte[] excelBytes = reviewResultsService.exportToExcel(dataList);
+            
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "评审结果全部数据.xlsx");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelBytes);
+
+        } catch (Exception e) {
+            System.err.println("根据筛选条件导出失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 新增评审结果
      * @param requestData 评审结果数据
      * @return 新增结果
@@ -671,9 +753,53 @@ public class ReviewResultController {
     @PostMapping("/reviewResult/exportReviewResultsExcel")
     public ResponseEntity<byte[]> exportReviewResultsExcel(@RequestBody Map<String, Object> requestData) {
         try {
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> data = (List<Map<String, Object>>) requestData.get("data");
             String fileName = (String) requestData.get("fileName");
+            List<Map<String, Object>> data = null;
+            
+            // 检查是否使用新的selectedIds格式
+            @SuppressWarnings("unchecked")
+            List<Long> selectedIds = (List<Long>) requestData.get("selectedIds");
+            
+            if (selectedIds != null && !selectedIds.isEmpty()) {
+                // 使用新的格式：根据ID列表获取数据
+                System.out.println("使用新的导出格式，选中的ID数量: " + selectedIds.size());
+                List<ReviewResults> reviewResults = reviewResultsService.getReviewResultsByIds(selectedIds);
+                
+                // 将ReviewResults对象转换为Map格式
+                data = new ArrayList<>();
+                for (ReviewResults reviewResult : reviewResults) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", reviewResult.getId());
+                    item.put("testDate", reviewResult.getTestDate());
+                    item.put("majorCode", reviewResult.getMajorCode());
+                    item.put("minorCode", reviewResult.getMinorCode());
+                    item.put("projectPhase", reviewResult.getProjectPhase());
+                    item.put("version", reviewResult.getVersion());
+                    item.put("problemProcess", reviewResult.getProblemProcess());
+                    item.put("problemLevel", reviewResult.getProblemLevel());
+                    item.put("developmentMethod", reviewResult.getDevelopmentMethod());
+                    item.put("supplier", reviewResult.getSupplier());
+                    item.put("solutionProvider", reviewResult.getSolutionProvider());
+                    item.put("problemPoint", reviewResult.getProblemPoint());
+                    item.put("problemReason", reviewResult.getProblemReason());
+                    item.put("improvementMeasures", reviewResult.getImprovementMeasures());
+                    item.put("isPreventable", reviewResult.getIsPreventable());
+                    item.put("responsibleDepartment", reviewResult.getResponsibleDepartment());
+                    item.put("plannedCompletionTime", reviewResult.getPlannedCompletionTime());
+                    item.put("actualCompletionTime", reviewResult.getActualCompletionTime());
+                    item.put("delayDays", reviewResult.getDelayDays());
+                    item.put("problemStatus", reviewResult.getProblemStatus());
+                    item.put("problemTag1", reviewResult.getProblemTag1());
+                    item.put("problemTag2", reviewResult.getProblemTag2());
+                    item.put("preventionNotes", reviewResult.getPreventionNotes());
+                    data.add(item);
+                }
+            } else {
+                // 使用旧的格式：直接传递数据
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> oldData = (List<Map<String, Object>>) requestData.get("data");
+                data = oldData;
+            }
             
             if (data == null || data.isEmpty()) {
                 return ResponseEntity.badRequest().build();
@@ -681,13 +807,13 @@ public class ReviewResultController {
 
             // 调试：打印前几条数据的日期字段格式
             if (!data.isEmpty()) {
-                System.out.println("=== 导出数据调试信息 ===");
+                System.out.println("=== 有人在导出数据调试信息 ===");
                 Map<String, Object> firstItem = data.get(0);
-                System.out.println("预计完成时间字段类型: " + firstItem.get("plannedCompletionTime").getClass().getSimpleName());
-                System.out.println("预计完成时间字段值: " + firstItem.get("plannedCompletionTime"));
-                System.out.println("实际完成时间字段类型: " + firstItem.get("actualCompletionTime").getClass().getSimpleName());
-                System.out.println("实际完成时间字段值: " + firstItem.get("actualCompletionTime"));
-                System.out.println("========================");
+//                System.out.println("预计完成时间字段类型: " + firstItem.get("plannedCompletionTime").getClass().getSimpleName());
+//                System.out.println("预计完成时间字段值: " + firstItem.get("plannedCompletionTime"));
+//                System.out.println("实际完成时间字段类型: " + firstItem.get("actualCompletionTime").getClass().getSimpleName());
+//                System.out.println("实际完成时间字段值: " + firstItem.get("actualCompletionTime"));
+//                System.out.println("========================");
             }
 
             // 创建Excel文件

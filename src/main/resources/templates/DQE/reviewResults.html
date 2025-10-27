@@ -456,6 +456,7 @@
         .header-center {
             flex: 1;
             text-align: center;
+            margin-right: 100px;
         }
 
         .header-right {
@@ -516,6 +517,48 @@
         #deleteSelectedBtn:active {
             transform: translateY(0);
             box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        /* 删除全部搜索结果按钮自定义样式 - 已注释，操作过于危险 */
+        /*
+        #deleteAllResultsBtn {
+            background: linear-gradient(135deg, #dc3545, #721c24);
+            border: none;
+            color: white;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #deleteAllResultsBtn:hover {
+            background: linear-gradient(135deg, #c82333, #5a1a1a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        #deleteAllResultsBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+        */
+
+        /* 导出全部筛选结果按钮自定义样式 */
+        #exportAllResultsBtn {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            border: none;
+            color: white;
+            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #exportAllResultsBtn:hover {
+            background: linear-gradient(135deg, #138496, #117a8b);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.4);
+        }
+
+        #exportAllResultsBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
         }
 
         /* 查看收藏夹按钮自定义样式 */
@@ -1282,9 +1325,18 @@
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
                 </button>
+                <button id="exportAllResultsBtn" class="btn btn-info">
+                    <i class="fas fa-file-export"></i> 导出全部筛选结果
+                </button>
                 <button id="deleteSelectedBtn" class="btn btn-warning">
                     <i class="fas fa-trash"></i> 删除选中数据
                 </button>
+                <!-- 删除全部搜索结果按钮 - 已注释，操作过于危险 -->
+                <!--
+                <button id="deleteAllResultsBtn" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> 删除全部搜索结果
+                </button>
+                -->
                 <button id="addToCartBtn" class="btn btn-warning">
                     <i class="fas fa-shopping-cart"></i> 加入收藏夹
                 </button>
@@ -3376,8 +3428,14 @@
         // 导出按钮
         document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
 
+        // 导出全部筛选结果按钮
+        document.getElementById('exportAllResultsBtn').addEventListener('click', exportAllSearchResults);
+
         // 删除选中数据按钮
         document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedData);
+
+        // 删除全部搜索结果按钮 - 已注释，操作过于危险
+        // document.getElementById('deleteAllResultsBtn').addEventListener('click', deleteAllSearchResults);
 
         // 加入收藏夹按钮
         document.getElementById('addToCartBtn').addEventListener('click', addToCart);
@@ -3750,19 +3808,19 @@
 
     // 导出筛选结果
     function exportFilteredData() {
-        // 获取选中的行
-        const selectedRows = getSelectedTableRows();
+        // 获取选中的行ID
+        const selectedIds = getSelectedRowIds();
         
-        if (selectedRows.length === 0) {
+        if (selectedIds.length === 0) {
             alert('请先选择要导出的数据行！');
             return;
         }
 
         showLoading();
 
-        // 准备导出数据
+        // 准备导出数据 - 只传递选中的ID，让服务器端获取完整数据
         const exportData = {
-            data: selectedRows,
+            selectedIds: selectedIds,
             exportType: 'reviewResults',
             fileName: `评审结果数据_${new Date().toISOString().slice(0, 10)}.xlsx`
         };
@@ -3790,7 +3848,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                showToast(`成功导出 ${selectedRows.length} 条评审结果数据！`, 'success');
+                showToast(`成功导出 ${selectedIds.length} 条评审结果数据！`, 'success');
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -3801,25 +3859,84 @@
             });
     }
 
-    // 删除选中数据
-    function deleteSelectedData() {
-        // 获取选中的行
-        const selectedRows = getSelectedTableRows();
+    // 导出全部筛选结果
+    function exportAllSearchResults() {
+        // 获取当前搜索条件
+        const currentFilters = getCurrentFilters();
         
-        if (selectedRows.length === 0) {
-            showToast('请先选择要删除的数据行！', 'warning');
+        // 检查是否有筛选条件
+        if (Object.keys(currentFilters).length === 0) {
+            showToast('请先设置筛选条件！', 'warning');
             return;
         }
 
-        // 确认删除
-        if (!confirm(`确定要删除选中的 ${selectedRows.length} 条数据吗？此操作不可恢复！`)) {
+        // 确认导出
+        if (!confirm('确定要导出当前筛选条件下的全部数据吗？\n\n注意：这将导出所有符合当前筛选条件的数据，不仅仅是当前页面显示的数据。')) {
             return;
         }
 
         showLoading();
 
-        // 提取要删除的ID列表
-        const idsToDelete = selectedRows.map(row => row.id);
+        // 准备导出数据 - 传递筛选条件而不是具体的ID列表
+        const exportData = {
+            filters: currentFilters,
+            exportType: 'reviewResults',
+            fileName: `评审结果全部数据_${new Date().toISOString().slice(0, 10)}.xlsx`
+        };
+
+        fetch('/reviewResult/exportAllByFilters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(exportData)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw new Error('导出失败');
+            }
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = exportData.fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showToast('成功导出全部筛选结果数据！', 'success');
+        })
+        .catch(error => {
+            console.error('导出错误:', error);
+            showToast('导出时发生错误: ' + error.message, 'error');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+
+    // 删除选中数据
+    function deleteSelectedData() {
+        // 获取选中的行ID
+        const selectedIds = getSelectedRowIds();
+        
+        if (selectedIds.length === 0) {
+            showToast('请先选择要删除的数据行！', 'warning');
+            return;
+        }
+
+        // 确认删除
+        if (!confirm(`确定要删除选中的 ${selectedIds.length} 条数据吗？此操作不可恢复！`)) {
+            return;
+        }
+
+        showLoading();
+
+        // 使用选中的ID列表
+        const idsToDelete = selectedIds;
 
         // 发送删除请求
         fetch('/reviewResult/deleteSelected', {
@@ -3854,6 +3971,106 @@
         .finally(() => {
             hideLoading();
         });
+    }
+
+    // 删除全部搜索结果 - 已注释，操作过于危险
+    /*
+    function deleteAllSearchResults() {
+        // 获取当前搜索条件
+        const currentFilters = getCurrentFilters();
+        
+        // 确认删除
+        if (!confirm('确定要删除当前搜索结果的全部数据吗？此操作不可恢复！\n\n注意：这将删除所有符合当前筛选条件的数据，不仅仅是当前页面显示的数据。')) {
+            return;
+        }
+
+        showLoading();
+
+        // 发送删除请求，传递搜索条件而不是具体的ID列表
+        fetch('/reviewResult/deleteAllByFilters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                filters: currentFilters
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('删除失败');
+            }
+        })
+        .then(result => {
+            if (result.success) {
+                showToast(`成功删除 ${result.deletedCount} 条数据！`, 'success');
+                // 重新加载数据
+                loadReviewData();
+            } else {
+                throw new Error(result.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('删除错误:', error);
+            showToast('删除时发生错误: ' + error.message, 'error');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+    */
+
+    // 获取当前搜索条件
+    function getCurrentFilters() {
+        const filters = {};
+        
+        // 获取所有筛选条件
+        const testDateFrom = document.getElementById('testDateFrom').value;
+        const testDateTo = document.getElementById('testDateTo').value;
+        const majorCode = document.getElementById('majorCode').value;
+        const minorCode = document.getElementById('minorCode').value;
+        const projectPhase = document.getElementById('projectPhase').value;
+        const version = document.getElementById('version').value;
+        const problemProcess = document.getElementById('problemProcess').value;
+        const problemLevel = document.getElementById('problemLevel').value;
+        const developmentMethod = document.getElementById('developmentMethod').value;
+        const supplier = document.getElementById('supplier').value;
+        const solutionProvider = document.getElementById('solutionProvider').value;
+        const problemPoint = document.getElementById('problemPoint').value;
+        const problemReason = document.getElementById('problemReason').value;
+        const improvementMeasures = document.getElementById('improvementMeasures').value;
+        const isPreventable = document.getElementById('isPreventable').value;
+        const responsibleDepartment = document.getElementById('responsibleDepartment').value;
+        const problemStatus = document.getElementById('problemStatus').value;
+        const problemTag1 = document.getElementById('problemTag1').value;
+        const problemTag2 = document.getElementById('problemTag2').value;
+        const preventionNotes = document.getElementById('preventionNotes').value;
+
+        // 只添加非空的筛选条件
+        if (testDateFrom) filters.testDateFrom = testDateFrom;
+        if (testDateTo) filters.testDateTo = testDateTo;
+        if (majorCode) filters.majorCode = majorCode;
+        if (minorCode) filters.minorCode = minorCode;
+        if (projectPhase) filters.projectPhase = projectPhase;
+        if (version) filters.version = version;
+        if (problemProcess) filters.problemProcess = problemProcess;
+        if (problemLevel) filters.problemLevel = problemLevel;
+        if (developmentMethod) filters.developmentMethod = developmentMethod;
+        if (supplier) filters.supplier = supplier;
+        if (solutionProvider) filters.solutionProvider = solutionProvider;
+        if (problemPoint) filters.problemPoint = problemPoint;
+        if (problemReason) filters.problemReason = problemReason;
+        if (improvementMeasures) filters.improvementMeasures = improvementMeasures;
+        if (isPreventable) filters.isPreventable = isPreventable;
+        if (responsibleDepartment) filters.responsibleDepartment = responsibleDepartment;
+        if (problemStatus) filters.problemStatus = problemStatus;
+        if (problemTag1) filters.problemTag1 = problemTag1;
+        if (problemTag2) filters.problemTag2 = problemTag2;
+        if (preventionNotes) filters.preventionNotes = preventionNotes;
+
+        return filters;
     }
 
     // 显示新增模态框
@@ -5549,6 +5766,12 @@
         return allData.filter(item => selectedIds.includes(item.id));
     }
 
+    // 获取选中的行ID（不依赖allData变量）
+    function getSelectedRowIds() {
+        const selectedCheckboxes = document.querySelectorAll('.table-row-checkbox:checked');
+        return Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
+    }
+
     // 更新加入收藏夹按钮文本
     function updateAddToCartButtonText() {
         const selectedCount = document.querySelectorAll('.table-row-checkbox:checked').length;
@@ -5618,14 +5841,40 @@
 
     // 加入收藏夹
     function addToCart() {
-        // 获取选中的行
-        const selectedRows = getSelectedTableRows();
+        // 获取选中的行ID
+        const selectedIds = getSelectedRowIds();
         
-        if (selectedRows.length === 0) {
+        if (selectedIds.length === 0) {
             alert('请先选择要加入收藏夹的数据行！');
             return;
         }
 
+        // 从当前页数据中获取选中的行（如果可能的话）
+        const selectedRows = getSelectedTableRows();
+        
+        // 如果当前页没有完整数据，则从allData中获取
+        if (selectedRows.length === 0) {
+            // 尝试从allData中获取
+            const selectedCheckboxes = document.querySelectorAll('.table-row-checkbox:checked');
+            const selectedIdsFromCheckboxes = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
+            const rowsFromAllData = allData.filter(item => selectedIdsFromCheckboxes.includes(item.id));
+            
+            if (rowsFromAllData.length > 0) {
+                // 使用从allData获取的数据
+                addToCartWithData(rowsFromAllData);
+            } else {
+                // 如果仍然没有数据，提示用户
+                alert('无法获取选中数据的完整信息，请确保数据已加载完成后再试！');
+                return;
+            }
+        } else {
+            // 使用从当前页获取的数据
+            addToCartWithData(selectedRows);
+        }
+    }
+
+    // 使用数据添加到收藏夹的辅助函数
+    function addToCartWithData(selectedRows) {
         // 获取当前筛选条件
         const filters = getCurrentFilters();
         const filterDescription = generateFilterDescription(filters);
@@ -6539,28 +6788,27 @@
 
         showLoading();
 
-        // 合并选中的收藏夹项目的数据
-        const exportMergedData = [];
+        // 合并选中的收藏夹项目的数据，提取ID列表
+        const selectedIds = [];
         const idSet = new Set(); // 用于去重
 
         selectedItems.forEach(item => {
             item.data.forEach(problem => {
                 if (!idSet.has(problem.id)) {
                     idSet.add(problem.id);
-                    exportMergedData.push(problem);
+                    selectedIds.push(problem.id);
                 }
             });
         });
 
-
-        // 准备导出数据
+        // 准备导出数据 - 使用与主导出功能相同的格式
         const exportData = {
-            data: exportMergedData,
-            exportType: 'cart',
-            fileName: `收藏夹合并数据_${new Date().toISOString().slice(0, 10)}.xlsx`
+            selectedIds: selectedIds,
+            exportType: 'reviewResults',
+            fileName: `收藏夹评审结果数据_${new Date().toISOString().slice(0, 10)}.xlsx`
         };
 
-        fetch('/problemLibrary/exportCartsData', {
+        fetch('/reviewResult/exportReviewResultsExcel', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -6583,7 +6831,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                showToast(`成功导出 ${selectedItems.length} 个收藏夹项目，共 ${exportMergedData.length} 条记录！`, 'success');
+                showToast(`成功导出 ${selectedItems.length} 个收藏夹项目，共 ${selectedIds.length} 条记录！`, 'success');
             })
             .catch(error => {
                 console.error('Error:', error);

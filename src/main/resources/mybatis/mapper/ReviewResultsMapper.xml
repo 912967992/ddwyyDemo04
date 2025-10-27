@@ -136,5 +136,149 @@
         SELECT * FROM reviewResults ORDER BY created_time ASC
     </select>
 
+    <!-- 根据ID列表查询评审结果 -->
+    <select id="findByIds" resultMap="ReviewResultsMap">
+        SELECT * FROM reviewResults WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY created_time ASC
+    </select>
+
+    <!-- 根据筛选条件删除评审结果 -->
+    <delete id="deleteByFilters" parameterType="java.util.Map">
+        DELETE FROM reviewResults
+        <where>
+            <if test="filters.testDateFrom != null and filters.testDateFrom != ''">
+                AND test_date >= #{filters.testDateFrom}
+            </if>
+            <if test="filters.testDateTo != null and filters.testDateTo != ''">
+                AND test_date &lt;= #{filters.testDateTo}
+            </if>
+            <if test="filters.majorCode != null and filters.majorCode != ''">
+                AND major_code LIKE CONCAT('%', #{filters.majorCode}, '%')
+            </if>
+            <if test="filters.minorCode != null and filters.minorCode != ''">
+                AND minor_code LIKE CONCAT('%', #{filters.minorCode}, '%')
+            </if>
+            <if test="filters.projectPhase != null and filters.projectPhase != ''">
+                AND project_phase = #{filters.projectPhase}
+            </if>
+            <if test="filters.version != null and filters.version != ''">
+                AND version LIKE CONCAT('%', #{filters.version}, '%')
+            </if>
+            <if test="filters.problemProcess != null and filters.problemProcess != ''">
+                AND problem_process = #{filters.problemProcess}
+            </if>
+            <if test="filters.problemLevel != null and filters.problemLevel != ''">
+                AND problem_level = #{filters.problemLevel}
+            </if>
+            <if test="filters.developmentMethod != null and filters.developmentMethod != ''">
+                AND development_method = #{filters.developmentMethod}
+            </if>
+            <if test="filters.supplier != null and filters.supplier != ''">
+                AND supplier LIKE CONCAT('%', #{filters.supplier}, '%')
+            </if>
+            <if test="filters.solutionProvider != null and filters.solutionProvider != ''">
+                AND solution_provider LIKE CONCAT('%', #{filters.solutionProvider}, '%')
+            </if>
+            <if test="filters.problemPoint != null and filters.problemPoint != ''">
+                AND problem_point LIKE CONCAT('%', #{filters.problemPoint}, '%')
+            </if>
+            <if test="filters.problemReason != null and filters.problemReason != ''">
+                AND problem_reason LIKE CONCAT('%', #{filters.problemReason}, '%')
+            </if>
+            <if test="filters.improvementMeasures != null and filters.improvementMeasures != ''">
+                AND improvement_measures LIKE CONCAT('%', #{filters.improvementMeasures}, '%')
+            </if>
+            <if test="filters.isPreventable != null and filters.isPreventable != ''">
+                AND is_preventable = #{filters.isPreventable}
+            </if>
+            <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
+                AND responsible_department = #{filters.responsibleDepartment}
+            </if>
+            <if test="filters.problemStatus != null and filters.problemStatus != ''">
+                AND problem_status = #{filters.problemStatus}
+            </if>
+            <if test="filters.problemTag1 != null and filters.problemTag1 != ''">
+                AND problem_tag1 = #{filters.problemTag1}
+            </if>
+            <if test="filters.problemTag2 != null and filters.problemTag2 != ''">
+                AND problem_tag2 = #{filters.problemTag2}
+            </if>
+            <if test="filters.preventionNotes != null and filters.preventionNotes != ''">
+                AND prevention_notes LIKE CONCAT('%', #{filters.preventionNotes}, '%')
+            </if>
+        </where>
+    </delete>
+
+    <!-- 根据筛选条件查询评审结果 -->
+    <select id="findByFilters" parameterType="java.util.Map" resultMap="ReviewResultsMap">
+        SELECT * FROM reviewResults
+        <where>
+            <if test="filters.testDateFrom != null and filters.testDateFrom != ''">
+                AND test_date >= #{filters.testDateFrom}
+            </if>
+            <if test="filters.testDateTo != null and filters.testDateTo != ''">
+                AND test_date &lt;= #{filters.testDateTo}
+            </if>
+            <if test="filters.majorCode != null and filters.majorCode != ''">
+                AND major_code LIKE CONCAT('%', #{filters.majorCode}, '%')
+            </if>
+            <if test="filters.minorCode != null and filters.minorCode != ''">
+                AND minor_code LIKE CONCAT('%', #{filters.minorCode}, '%')
+            </if>
+            <if test="filters.projectPhase != null and filters.projectPhase != ''">
+                AND project_phase = #{filters.projectPhase}
+            </if>
+            <if test="filters.version != null and filters.version != ''">
+                AND version LIKE CONCAT('%', #{filters.version}, '%')
+            </if>
+            <if test="filters.problemProcess != null and filters.problemProcess != ''">
+                AND problem_process = #{filters.problemProcess}
+            </if>
+            <if test="filters.problemLevel != null and filters.problemLevel != ''">
+                AND problem_level = #{filters.problemLevel}
+            </if>
+            <if test="filters.developmentMethod != null and filters.developmentMethod != ''">
+                AND development_method = #{filters.developmentMethod}
+            </if>
+            <if test="filters.supplier != null and filters.supplier != ''">
+                AND supplier LIKE CONCAT('%', #{filters.supplier}, '%')
+            </if>
+            <if test="filters.solutionProvider != null and filters.solutionProvider != ''">
+                AND solution_provider LIKE CONCAT('%', #{filters.solutionProvider}, '%')
+            </if>
+            <if test="filters.problemPoint != null and filters.problemPoint != ''">
+                AND problem_point LIKE CONCAT('%', #{filters.problemPoint}, '%')
+            </if>
+            <if test="filters.problemReason != null and filters.problemReason != ''">
+                AND problem_reason LIKE CONCAT('%', #{filters.problemReason}, '%')
+            </if>
+            <if test="filters.improvementMeasures != null and filters.improvementMeasures != ''">
+                AND improvement_measures LIKE CONCAT('%', #{filters.improvementMeasures}, '%')
+            </if>
+            <if test="filters.isPreventable != null and filters.isPreventable != ''">
+                AND is_preventable = #{filters.isPreventable}
+            </if>
+            <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
+                AND responsible_department = #{filters.responsibleDepartment}
+            </if>
+            <if test="filters.problemStatus != null and filters.problemStatus != ''">
+                AND problem_status = #{filters.problemStatus}
+            </if>
+            <if test="filters.problemTag1 != null and filters.problemTag1 != ''">
+                AND problem_tag1 = #{filters.problemTag1}
+            </if>
+            <if test="filters.problemTag2 != null and filters.problemTag2 != ''">
+                AND problem_tag2 = #{filters.problemTag2}
+            </if>
+            <if test="filters.preventionNotes != null and filters.preventionNotes != ''">
+                AND prevention_notes LIKE CONCAT('%', #{filters.preventionNotes}, '%')
+            </if>
+        </where>
+        ORDER BY created_time ASC
+    </select>
+
 </mapper>
 
