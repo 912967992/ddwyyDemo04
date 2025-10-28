@@ -596,8 +596,45 @@ public class ReviewResultController {
                 return ResponseEntity.noContent().build();
             }
 
-            // 调用Service层导出Excel
-            byte[] excelBytes = reviewResultsService.exportToExcel(dataList);
+            // 将ReviewResults对象转换为Map格式
+            List<Map<String, Object>> data = new ArrayList<>();
+            for (ReviewResults reviewResult : dataList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", reviewResult.getId());
+                item.put("testDate", reviewResult.getTestDate());
+                item.put("majorCode", reviewResult.getMajorCode());
+                item.put("minorCode", reviewResult.getMinorCode());
+                item.put("projectPhase", reviewResult.getProjectPhase());
+                item.put("version", reviewResult.getVersion());
+                item.put("problemProcess", reviewResult.getProblemProcess());
+                item.put("problemLevel", reviewResult.getProblemLevel());
+                item.put("developmentMethod", reviewResult.getDevelopmentMethod());
+                item.put("supplier", reviewResult.getSupplier());
+                item.put("solutionProvider", reviewResult.getSolutionProvider());
+                item.put("problemPoint", reviewResult.getProblemPoint());
+                item.put("problemReason", reviewResult.getProblemReason());
+                item.put("improvementMeasures", reviewResult.getImprovementMeasures());
+                item.put("isPreventable", reviewResult.getIsPreventable());
+                item.put("responsibleDepartment", reviewResult.getResponsibleDepartment());
+                item.put("plannedCompletionTime", reviewResult.getPlannedCompletionTime());
+                item.put("actualCompletionTime", reviewResult.getActualCompletionTime());
+                item.put("delayDays", reviewResult.getDelayDays());
+                item.put("problemStatus", reviewResult.getProblemStatus());
+                item.put("problemTag1", reviewResult.getProblemTag1());
+                item.put("problemTag2", reviewResult.getProblemTag2());
+                item.put("preventionNotes", reviewResult.getPreventionNotes());
+                data.add(item);
+            }
+
+            // 获取隐藏的列信息
+            @SuppressWarnings("unchecked")
+            List<String> hiddenColumns = (List<String>) requestData.get("hiddenColumns");
+            if (hiddenColumns == null) {
+                hiddenColumns = new ArrayList<>();
+            }
+
+            // 创建Excel文件
+            ByteArrayOutputStream outputStream = createReviewResultsExcelFile(data, hiddenColumns);
             
             // 设置响应头
             HttpHeaders headers = new HttpHeaders();
@@ -606,7 +643,7 @@ public class ReviewResultController {
             
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(excelBytes);
+                    .body(outputStream.toByteArray());
 
         } catch (Exception e) {
             System.err.println("根据筛选条件导出失败: " + e.getMessage());
@@ -816,8 +853,15 @@ public class ReviewResultController {
 //                System.out.println("========================");
             }
 
+            // 获取隐藏的列信息
+            @SuppressWarnings("unchecked")
+            List<String> hiddenColumns = (List<String>) requestData.get("hiddenColumns");
+            if (hiddenColumns == null) {
+                hiddenColumns = new ArrayList<>();
+            }
+
             // 创建Excel文件
-            ByteArrayOutputStream outputStream = createReviewResultsExcelFile(data);
+            ByteArrayOutputStream outputStream = createReviewResultsExcelFile(data, hiddenColumns);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -975,10 +1019,11 @@ public class ReviewResultController {
     /**
      * 创建评审结果Excel文件
      * @param data 评审结果数据
+     * @param hiddenColumns 隐藏的列列表
      * @return Excel文件输出流
      * @throws IOException IO异常
      */
-    private ByteArrayOutputStream createReviewResultsExcelFile(List<Map<String, Object>> data) throws IOException {
+    private ByteArrayOutputStream createReviewResultsExcelFile(List<Map<String, Object>> data, List<String> hiddenColumns) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Workbook workbook = new XSSFWorkbook();
         try {
@@ -993,21 +1038,57 @@ public class ReviewResultController {
             centeredStyle.setBorderLeft(BorderStyle.THIN);
             centeredStyle.setBorderRight(BorderStyle.THIN);
 
+            // 定义列配置 - 序号列总是显示
+            List<ColumnConfig> columns = new ArrayList<>();
+            columns.add(new ColumnConfig("testDate", "发生日期", false));
+            columns.add(new ColumnConfig("majorCode", "大编码", false));
+            columns.add(new ColumnConfig("minorCode", "小编码", false));
+            columns.add(new ColumnConfig("projectPhase", "项目阶段", false));
+            columns.add(new ColumnConfig("version", "版本", false));
+            columns.add(new ColumnConfig("problemProcess", "问题工序", false));
+            columns.add(new ColumnConfig("problemLevel", "问题等级", false));
+            columns.add(new ColumnConfig("developmentMethod", "开发方式", false));
+            columns.add(new ColumnConfig("supplier", "供应商", false));
+            columns.add(new ColumnConfig("solutionProvider", "方案商", false));
+            columns.add(new ColumnConfig("problemPoint", "问题点", false));
+            columns.add(new ColumnConfig("problemReason", "问题原因", false));
+            columns.add(new ColumnConfig("improvementMeasures", "改善对策", false));
+            columns.add(new ColumnConfig("isPreventable", "是否可预防", false));
+            columns.add(new ColumnConfig("responsibleDepartment", "责任部门", false));
+            columns.add(new ColumnConfig("plannedCompletionTime", "预计完成时间", true));
+            columns.add(new ColumnConfig("actualCompletionTime", "实际完成时间", true));
+            columns.add(new ColumnConfig("delayDays", "Delay天数", false));
+            columns.add(new ColumnConfig("problemStatus", "问题状态", false));
+            columns.add(new ColumnConfig("problemTag1", "问题打标1", false));
+            columns.add(new ColumnConfig("problemTag2", "问题打标2", false));
+            columns.add(new ColumnConfig("preventionNotes", "预防备注", false));
+
+            // 过滤隐藏的列
+            List<ColumnConfig> visibleColumns = new ArrayList<>();
+            for (ColumnConfig col : columns) {
+                if (!hiddenColumns.contains(col.getKey())) {
+                    visibleColumns.add(col);
+                }
+            }
+
             // 列宽
-            for (int i = 0; i < 23; i++) sheet.setColumnWidth(i, 20 * 256);
+            for (int i = 0; i < visibleColumns.size() + 1; i++) {
+                sheet.setColumnWidth(i, 20 * 256);
+            }
 
             // ====== 表头 ======
             Row headerRow = sheet.createRow(0);
             headerRow.setHeightInPoints(50);
-            String[] headers = {
-                    "序号", "发生日期", "大编码", "小编码", "项目阶段", "版本", "问题工序", "问题等级",
-                    "开发方式", "供应商", "方案商", "问题点", "问题原因", "改善对策", "是否可预防", 
-                    "责任部门", "预计完成时间", "实际完成时间", "Delay天数", "问题状态", "问题打标1", 
-                    "问题打标2", "预防备注"
-            };
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
+            
+            // 序号列
+            Cell cell = headerRow.createCell(0);
+            cell.setCellValue("序号");
+            cell.setCellStyle(centeredStyle);
+            
+            // 其他列
+            for (int i = 0; i < visibleColumns.size(); i++) {
+                cell = headerRow.createCell(i + 1);
+                cell.setCellValue(visibleColumns.get(i).getLabel());
                 cell.setCellStyle(centeredStyle);
             }
 
@@ -1020,28 +1101,18 @@ public class ReviewResultController {
 
                 // 序号（从1开始）
                 createReviewResultsCell(row, 0, i + 1, centeredStyle);
-                createReviewResultsCell(row, 1, item.get("testDate"), centeredStyle);
-                createReviewResultsCell(row, 2, item.get("majorCode"), centeredStyle);
-                createReviewResultsCell(row, 3, item.get("minorCode"), centeredStyle);
-                createReviewResultsCell(row, 4, item.get("projectPhase"), centeredStyle);
-                createReviewResultsCell(row, 5, item.get("version"), centeredStyle);
-                createReviewResultsCell(row, 6, item.get("problemProcess"), centeredStyle);
-                createReviewResultsCell(row, 7, item.get("problemLevel"), centeredStyle);
-                createReviewResultsCell(row, 8, item.get("developmentMethod"), centeredStyle);
-                createReviewResultsCell(row, 9, item.get("supplier"), centeredStyle);
-                createReviewResultsCell(row, 10, item.get("solutionProvider"), centeredStyle);
-                createReviewResultsCell(row, 11, item.get("problemPoint"), centeredStyle);
-                createReviewResultsCell(row, 12, item.get("problemReason"), centeredStyle);
-                createReviewResultsCell(row, 13, item.get("improvementMeasures"), centeredStyle);
-                createReviewResultsCell(row, 14, item.get("isPreventable"), centeredStyle);
-                createReviewResultsCell(row, 15, item.get("responsibleDepartment"), centeredStyle);
-                createReviewResultsCellWithDateFormat(row, 16, item.get("plannedCompletionTime"), centeredStyle);
-                createReviewResultsCellWithDateFormat(row, 17, item.get("actualCompletionTime"), centeredStyle);
-                createReviewResultsCell(row, 18, item.get("delayDays"), centeredStyle);
-                createReviewResultsCell(row, 19, item.get("problemStatus"), centeredStyle);
-                createReviewResultsCell(row, 20, item.get("problemTag1"), centeredStyle);
-                createReviewResultsCell(row, 21, item.get("problemTag2"), centeredStyle);
-                createReviewResultsCell(row, 22, item.get("preventionNotes"), centeredStyle);
+                
+                // 其他列
+                int colIndex = 1;
+                for (ColumnConfig col : visibleColumns) {
+                    Object value = item.get(col.getKey());
+                    if (col.isDateField()) {
+                        createReviewResultsCellWithDateFormat(row, colIndex, value, centeredStyle);
+                    } else {
+                        createReviewResultsCell(row, colIndex, value, centeredStyle);
+                    }
+                    colIndex++;
+                }
 
                 rowNum++;
             }
@@ -1052,6 +1123,31 @@ public class ReviewResultController {
 
         } finally {
             try { workbook.close(); } catch (IOException ignored) {}
+        }
+    }
+
+    // 列配置内部类
+    private static class ColumnConfig {
+        private String key;
+        private String label;
+        private boolean isDateField;
+
+        public ColumnConfig(String key, String label, boolean isDateField) {
+            this.key = key;
+            this.label = label;
+            this.isDateField = isDateField;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public boolean isDateField() {
+            return isDateField;
         }
     }
 
