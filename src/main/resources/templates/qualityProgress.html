@@ -1897,6 +1897,39 @@
             color: #888;
         }
 
+        /* 导入规则说明样式 */
+        .import-rules {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .import-rules h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .import-rules-content {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .import-rules-content .rule-item {
+            margin: 8px 0;
+            padding-left: 8px;
+        }
+
+        .import-rules-content .rule-item strong {
+            color: #664d03;
+        }
+
         .upload-area {
             border: 2px dashed #007bff;
             border-radius: 8px;
@@ -3022,6 +3055,35 @@
                             <div class="progress-fill" id="progressFill"></div>
                         </div>
                         <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 导入规则说明 -->
+            <div class="import-rules">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    导入数据判断规则
+                </h4>
+                <div class="import-rules-content">
+                    <div class="rule-item">
+                        <strong>系统会根据以下字段判断是插入新数据还是更新现有数据：</strong>
+                    </div>
+                    <div class="rule-item">
+                        <strong>情况1：</strong> 当 SKU 不为空时，使用以下 4 个字段进行匹配：
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品三级类目
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 型号
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• SKU
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品名称
+                    </div>
+                    <div class="rule-item">
+                        <strong>情况2：</strong> 当 SKU 为空时，使用以下 3 个字段进行匹配：
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品三级类目
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 型号
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品名称
+                    </div>
+                    <div class="rule-item">
+                        <strong>说明：</strong> 如果数据库中已存在匹配的记录，则更新该记录；否则插入新记录。
                     </div>
                 </div>
             </div>
