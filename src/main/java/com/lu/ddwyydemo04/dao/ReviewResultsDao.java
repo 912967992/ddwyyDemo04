@@ -1,6 +1,7 @@
 package com.lu.ddwyydemo04.dao;
 
 import com.lu.ddwyydemo04.pojo.ReviewResults;
+import com.lu.ddwyydemo04.pojo.TestIssuesView;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -98,4 +99,17 @@ public interface ReviewResultsDao {
      * @return 评审结果列表
      */
     List<ReviewResults> findByFilters(@Param("filters") Map<String, Object> filters);
+
+    /**
+     * 查询所有电气测试问题点（联查test_issues和samples表，只返回最新历史版本）
+     * @return 电气测试问题点列表
+     */
+    List<TestIssuesView> findAllTestIssues();
+
+    /**
+     * 根据ID列表查询电气测试问题点
+     * @param ids ID列表
+     * @return 电气测试问题点列表
+     */
+    List<TestIssuesView> findTestIssuesByIds(@Param("ids") List<Long> ids);
 }

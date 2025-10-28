@@ -836,6 +836,11 @@ body {
     width: 95%;
 }
 
+.extra-large-modal {
+    max-width: 1600px;
+    width: 98%;
+}
+
 @keyframes modalSlideIn {
     from {
         opacity: 0;

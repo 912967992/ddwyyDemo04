@@ -79,7 +79,7 @@ public class DQEproblemMoudleController {
     @ResponseBody
     public List<TestIssues> searchTestissues() {
         List<TestIssues> resultTestissues = dqeproblemMoudleService.searchTestissues();
-        System.out.println(resultTestissues);
+//        System.out.println(resultTestissues);
         return resultTestissues;
     }
 

@@ -280,5 +280,106 @@
         ORDER BY created_time ASC
     </select>
 
+    <!-- TestIssuesView结果映射 -->
+    <resultMap id="TestIssuesViewMap" type="com.lu.ddwyydemo04.pojo.TestIssuesView">
+        <id property="id" column="id"/>
+        <result property="problemTime" column="problem_time"/>
+        <result property="sampleModel" column="sample_model"/>
+        <result property="sampleCoding" column="sample_coding"/>
+        <result property="sampleStage" column="sample_stage"/>
+        <result property="version" column="version"/>
+        <result property="problemProcess" column="problem_process"/>
+        <result property="defectLevel" column="defect_level"/>
+        <result property="developmentMethod" column="development_method"/>
+        <result property="supplier" column="supplier"/>
+        <result property="solutionProvider" column="solution_provider"/>
+        <result property="problem" column="problem"/>
+        <result property="greenUnionDqe" column="green_union_dqe"/>
+        <result property="greenUnionRd" column="green_union_rd"/>
+        <result property="isPreventable" column="is_preventable"/>
+        <result property="responsibleDepartment" column="responsibleDepartment"/>
+        <result property="currentStatus" column="current_status"/>
+        <result property="plannedCompletionTime" column="planned_completion_time"/>
+        <result property="actualCompletionTime" column="actual_completion_time"/>
+        <result property="delayDays" column="delay_days"/>
+        <result property="problemTag1" column="problem_tag1"/>
+        <result property="problemTag2" column="problem_tag2"/>
+        <result property="remark" column="remark"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 查询所有电气测试问题点（联查test_issues和samples表，只返回最新历史版本） -->
+    <select id="findAllTestIssues" resultMap="TestIssuesViewMap">
+        SELECT 
+            t.id,
+            t.problem_time,
+            s.sample_model,
+            s.sample_coding,
+            t.sample_stage,
+            t.version,
+            '电气测试报告' as problem_process,
+            t.defect_level,
+            '' as development_method,
+            t.supplier,
+            t.solution_provider,
+            t.problem,
+            t.green_union_dqe,
+            t.green_union_rd,
+            '' as is_preventable,
+            t.responsibleDepartment,
+            t.current_status,
+            '' as planned_completion_time,
+            '' as actual_completion_time,
+            '' as delay_days,
+            '' as problem_tag1,
+            '' as problem_tag2,
+            t.remark,
+            t.created_at
+        FROM test_issues t
+        INNER JOIN samples s ON t.sample_id = s.sample_id
+        INNER JOIN (
+            SELECT sample_id, MAX(history_id) as max_history_id
+            FROM test_issues
+            GROUP BY sample_id
+        ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
+        ORDER BY t.created_at DESC
+    </select>
+
+    <!-- 根据ID列表查询电气测试问题点 -->
+    <select id="findTestIssuesByIds" resultMap="TestIssuesViewMap">
+        SELECT 
+            t.id,
+            t.problem_time,
+            s.sample_model,
+            s.sample_coding,
+            t.sample_stage,
+            t.version,
+            '电气测试报告' as problem_process,
+            t.defect_level,
+            '' as development_method,
+            t.supplier,
+            t.solution_provider,
+            t.problem,
+            t.green_union_dqe,
+            t.green_union_rd,
+            '' as is_preventable,
+            t.responsibleDepartment,
+            t.current_status,
+            '' as planned_completion_time,
+            '' as actual_completion_time,
+            '' as delay_days,
+            '' as problem_tag1,
+            '' as problem_tag2,
+            t.remark,
+            t.created_at
+        FROM test_issues t
+        INNER JOIN samples s ON t.sample_id = s.sample_id
+        WHERE t.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY t.created_at DESC
+    </select>
+
 </mapper>
 

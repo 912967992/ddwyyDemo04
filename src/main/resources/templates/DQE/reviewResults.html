@@ -1488,6 +1488,219 @@
             }
         }
 
+        /* 电气测试问题点模态框样式 */
+        #testIssuesModal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        #testIssuesModal .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        #testIssuesModal .modal-header .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        #testIssuesModal .modal-header .close:hover {
+            opacity: 1;
+        }
+
+        #testIssuesModal .modal-body {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        /* 电气测试问题点搜索区域样式 */
+        .test-issues-search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .test-issues-filter-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .test-issues-filter-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .test-issues-filter-item label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .test-issues-filter-item label i {
+            color: #667eea;
+        }
+
+        .test-issues-filter-item input,
+        .test-issues-filter-item select {
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .test-issues-filter-item select {
+            cursor: pointer;
+        }
+
+        .test-issues-filter-item input:focus,
+        .test-issues-filter-item select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 电气测试问题点checkbox样式 */
+        #selectAllTestIssuesRows {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        #selectAllTestIssuesRows:hover {
+            transform: scale(1.4);
+        }
+
+        .test-issues-row-checkbox {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .test-issues-search-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .test-issues-search-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .test-issues-search-item label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .test-issues-search-item label i {
+            color: #667eea;
+        }
+
+        .test-issues-search-item input {
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .test-issues-search-item input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .test-issues-button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .test-issues-button-group .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .test-issues-button-group .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .test-issues-button-group .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-issues-button-group .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .test-issues-button-group .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+        }
+
+        .test-issues-button-group .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .test-issues-button-group .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        @media (max-width: 1200px) {
+            .test-issues-filter-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .test-issues-filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-issues-search-row {
+                flex-direction: column;
+            }
+            
+            .test-issues-button-group {
+                width: 100%;
+            }
+            
+            .test-issues-button-group .btn {
+                flex: 1;
+            }
+        }
+
         /* 列管理样式 */
         .column-manager-container {
             margin-bottom: 15px;
@@ -1553,6 +1766,21 @@
         .column-manager-actions .btn-link:hover {
             color: #0056b3;
             text-decoration: underline;
+        }
+
+        .column-manager-tip {
+            padding: 10px 15px;
+            background: #e7f3ff;
+            border-bottom: 1px solid #d0e7ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #0066cc;
+        }
+
+        .column-manager-tip i {
+            color: #0066cc;
         }
 
         .column-manager-content {
@@ -1802,6 +2030,9 @@
                     <button id="showChartsBtn" class="btn btn-info">
                         <i class="fas fa-chart-bar"></i> 数据可视化
                     </button>
+                    <button id="showTestIssuesBtn" class="btn btn-success" style="display: none;">
+                        <i class="fas fa-bolt"></i> 电气测试问题点
+                    </button>
                 </div>
             </div>
         </div>
@@ -1948,6 +2179,107 @@
     </div>
 </div>
 
+<!-- 电气测试问题点模态框 -->
+<div id="testIssuesModal" class="modal">
+    <div class="modal-content extra-large-modal">
+        <div class="modal-header">
+            <h2>电气测试问题点</h2>
+            <span class="close" onclick="closeTestIssuesModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- 搜索区域 -->
+            <div class="test-issues-search-section">
+                <div class="test-issues-filter-row">
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-tag"></i> 大编码</label>
+                        <input type="text" id="testIssuesMajorCode" placeholder="输入大编码...">
+                    </div>
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-tags"></i> 小编码</label>
+                        <input type="text" id="testIssuesMinorCode" placeholder="输入小编码...">
+                    </div>
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-code-branch"></i> 版本</label>
+                        <input type="text" id="testIssuesVersion" placeholder="输入版本...">
+                    </div>
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-info-circle"></i> 问题状态</label>
+                        <select id="testIssuesProblemStatus">
+                            <option value="">全部</option>
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                            <option value="follow">Follow</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="test-issues-search-row">
+                    <div class="test-issues-search-item">
+                        <label><i class="fas fa-search"></i> 搜索关键词</label>
+                        <input type="text" id="testIssuesSearchKeyword" placeholder="输入关键词搜索...">
+                    </div>
+                    <div class="test-issues-button-group">
+                        <button id="testIssuesSearchBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                        <button id="testIssuesResetBtn" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> 重置
+                        </button>
+                        <button id="testIssuesAddToReviewBtn" class="btn btn-success">
+                            <i class="fas fa-plus-circle"></i> 添加到评审结果
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-container">
+                <table id="testIssuesTable" class="data-table">
+                    <thead>
+                    <tr>
+                        <th data-key="checkbox">
+                            <input type="checkbox" id="selectAllTestIssuesRows" title="全选/取消全选">
+                        </th>
+                        <th data-key="id">ID</th>
+                        <th data-key="testDate">发生日期</th>
+                        <th data-key="majorCode">大编码</th>
+                        <th data-key="minorCode">小编码</th>
+                        <th data-key="projectPhase">项目阶段</th>
+                        <th data-key="version">版本</th>
+                        <th data-key="problemProcess">问题工序</th>
+                        <th data-key="problemLevel">问题等级</th>
+                        <th data-key="developmentMethod">开发方式</th>
+                        <th data-key="supplier">供应商</th>
+                        <th data-key="solutionProvider">方案商</th>
+                        <th data-key="problemPoint">问题点</th>
+                        <th data-key="problemReason">问题原因</th>
+                        <th data-key="improvementMeasures">改善对策</th>
+                        <th data-key="isPreventable">是否可预防</th>
+                        <th data-key="responsibleDepartment">责任部门</th>
+                        <th data-key="problemStatus">问题状态</th>
+                        <th data-key="plannedCompletionTime">预计完成时间</th>
+                        <th data-key="actualCompletionTime">实际完成时间</th>
+                        <th data-key="delayDays">Delay天数</th>
+                        <th data-key="problemTag1">问题打标1</th>
+                        <th data-key="problemTag2">问题打标2</th>
+                        <th data-key="preventionNotes">预防备注</th>
+                        <th data-key="createdTime">创建时间</th>
+                        <th data-key="updatedTime">更新时间</th>
+                    </tr>
+                    </thead>
+                    <tbody id="testIssuesTableBody">
+                    <!-- 数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页信息 -->
+            <div class="pagination-info" style="margin-top: 20px;">
+                <span>共 <strong id="testIssuesTotalRecords">0</strong> 条记录</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 数据表格区域 -->
     <div class="table-section">
     <!-- 列管理按钮 -->
@@ -1963,6 +2295,9 @@
                         <button class="btn-link" onclick="toggleAllColumns(true)" title="全选">全选</button>
                         <button class="btn-link" onclick="toggleAllColumns(false)" title="全不选">全不选</button>
                     </div>
+                </div>
+                <div class="column-manager-tip">
+                    <i class="fas fa-info-circle"></i> 隐藏的列不会显示在导出文件中
                 </div>
                 <div class="column-manager-content">
                     <!-- 列选项将通过JavaScript动态生成 -->
@@ -2932,11 +3267,249 @@
         }
     }
 
+    // 打开电气测试问题点模态框
+    function openTestIssuesModal() {
+        const modal = document.getElementById('testIssuesModal');
+        if (modal) {
+            modal.style.display = 'block';
+            // 加载电气测试问题点数据
+            searchTestIssues();
+            // 应用列可见性设置
+            applyTestIssuesColumnVisibility();
+        }
+    }
+    
+    // 应用列可见性设置到电气测试问题点表格
+    function applyTestIssuesColumnVisibility() {
+        try {
+            const saved = localStorage.getItem('columnVisibility');
+            if (saved) {
+                const visibility = JSON.parse(saved);
+                // 应用设置到电气测试问题点表格
+                columnDefinitions.forEach(col => {
+                    if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
+                        const header = document.querySelector(`#testIssuesTable th[data-key="${col.key}"]`);
+                        if (header) {
+                            if (visibility[col.key]) {
+                                header.classList.remove('hidden');
+                            } else {
+                                header.classList.add('hidden');
+                            }
+                        }
+                        
+                        // 应用设置到数据行
+                        const rows = document.querySelectorAll('#testIssuesTableBody tr');
+                        rows.forEach(row => {
+                            const cell = row.querySelector(`td[data-key="${col.key}"]`);
+                            if (cell) {
+                                if (visibility[col.key]) {
+                                    cell.classList.remove('hidden');
+                                } else {
+                                    cell.classList.add('hidden');
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('应用电气测试问题点列可见性设置失败:', e);
+        }
+    }
+
+    // 关闭电气测试问题点模态框
+    function closeTestIssuesModal() {
+        const modal = document.getElementById('testIssuesModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 搜索电气测试问题点
+    function searchTestIssues() {
+        const keyword = document.getElementById('testIssuesSearchKeyword').value;
+        const majorCode = document.getElementById('testIssuesMajorCode').value;
+        const minorCode = document.getElementById('testIssuesMinorCode').value;
+        const version = document.getElementById('testIssuesVersion').value;
+        const problemStatus = document.getElementById('testIssuesProblemStatus').value;
+        
+        showLoading();
+        
+        // 构建查询参数
+        const params = new URLSearchParams();
+        if (keyword) params.append('keyword', keyword);
+        if (majorCode) params.append('majorCode', majorCode);
+        if (minorCode) params.append('minorCode', minorCode);
+        if (version) params.append('version', version);
+        if (problemStatus) params.append('problemStatus', problemStatus);
+        
+        fetch('/reviewResult/getTestIssues?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    renderTestIssuesTable(data.data);
+                    document.getElementById('testIssuesTotalRecords').textContent = data.total || 0;
+                } else {
+                    alert('查询失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                alert('查询时发生错误');
+            });
+    }
+
+    // 重置电气测试问题点搜索
+    function resetTestIssuesSearch() {
+        document.getElementById('testIssuesSearchKeyword').value = '';
+        document.getElementById('testIssuesMajorCode').value = '';
+        document.getElementById('testIssuesMinorCode').value = '';
+        document.getElementById('testIssuesVersion').value = '';
+        document.getElementById('testIssuesProblemStatus').value = '';
+        searchTestIssues();
+    }
+
+    // 渲染电气测试问题点表格
+    function renderTestIssuesTable(data) {
+        const tbody = document.getElementById('testIssuesTableBody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="26" style="text-align: center;">暂无数据</td></tr>';
+            return;
+        }
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td data-key="checkbox">
+                    <input type="checkbox" class="test-issues-row-checkbox" data-id="${item.id}" title="选择此行">
+                </td>
+                <td data-key="id">${item.id || '-'}</td>
+                <td data-key="testDate">${item.problemTime || '-'}</td>
+                <td data-key="majorCode">${item.sampleModel || '-'}</td>
+                <td data-key="minorCode">${item.sampleCoding || '-'}</td>
+                <td data-key="projectPhase">${item.sampleStage || '-'}</td>
+                <td data-key="version">${item.version || '-'}</td>
+                <td data-key="problemProcess" class="problem-desc" title="${item.problemProcess || ''}">${(item.problemProcess || '').substring(0, 20)}${(item.problemProcess || '').length > 20 ? '...' : ''}</td>
+                <td data-key="problemLevel"><span class="status-badge status-${item.defectLevel?.toLowerCase() || ''}">${item.defectLevel || '-'}</span></td>
+                <td data-key="developmentMethod" class="problem-desc" title="${item.developmentMethod || ''}">${(item.developmentMethod || '').substring(0, 20)}${(item.developmentMethod || '').length > 20 ? '...' : ''}</td>
+                <td data-key="supplier" class="problem-desc" title="${item.supplier || ''}">${(item.supplier || '').substring(0, 20)}${(item.supplier || '').length > 20 ? '...' : ''}</td>
+                <td data-key="solutionProvider" class="problem-desc" title="${item.solutionProvider || ''}">${(item.solutionProvider || '').substring(0, 20)}${(item.solutionProvider || '').length > 20 ? '...' : ''}</td>
+                <td data-key="problemPoint" class="problem-desc" title="${item.problem || ''}">${(item.problem || '').substring(0, 30)}${(item.problem || '').length > 30 ? '...' : ''}</td>
+                <td data-key="problemReason" class="problem-desc" title="${item.greenUnionDqe || ''}">${(item.greenUnionDqe || '').substring(0, 30)}${(item.greenUnionDqe || '').length > 30 ? '...' : ''}</td>
+                <td data-key="improvementMeasures" class="problem-desc" title="${item.greenUnionRd || ''}">${(item.greenUnionRd || '').substring(0, 30)}${(item.greenUnionRd || '').length > 30 ? '...' : ''}</td>
+                <td data-key="isPreventable">${item.isPreventable || '-'}</td>
+                <td data-key="responsibleDepartment">${item.responsibleDepartment || '-'}</td>
+                <td data-key="problemStatus"><span class="status-badge status-${item.currentStatus?.toLowerCase().replace(' ', '') || ''}">${item.currentStatus || '-'}</span></td>
+                <td data-key="plannedCompletionTime">${item.plannedCompletionTime || '-'}</td>
+                <td data-key="actualCompletionTime">${item.actualCompletionTime || '-'}</td>
+                <td data-key="delayDays">${item.delayDays || '-'}</td>
+                <td data-key="problemTag1" class="problem-desc" title="${item.problemTag1 || ''}">${(item.problemTag1 || '').substring(0, 20)}${(item.problemTag1 || '').length > 20 ? '...' : ''}</td>
+                <td data-key="problemTag2" class="problem-desc" title="${item.problemTag2 || ''}">${(item.problemTag2 || '').substring(0, 20)}${(item.problemTag2 || '').length > 20 ? '...' : ''}</td>
+                <td data-key="preventionNotes" class="problem-desc" title="${item.remark || ''}">${(item.remark || '').substring(0, 30)}${(item.remark || '').length > 30 ? '...' : ''}</td>
+                <td data-key="createdTime">${item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                <td data-key="updatedTime">-</td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // 为每个checkbox添加事件监听器
+        const checkboxes = tbody.querySelectorAll('.test-issues-row-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', handleTestIssuesCheckboxChange);
+        });
+        
+        // 全选checkbox事件监听器（确保只绑定一次）
+        const selectAllCheckbox = document.getElementById('selectAllTestIssuesRows');
+        if (selectAllCheckbox && !selectAllCheckbox.hasAttribute('data-bound')) {
+            selectAllCheckbox.setAttribute('data-bound', 'true');
+            selectAllCheckbox.addEventListener('change', function() {
+                const checked = this.checked;
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = checked;
+                });
+            });
+        }
+        
+        // 渲染完表格后应用列可见性设置
+        applyTestIssuesColumnVisibility();
+    }
+    
+    // 处理电气测试问题点checkbox变化
+    function handleTestIssuesCheckboxChange() {
+        const checkboxes = document.querySelectorAll('.test-issues-row-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAllTestIssuesRows');
+        
+        if (selectAllCheckbox) {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        }
+    }
+
+    // 添加电气测试问题点到评审结果
+    function addTestIssuesToReview() {
+        // 获取所有选中的checkbox
+        const checkedBoxes = document.querySelectorAll('.test-issues-row-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+            alert('请至少选择一条记录！');
+            return;
+        }
+        
+        // 获取选中的ID列表
+        const selectedIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'));
+        
+        // 确认操作
+        if (!confirm(`确定要将选中的 ${selectedIds.length} 条记录添加到评审结果吗？`)) {
+            return;
+        }
+        
+        showLoading();
+        
+        // 发送请求到后端
+        fetch('/reviewResult/addTestIssuesToReview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids: selectedIds
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                alert(`成功添加 ${data.addedCount} 条记录到评审结果！`);
+                // 刷新外边主表数据
+                loadReviewData();
+                // 关闭模态框
+                closeTestIssuesModal();
+            } else {
+                alert('添加失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error:', error);
+            alert('添加时发生错误');
+        });
+    }
+
     // 点击模态框外部关闭
     window.onclick = function(event) {
         const chartsModal = document.getElementById('chartsModal');
         if (event.target == chartsModal) {
             closeChartsModal();
+        }
+        const testIssuesModal = document.getElementById('testIssuesModal');
+        if (event.target == testIssuesModal) {
+            closeTestIssuesModal();
         }
     }
 
@@ -3397,6 +3970,65 @@
         if (showChartsBtn) {
             showChartsBtn.addEventListener('click', function() {
                 openChartsModal();
+            });
+        }
+
+        // 添加电气测试问题点按钮事件监听器
+        const showTestIssuesBtn = document.getElementById('showTestIssuesBtn');
+        if (showTestIssuesBtn) {
+            showTestIssuesBtn.addEventListener('click', function() {
+                openTestIssuesModal();
+            });
+        }
+
+        // 添加电气测试问题点搜索按钮事件监听器
+        const testIssuesSearchBtn = document.getElementById('testIssuesSearchBtn');
+        if (testIssuesSearchBtn) {
+            testIssuesSearchBtn.addEventListener('click', function() {
+                searchTestIssues();
+            });
+        }
+
+        const testIssuesResetBtn = document.getElementById('testIssuesResetBtn');
+        if (testIssuesResetBtn) {
+            testIssuesResetBtn.addEventListener('click', function() {
+                resetTestIssuesSearch();
+            });
+        }
+
+        // 添加电气测试问题点到评审结果按钮事件监听器
+        const testIssuesAddToReviewBtn = document.getElementById('testIssuesAddToReviewBtn');
+        if (testIssuesAddToReviewBtn) {
+            testIssuesAddToReviewBtn.addEventListener('click', function() {
+                addTestIssuesToReview();
+            });
+        }
+
+        // 添加电气测试问题点输入框回车键事件监听器
+        const testIssuesTextInputs = [
+            'testIssuesMajorCode',
+            'testIssuesMinorCode',
+            'testIssuesVersion',
+            'testIssuesSearchKeyword'
+        ];
+        
+        testIssuesTextInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchTestIssues();
+                    }
+                });
+            }
+        });
+        
+        // 为下拉框添加change事件，选择后自动搜索
+        const testIssuesSelect = document.getElementById('testIssuesProblemStatus');
+        if (testIssuesSelect) {
+            testIssuesSelect.addEventListener('change', function() {
+                searchTestIssues();
             });
         }
 

@@ -2,6 +2,8 @@ package com.lu.ddwyydemo04.controller.DQE;
 
 import com.lu.ddwyydemo04.Service.ReviewResultsService;
 import com.lu.ddwyydemo04.pojo.ReviewResults;
+import com.lu.ddwyydemo04.pojo.TestIssuesView;
+import com.lu.ddwyydemo04.dao.ReviewResultsDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -41,6 +43,9 @@ public class ReviewResultController {
 
     @Autowired
     private ReviewResultsService reviewResultsService;
+
+    @Autowired
+    private ReviewResultsDao reviewResultsDao;
 
     /**
      * 评审结果页面跳转
@@ -1008,6 +1013,11 @@ public class ReviewResultController {
             return dbStatusLower.equals("open");
         }
         
+        // 特殊处理：follow 的兼容（匹配follow、follow up、following等）
+        if (filterStatusLower.equals("follow")) {
+            return dbStatusLower.contains("follow");
+        }
+        
         // 特殊处理：follow up 的兼容
         if (filterStatusLower.equals("follow up")) {
             return dbStatusLower.equals("follow up") || dbStatusLower.equals("followup") || dbStatusLower.equals("follow-up");
@@ -1227,6 +1237,240 @@ public class ReviewResultController {
             cell.setCellValue(value != null ? value.toString() : "");
         }
         cell.setCellStyle(style);
+    }
+
+    /**
+     * 获取电气测试问题点列表
+     * @param keyword 搜索关键词（可选）
+     * @param majorCode 大编码（可选）
+     * @param minorCode 小编码（可选）
+     * @param version 版本（可选）
+     * @param problemStatus 问题状态（可选）
+     * @return 电气测试问题点列表
+     */
+    @GetMapping("/reviewResult/getTestIssues")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getTestIssues(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String majorCode,
+            @RequestParam(required = false) String minorCode,
+            @RequestParam(required = false) String version,
+            @RequestParam(required = false) String problemStatus) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 调用DAO层获取test_issues数据
+            List<TestIssuesView> allData = reviewResultsDao.findAllTestIssues();
+            
+            // 应用筛选条件
+            List<TestIssuesView> filteredData = allData;
+            
+            // 大编码筛选
+            if (majorCode != null && !majorCode.trim().isEmpty()) {
+                String lowerMajorCode = majorCode.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getSampleModel() != null && item.getSampleModel().toLowerCase().contains(lowerMajorCode))
+                    .collect(Collectors.toList());
+            }
+            
+            // 小编码筛选
+            if (minorCode != null && !minorCode.trim().isEmpty()) {
+                String lowerMinorCode = minorCode.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getSampleCoding() != null && item.getSampleCoding().toLowerCase().contains(lowerMinorCode))
+                    .collect(Collectors.toList());
+            }
+            
+            // 版本筛选
+            if (version != null && !version.trim().isEmpty()) {
+                String lowerVersion = version.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getVersion() != null && item.getVersion().toLowerCase().contains(lowerVersion))
+                    .collect(Collectors.toList());
+            }
+            
+            // 问题状态筛选
+            if (problemStatus != null && !problemStatus.trim().isEmpty()) {
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getCurrentStatus() != null && 
+                        isProblemStatusMatch(item.getCurrentStatus(), problemStatus))
+                    .collect(Collectors.toList());
+            }
+            
+            // 关键词筛选（在所有字段中搜索）
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String lowerKeyword = keyword.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> 
+                        (item.getProblem() != null && item.getProblem().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getProblemTime() != null && item.getProblemTime().contains(keyword)) ||
+                        (item.getDefectLevel() != null && item.getDefectLevel().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getCurrentStatus() != null && item.getCurrentStatus().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getSupplier() != null && item.getSupplier().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getSolutionProvider() != null && item.getSolutionProvider().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getSampleModel() != null && item.getSampleModel().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getSampleCoding() != null && item.getSampleCoding().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getSampleStage() != null && item.getSampleStage().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getGreenUnionDqe() != null && item.getGreenUnionDqe().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getGreenUnionRd() != null && item.getGreenUnionRd().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getRemark() != null && item.getRemark().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getResponsibleDepartment() != null && item.getResponsibleDepartment().toLowerCase().contains(lowerKeyword))
+                    )
+                    .collect(Collectors.toList());
+            }
+
+            result.put("success", true);
+            result.put("data", filteredData);
+            result.put("total", filteredData.size());
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", "获取电气测试问题点失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 将电气测试问题点添加到评审结果
+     * @param requestData 包含test_issues的ID列表
+     * @return 添加结果
+     */
+    @PostMapping("/reviewResult/addTestIssuesToReview")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addTestIssuesToReview(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取ID列表
+            @SuppressWarnings("unchecked")
+            List<Long> ids = (List<Long>) requestData.get("ids");
+            
+            if (ids == null || ids.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "请选择要添加的记录");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 根据ID列表查询电气测试问题点
+            List<TestIssuesView> testIssuesList = reviewResultsDao.findTestIssuesByIds(ids);
+            
+            if (testIssuesList.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "未找到选中的记录");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            int addedCount = 0;
+            int skippedCount = 0;
+
+            // 将每个test_issues转换为reviewResults并插入
+            for (TestIssuesView testIssue : testIssuesList) {
+                try {
+                    // 检查是否已存在
+                    Long existingId = reviewResultsDao.findExistingRecord(
+                        testIssue.getSampleModel(),  // majorCode
+                        testIssue.getSampleCoding(), // minorCode
+                        testIssue.getSampleStage(),  // projectPhase
+                        testIssue.getVersion(),      // version
+                        testIssue.getSupplier(),     // supplier
+                        testIssue.getProblem()       // problemPoint
+                    );
+
+                    if (existingId == null) {
+                        // 不存在，创建新记录
+                        ReviewResults reviewResult = convertTestIssueToReviewResult(testIssue);
+                        reviewResult.setCreatedTime(LocalDateTime.now());
+                        reviewResult.setUpdatedTime(LocalDateTime.now());
+                        
+                        reviewResultsDao.insert(reviewResult);
+                        addedCount++;
+                    } else {
+                        // 已存在，跳过
+                        skippedCount++;
+                    }
+                } catch (Exception e) {
+                    System.err.println("处理记录时出错: " + e.getMessage());
+                    skippedCount++;
+                }
+            }
+
+            result.put("success", true);
+            result.put("message", String.format("成功添加 %d 条记录，跳过 %d 条已存在的记录", addedCount, skippedCount));
+            result.put("addedCount", addedCount);
+            result.put("skippedCount", skippedCount);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "添加失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 将TestIssuesView转换为ReviewResults
+     * @param testIssue 电气测试问题点
+     * @return 评审结果对象
+     */
+    private ReviewResults convertTestIssueToReviewResult(TestIssuesView testIssue) {
+        ReviewResults reviewResult = new ReviewResults();
+        
+        // 解析日期（支持YYYYMMDD格式）
+        if (testIssue.getProblemTime() != null && !testIssue.getProblemTime().isEmpty()) {
+            try {
+                String dateStr = testIssue.getProblemTime();
+                // 如果是8位数字格式（YYYYMMDD）
+                if (dateStr.length() == 8 && dateStr.matches("\\d{8}")) {
+                    int year = Integer.parseInt(dateStr.substring(0, 4));
+                    int month = Integer.parseInt(dateStr.substring(4, 6));
+                    int day = Integer.parseInt(dateStr.substring(6, 8));
+                    reviewResult.setTestDate(LocalDate.of(year, month, day));
+                } else {
+                    // 尝试其他格式
+                    reviewResult.setTestDate(LocalDate.parse(dateStr));
+                }
+            } catch (Exception e) {
+                // 如果解析失败，设置为当前日期
+                reviewResult.setTestDate(LocalDate.now());
+            }
+        } else {
+            reviewResult.setTestDate(LocalDate.now());
+        }
+        
+        // 基本信息
+        reviewResult.setMajorCode(testIssue.getSampleModel());
+        reviewResult.setMinorCode(testIssue.getSampleCoding());
+        reviewResult.setProjectPhase(testIssue.getSampleStage());
+        reviewResult.setVersion(testIssue.getVersion());
+        reviewResult.setProblemProcess("电气测试报告");
+        reviewResult.setProblemLevel(testIssue.getDefectLevel());
+        reviewResult.setDevelopmentMethod("");
+        reviewResult.setSupplier(testIssue.getSupplier());
+        reviewResult.setSolutionProvider(testIssue.getSolutionProvider());
+        
+        // 问题信息
+        reviewResult.setProblemPoint(testIssue.getProblem());
+        reviewResult.setProblemReason(testIssue.getGreenUnionDqe());
+        reviewResult.setImprovementMeasures(testIssue.getGreenUnionRd());
+        reviewResult.setIsPreventable("");
+        reviewResult.setResponsibleDepartment(testIssue.getResponsibleDepartment());
+        
+        // 时间信息
+        reviewResult.setPlannedCompletionTime(null);
+        reviewResult.setActualCompletionTime(null);
+        reviewResult.setDelayDays(null);
+        
+        // 状态信息
+        reviewResult.setProblemStatus(testIssue.getCurrentStatus());
+        reviewResult.setProblemTag1("");
+        reviewResult.setProblemTag2("");
+        reviewResult.setPreventionNotes(testIssue.getRemark());
+        
+        return reviewResult;
     }
 
 }
