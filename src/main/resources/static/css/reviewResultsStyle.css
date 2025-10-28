@@ -79,15 +79,17 @@ body {
 /* 筛选区域 */
 .filter-section {
     background: white;
-    margin: 20px;
+    margin: 20px 0; /* 左右margin设为0，铺满页面宽度 */
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 40px 20px; /* 增加上下内边距到40px，左右保持20px */
+    width: 100%; /* 铺满页面宽度 */
 }
 
 .filter-container {
-    max-width: 1200px;
+    max-width: 100%; /* 改为100%，铺满页面宽度 */
     margin: 0 auto;
+    width: 100%; /* 确保宽度为100% */
 }
 
 .filter-row {

@@ -713,6 +713,39 @@
             color: #888;
         }
 
+        /* 导入规则说明样式 */
+        .import-rules {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .import-rules h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .import-rules-content {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .import-rules-content .rule-item {
+            margin: 8px 0;
+            padding-left: 8px;
+        }
+
+        .import-rules-content .rule-item strong {
+            color: #664d03;
+        }
+
         .upload-area {
             border: 2px dashed #007bff;
             border-radius: 8px;
@@ -783,11 +816,9 @@
         .search-reset-buttons {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 10;
+            justify-content: flex-start;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
 
         .search-reset-buttons .btn {
@@ -960,6 +991,14 @@
             min-height: 400px; /* 削减最小高度从600px到400px */
         }
 
+        /* 筛选区域铺满页面宽度 */
+        .filter-section {
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            max-width: 100% !important;
+        }
+
         /* 数据表格区域样式 */
         .table-section {
             margin-top: 20px; /* 添加顶部间距 */
@@ -988,6 +1027,8 @@
             height: 100%; /* 填满网格单元格 */
             overflow-y: auto; /* 如果内容过多，允许滚动 */
             min-width: 0; /* 防止内容溢出 */
+            max-width: 100% !important; /* 覆盖外部CSS的限制，铺满页面宽度 */
+            width: 100% !important; /* 确保宽度为100% */
         }
 
         /* 双图表容器样式 */
@@ -1160,8 +1201,8 @@
         .filters-main-container {
             margin-left: 0;
             margin-right: auto;
-            width: 100%;
-            max-width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             box-sizing: border-box;
         }
 
@@ -1171,12 +1212,11 @@
             background: #f8f9fa;
             border: 1px solid #e9ecef;
             border-radius: 4px;
-            padding: 8px;
+            padding: 15px;
             margin-bottom: 10px;
             margin-left: 0;
             margin-right: auto;
             box-sizing: border-box;
-            min-height: 550px;
         }
 
         .filter-row {
@@ -1197,10 +1237,10 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            width: calc(50% - 4px); /* 每行2个，每个占50%宽度，减去间距 */
-            flex: 0 0 auto;
+            flex: 1; /* 横向排版，每个占据相等空间 */
             margin-bottom: 8px;
             box-sizing: border-box;
+            min-width: 120px; /* 最小宽度 */
         }
 
         .filter-group label {
@@ -1293,40 +1333,74 @@
             outline: none;
         }
 
-        /* 日期过滤器特殊样式 */
-        .filter-group input[type="date"] {
-            width: 80px;
-            font-size: 13px;
+        /* 日期范围过滤器特殊样式 */
+        .date-range-group {
+            flex: 1.5; /* 日期过滤器占据更多空间 */
+            min-width: 280px; /* 确保日期过滤器有足够空间 */
+            margin-left: 20px; /* 增加与问题状态的间距 */
         }
 
-        .filter-group span {
+        .date-range-inputs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .date-range-inputs input[type="date"] {
+            flex: 1;
+            max-width: 130px;
+            font-size: 13px;
+            height: 32px;
+            padding: 4px 8px;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+        }
+
+        .date-range-inputs span {
             color: #6c757d;
             font-size: 12px;
-            margin: 0 2px;
             flex-shrink: 0;
-        }
-
-        /* 日期范围过滤器特殊布局 */
-        .filter-group:has(input[type="date"]) {
-            width: calc(50% - 4px);
+            white-space: nowrap;
+            margin: 0 2px;
         }
 
         /* 响应式设计 - 小屏幕时每行显示更少 */
+        @media (max-width: 1400px) {
+            .date-range-group {
+                min-width: 250px; /* 缩小日期过滤器最小宽度 */
+            }
+        }
+
         @media (max-width: 1200px) {
             .filter-group {
-                width: calc(50% - 4px); /* 每行2个 */
+                flex: 0 0 calc(50% - 4px); /* 每行2个 */
+            }
+            .date-range-group {
+                flex: 0 0 calc(100% - 8px); /* 日期过滤器单独一行 */
+                min-width: auto;
             }
         }
 
         @media (max-width: 900px) {
             .filter-group {
-                width: calc(50% - 4px); /* 每行2个 */
+                flex: 0 0 calc(50% - 4px); /* 每行2个 */
+            }
+            .date-range-group {
+                flex: 0 0 calc(100% - 8px); /* 日期过滤器单独一行 */
             }
         }
 
         @media (max-width: 600px) {
             .filter-group {
-                width: calc(100% - 8px); /* 每行1个 */
+                flex: 0 0 calc(100% - 8px); /* 每行1个 */
+            }
+            .date-range-inputs {
+                flex-direction: column; /* 在极小屏幕上垂直排列 */
+                gap: 8px;
+            }
+            .date-range-inputs span {
+                display: none; /* 隐藏"至"字 */
             }
         }
 
@@ -1363,6 +1437,55 @@
         .chart-sort-buttons .btn:hover:not(.active) {
             background-color: #e9ecef;
             border-color: #adb5bd;
+        }
+
+        /* 图表模态框样式 */
+        #chartsModal .modal-content {
+            max-width: 1400px;
+            width: 95%;
+            position: relative;
+            transition: transform 0.1s ease-out;
+        }
+
+        #chartsModal .modal-header {
+            cursor: move;
+            user-select: none;
+        }
+
+        #chartsModal .modal-header .close {
+            cursor: pointer;
+        }
+
+        #chartsModal .modal-header h2 {
+            cursor: move;
+        }
+
+        #chartsModal .modal-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #chartsModal .dual-chart-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        #chartsModal .chart-container {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 1200px) {
+            #chartsModal .dual-chart-container {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -1449,36 +1572,6 @@
                 <div class="upload-section">
                     <h3><i class="fas fa-upload"></i> 上传数据文件</h3>
                     <p>选择填写好的Excel文件进行导入</p>
-                    <!-- 导入数据更新规则说明 -->
-                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #007bff;">
-                        <div style="font-weight: bold; color: #007bff; margin-bottom: 10px;">
-                            <i class="fas fa-info-circle"></i> 导入数据更新规则
-                        </div>
-                        <div style="font-size: 13px; color: #666; line-height: 1.6;">
-                            系统会根据以下字段来判断是<strong style="color: #28a745;">新增数据</strong>还是<strong style="color: #dc3545;">更新已有数据</strong>：
-                        </div>
-                        <div style="margin-top: 10px; padding: 10px; background-color: #ffffff; border-radius: 3px; font-size: 12px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <div><strong>判断字段：</strong></div>
-                                <div><strong>说明：</strong></div>
-                                <div>• 大编码</div>
-                                <div>必须匹配</div>
-                                <div>• 小编码</div>
-                                <div>必须匹配</div>
-                                <div>• 项目阶段</div>
-                                <div>必须匹配</div>
-                                <div>• 供应商</div>
-                                <div>必须匹配</div>
-                                <div>• 问题点</div>
-                                <div>必须匹配</div>
-                                <div>• 版本</div>
-                                <div>可为空，有值则必须匹配</div>
-                            </div>
-                            <div style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border-radius: 3px; color: #856404; font-size: 12px;">
-                                <i class="fas fa-exclamation-triangle"></i> <strong>注意：</strong>当导入的数据与数据库中的记录在以上字段完全匹配时，系统会<strong>更新</strong>该记录；否则会<strong>新增</strong>一条记录。
-                            </div>
-                        </div>
-                    </div>
                     <div class="upload-area" id="uploadArea">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>点击选择文件或拖拽文件到此处</p>
@@ -1493,6 +1586,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 导入规则说明 -->
+            <div class="import-rules">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    导入数据判断规则
+                </h4>
+                <div class="import-rules-content">
+                    <div class="rule-item">
+                        <strong>系统会根据以下字段判断是插入新数据还是更新现有数据：</strong>
+                    </div>
+                    <div class="rule-item">
+                        <strong>判断字段（以下 6 个字段需完全匹配）：</strong>
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 大编码
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 小编码
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 项目阶段
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 供应商
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 问题点
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 版本（可为空，有值则必须匹配）
+                    </div>
+                    <div class="rule-item">
+                        <strong>说明：</strong> 如果数据库中已存在匹配的记录，则更新该记录；否则插入新记录。
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeImportModal()">取消</button>
@@ -1502,11 +1620,11 @@
 </div>
 
 <!-- 筛选和操作区域 -->
-<div class="main-control-section">
+<div class="filter-section">
     <div class="filter-container">
-        <!-- 筛选器主容器（平行布局） -->
+        <!-- 筛选器主容器（横向布局） -->
         <div class="filters-main-container">
-            <!-- 基础筛选器（左侧） -->
+            <!-- 基础筛选器 -->
             <div class="basic-filters-container">
                 <div class="filter-row">
                     <div class="filter-group">
@@ -1551,18 +1669,15 @@
                             <div id="problemStatusFilterSuggestions" class="suggestions-dropdown"></div>
                         </div>
                     </div>
-                </div>
-
-                <div class="filter-row">
-                    <div class="filter-group">
+                    <div class="filter-group date-range-group">
                         <label>发生日期:</label>
-                        <input type="date" id="testStartDateFilter">
-                        <span>至</span>
-                        <input type="date" id="testEndDateFilter">
+                        <div class="date-range-inputs">
+                            <input type="date" id="testStartDateFilter">
+                            <span>至</span>
+                            <input type="date" id="testEndDateFilter">
+                        </div>
                     </div>
                 </div>
-
-
 
                 <!-- 搜索和重置按钮 -->
                 <div class="search-reset-buttons">
@@ -1573,136 +1688,149 @@
                     <button id="resetBtn" class="btn btn-secondary">
                         <i class="fas fa-undo"></i> 重置
                     </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- 双图表容器 -->
-    <div class="dual-chart-container">
-        <!-- 左侧图表 -->
-        <div class="chart-container chart-left">
-            <div class="chart-header">
-                <h3 class="chart-title">数据可视化 - 图表1</h3>
-                <div class="chart-controls">
-                    <div class="chart-type-buttons">
-                        <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 1)">柱状图</button>
-                        <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 1)">饼状图</button>
-                        <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 1)">折线图</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="field-selector">
-                <label>分组字段:</label>
-                <select id="groupField1">
-                    <option value="">请选择分组字段</option>
-                    <option value="problemLevel">问题等级</option>
-                    <option value="majorCode">大编码</option>
-                    <option value="minorCode">小编码</option>
-                    <option value="projectPhase">项目阶段</option>
-                    <option value="version">版本</option>
-                    <option value="problemProcess">问题工序</option>
-                    <option value="developmentMethod">开发方式</option>
-                    <option value="supplier">供应商</option>
-                    <option value="solutionProvider">方案商</option>
-                    <option value="problemPoint">问题点</option>
-                    <option value="problemReason">问题原因</option>
-                    <option value="improvementStrategy">改善对策</option>
-                    <option value="isPreventable">是否可预防</option>
-                    <option value="responsibleDepartment">责任部门</option>
-                    <option value="problemStatus">问题状态</option>
-                    <option value="problemTag1">问题打标1</option>
-                    <option value="problemTag2">问题打标2</option>
-                </select>
-
-                <button id="generateChartBtn1" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(1)">生成图表</button>
-
-                <!-- 排序按钮组 -->
-                <div class="chart-sort-buttons" role="group">
-                    <button id="sortAscBtn1" class="btn btn-outline-secondary" onclick="setChartSort('asc', 1)" title="按数值升序排列">
-                        <i class="fas fa-sort-amount-up"></i> 升序
+                    <button id="showChartsBtn" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> 数据可视化
                     </button>
-                    <button id="sortDescBtn1" class="btn btn-outline-secondary" onclick="setChartSort('desc', 1)" title="按数值降序排列">
-                        <i class="fas fa-sort-amount-down"></i> 降序
-                    </button>
-                </div>
-            </div>
-
-            <div class="chart-canvas-container">
-                <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
-                    <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
-                </div>
-                <div id="chartStatus1" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
-                    <i class="fas fa-chart-bar"></i> <span id="chartStatusText1">准备就绪</span>
-                </div>
-                <canvas id="dataChart1" class="chart-canvas"></canvas>
-                <div id="noDataMessage1" class="no-data-message" style="display: none;">
-                    请先选择要展示的字段，然后点击"生成图表"按钮
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- 右侧图表 -->
-        <div class="chart-container chart-right">
-            <div class="chart-header">
-                <h3 class="chart-title">数据可视化 - 图表2</h3>
-                <div class="chart-controls">
-                    <div class="chart-type-buttons">
-                        <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 2)">柱状图</button>
-                        <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 2)">饼状图</button>
-                        <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 2)">折线图</button>
+<!-- 图表模态框 -->
+<div id="chartsModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h2>数据可视化分析</h2>
+            <span class="close" onclick="closeChartsModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- 双图表容器 -->
+            <div class="dual-chart-container">
+                <!-- 左侧图表 -->
+                <div class="chart-container chart-left">
+                    <div class="chart-header">
+                        <h3 class="chart-title">数据可视化 - 图表1</h3>
+                        <div class="chart-controls">
+                            <div class="chart-type-buttons">
+                                <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 1)">柱状图</button>
+                                <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 1)">饼状图</button>
+                                <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 1)">折线图</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-selector">
+                        <label>分组字段:</label>
+                        <select id="groupField1">
+                            <option value="">请选择分组字段</option>
+                            <option value="problemLevel">问题等级</option>
+                            <option value="majorCode">大编码</option>
+                            <option value="minorCode">小编码</option>
+                            <option value="projectPhase">项目阶段</option>
+                            <option value="version">版本</option>
+                            <option value="problemProcess">问题工序</option>
+                            <option value="developmentMethod">开发方式</option>
+                            <option value="supplier">供应商</option>
+                            <option value="solutionProvider">方案商</option>
+                            <option value="problemPoint">问题点</option>
+                            <option value="problemReason">问题原因</option>
+                            <option value="improvementStrategy">改善对策</option>
+                            <option value="isPreventable">是否可预防</option>
+                            <option value="responsibleDepartment">责任部门</option>
+                            <option value="problemStatus">问题状态</option>
+                            <option value="problemTag1">问题打标1</option>
+                            <option value="problemTag2">问题打标2</option>
+                        </select>
+
+                        <button id="generateChartBtn1" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(1)">生成图表</button>
+
+                        <!-- 排序按钮组 -->
+                        <div class="chart-sort-buttons" role="group">
+                            <button id="sortAscBtn1" class="btn btn-outline-secondary" onclick="setChartSort('asc', 1)" title="按数值升序排列">
+                                <i class="fas fa-sort-amount-up"></i> 升序
+                            </button>
+                            <button id="sortDescBtn1" class="btn btn-outline-secondary" onclick="setChartSort('desc', 1)" title="按数值降序排列">
+                                <i class="fas fa-sort-amount-down"></i> 降序
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chart-canvas-container">
+                        <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
+                            <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
+                        </div>
+                        <div id="chartStatus1" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
+                            <i class="fas fa-chart-bar"></i> <span id="chartStatusText1">准备就绪</span>
+                        </div>
+                        <canvas id="dataChart1" class="chart-canvas"></canvas>
+                        <div id="noDataMessage1" class="no-data-message" style="display: none;">
+                            请先选择要展示的字段，然后点击"生成图表"按钮
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="field-selector">
-                <label>分组字段:</label>
-                <select id="groupField2">
-                    <option value="">请选择分组字段</option>
-                    <option value="problemLevel">问题等级</option>
-                    <option value="majorCode">大编码</option>
-                    <option value="minorCode">小编码</option>
-                    <option value="projectPhase">项目阶段</option>
-                    <option value="version">版本</option>
-                    <option value="problemProcess">问题工序</option>
-                    <option value="developmentMethod">开发方式</option>
-                    <option value="supplier">供应商</option>
-                    <option value="solutionProvider">方案商</option>
-                    <option value="problemPoint">问题点</option>
-                    <option value="problemReason">问题原因</option>
-                    <option value="improvementStrategy">改善对策</option>
-                    <option value="isPreventable">是否可预防</option>
-                    <option value="responsibleDepartment">责任部门</option>
-                    <option value="problemStatus">问题状态</option>
-                    <option value="problemTag1">问题打标1</option>
-                    <option value="problemTag2">问题打标2</option>
-                </select>
+                <!-- 右侧图表 -->
+                <div class="chart-container chart-right">
+                    <div class="chart-header">
+                        <h3 class="chart-title">数据可视化 - 图表2</h3>
+                        <div class="chart-controls">
+                            <div class="chart-type-buttons">
+                                <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar', 2)">柱状图</button>
+                                <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie', 2)">饼状图</button>
+                                <button class="chart-type-btn" data-type="line" onclick="switchChartType('line', 2)">折线图</button>
+                            </div>
+                        </div>
+                    </div>
 
-                <button id="generateChartBtn2" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(2)">生成图表</button>
+                    <div class="field-selector">
+                        <label>分组字段:</label>
+                        <select id="groupField2">
+                            <option value="">请选择分组字段</option>
+                            <option value="problemLevel">问题等级</option>
+                            <option value="majorCode">大编码</option>
+                            <option value="minorCode">小编码</option>
+                            <option value="projectPhase">项目阶段</option>
+                            <option value="version">版本</option>
+                            <option value="problemProcess">问题工序</option>
+                            <option value="developmentMethod">开发方式</option>
+                            <option value="supplier">供应商</option>
+                            <option value="solutionProvider">方案商</option>
+                            <option value="problemPoint">问题点</option>
+                            <option value="problemReason">问题原因</option>
+                            <option value="improvementStrategy">改善对策</option>
+                            <option value="isPreventable">是否可预防</option>
+                            <option value="responsibleDepartment">责任部门</option>
+                            <option value="problemStatus">问题状态</option>
+                            <option value="problemTag1">问题打标1</option>
+                            <option value="problemTag2">问题打标2</option>
+                        </select>
 
-                <!-- 排序按钮组 -->
-                <div class="chart-sort-buttons" role="group">
-                    <button id="sortAscBtn2" class="btn btn-outline-secondary" onclick="setChartSort('asc', 2)" title="按数值升序排列">
-                        <i class="fas fa-sort-amount-up"></i> 升序
-                    </button>
-                    <button id="sortDescBtn2" class="btn btn-outline-secondary" onclick="setChartSort('desc', 2)" title="按数值降序排列">
-                        <i class="fas fa-sort-amount-down"></i> 降序
-                    </button>
-                </div>
-            </div>
+                        <button id="generateChartBtn2" class="btn btn-primary" style="padding: 6px 12px; font-size: 14px;" onclick="generateChart(2)">生成图表</button>
 
-            <div class="chart-canvas-container">
-                <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
-                    <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
-                </div>
-                <div id="chartStatus2" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
-                    <i class="fas fa-chart-bar"></i> <span id="chartStatusText2">准备就绪</span>
-                </div>
-                <canvas id="dataChart2" class="chart-canvas"></canvas>
-                <div id="noDataMessage2" class="no-data-message" style="display: none;">
-                    请先选择要展示的字段，然后点击"生成图表"按钮
+                        <!-- 排序按钮组 -->
+                        <div class="chart-sort-buttons" role="group">
+                            <button id="sortAscBtn2" class="btn btn-outline-secondary" onclick="setChartSort('asc', 2)" title="按数值升序排列">
+                                <i class="fas fa-sort-amount-up"></i> 升序
+                            </button>
+                            <button id="sortDescBtn2" class="btn btn-outline-secondary" onclick="setChartSort('desc', 2)" title="按数值降序排列">
+                                <i class="fas fa-sort-amount-down"></i> 降序
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chart-canvas-container">
+                        <div style="margin-bottom: 10px; padding: 8px; background: #e3f2fd; border-left: 4px solid #2196f3; font-size: 14px; color: #1976d2;">
+                            <i class="fas fa-info-circle"></i> 图表将显示所有搜索结果的数据，不受分页限制。每次生成图表都会重新获取完整的搜索结果数据，确保统计的准确性。
+                        </div>
+                        <div id="chartStatus2" style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-left: 4px solid #6c757d; font-size: 14px; color: #495057; display: none;">
+                            <i class="fas fa-chart-bar"></i> <span id="chartStatusText2">准备就绪</span>
+                        </div>
+                        <canvas id="dataChart2" class="chart-canvas"></canvas>
+                        <div id="noDataMessage2" class="no-data-message" style="display: none;">
+                            请先选择要展示的字段，然后点击"生成图表"按钮
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2630,6 +2758,7 @@
     // 图表相关变量 - 支持双图表
     var currentChart1 = null;
     var currentChart2 = null;
+    var currentChartTypeStats = 'bar';
     var currentChartType1 = 'bar';
     var currentChartType2 = 'bar';
     var chartSortOrder1 = 'none'; // 排序状态: 'none', 'asc', 'desc'
@@ -2637,6 +2766,113 @@
     let currentPage = 1;
     let pageSize = 20;
     let totalCount = 0;
+
+    // 图表模态框控制函数
+    function openChartsModal() {
+        const modal = document.getElementById('chartsModal');
+        if (modal) {
+            modal.style.display = 'block';
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.position = 'relative';
+                modalContent.style.left = 'auto';
+                modalContent.style.top = 'auto';
+                modalContent.style.margin = '2% auto';
+
+                // 只有第一次打开或者没有被移动过时，才居中显示
+                // 如果之前移动过，保持之前的位置
+                if (modalDragState.xOffset === 0 && modalDragState.yOffset === 0) {
+                    modalContent.style.transform = 'translate3d(0, 0, 0)';
+                } else {
+                    // 保持之前移动的位置
+                    modalContent.style.transform = `translate3d(${modalDragState.xOffset}px, ${modalDragState.yOffset}px, 0)`;
+                }
+            }
+            // 保持拖拽状态（不重置）
+            modalDragState.isDragging = false;
+        }
+    }
+
+    function closeChartsModal() {
+        const modal = document.getElementById('chartsModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // 不重置位置，保留拖拽后的位置供下次使用
+        }
+    }
+
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+        const chartsModal = document.getElementById('chartsModal');
+        if (event.target == chartsModal) {
+            closeChartsModal();
+        }
+    }
+
+    // 模态框拖拽功能
+    let modalDragState = {
+        isDragging: false,
+        currentX: 0,
+        currentY: 0,
+        initialX: 0,
+        initialY: 0,
+        xOffset: 0,
+        yOffset: 0
+    };
+
+    function dragStart(e) {
+        // 检查是否点击了关闭按钮
+        if (e.target.classList.contains('close') || e.target.closest('.close')) {
+            return;
+        }
+
+        // 只有点击标题栏时才启动拖拽
+        const modalHeader = e.target.closest('.modal-header');
+        if (modalHeader) {
+            modalDragState.initialX = e.clientX - modalDragState.xOffset;
+            modalDragState.initialY = e.clientY - modalDragState.yOffset;
+            modalDragState.isDragging = true;
+        }
+    }
+
+    function drag(e) {
+        if (modalDragState.isDragging) {
+            e.preventDefault();
+            modalDragState.currentX = e.clientX - modalDragState.initialX;
+            modalDragState.currentY = e.clientY - modalDragState.initialY;
+
+            modalDragState.xOffset = modalDragState.currentX;
+            modalDragState.yOffset = modalDragState.currentY;
+
+            const modalContent = document.querySelector('#chartsModal .modal-content');
+            if (modalContent) {
+                setTranslate(modalDragState.currentX, modalDragState.currentY, modalContent);
+            }
+        }
+    }
+
+    function dragEnd(e) {
+        modalDragState.initialX = modalDragState.currentX;
+        modalDragState.initialY = modalDragState.currentY;
+        modalDragState.isDragging = false;
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+
+    // 初始化拖拽事件监听器
+    function initModalDrag() {
+        const modal = document.getElementById('chartsModal');
+        if (modal) {
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.addEventListener('mousedown', dragStart);
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', dragEnd);
+            }
+        }
+    }
 
     // 切换图表类型函数
     // 切换图表类型函数 - 支持双图表
@@ -3024,6 +3260,17 @@
 
         // 加载数据
         loadReviewData();
+
+        // 添加图表模态框按钮事件监听器
+        const showChartsBtn = document.getElementById('showChartsBtn');
+        if (showChartsBtn) {
+            showChartsBtn.addEventListener('click', function() {
+                openChartsModal();
+            });
+        }
+
+        // 初始化模态框拖拽功能
+        initModalDrag();
     });
 
     // 问题类别相关功能已移除
