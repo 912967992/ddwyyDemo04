@@ -208,7 +208,7 @@
             font-size: 11px;
         }
 
-        /* 评审结果详情编辑模式样式 */
+        /* 新品质量详情编辑模式样式 */
         .detail-content {
             padding: 20px;
         }
@@ -1858,7 +1858,7 @@
                     <i class="fas fa-plus"></i> 新增数据
                 </button>
                 <button id="importBtn" class="btn btn-primary">
-                    <i class="fas fa-upload"></i> 导入评审结果数据
+                    <i class="fas fa-upload"></i> 导入新品质量数据
                 </button>
                 <button id="exportBtn" class="btn btn-success">
                     <i class="fas fa-download"></i> 导出筛选结果
@@ -1886,11 +1886,11 @@
     </div>
 </div>
 
-<!-- 导入评审结果模态框 -->
+<!-- 导入新品质量模态框 -->
 <div id="importModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>导入评审结果数据</h2>
+            <h2>导入新品质量数据</h2>
             <span class="close" onclick="closeImportModal()">&times;</span>
         </div>
         <div class="modal-body">
@@ -1900,7 +1900,7 @@
                     <h3><i class="fas fa-download"></i> 下载模板文件</h3>
                     <p>请先下载模板文件，按照模板格式填写数据后上传</p>
                     <button id="downloadTemplateBtn" class="btn btn-info">
-                        <i class="fas fa-file-excel"></i> 下载评审结果模板
+                        <i class="fas fa-file-excel"></i> 下载新品质量问题模板
                     </button>
                     <div class="template-info">
                         <small>模板文件包含所有必填字段的示例数据</small>
@@ -2030,7 +2030,7 @@
                     <button id="showChartsBtn" class="btn btn-info">
                         <i class="fas fa-chart-bar"></i> 数据可视化
                     </button>
-                    <button id="showTestIssuesBtn" class="btn btn-success" style="display: none;">
+                    <button id="showTestIssuesBtn" class="btn btn-success" >
                         <i class="fas fa-bolt"></i> 电气测试问题点
                     </button>
                 </div>
@@ -2225,7 +2225,7 @@
                             <i class="fas fa-undo"></i> 重置
                         </button>
                         <button id="testIssuesAddToReviewBtn" class="btn btn-success">
-                            <i class="fas fa-plus-circle"></i> 添加到评审结果
+                            <i class="fas fa-plus-circle"></i> 导入到新品质量问题
                         </button>
                     </div>
                 </div>
@@ -2378,11 +2378,11 @@
     </div>
 </div>
 
-<!-- 评审结果详情模态框 -->
+<!-- 新品质量详情模态框 -->
 <div id="reviewDetailModal" class="modal">
     <div class="modal-content large-modal">
         <div class="modal-header">
-            <h2 id="reviewModalTitle">评审结果详情</h2>
+            <h2 id="reviewModalTitle">新品质量详情</h2>
             <span class="close">&times;</span>
         </div>
         <div class="modal-body">
@@ -3451,7 +3451,7 @@
         }
     }
 
-    // 添加电气测试问题点到评审结果
+    // 导入电气测试问题点到新品质量问题
     function addTestIssuesToReview() {
         // 获取所有选中的checkbox
         const checkedBoxes = document.querySelectorAll('.test-issues-row-checkbox:checked');
@@ -3465,7 +3465,7 @@
         const selectedIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'));
 
         // 确认操作
-        if (!confirm(`确定要将选中的 ${selectedIds.length} 条记录添加到评审结果吗？`)) {
+        if (!confirm(`确定要将选中的 ${selectedIds.length} 条记录导入到新品质量问题吗？`)) {
             return;
         }
 
@@ -3485,7 +3485,7 @@
             .then(data => {
                 hideLoading();
                 if (data.success) {
-                    alert(`成功添加 ${data.addedCount} 条记录到评审结果！`);
+                    alert(`成功导入 ${data.addedCount} 条记录到新品质量问题！`);
                     // 刷新外边主表数据
                     loadReviewData();
                     // 关闭模态框
@@ -3996,7 +3996,7 @@
             });
         }
 
-        // 添加电气测试问题点到评审结果按钮事件监听器
+        // 导入电气测试问题点到新品质量问题按钮事件监听器
         const testIssuesAddToReviewBtn = document.getElementById('testIssuesAddToReviewBtn');
         if (testIssuesAddToReviewBtn) {
             testIssuesAddToReviewBtn.addEventListener('click', function() {
@@ -4715,7 +4715,7 @@
 
                         const link = document.createElement('a');
                         link.href = data.downloadUrl;
-                        link.download = '评审结果导入模板.xlsx';
+                        link.download = '新品质量导入模板.xlsx';
                         link.style.display = 'none';
                         document.body.appendChild(link);
                         link.click();
@@ -4832,7 +4832,7 @@
             closeSpecificModal('cartModal');
         });
 
-        // 注意：评审结果页面不需要这些刷新按钮，因为筛选器都是输入框或固定选项
+        // 注意：新品质量页面不需要这些刷新按钮，因为筛选器都是输入框或固定选项
 
 
 
@@ -4874,7 +4874,7 @@
         // 关闭历史版本模态框
         document.getElementById('closeHistoryModal').addEventListener('click', closeModal);
 
-        // 关闭评审结果详情模态框
+        // 关闭新品质量详情模态框
         document.getElementById('closeReviewDetailModal').addEventListener('click', function() {
             resetReviewEditMode();
             document.getElementById('reviewDetailModal').style.display = 'none';
@@ -4885,7 +4885,7 @@
             closeSpecificModal('problemDetailModal');
         });
 
-        // 评审结果编辑相关事件监听器
+        // 新品质量编辑相关事件监听器
         document.getElementById('editReviewBtn').addEventListener('click', enterReviewEditMode);
         document.getElementById('saveReviewBtn').addEventListener('click', saveReviewEdit);
         document.getElementById('cancelEditReviewBtn').addEventListener('click', cancelReviewEdit);
@@ -4909,7 +4909,7 @@
                 // 找到最近的模态框并关闭
                 const modal = event.target.closest('.modal');
                 if (modal) {
-                    // 如果是评审结果详情模态框，需要重置编辑状态
+                    // 如果是新品质量详情模态框，需要重置编辑状态
                     if (modal.id === 'reviewDetailModal') {
                         resetReviewEditMode();
                     }
@@ -4920,7 +4920,7 @@
 
             // 处理点击模态框外部关闭
             if (event.target.classList.contains('modal')) {
-                // 如果是评审结果详情模态框，需要重置编辑状态
+                // 如果是新品质量详情模态框，需要重置编辑状态
                 if (event.target.id === 'reviewDetailModal') {
                     resetReviewEditMode();
                 }
@@ -4955,7 +4955,7 @@
         }
     }
 
-    // 加载评审结果数据
+    // 加载新品质量数据
     function loadReviewData() {
         showLoading();
 
@@ -5026,7 +5026,7 @@
     }
 
 
-    // 搜索评审结果
+    // 搜索新品质量
     function searchReviews() {
         console.log('开始搜索');
         currentPage = 1; // 重置到第一页
@@ -5208,7 +5208,7 @@
         const exportData = {
             selectedIds: selectedIds,
             exportType: 'reviewResults',
-            fileName: `评审结果数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+            fileName: `新品质量数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
             hiddenColumns: hiddenColumns
         };
 
@@ -5235,7 +5235,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                showToast(`成功导出 ${selectedIds.length} 条评审结果数据！`, 'success');
+                showToast(`成功导出 ${selectedIds.length} 条新品质量数据！`, 'success');
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -5271,7 +5271,7 @@
         const exportData = {
             filters: currentFilters,
             exportType: 'reviewResults',
-            fileName: `评审结果全部数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+            fileName: `新品质量全部数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
             hiddenColumns: hiddenColumns
         };
 
@@ -5470,7 +5470,7 @@
         resetReviewEditMode();
 
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '新增评审结果';
+        document.getElementById('reviewModalTitle').textContent = '新增新品质量';
 
         // 清空所有字段
         clearReviewDetailFields();
@@ -5482,7 +5482,7 @@
         document.getElementById('reviewDetailModal').style.display = 'block';
     }
 
-    // 清空评审结果详情字段
+    // 清空新品质量详情字段
     function clearReviewDetailFields() {
         // 清空所有显示字段
         const fields = [
@@ -5502,7 +5502,7 @@
         });
     }
 
-    // 显示评审结果详情
+    // 显示新品质量详情
     function showReviewDetail(reviewId) {
         const review = filteredData.find(r => r.id === reviewId);
         if (!review) return;
@@ -5511,9 +5511,9 @@
         resetReviewEditMode();
 
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '评审结果详情';
+        document.getElementById('reviewModalTitle').textContent = '新品质量详情';
 
-        // 存储当前编辑的评审结果ID
+        // 存储当前编辑的新品质量ID
         currentEditingReviewId = reviewId;
 
         // 填充详情数据
@@ -5701,13 +5701,13 @@
         });
     }
 
-    // 保存评审结果编辑
+    // 保存新品质量编辑
     function saveReviewEdit() {
         // 判断是新增还是更新
         const isNewRecord = !currentEditingReviewId;
 
         if (!isNewRecord && !currentEditingReviewId) {
-            showToast('没有找到要编辑的评审结果', 'error');
+            showToast('没有找到要编辑的新品质量', 'error');
             return;
         }
 
@@ -5747,7 +5747,7 @@
 
         // 根据是新增还是更新选择不同的API
         const apiUrl = isNewRecord ? '/reviewResult/add' : '/reviewResult/update';
-        const successMessage = isNewRecord ? '评审结果新增成功' : '评审结果更新成功';
+        const successMessage = isNewRecord ? '新品质量新增成功' : '新品质量更新成功';
         const errorMessage = isNewRecord ? '新增失败' : '更新失败';
 
         // 发送请求
@@ -5793,7 +5793,7 @@
             });
     }
 
-    // 取消评审结果编辑
+    // 取消新品质量编辑
     function cancelReviewEdit() {
         // 退出编辑模式
         exitReviewEditMode();
@@ -5801,7 +5801,7 @@
         showReviewDetail(currentEditingReviewId);
     }
 
-    // 重置评审结果编辑模式（用于模态框关闭时）
+    // 重置新品质量编辑模式（用于模态框关闭时）
     function resetReviewEditMode() {
         // 如果当前在编辑模式，先退出编辑模式
         const editBtn = document.getElementById('editReviewBtn');
@@ -5816,7 +5816,7 @@
             }
         }
 
-        // 清空当前编辑的评审结果ID
+        // 清空当前编辑的新品质量ID
         currentEditingReviewId = null;
     }
 
@@ -8202,7 +8202,7 @@
         const exportData = {
             selectedIds: selectedIds,
             exportType: 'reviewResults',
-            fileName: `收藏夹评审结果数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+            fileName: `收藏夹新品质量数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
             hiddenColumns: hiddenColumns
         };
 

@@ -32,8 +32,8 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
- * 评审结果页面控制器
- * 处理评审结果相关的页面跳转和API请求
+ * 新品质量问题页面控制器
+ * 处理新品质量问题相关的页面跳转和API请求
  */
 @Controller
 public class ReviewResultController {
@@ -48,8 +48,8 @@ public class ReviewResultController {
     private ReviewResultsDao reviewResultsDao;
 
     /**
-     * 评审结果页面跳转
-     * @return 评审结果页面视图
+     * 新品质量问题页面跳转
+     * @return 新品质量问题页面视图
      */
     @GetMapping("/reviewResults")
     public String reviewResultPage() {
@@ -57,7 +57,7 @@ public class ReviewResultController {
     }
 
     /**
-     * 获取评审结果列表
+     * 获取新品质量问题列表
      * @param username 用户名
      * @param job 角色
      * @param page 页码（可选，默认为1）
@@ -66,7 +66,7 @@ public class ReviewResultController {
      * @param status 评审状态筛选（可选）
      * @param reviewer 评审人筛选（可选）
      * @param reviewDate 评审日期筛选（可选）
-     * @return 评审结果列表
+     * @return 新品质量问题列表
      */
     @GetMapping("/reviewResult/getReviewResults")
     @ResponseBody
@@ -185,16 +185,16 @@ public class ReviewResultController {
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("error", "获取评审结果失败: " + e.getMessage());
+            result.put("error", "获取新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 获取评审结果详情
-     * @param id 评审结果ID
+     * 获取新品质量问题详情
+     * @param id 新品质量问题ID
      * @param username 用户名
-     * @return 评审结果详情
+     * @return 新品质量问题详情
      */
     @GetMapping("/reviewResult/getReviewDetail")
     @ResponseBody
@@ -213,7 +213,7 @@ public class ReviewResultController {
                 result.put("data", reviewDetail);
             } else {
                 result.put("success", false);
-                result.put("error", "未找到指定的评审结果");
+                result.put("error", "未找到指定的新品质量问题");
             }
 
             return ResponseEntity.ok(result);
@@ -226,8 +226,8 @@ public class ReviewResultController {
     }
 
     /**
-     * 保存评审结果
-     * @param requestData 评审结果数据
+     * 保存新品质量问题
+     * @param requestData 新品质量问题数据
      * @return 保存结果
      */
     @PostMapping("/reviewResult/saveReviewResult")
@@ -267,21 +267,21 @@ public class ReviewResultController {
 
             // 模拟保存成功
             result.put("success", true);
-            result.put("message", "评审结果保存成功");
+            result.put("message", "新品质量问题保存成功");
             result.put("id", id != null ? id : System.currentTimeMillis()); // 模拟生成ID
 
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "保存评审结果失败: " + e.getMessage());
+            result.put("message", "保存新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 更新评审结果
-     * @param requestData 评审结果数据
+     * 更新新品质量问题
+     * @param requestData 新品质量问题数据
      * @return 更新结果
      */
     @PostMapping("/reviewResult/updateReviewResult")
@@ -301,26 +301,26 @@ public class ReviewResultController {
             // 目前只做参数验证
             if (id == null) {
                 result.put("success", false);
-                result.put("message", "评审结果ID不能为空");
+                result.put("message", "新品质量问题ID不能为空");
                 return ResponseEntity.badRequest().body(result);
             }
 
             // 模拟更新成功
             result.put("success", true);
-            result.put("message", "评审结果更新成功");
+            result.put("message", "新品质量问题更新成功");
 
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "更新评审结果失败: " + e.getMessage());
+            result.put("message", "更新新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 更新评审结果详情
-     * @param requestData 评审结果详情数据
+     * 更新新品质量问题详情
+     * @param requestData 新品质量问题详情数据
      * @return 更新结果
      */
     @PostMapping("/reviewResult/update")
@@ -335,7 +335,7 @@ public class ReviewResultController {
             // 参数验证
             if (id == null) {
                 result.put("success", false);
-                result.put("message", "评审结果ID不能为空");
+                result.put("message", "新品质量问题ID不能为空");
                 return ResponseEntity.badRequest().body(result);
             }
 
@@ -343,7 +343,7 @@ public class ReviewResultController {
             ReviewResults existingReview = reviewResultsService.getReviewResultById(id);
             if (existingReview == null) {
                 result.put("success", false);
-                result.put("message", "未找到指定的评审结果记录");
+                result.put("message", "未找到指定的新品质量问题记录");
                 return ResponseEntity.badRequest().body(result);
             }
 
@@ -355,7 +355,7 @@ public class ReviewResultController {
             
             if (updateSuccess) {
                 result.put("success", true);
-                result.put("message", "评审结果详情更新成功");
+                result.put("message", "新品质量问题详情更新成功");
                 result.put("data", existingReview);
             } else {
                 result.put("success", false);
@@ -366,14 +366,14 @@ public class ReviewResultController {
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "更新评审结果详情失败: " + e.getMessage());
+            result.put("message", "更新新品质量问题详情失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 更新评审结果字段
-     * @param review 评审结果对象
+     * 更新新品质量问题字段
+     * @param review 新品质量问题对象
      * @param requestData 请求数据
      */
     private void updateReviewFields(ReviewResults review, Map<String, Object> requestData) {
@@ -465,8 +465,8 @@ public class ReviewResultController {
     }
 
     /**
-     * 删除评审结果
-     * @param id 评审结果ID
+     * 删除新品质量问题
+     * @param id 新品质量问题ID
      * @param username 用户名
      * @return 删除结果
      */
@@ -483,25 +483,25 @@ public class ReviewResultController {
             // 目前只做参数验证
             if (id == null) {
                 result.put("success", false);
-                result.put("message", "评审结果ID不能为空");
+                result.put("message", "新品质量问题ID不能为空");
                 return ResponseEntity.badRequest().body(result);
             }
 
             // 模拟删除成功
             result.put("success", true);
-            result.put("message", "评审结果删除成功");
+            result.put("message", "新品质量问题删除成功");
 
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "删除评审结果失败: " + e.getMessage());
+            result.put("message", "删除新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 批量删除选中的评审结果
+     * 批量删除选中的新品质量问题
      * @param requestData 包含要删除的ID列表
      * @return 删除结果
      */
@@ -644,7 +644,7 @@ public class ReviewResultController {
             // 设置响应头
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", "评审结果全部数据.xlsx");
+            headers.setContentDispositionFormData("attachment", "新品质量问题全部数据.xlsx");
             
             return ResponseEntity.ok()
                     .headers(headers)
@@ -658,8 +658,8 @@ public class ReviewResultController {
     }
 
     /**
-     * 新增评审结果
-     * @param requestData 评审结果数据
+     * 新增新品质量问题
+     * @param requestData 新品质量问题数据
      * @return 新增结果
      */
     @PostMapping("/reviewResult/add")
@@ -668,7 +668,7 @@ public class ReviewResultController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // 创建新的评审结果对象
+            // 创建新的新品质量问题对象
             ReviewResults newReview = new ReviewResults();
             
             // 设置创建时间
@@ -683,7 +683,7 @@ public class ReviewResultController {
             
             if (insertResult > 0) {
                 result.put("success", true);
-                result.put("message", "评审结果新增成功");
+                result.put("message", "新品质量问题新增成功");
                 result.put("data", newReview);
             } else {
                 result.put("success", false);
@@ -694,13 +694,13 @@ public class ReviewResultController {
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "新增评审结果失败: " + e.getMessage());
+            result.put("message", "新增新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 导入评审结果数据
+     * 导入新品质量问题数据
      * @param file Excel文件
      * @param username 用户名
      * @return 导入结果
@@ -748,7 +748,7 @@ public class ReviewResultController {
     }
 
     /**
-     * 导出评审结果
+     * 导出新品质量问题
      * @param username 用户名
      * @param job 角色
      * @param sampleId 样品ID筛选（可选）
@@ -782,13 +782,13 @@ public class ReviewResultController {
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "导出评审结果失败: " + e.getMessage());
+            result.put("message", "导出新品质量问题失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
     /**
-     * 导出评审结果Excel文件
+     * 导出新品质量问题Excel文件
      * @param requestData 包含导出数据的请求体
      * @return Excel文件
      */
@@ -870,7 +870,7 @@ public class ReviewResultController {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "评审结果数据_" + java.time.LocalDate.now() + ".xlsx");
+            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "新品质量问题数据_" + java.time.LocalDate.now() + ".xlsx");
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -883,7 +883,7 @@ public class ReviewResultController {
     }
 
     /**
-     * 下载评审结果导入模板
+     * 下载新品质量问题导入模板
      * @return 模板文件信息
      */
     @GetMapping("/reviewResult/downloadTemplate")
@@ -893,7 +893,7 @@ public class ReviewResultController {
         
         try {
             // 从application.yml中获取模板路径
-            String templatePath = templatesPath + "/评审结果导入模板.xlsx";
+            String templatePath = templatesPath + "/新品质量问题导入模板.xlsx";
             Path file = Paths.get(templatePath);
             
             System.out.println("尝试下载模板文件，路径: " + templatePath);
@@ -904,7 +904,7 @@ public class ReviewResultController {
                 result.put("success", false);
                 result.put("message", "模板文件不存在，请先创建模板文件");
                 result.put("templatePath", templatePath);
-                result.put("instructions", "请将评审结果导入模板.xlsx文件放到以下路径：" + templatePath);
+                result.put("instructions", "请将新品质量问题导入模板.xlsx文件放到以下路径：" + templatePath);
                 return ResponseEntity.ok(result);
             }
             
@@ -923,7 +923,7 @@ public class ReviewResultController {
             
             result.put("success", false);
             result.put("message", "检查模板文件时发生错误: " + e.getMessage());
-            result.put("templatePath", "E:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx");
+            result.put("templatePath", "E:/ddwyy-lj/templatesDirectory/新品质量问题导入模板.xlsx");
             return ResponseEntity.ok(result);
         }
     }
@@ -935,7 +935,8 @@ public class ReviewResultController {
     @GetMapping("/reviewResult/downloadTemplateFile")
     public ResponseEntity<Resource> downloadTemplateFile() {
         try {
-            String templatePath = "Z:/ddwyy-lj/templatesDirectory/评审结果导入模板.xlsx";
+            String templatePath = templatesPath + "/新品质量问题导入模板.xlsx";
+
             Path file = Paths.get(templatePath);
             
             if (!Files.exists(file)) {
@@ -945,7 +946,7 @@ public class ReviewResultController {
             Resource resource = new UrlResource(file.toUri());
             
             // 对中文文件名进行URL编码
-            String filename = "评审结果导入模板.xlsx";
+            String filename = "新品质量问题导入模板.xlsx";
             String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString());
             
             return ResponseEntity.ok()
@@ -1027,8 +1028,8 @@ public class ReviewResultController {
     }
 
     /**
-     * 创建评审结果Excel文件
-     * @param data 评审结果数据
+     * 创建新品质量问题Excel文件
+     * @param data 新品质量问题数据
      * @param hiddenColumns 隐藏的列列表
      * @return Excel文件输出流
      * @throws IOException IO异常
@@ -1161,7 +1162,7 @@ public class ReviewResultController {
         }
     }
 
-    // 辅助方法用于创建评审结果单元格并设置样式
+    // 辅助方法用于创建新品质量问题单元格并设置样式
     private void createReviewResultsCell(Row row, int columnIndex, Object value, CellStyle style) {
         Cell cell = row.createCell(columnIndex);
         if (value instanceof String) {
@@ -1334,7 +1335,7 @@ public class ReviewResultController {
     }
 
     /**
-     * 将电气测试问题点添加到评审结果
+     * 将电气测试问题点添加到新品质量问题
      * @param requestData 包含test_issues的ID列表
      * @return 添加结果
      */
@@ -1414,7 +1415,7 @@ public class ReviewResultController {
     /**
      * 将TestIssuesView转换为ReviewResults
      * @param testIssue 电气测试问题点
-     * @return 评审结果对象
+     * @return 新品质量问题对象
      */
     private ReviewResults convertTestIssueToReviewResult(TestIssuesView testIssue) {
         ReviewResults reviewResult = new ReviewResults();
