@@ -751,6 +751,16 @@ public class testManIndexController {
                 response.put("message", problem); // 返回缺少列的错误信息
                 logger.error("提交文件失败：" + filepath + "，" + problem);
                 return response;
+            }else if(problem.startsWith("问题类别不能为空") || 
+                     problem.startsWith("复现概率不能为空") || 
+                     problem.startsWith("当前状态不能为空") || 
+                     problem.startsWith("缺陷等级不能为空") ||
+                     problem.startsWith("缺陷等级必须为") ||
+                     problem.startsWith("当前状态必须为")){
+                response.put("status", "error");
+                response.put("message", problem); // 返回验证错误信息
+                logger.error("提交文件失败：" + filepath + "，" + problem);
+                return response;
             }
 
             testManIndexService.finishTestWithoutTime(schedule,formattedDateTime,sample_id);
@@ -930,9 +940,9 @@ public class testManIndexController {
                 boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
                 if (isEmpty) continue;
 
-                // 检查是否为只有序号的行（序号列有值但其他重要字段都为空）
+                // 检查问题点字段是否为空，如果为空则跳过该行
                 if (isOnlySequenceNumberRow(rowMap)) {
-                    continue; // 跳过只有序号的行
+                    continue; // 跳过问题点字段为空的行
                 }
 
                 // 检查问题类别的值是否为空或是否包含"-"符号
@@ -959,6 +969,7 @@ public class testManIndexController {
                 if (!normalizedStatus.equals("open") && 
                     !normalizedStatus.equals("close") && 
                     !normalizedStatus.equals("closed") && 
+                    !normalizedStatus.equals("following up") &&
                     !normalizedStatus.equals("follow up")) {
                     return "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus;
                 }
@@ -2323,9 +2334,9 @@ public class testManIndexController {
                 boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
                 if (isEmpty) continue;
 
-                // 检查是否为只有序号的行（序号列有值但其他重要字段都为空）
+                // 检查问题点字段是否为空，如果为空则跳过该行
                 if (isOnlySequenceNumberRow(rowMap)) {
-                    continue; // 跳过只有序号的行
+                    continue; // 跳过问题点字段为空的行
                 }
 
                 // 检查问题类别的值是否为空或是否包含"-"符号
@@ -2356,6 +2367,7 @@ public class testManIndexController {
                 if (!normalizedStatus.equals("open") && 
                     !normalizedStatus.equals("close") && 
                     !normalizedStatus.equals("closed") && 
+                    !normalizedStatus.equals("following up") &&
                     !normalizedStatus.equals("follow up")) {
                     result.put("message", "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus);
                     return result;
@@ -2373,6 +2385,20 @@ public class testManIndexController {
                     !normalizedDefectLevel.equals("B") && 
                     !normalizedDefectLevel.equals("C")) {
                     result.put("message", "缺陷等级必须为S、A、B、C中的一个（大写），当前值：" + defectLevel);
+                    return result;
+                }
+
+                // 检查DQE确认回复原因与对策不能为空
+                String green_union_dqe = rowMap.get("DQE确认回复原因与对策（每个版本的回复请勿删除）");
+                if (green_union_dqe == null || green_union_dqe.trim().isEmpty()) {
+                    result.put("message", "DQE确认回复原因与对策不能为空，请填写DQE确认回复原因与对策");
+                    return result;
+                }
+
+                // 检查研发确认回复原因与对策不能为空
+                String green_union_rd = rowMap.get("研发确认回复原因与对策（每个版本的回复请勿删除）");
+                if (green_union_rd == null || green_union_rd.trim().isEmpty()) {
+                    result.put("message", "研发确认回复原因与对策不能为空，请填写研发确认回复原因与对策");
                     return result;
                 }
 
@@ -2616,28 +2642,19 @@ public class testManIndexController {
     }
 
     /**
-     * 判断行是否只包含序号而没有其他有效数据
+     * 判断行是否为无效数据行（以问题点字段为准）
      * @param rowMap 行数据映射
-     * @return true 如果该行只包含序号，false 如果有其他有效数据
+     * @return true 如果问题点字段为空（无效行），false 如果问题点字段有值（有效行）
      */
     private boolean isOnlySequenceNumberRow(Map<String, String> rowMap) {
-        // 定义重要的字段列表，这些字段如果有值说明行包含有效数据
-        String[] importantFields = {
-            "问题类别", "问题", "复现手法", "恢复方法", "复现概率", 
-            "缺陷等级", "当前状态", "对比上一版或竞品", "测试人员",
-            "DQE&研发确认", "改善对策（研发回复）", "分析责任人", 
-            "改善后风险", "下一版回归测试", "备注", "复现概率", "当前状态", "缺陷等级"
-        };
-        
-        // 检查重要字段是否有非空值
-        for (String field : importantFields) {
-            String value = rowMap.get(field);
-            if (value != null && !value.trim().isEmpty()) {
-                return false; // 如果任何重要字段有值，说明不是只有序号的行
-            }
+        // 优先检查"问题点"字段，以问题点字段为准判断是否为有效的问题点行
+        String problemValue = rowMap.get("问题点");
+        if (problemValue == null || problemValue.trim().isEmpty()) {
+            return true; // 如果问题点字段为空，则认为无效，跳过该行
         }
         
-        return true; // 所有重要字段都为空，说明只有序号
+        // 如果问题点字段有值，则认为是有效的问题点行
+        return false;
     }
 
 

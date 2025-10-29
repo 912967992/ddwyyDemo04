@@ -1546,16 +1546,16 @@
             }
 
             // 创建文件输入元素
-            const fileInput = document.createElement
-            ('input');
+            const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = '.xlsx';
 
-            // 监听文件选择事件
-            fileInput.addEventListener('change', async function() {
-                const file = fileInput.files[0];
+            // 监听文件选择事件（只添加一次）
+            const handleFileChange = async function(event) {
+                const file = event.target.files[0];
                 if (!file) {
-                    alert('请选择一个文件');
+                    // 用户取消了文件选择
+                    fileInput.remove(); // 移除文件输入元素
                     return;
                 }
 
@@ -1564,6 +1564,7 @@
                 const fileExtension = fileName.slice(fileName.lastIndexOf('.') + 1).toLowerCase();
                 if (fileExtension !== 'xlsx') {
                     alert('请上传一个 .xlsx 格式的文件');
+                    fileInput.remove(); // 移除文件输入元素
                     return;
                 }
 
@@ -1591,8 +1592,14 @@
                 } catch (error) {
                     console.error('处理文件时出错:', error);
                     alert('处理文件时出错: ' + error.message);
+                } finally {
+                    // 无论成功失败，都移除事件监听器和文件输入元素
+                    fileInput.removeEventListener('change', handleFileChange);
+                    fileInput.remove();
                 }
-            });
+            };
+
+            fileInput.addEventListener('change', handleFileChange);
 
             // 触发文件选择对话框
             fileInput.click();
