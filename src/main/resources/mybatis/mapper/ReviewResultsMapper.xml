@@ -366,8 +366,16 @@
             '' as is_preventable,
             t.responsibleDepartment,
             t.current_status,
-            '' as planned_completion_time,
-            '' as actual_completion_time,
+            (
+                SELECT MAX(e.schedule_end_date)
+                FROM electric_info e
+                WHERE FIND_IN_SET(CAST(s.sample_id AS CHAR), e.sample_actual_id)
+            ) as planned_completion_time,
+            (
+                SELECT MAX(e.actual_finish_time)
+                FROM electric_info e
+                WHERE FIND_IN_SET(CAST(s.sample_id AS CHAR), e.sample_actual_id)
+            ) as actual_completion_time,
             '' as delay_days,
             '' as problem_tag1,
             t.problemCategory as problem_tag2,
@@ -381,6 +389,7 @@
             FROM test_issues
             GROUP BY sample_id
         ) latest ON t.sample_id = latest.sample_id AND t.history_id = latest.max_history_id
+        WHERE s.finish_time >= '2025-07-01 00:00:00'
         ORDER BY t.created_at DESC
     </select>
 
@@ -407,8 +416,16 @@
             '' as is_preventable,
             t.responsibleDepartment,
             t.current_status,
-            '' as planned_completion_time,
-            '' as actual_completion_time,
+            (
+                SELECT MAX(e.schedule_end_date)
+                FROM electric_info e
+                WHERE FIND_IN_SET(CAST(s.sample_id AS CHAR), e.sample_actual_id)
+            ) as planned_completion_time,
+            (
+                SELECT MAX(e.actual_finish_time)
+                FROM electric_info e
+                WHERE FIND_IN_SET(CAST(s.sample_id AS CHAR), e.sample_actual_id)
+            ) as actual_completion_time,
             '' as delay_days,
             '' as problem_tag1,
             t.problemCategory as problem_tag2,
@@ -421,6 +438,7 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        AND s.finish_time >= '2025-07-01 00:00:00'
         ORDER BY t.created_at DESC
     </select>
 

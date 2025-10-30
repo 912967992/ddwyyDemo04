@@ -333,6 +333,11 @@ public class ReviewResultsService {
                 String supplier = getCellValueAsString(getCellSafely(row, columnMapping.supplierIndex));
                 String problemPoint = getCellValueAsString(getCellSafely(row, columnMapping.problemPointIndex));
                 
+                // 若“问题点”为空，直接跳过该数据行
+                if (problemPoint == null || problemPoint.trim().isEmpty()) {
+                    continue;
+                }
+
                 // 检查必填字段，发现第一个为空就立即停止并返回
                 // 组别、品类、DQE负责人已改为可选字段，不再进行必填验证
                 if (majorCode == null || majorCode.trim().isEmpty()) {
@@ -351,10 +356,7 @@ public class ReviewResultsService {
                     validationErrors.add("第" + (rowIndex + 1) + "行供应商不能为空");
                     return reviewResultsList;
                 }
-                if (problemPoint == null || problemPoint.trim().isEmpty()) {
-                    validationErrors.add("第" + (rowIndex + 1) + "行问题点不能为空");
-                    return reviewResultsList;
-                }
+                // “问题点”在前面已判断为空则跳过，此处不再作为报错拦截条件
                 
                 // 先检查各个格式字段
                 // 检查Delay天数字段

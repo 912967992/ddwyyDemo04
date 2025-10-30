@@ -1600,6 +1600,20 @@ public class ReviewResultController {
         reviewResult.setPlannedCompletionTime(null);
         reviewResult.setActualCompletionTime(null);
         reviewResult.setDelayDays(null);
+
+        // 从 TestIssuesView 补充计划/实际完成时间（来自 electric_info）
+        try {
+            String planned = testIssue.getPlannedCompletionTime();
+            if (planned != null && !planned.trim().isEmpty()) {
+                reviewResult.setPlannedCompletionTime(parseToLocalDateTime(planned.trim()));
+            }
+        } catch (Exception ignore) { }
+        try {
+            String actual = testIssue.getActualCompletionTime();
+            if (actual != null && !actual.trim().isEmpty()) {
+                reviewResult.setActualCompletionTime(parseToLocalDateTime(actual.trim()));
+            }
+        } catch (Exception ignore) { }
         
         // 状态信息
         reviewResult.setProblemStatus(testIssue.getCurrentStatus());
@@ -1608,6 +1622,32 @@ public class ReviewResultController {
         reviewResult.setPreventionNotes(testIssue.getRemark());
         
         return reviewResult;
+    }
+
+    // 解析多种日期/时间字符串为 LocalDateTime
+    private LocalDateTime parseToLocalDateTime(String value) {
+        try {
+            // 纯日期格式 YYYY-MM-DD
+            if (value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return LocalDate.parse(value).atStartOfDay();
+            }
+            // 纯数字日期 YYYYMMDD
+            if (value.matches("\\d{8}")) {
+                int year = Integer.parseInt(value.substring(0, 4));
+                int month = Integer.parseInt(value.substring(4, 6));
+                int day = Integer.parseInt(value.substring(6, 8));
+                return LocalDate.of(year, month, day).atStartOfDay();
+            }
+            // 含空格分隔的日期时间，转成 ISO 解析
+            if (value.contains(" ")) {
+                return LocalDateTime.parse(value.replace(' ', 'T'));
+            }
+            // 默认按 ISO_LOCAL_DATE_TIME 解析（形如 2025-10-30T12:34:56）
+            return LocalDateTime.parse(value);
+        } catch (Exception e) {
+            // 兜底：无法解析则返回当前时间，避免导入失败
+            return LocalDateTime.now();
+        }
     }
 
     /**
