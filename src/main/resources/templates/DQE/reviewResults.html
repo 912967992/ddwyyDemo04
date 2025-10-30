@@ -1709,7 +1709,7 @@
         .column-manager-container {
             margin-bottom: 15px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             gap: 10px;
         }
 
@@ -2148,7 +2148,7 @@
                         <i class="fas fa-chart-bar"></i> 数据可视化
                     </button>
                     <button id="showTestIssuesBtn" class="btn btn-success" >
-                        <i class="fas fa-bolt"></i> 电气测试问题点
+                        <i class="fas fa-bolt"></i> 电气测试问题点导入
                     </button>
                 </div>
             </div>
@@ -2418,6 +2418,18 @@
     <div class="table-section">
     <!-- 全局编辑和列管理按钮 -->
     <div class="column-manager-container">
+        <div class="pagination-info">
+            <span>显示第 <span id="startRecord">1</span> - <span id="endRecord">10</span> 条，共 <span id="totalRecords">0</span> 条记录</span>
+            <div class="page-size-selector">
+                <label>每页显示:</label>
+                <select id="pageSizeSelect">
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span>条</span>
+            </div>
+        </div>
         <div class="column-manager-btn-wrapper">
             <button id="globalEditBtn" class="btn btn-primary" title="全局编辑">
                 <i class="fas fa-edit"></i> <span id="globalEditBtnText">全局编辑</span>
@@ -2494,18 +2506,6 @@
 
     <!-- 分页控件 -->
     <div class="pagination-container">
-        <div class="pagination-info">
-            <span>显示第 <span id="startRecord">1</span> - <span id="endRecord">10</span> 条，共 <span id="totalRecords">0</span> 条记录</span>
-            <div class="page-size-selector">
-                <label>每页显示:</label>
-                <select id="pageSizeSelect">
-                    <option value="20" selected>20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                <span>条</span>
-            </div>
-        </div>
         <div class="pagination-controls">
             <button id="firstPageBtn" class="btn btn-sm" title="首页">首页</button>
             <button id="prevPageBtn" class="btn btn-sm">上一页</button>
