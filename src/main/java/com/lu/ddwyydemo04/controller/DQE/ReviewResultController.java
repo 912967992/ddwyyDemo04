@@ -95,7 +95,11 @@ public class ReviewResultController {
             @RequestParam(required = false) String delayDays,
             @RequestParam(required = false) String preventionNotes,
             @RequestParam(required = false) String testStartDate,
-            @RequestParam(required = false) String testEndDate) {
+            @RequestParam(required = false) String testEndDate,
+            @RequestParam(required = false) String group,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String dqeResponsible,
+            @RequestParam(required = false) String dataSource) {
 
         Map<String, Object> result = new HashMap<>();
 
@@ -148,6 +152,14 @@ public class ReviewResultController {
                     (item.getTestDate() != null && !item.getTestDate().isBefore(LocalDate.parse(testStartDate))))
                 .filter(item -> testEndDate == null || testEndDate.isEmpty() || 
                     (item.getTestDate() != null && !item.getTestDate().isAfter(LocalDate.parse(testEndDate))))
+                .filter(item -> group == null || group.isEmpty() || 
+                    (item.getGroup() != null && item.getGroup().equals(group)))
+                .filter(item -> category == null || category.isEmpty() || 
+                    (item.getCategory() != null && item.getCategory().toLowerCase().contains(category.toLowerCase())))
+                .filter(item -> dqeResponsible == null || dqeResponsible.isEmpty() || 
+                    (item.getDqeResponsible() != null && item.getDqeResponsible().toLowerCase().contains(dqeResponsible.toLowerCase())))
+                .filter(item -> dataSource == null || dataSource.isEmpty() || 
+                    (item.getDataSource() != null && item.getDataSource().toLowerCase().contains(dataSource.toLowerCase())))
                 .collect(Collectors.toList());
 
 //            System.out.println("筛选后的数据量: " + filteredData.size());
@@ -378,6 +390,15 @@ public class ReviewResultController {
      */
     private void updateReviewFields(ReviewResults review, Map<String, Object> requestData) {
         // 更新基本信息
+        if (requestData.get("group") != null) {
+            review.setGroup(requestData.get("group").toString());
+        }
+        if (requestData.get("category") != null) {
+            review.setCategory(requestData.get("category").toString());
+        }
+        if (requestData.get("dqeResponsible") != null) {
+            review.setDqeResponsible(requestData.get("dqeResponsible").toString());
+        }
         if (requestData.get("testDate") != null) {
             String testDateStr = requestData.get("testDate").toString();
             if (!testDateStr.isEmpty()) {
@@ -461,6 +482,9 @@ public class ReviewResultController {
         }
         if (requestData.get("preventionNotes") != null) {
             review.setPreventionNotes(requestData.get("preventionNotes").toString());
+        }
+        if (requestData.get("dataSource") != null) {
+            review.setDataSource(requestData.get("dataSource").toString());
         }
     }
 
@@ -606,6 +630,9 @@ public class ReviewResultController {
             for (ReviewResults reviewResult : dataList) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", reviewResult.getId());
+                item.put("group", reviewResult.getGroup());
+                item.put("category", reviewResult.getCategory());
+                item.put("dqeResponsible", reviewResult.getDqeResponsible());
                 item.put("testDate", reviewResult.getTestDate());
                 item.put("majorCode", reviewResult.getMajorCode());
                 item.put("minorCode", reviewResult.getMinorCode());
@@ -628,6 +655,7 @@ public class ReviewResultController {
                 item.put("problemTag1", reviewResult.getProblemTag1());
                 item.put("problemTag2", reviewResult.getProblemTag2());
                 item.put("preventionNotes", reviewResult.getPreventionNotes());
+                item.put("dataSource", reviewResult.getDataSource());
                 data.add(item);
             }
 
@@ -812,6 +840,9 @@ public class ReviewResultController {
                 for (ReviewResults reviewResult : reviewResults) {
                     Map<String, Object> item = new HashMap<>();
                     item.put("id", reviewResult.getId());
+                    item.put("group", reviewResult.getGroup());
+                    item.put("category", reviewResult.getCategory());
+                    item.put("dqeResponsible", reviewResult.getDqeResponsible());
                     item.put("testDate", reviewResult.getTestDate());
                     item.put("majorCode", reviewResult.getMajorCode());
                     item.put("minorCode", reviewResult.getMinorCode());
@@ -834,6 +865,7 @@ public class ReviewResultController {
                     item.put("problemTag1", reviewResult.getProblemTag1());
                     item.put("problemTag2", reviewResult.getProblemTag2());
                     item.put("preventionNotes", reviewResult.getPreventionNotes());
+                    item.put("dataSource", reviewResult.getDataSource());
                     data.add(item);
                 }
             } else {
@@ -1049,8 +1081,10 @@ public class ReviewResultController {
             centeredStyle.setBorderLeft(BorderStyle.THIN);
             centeredStyle.setBorderRight(BorderStyle.THIN);
 
-            // 定义列配置 - 序号列总是显示
+            // 定义列配置 - 按照指定顺序排列
             List<ColumnConfig> columns = new ArrayList<>();
+            columns.add(new ColumnConfig("group", "组别", false));
+            columns.add(new ColumnConfig("category", "品类", false));
             columns.add(new ColumnConfig("testDate", "发生日期", false));
             columns.add(new ColumnConfig("majorCode", "大编码", false));
             columns.add(new ColumnConfig("minorCode", "小编码", false));
@@ -1066,6 +1100,7 @@ public class ReviewResultController {
             columns.add(new ColumnConfig("improvementMeasures", "改善对策", false));
             columns.add(new ColumnConfig("isPreventable", "是否可预防", false));
             columns.add(new ColumnConfig("responsibleDepartment", "责任部门", false));
+            columns.add(new ColumnConfig("dqeResponsible", "DQE责任人", false));
             columns.add(new ColumnConfig("plannedCompletionTime", "预计完成时间", true));
             columns.add(new ColumnConfig("actualCompletionTime", "实际完成时间", true));
             columns.add(new ColumnConfig("delayDays", "Delay天数", false));
@@ -1073,6 +1108,7 @@ public class ReviewResultController {
             columns.add(new ColumnConfig("problemTag1", "问题打标1", false));
             columns.add(new ColumnConfig("problemTag2", "问题打标2", false));
             columns.add(new ColumnConfig("preventionNotes", "预防备注", false));
+            columns.add(new ColumnConfig("dataSource", "数据来源", false));
 
             // 过滤隐藏的列
             List<ColumnConfig> visibleColumns = new ArrayList<>();
@@ -1247,6 +1283,9 @@ public class ReviewResultController {
      * @param minorCode 小编码（可选）
      * @param version 版本（可选）
      * @param problemStatus 问题状态（可选）
+     * @param group 组别（可选）
+     * @param category 品类（可选）
+     * @param dqeResponsible DQE负责人（可选）
      * @return 电气测试问题点列表
      */
     @GetMapping("/reviewResult/getTestIssues")
@@ -1256,7 +1295,10 @@ public class ReviewResultController {
             @RequestParam(required = false) String majorCode,
             @RequestParam(required = false) String minorCode,
             @RequestParam(required = false) String version,
-            @RequestParam(required = false) String problemStatus) {
+            @RequestParam(required = false) String problemStatus,
+            @RequestParam(required = false) String group,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String dqeResponsible) {
 
         Map<String, Object> result = new HashMap<>();
 
@@ -1299,11 +1341,38 @@ public class ReviewResultController {
                     .collect(Collectors.toList());
             }
             
+            // 组别筛选
+            if (group != null && !group.trim().isEmpty()) {
+                String lowerGroup = group.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getGroup() != null && item.getGroup().toLowerCase().contains(lowerGroup))
+                    .collect(Collectors.toList());
+            }
+            
+            // 品类筛选
+            if (category != null && !category.trim().isEmpty()) {
+                String lowerCategory = category.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getCategory() != null && item.getCategory().toLowerCase().contains(lowerCategory))
+                    .collect(Collectors.toList());
+            }
+            
+            // DQE负责人筛选
+            if (dqeResponsible != null && !dqeResponsible.trim().isEmpty()) {
+                String lowerDqeResponsible = dqeResponsible.toLowerCase();
+                filteredData = filteredData.stream()
+                    .filter(item -> item.getDqeResponsible() != null && item.getDqeResponsible().toLowerCase().contains(lowerDqeResponsible))
+                    .collect(Collectors.toList());
+            }
+            
             // 关键词筛选（在所有字段中搜索）
             if (keyword != null && !keyword.trim().isEmpty()) {
                 String lowerKeyword = keyword.toLowerCase();
                 filteredData = filteredData.stream()
                     .filter(item -> 
+                        (item.getGroup() != null && item.getGroup().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getCategory() != null && item.getCategory().toLowerCase().contains(lowerKeyword)) ||
+                        (item.getDqeResponsible() != null && item.getDqeResponsible().toLowerCase().contains(lowerKeyword)) ||
                         (item.getProblem() != null && item.getProblem().toLowerCase().contains(lowerKeyword)) ||
                         (item.getProblemTime() != null && item.getProblemTime().contains(keyword)) ||
                         (item.getDefectLevel() != null && item.getDefectLevel().toLowerCase().contains(lowerKeyword)) ||
@@ -1366,15 +1435,27 @@ public class ReviewResultController {
 
             int addedCount = 0;
             int skippedCount = 0;
+            List<Map<String, String>> skippedRecords = new ArrayList<>(); // 记录已存在的记录详情
 
             // 将每个test_issues转换为reviewResults并插入
             for (TestIssuesView testIssue : testIssuesList) {
                 try {
-                    // 检查是否已存在
+                    // 先转换项目阶段（用于判断是否存在）
+                    String sampleStage = testIssue.getSampleStage();
+                    String projectPhase = sampleStage;
+                    if (sampleStage != null) {
+                        if ("功能样".equals(sampleStage.trim())) {
+                            projectPhase = "EVT";
+                        } else if ("大货样".equals(sampleStage.trim())) {
+                            projectPhase = "DVT";
+                        }
+                    }
+                    
+                    // 检查是否已存在（使用转换后的项目阶段）
                     Long existingId = reviewResultsDao.findExistingRecord(
                         testIssue.getSampleModel(),  // majorCode
                         testIssue.getSampleCoding(), // minorCode
-                        testIssue.getSampleStage(),  // projectPhase
+                        projectPhase,                // projectPhase (转换后的值)
                         testIssue.getVersion(),      // version
                         testIssue.getSupplier(),     // supplier
                         testIssue.getProblem()       // problemPoint
@@ -1389,8 +1470,17 @@ public class ReviewResultController {
                         reviewResultsDao.insert(reviewResult);
                         addedCount++;
                     } else {
-                        // 已存在，跳过
+                        // 已存在，记录详细信息
                         skippedCount++;
+                        Map<String, String> skippedRecord = new HashMap<>();
+                        skippedRecord.put("majorCode", testIssue.getSampleModel() != null ? testIssue.getSampleModel() : "-");
+                        skippedRecord.put("minorCode", testIssue.getSampleCoding() != null ? testIssue.getSampleCoding() : "-");
+                        skippedRecord.put("projectPhase", projectPhase != null ? projectPhase : "-");
+                        skippedRecord.put("version", testIssue.getVersion() != null ? testIssue.getVersion() : "-");
+                        skippedRecord.put("supplier", testIssue.getSupplier() != null ? testIssue.getSupplier() : "-");
+                        skippedRecord.put("problemPoint", testIssue.getProblem() != null ? 
+                                         (testIssue.getProblem().length() > 20 ? testIssue.getProblem().substring(0, 20) + "..." : testIssue.getProblem()) : "-");
+                        skippedRecords.add(skippedRecord);
                     }
                 } catch (Exception e) {
                     System.err.println("处理记录时出错: " + e.getMessage());
@@ -1398,10 +1488,36 @@ public class ReviewResultController {
                 }
             }
 
+            // 构建返回消息
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.append(String.format("成功添加 %d 条记录", addedCount));
+            if (skippedCount > 0) {
+                messageBuilder.append(String.format("，跳过 %d 条已存在的记录", skippedCount));
+            }
+            
+            // 如果有已存在的记录，添加详细信息
+            if (!skippedRecords.isEmpty()) {
+                messageBuilder.append("\n\n已存在的记录（不导入）：");
+                for (int i = 0; i < skippedRecords.size(); i++) {
+                    Map<String, String> record = skippedRecords.get(i);
+                    messageBuilder.append(String.format(
+                        "\n%d. 大编码：%s，小编码：%s，项目阶段：%s，版本：%s，供应商：%s，问题点：%s",
+                        i + 1,
+                        record.get("majorCode"),
+                        record.get("minorCode"),
+                        record.get("projectPhase"),
+                        record.get("version"),
+                        record.get("supplier"),
+                        record.get("problemPoint")
+                    ));
+                }
+            }
+
             result.put("success", true);
-            result.put("message", String.format("成功添加 %d 条记录，跳过 %d 条已存在的记录", addedCount, skippedCount));
+            result.put("message", messageBuilder.toString());
             result.put("addedCount", addedCount);
             result.put("skippedCount", skippedCount);
+            result.put("skippedRecords", skippedRecords); // 返回已存在记录的详情列表
 
             return ResponseEntity.ok(result);
 
@@ -1443,15 +1559,35 @@ public class ReviewResultController {
         }
         
         // 基本信息
+        reviewResult.setGroup(testIssue.getGroup());  // 组别 - 从users表获取的departmentName
+        // 品类 - samples表的small_species
+        String category = testIssue.getCategory();
+        // 调试日志：输出品类值
+        System.out.println("导入数据 - TestIssue ID: " + testIssue.getId() + 
+                          ", 大编码: " + testIssue.getSampleModel() + 
+                          ", 品类值: " + (category == null ? "NULL" : category));
+        reviewResult.setCategory(category);
+        reviewResult.setDqeResponsible(testIssue.getDqeResponsible());  // DQE负责人 - samples表的sample_DQE
         reviewResult.setMajorCode(testIssue.getSampleModel());
         reviewResult.setMinorCode(testIssue.getSampleCoding());
-        reviewResult.setProjectPhase(testIssue.getSampleStage());
+        // 项目阶段转换：功能样 -> EVT, 大货样 -> DVT
+        String sampleStage = testIssue.getSampleStage();
+        String projectPhase = sampleStage;
+        if (sampleStage != null) {
+            if ("功能样".equals(sampleStage.trim())) {
+                projectPhase = "EVT";
+            } else if ("大货样".equals(sampleStage.trim())) {
+                projectPhase = "DVT";
+            }
+        }
+        reviewResult.setProjectPhase(projectPhase);
         reviewResult.setVersion(testIssue.getVersion());
-        reviewResult.setProblemProcess("电气测试报告");
+        reviewResult.setProblemProcess("DQE电气验证报告");
         reviewResult.setProblemLevel(testIssue.getDefectLevel());
         reviewResult.setDevelopmentMethod("");
         reviewResult.setSupplier(testIssue.getSupplier());
         reviewResult.setSolutionProvider(testIssue.getSolutionProvider());
+        reviewResult.setDataSource("电子实验室");  // 数据来源
         
         // 问题信息
         reviewResult.setProblemPoint(testIssue.getProblem());
@@ -1468,10 +1604,77 @@ public class ReviewResultController {
         // 状态信息
         reviewResult.setProblemStatus(testIssue.getCurrentStatus());
         reviewResult.setProblemTag1("");
-        reviewResult.setProblemTag2("");
+        reviewResult.setProblemTag2(testIssue.getProblemTag2() != null ? testIssue.getProblemTag2() : "");
         reviewResult.setPreventionNotes(testIssue.getRemark());
         
         return reviewResult;
+    }
+
+    /**
+     * 批量更新新品质量问题
+     * @param requestData 包含要更新的数据列表
+     * @return 更新结果
+     */
+    @PostMapping("/reviewResult/batchUpdate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> batchUpdateReviewResults(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取要更新的数据列表
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> dataList = (List<Map<String, Object>>) requestData.get("data");
+            
+            // 参数验证
+            if (dataList == null || dataList.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "没有数据需要更新");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            int updatedCount = 0;
+            int errorCount = 0;
+
+            // 批量更新数据
+            for (Map<String, Object> item : dataList) {
+                try {
+                    Long id = Long.valueOf(item.get("id").toString());
+                    
+                    // 查询现有记录
+                    ReviewResults existingReview = reviewResultsService.getReviewResultById(id);
+                    if (existingReview == null) {
+                        errorCount++;
+                        continue;
+                    }
+
+                    // 更新字段
+                    updateReviewFields(existingReview, item);
+
+                    // 调用Service层更新数据库
+                    boolean updateSuccess = reviewResultsService.updateReviewResult(existingReview);
+                    if (updateSuccess) {
+                        updatedCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    System.err.println("更新记录失败，ID: " + item.get("id") + ", 错误: " + e.getMessage());
+                }
+            }
+
+            result.put("success", true);
+            result.put("message", String.format("批量更新完成：成功 %d 条，失败 %d 条", updatedCount, errorCount));
+            result.put("updatedCount", updatedCount);
+            result.put("errorCount", errorCount);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "批量更新失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
     }
 
 }

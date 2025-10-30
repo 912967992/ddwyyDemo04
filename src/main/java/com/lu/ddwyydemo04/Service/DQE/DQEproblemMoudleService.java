@@ -122,6 +122,7 @@ public class DQEproblemMoudleService {
         levelCounts.put("A", 0);
         levelCounts.put("B", 0);
         levelCounts.put("C", 0);
+        levelCounts.put("D", 0);
         levelCounts.put("待确定", 0);
 
         // 遍历 countDefectLevel 列表，将每个等级的计数更新到 levelCounts 中
@@ -132,11 +133,12 @@ public class DQEproblemMoudleService {
         }
 
         // 格式化输出字符串
-        return String.format("S:%d A:%d B:%d C:%d 待确定:%d",
+        return String.format("S:%d A:%d B:%d C:%d D:%d 待确定:%d",
                 levelCounts.get("S"),
                 levelCounts.get("A"),
                 levelCounts.get("B"),
                 levelCounts.get("C"),
+                levelCounts.get("D"),
                 levelCounts.get("待确定"));
     }
 

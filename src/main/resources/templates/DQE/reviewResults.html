@@ -1535,6 +1535,10 @@
             margin-bottom: 15px;
         }
 
+        .test-issues-filter-row-3col {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
         .test-issues-filter-item {
             display: flex;
             flex-direction: column;
@@ -1706,6 +1710,7 @@
             margin-bottom: 15px;
             display: flex;
             justify-content: flex-end;
+            gap: 10px;
         }
 
         .column-manager-btn-wrapper {
@@ -1826,6 +1831,79 @@
         .data-table td[data-key].hidden {
             display: none;
         }
+
+        /* 全局编辑模态框样式 */
+        #globalEditTable {
+            font-size: 13px;
+        }
+
+        #globalEditTable th {
+            background-color: #f8f9fa;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #globalEditTable td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        .global-edit-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .global-edit-input:hover {
+            border-color: #007bff;
+        }
+
+        .global-edit-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        /* 表格内联编辑样式 */
+        .table-cell-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #007bff;
+            border-radius: 3px;
+            font-size: 12px;
+            background-color: #fff;
+            min-width: 80px;
+        }
+
+        .table-cell-input:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .table-cell-date-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #007bff;
+            border-radius: 3px;
+            font-size: 12px;
+            background-color: #fff;
+        }
+
+        .global-edit-mode .data-table td[data-key]:not([data-key="checkbox"]):not([data-key="id"]):not([data-key="action"]):not([data-key="createdTime"]):not([data-key="updatedTime"]) {
+            padding: 4px;
+        }
+
+        .global-edit-mode .data-table tr:hover {
+            background-color: #f0f8ff;
+        }
     </style>
 </head>
 <body>
@@ -1934,6 +2012,17 @@
                 </h4>
                 <div class="import-rules-content">
                     <div class="rule-item">
+                        <strong>必填字段（数据行的值不能为空）：</strong>
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 组别
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 品类
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• DQE责任人
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 大编码
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 小编码
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 项目阶段
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 供应商
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 问题点
+                    </div>
+                    <div class="rule-item">
                         <strong>系统会根据以下字段判断是插入新数据还是更新现有数据：</strong>
                     </div>
                     <div class="rule-item">
@@ -2006,6 +2095,34 @@
                         <div class="input-with-suggestions">
                             <input type="text" id="problemStatusFilter" placeholder="输入问题状态" autocomplete="off" />
                             <div id="problemStatusFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>组别:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="groupFilter" placeholder="输入组别" autocomplete="off" />
+                            <div id="groupFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>品类:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="categoryFilter" placeholder="输入品类" autocomplete="off" />
+                            <div id="categoryFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>DQE责任人:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="dqeResponsibleFilter" placeholder="输入DQE责任人" autocomplete="off" />
+                            <div id="dqeResponsibleFilterSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>数据来源:</label>
+                        <div class="input-with-suggestions">
+                            <input type="text" id="dataSourceFilter" placeholder="输入数据来源" autocomplete="off" />
+                            <div id="dataSourceFilterSuggestions" class="suggestions-dropdown"></div>
                         </div>
                     </div>
                     <div class="filter-group date-range-group">
@@ -2212,6 +2329,20 @@
                         </select>
                     </div>
                 </div>
+                <div class="test-issues-filter-row test-issues-filter-row-3col">
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-users"></i> 组别</label>
+                        <input type="text" id="testIssuesGroup" placeholder="输入组别...">
+                    </div>
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-box"></i> 品类</label>
+                        <input type="text" id="testIssuesCategory" placeholder="输入品类...">
+                    </div>
+                    <div class="test-issues-filter-item">
+                        <label><i class="fas fa-user-tie"></i> DQE负责人</label>
+                        <input type="text" id="testIssuesDqeResponsible" placeholder="输入DQE负责人...">
+                    </div>
+                </div>
                 <div class="test-issues-search-row">
                     <div class="test-issues-search-item">
                         <label><i class="fas fa-search"></i> 搜索关键词</label>
@@ -2240,6 +2371,8 @@
                             <input type="checkbox" id="selectAllTestIssuesRows" title="全选/取消全选">
                         </th>
                         <th data-key="id">ID</th>
+                        <th data-key="group">组别</th>
+                        <th data-key="category">品类</th>
                         <th data-key="testDate">发生日期</th>
                         <th data-key="majorCode">大编码</th>
                         <th data-key="minorCode">小编码</th>
@@ -2255,6 +2388,7 @@
                         <th data-key="improvementMeasures">改善对策</th>
                         <th data-key="isPreventable">是否可预防</th>
                         <th data-key="responsibleDepartment">责任部门</th>
+                        <th data-key="dqeResponsible">DQE负责人</th>
                         <th data-key="problemStatus">问题状态</th>
                         <th data-key="plannedCompletionTime">预计完成时间</th>
                         <th data-key="actualCompletionTime">实际完成时间</th>
@@ -2282,8 +2416,16 @@
 
 <!-- 数据表格区域 -->
     <div class="table-section">
-    <!-- 列管理按钮 -->
+    <!-- 全局编辑和列管理按钮 -->
     <div class="column-manager-container">
+        <div class="column-manager-btn-wrapper">
+            <button id="globalEditBtn" class="btn btn-primary" title="全局编辑">
+                <i class="fas fa-edit"></i> <span id="globalEditBtnText">全局编辑</span>
+            </button>
+            <button id="saveGlobalEditBtn" class="btn btn-success" style="display: none;" title="保存所有修改">
+                <i class="fas fa-save"></i> 保存修改
+            </button>
+        </div>
         <div class="column-manager-btn-wrapper">
             <button id="columnManagerBtn" class="btn btn-secondary" title="列管理">
                 <i class="fas fa-columns"></i> 列管理
@@ -2313,6 +2455,8 @@
                     <input type="checkbox" id="selectAllTableRows" title="全选/取消全选">
                 </th>
                 <th data-key="id">ID</th>
+                <th data-key="group">组别</th>
+                <th data-key="category">品类</th>
                 <th data-key="testDate">发生日期</th>
                 <th data-key="majorCode">大编码</th>
                 <th data-key="minorCode">小编码</th>
@@ -2328,6 +2472,7 @@
                 <th data-key="improvementMeasures">改善对策</th>
                 <th data-key="isPreventable">是否可预防</th>
                 <th data-key="responsibleDepartment">责任部门</th>
+                <th data-key="dqeResponsible">DQE负责人</th>
                 <th data-key="problemStatus">问题状态</th>
                 <th data-key="plannedCompletionTime">预计完成时间</th>
                 <th data-key="actualCompletionTime">实际完成时间</th>
@@ -2335,6 +2480,7 @@
                 <th data-key="problemTag1">问题打标1</th>
                 <th data-key="problemTag2">问题打标2</th>
                 <th data-key="preventionNotes">预防备注</th>
+                <th data-key="dataSource">数据来源</th>
                 <th data-key="createdTime">创建时间</th>
                 <th data-key="updatedTime">更新时间</th>
                 <th data-key="action">操作</th>
@@ -2390,6 +2536,18 @@
                 <div class="detail-section">
                     <h3>基本信息</h3>
                     <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>组别:</label>
+                            <span id="detailGroup">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>品类:</label>
+                            <span id="detailCategory">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>DQE负责人:</label>
+                            <span id="detailDqeResponsible">-</span>
+                        </div>
                         <div class="detail-item">
                             <label>发生日期:</label>
                             <span id="detailTestDate">-</span>
@@ -2503,6 +2661,10 @@
                         <div class="detail-item">
                             <label>更新时间:</label>
                             <span id="detailUpdatedTime">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>数据来源:</label>
+                            <span id="detailDataSource">-</span>
                         </div>
                     </div>
                 </div>
@@ -2774,6 +2936,53 @@
             <button id="saveDetailBtn" class="btn btn-success" style="display: none;">保存</button>
             <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;">取消</button>
             <button id="closeProblemDetailModal" class="btn btn-secondary">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 全局编辑模态框 -->
+<div id="globalEditModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h2>全局编辑 - 批量编辑搜索结果数据</h2>
+            <span class="close" onclick="closeGlobalEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
+                <i class="fas fa-info-circle"></i> 
+                <span id="globalEditDataCount">正在加载数据...</span>
+            </div>
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table id="globalEditTable" class="data-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">序号</th>
+                            <th>大编码</th>
+                            <th>小编码</th>
+                            <th>项目阶段</th>
+                            <th>版本</th>
+                            <th>供应商</th>
+                            <th>问题状态</th>
+                            <th>组别</th>
+                            <th>品类</th>
+                            <th>DQE责任人</th>
+                            <th>数据来源</th>
+                            <th>发生日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="globalEditTableBody">
+                        <!-- 数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="saveGlobalEditBtn" class="btn btn-success">
+                <i class="fas fa-save"></i> 保存
+            </button>
+            <button id="cancelGlobalEditBtn" class="btn btn-secondary" onclick="closeGlobalEditModal()">
+                <i class="fas fa-times"></i> 取消
+            </button>
         </div>
     </div>
 </div>
@@ -3080,35 +3289,39 @@
                 </div>
                 <div class="merged-table-container">
                     <table id="mergedDataTable" class="data-table">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>发生日期</th>
-                            <th>大编码</th>
-                            <th>小编码</th>
-                            <th>项目阶段</th>
-                            <th>版本</th>
-                            <th>问题工序</th>
-                            <th>问题等级</th>
-                            <th>开发方式</th>
-                            <th>供应商</th>
-                            <th>方案商</th>
-                            <th>问题点</th>
-                            <th>问题原因</th>
-                            <th>改善对策</th>
-                            <th>是否可预防</th>
-                            <th>责任部门</th>
-                            <th>问题状态</th>
-                            <th>预计完成时间</th>
-                            <th>实际完成时间</th>
-                            <th>Delay天数</th>
-                            <th>问题打标1</th>
-                            <th>问题打标2</th>
-                            <th>预防备注</th>
-                            <th>创建时间</th>
-                            <th>更新时间</th>
-                        </tr>
-                        </thead>
+                          <thead>
+                          <tr>
+                             <th data-key="id">ID</th>
+                             <th data-key="group">组别</th>
+                             <th data-key="category">品类</th>
+                             <th data-key="testDate">发生日期</th>
+                             <th data-key="majorCode">大编码</th>
+                             <th data-key="minorCode">小编码</th>
+                             <th data-key="projectPhase">项目阶段</th>
+                             <th data-key="version">版本</th>
+                             <th data-key="problemProcess">问题工序</th>
+                             <th data-key="problemLevel">问题等级</th>
+                             <th data-key="developmentMethod">开发方式</th>
+                             <th data-key="supplier">供应商</th>
+                             <th data-key="solutionProvider">方案商</th>
+                             <th data-key="problemPoint">问题点</th>
+                             <th data-key="problemReason">问题原因</th>
+                             <th data-key="improvementMeasures">改善对策</th>
+                             <th data-key="isPreventable">是否可预防</th>
+                             <th data-key="responsibleDepartment">责任部门</th>
+                             <th data-key="dqeResponsible">DQE负责人</th>
+                             <th data-key="problemStatus">问题状态</th>
+                             <th data-key="plannedCompletionTime">预计完成时间</th>
+                             <th data-key="actualCompletionTime">实际完成时间</th>
+                             <th data-key="delayDays">Delay天数</th>
+                             <th data-key="problemTag1">问题打标1</th>
+                             <th data-key="problemTag2">问题打标2</th>
+                             <th data-key="preventionNotes">预防备注</th>
+                             <th data-key="dataSource">数据来源</th>
+                             <th data-key="createdTime">创建时间</th>
+                             <th data-key="updatedTime">更新时间</th>
+                          </tr>
+                          </thead>
                         <tbody id="mergedDataTableBody">
                         <!-- 合并数据将通过JavaScript动态加载 -->
                         </tbody>
@@ -3272,8 +3485,6 @@
         const modal = document.getElementById('testIssuesModal');
         if (modal) {
             modal.style.display = 'block';
-            // 加载电气测试问题点数据
-            searchTestIssues();
             // 应用列可见性设置
             applyTestIssuesColumnVisibility();
         }
@@ -3332,6 +3543,9 @@
         const minorCode = document.getElementById('testIssuesMinorCode').value;
         const version = document.getElementById('testIssuesVersion').value;
         const problemStatus = document.getElementById('testIssuesProblemStatus').value;
+        const group = document.getElementById('testIssuesGroup').value;
+        const category = document.getElementById('testIssuesCategory').value;
+        const dqeResponsible = document.getElementById('testIssuesDqeResponsible').value;
         
         showLoading();
         
@@ -3342,6 +3556,9 @@
         if (minorCode) params.append('minorCode', minorCode);
         if (version) params.append('version', version);
         if (problemStatus) params.append('problemStatus', problemStatus);
+        if (group) params.append('group', group);
+        if (category) params.append('category', category);
+        if (dqeResponsible) params.append('dqeResponsible', dqeResponsible);
         
         fetch('/reviewResult/getTestIssues?' + params.toString())
             .then(response => response.json())
@@ -3368,6 +3585,9 @@
         document.getElementById('testIssuesMinorCode').value = '';
         document.getElementById('testIssuesVersion').value = '';
         document.getElementById('testIssuesProblemStatus').value = '';
+        document.getElementById('testIssuesGroup').value = '';
+        document.getElementById('testIssuesCategory').value = '';
+        document.getElementById('testIssuesDqeResponsible').value = '';
         searchTestIssues();
     }
 
@@ -3377,7 +3597,7 @@
         tbody.innerHTML = '';
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="26" style="text-align: center;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="30" style="text-align: center;">暂无数据</td></tr>';
             return;
         }
 
@@ -3388,6 +3608,8 @@
                     <input type="checkbox" class="test-issues-row-checkbox" data-id="${item.id}" title="选择此行">
                 </td>
                 <td data-key="id">${item.id || '-'}</td>
+                <td data-key="group">${item.group || '-'}</td>
+                <td data-key="category">${item.category || '-'}</td>
                 <td data-key="testDate">${item.problemTime || '-'}</td>
                 <td data-key="majorCode">${item.sampleModel || '-'}</td>
                 <td data-key="minorCode">${item.sampleCoding || '-'}</td>
@@ -3403,6 +3625,7 @@
                 <td data-key="improvementMeasures" class="problem-desc" title="${item.greenUnionRd || ''}">${(item.greenUnionRd || '').substring(0, 30)}${(item.greenUnionRd || '').length > 30 ? '...' : ''}</td>
                 <td data-key="isPreventable">${item.isPreventable || '-'}</td>
                 <td data-key="responsibleDepartment">${item.responsibleDepartment || '-'}</td>
+                <td data-key="dqeResponsible">${item.dqeResponsible || '-'}</td>
                 <td data-key="problemStatus"><span class="status-badge status-${item.currentStatus?.toLowerCase().replace(' ', '') || ''}">${item.currentStatus || '-'}</span></td>
                 <td data-key="plannedCompletionTime">${item.plannedCompletionTime || '-'}</td>
                 <td data-key="actualCompletionTime">${item.actualCompletionTime || '-'}</td>
@@ -3485,7 +3708,17 @@
         .then(data => {
             hideLoading();
             if (data.success) {
-                alert(`成功导入 ${data.addedCount} 条记录到新品质量问题！`);
+                // 构建详细提示消息
+                let message = `成功导入 ${data.addedCount} 条记录到新品质量问题！`;
+                if (data.skippedCount && data.skippedCount > 0) {
+                    message += `\n\n跳过 ${data.skippedCount} 条已存在的记录：`;
+                    if (data.skippedRecords && data.skippedRecords.length > 0) {
+                        data.skippedRecords.forEach((record, index) => {
+                            message += `\n${index + 1}. 大编码：${record.majorCode || '-'}，小编码：${record.minorCode || '-'}，项目阶段：${record.projectPhase || '-'}，版本：${record.version || '-'}，供应商：${record.supplier || '-'}，问题点：${record.problemPoint || '-'}`;
+                        });
+                    }
+                }
+                alert(message);
                 // 刷新外边主表数据
                 loadReviewData();
                 // 关闭模态框
@@ -3981,6 +4214,18 @@
             });
         }
 
+        // 添加全局编辑按钮事件监听器
+        const globalEditBtn = document.getElementById('globalEditBtn');
+        if (globalEditBtn) {
+            globalEditBtn.addEventListener('click', toggleGlobalEditMode);
+        }
+
+        // 添加保存全局编辑按钮事件监听器
+        const saveGlobalEditBtn = document.getElementById('saveGlobalEditBtn');
+        if (saveGlobalEditBtn) {
+            saveGlobalEditBtn.addEventListener('click', saveGlobalEditFromTable);
+        }
+
         // 添加电气测试问题点搜索按钮事件监听器
         const testIssuesSearchBtn = document.getElementById('testIssuesSearchBtn');
         if (testIssuesSearchBtn) {
@@ -4009,7 +4254,10 @@
             'testIssuesMajorCode',
             'testIssuesMinorCode',
             'testIssuesVersion',
-            'testIssuesSearchKeyword'
+            'testIssuesSearchKeyword',
+            'testIssuesGroup',
+            'testIssuesCategory',
+            'testIssuesDqeResponsible'
         ];
         
         testIssuesTextInputs.forEach(inputId => {
@@ -4044,8 +4292,11 @@
     const columnDefinitions = [
         { key: 'checkbox', label: '选择', alwaysVisible: true },
         { key: 'id', label: 'ID', alwaysVisible: true },
+        { key: 'group', label: '组别', alwaysVisible: true },
+        { key: 'category', label: '品类', alwaysVisible: true },
+        { key: 'dqeResponsible', label: 'DQE负责人', alwaysVisible: true },
         { key: 'testDate', label: '发生日期', alwaysVisible: true },
-        { key: 'majorCode', label: '大编码', alwaysVisible: true },
+        { key: 'majorCode', label: '大编码' },
         { key: 'minorCode', label: '小编码' },
         { key: 'projectPhase', label: '项目阶段' },
         { key: 'version', label: '版本' },
@@ -4066,6 +4317,7 @@
         { key: 'problemTag1', label: '问题打标1' },
         { key: 'problemTag2', label: '问题打标2' },
         { key: 'preventionNotes', label: '预防备注' },
+        { key: 'dataSource', label: '数据来源', alwaysVisible: true },
         { key: 'createdTime', label: '创建时间' },
         { key: 'updatedTime', label: '更新时间' },
         { key: 'action', label: '操作', alwaysVisible: true }
@@ -4154,27 +4406,30 @@
 
     // 切换列显示/隐藏
     function toggleColumn(key, visible) {
-        // 隐藏表头
-        const header = document.querySelector(`th[data-key="${key}"]`);
-        if (header) {
+        // 隐藏所有表格的表头
+        const headers = document.querySelectorAll(`th[data-key="${key}"]`);
+        headers.forEach(header => {
             if (visible) {
                 header.classList.remove('hidden');
             } else {
                 header.classList.add('hidden');
             }
-        }
+        });
         
-        // 隐藏所有数据行对应的单元格
-        const rows = document.querySelectorAll('#reviewTableBody tr');
-        rows.forEach(row => {
-            const cell = row.querySelector(`td[data-key="${key}"]`);
-            if (cell) {
-                if (visible) {
-                    cell.classList.remove('hidden');
-                } else {
-                    cell.classList.add('hidden');
+        // 隐藏所有表格的数据行对应的单元格
+        const allTableBodies = ['#reviewTableBody', '#testIssuesTableBody', '#mergedDataTableBody'];
+        allTableBodies.forEach(tableBodyId => {
+            const rows = document.querySelectorAll(`${tableBodyId} tr`);
+            rows.forEach(row => {
+                const cell = row.querySelector(`td[data-key="${key}"]`);
+                if (cell) {
+                    if (visible) {
+                        cell.classList.remove('hidden');
+                    } else {
+                        cell.classList.add('hidden');
+                    }
                 }
-            }
+            });
         });
     }
 
@@ -4233,6 +4488,7 @@
     function updateColumnManagerCheckboxes() {
         columnDefinitions.forEach(col => {
             if (!col.alwaysVisible) {
+                // 检查第一个表格的表头状态（所有表格的列状态应该一致）
                 const header = document.querySelector(`th[data-key="${col.key}"]`);
                 const checkbox = document.getElementById(`col_${col.key}`);
                 if (checkbox && header) {
@@ -4248,34 +4504,37 @@
             const saved = localStorage.getItem('columnVisibility');
             if (saved) {
                 const visibility = JSON.parse(saved);
-                // 应用设置到表头
+                // 应用设置到所有表头
                 columnDefinitions.forEach(col => {
                     if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
-                        const header = document.querySelector(`th[data-key="${col.key}"]`);
-                        if (header) {
+                        const headers = document.querySelectorAll(`th[data-key="${col.key}"]`);
+                        headers.forEach(header => {
                             if (visibility[col.key]) {
                                 header.classList.remove('hidden');
                             } else {
                                 header.classList.add('hidden');
                             }
-                        }
+                        });
                     }
                 });
                 
-                // 应用设置到数据行
-                const rows = document.querySelectorAll('#reviewTableBody tr');
-                rows.forEach(row => {
-                    columnDefinitions.forEach(col => {
-                        if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
-                            const cell = row.querySelector(`td[data-key="${col.key}"]`);
-                            if (cell) {
-                                if (visibility[col.key]) {
-                                    cell.classList.remove('hidden');
-                                } else {
-                                    cell.classList.add('hidden');
+                // 应用设置到所有表格的数据行
+                const allTableBodies = ['#reviewTableBody', '#testIssuesTableBody', '#mergedDataTableBody'];
+                allTableBodies.forEach(tableBodyId => {
+                    const rows = document.querySelectorAll(`${tableBodyId} tr`);
+                    rows.forEach(row => {
+                        columnDefinitions.forEach(col => {
+                            if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
+                                const cell = row.querySelector(`td[data-key="${col.key}"]`);
+                                if (cell) {
+                                    if (visibility[col.key]) {
+                                        cell.classList.remove('hidden');
+                                    } else {
+                                        cell.classList.add('hidden');
+                                    }
                                 }
                             }
-                        }
+                        });
                     });
                 });
             }
@@ -4289,6 +4548,7 @@
         const hiddenColumns = [];
         columnDefinitions.forEach(col => {
             if (!col.alwaysVisible) {
+                // 检查第一个表格的表头状态（所有表格的列状态应该一致）
                 const header = document.querySelector(`th[data-key="${col.key}"]`);
                 if (header && header.classList.contains('hidden')) {
                     hiddenColumns.push(col.key);
@@ -4311,29 +4571,6 @@
         }
     });
 
-    // 问题类别相关功能已移除
-
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
-
-    // 问题类别相关功能已移除
 
     // 解析URL参数
     function getUrlParameter(name) {
@@ -4393,7 +4630,8 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'problemStatusFilter', 'testStartDateFilter', 'testEndDateFilter'
+            'problemStatusFilter', 'groupFilter', 'categoryFilter', 'dataSourceFilter', 'dqeResponsibleFilter',
+            'testStartDateFilter', 'testEndDateFilter'
         ];
 
         // 为所有过滤器输入框添加键盘事件监听器
@@ -4661,7 +4899,8 @@
         // 为筛选输入框添加回车键搜索功能
         const filterInputs = [
             'majorCodeFilter', 'minorCodeFilter', 'projectPhaseFilter', 'versionFilter', 'supplierFilter',
-            'problemStatusFilter', 'testStartDateFilter', 'testEndDateFilter'
+            'problemStatusFilter', 'groupFilter', 'categoryFilter', 'dataSourceFilter', 'dqeResponsibleFilter',
+            'testStartDateFilter', 'testEndDateFilter'
         ];
 
         filterInputs.forEach(inputId => {
@@ -4974,6 +5213,10 @@
         const version = document.getElementById('versionFilter').value.trim();
         const supplier = document.getElementById('supplierFilter').value.trim();
         const problemStatus = document.getElementById('problemStatusFilter').value;
+        const group = document.getElementById('groupFilter').value.trim();
+        const category = document.getElementById('categoryFilter').value.trim();
+        const dataSource = document.getElementById('dataSourceFilter').value.trim();
+        const dqeResponsible = document.getElementById('dqeResponsibleFilter').value.trim();
         const testStartDate = document.getElementById('testStartDateFilter').value;
         const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -4987,6 +5230,10 @@
             const normalizedStatus = normalizeProblemStatus(problemStatus);
             params.append('problemStatus', normalizedStatus);
         }
+        if (group) params.append('group', group);
+        if (category) params.append('category', category);
+        if (dataSource) params.append('dataSource', dataSource);
+        if (dqeResponsible) params.append('dqeResponsible', dqeResponsible);
         if (testStartDate) params.append('testStartDate', testStartDate);
         if (testEndDate) params.append('testEndDate', testEndDate);
 
@@ -5006,6 +5253,15 @@
                     console.log('总页数:', totalPages);
                     console.log('当前页:', currentPage);
                     console.log('每页大小:', pageSize);
+                    
+                    // 调试：检查第一条数据的字段
+                    if (allData.length > 0) {
+                        console.log('第一条数据的字段:', allData[0]);
+                        console.log('第一条数据的组别:', allData[0].group);
+                        console.log('第一条数据的品类:', allData[0].category);
+                        console.log('第一条数据的DQE负责人:', allData[0].dqeResponsible);
+                        console.log('第一条数据的数据来源:', allData[0].dataSource);
+                    }
                     renderTable();
                     updatePagination();
                     
@@ -5052,6 +5308,10 @@
         const version = document.getElementById('versionFilter').value.trim();
         const supplier = document.getElementById('supplierFilter').value.trim();
         const problemStatus = document.getElementById('problemStatusFilter').value;
+        const group = document.getElementById('groupFilter').value.trim();
+        const category = document.getElementById('categoryFilter').value.trim();
+        const dataSource = document.getElementById('dataSourceFilter').value.trim();
+        const dqeResponsible = document.getElementById('dqeResponsibleFilter').value.trim();
         const testStartDate = document.getElementById('testStartDateFilter').value;
         const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -5065,6 +5325,10 @@
             const normalizedStatus = normalizeProblemStatus(problemStatus);
             params.append('problemStatus', normalizedStatus);
         }
+        if (group) params.append('group', group);
+        if (category) params.append('category', category);
+        if (dataSource) params.append('dataSource', dataSource);
+        if (dqeResponsible) params.append('dqeResponsible', dqeResponsible);
         if (testStartDate) params.append('testStartDate', testStartDate);
         if (testEndDate) params.append('testEndDate', testEndDate);
 
@@ -5093,6 +5357,10 @@
         document.getElementById('versionFilter').value = '';
         document.getElementById('supplierFilter').value = '';
         document.getElementById('problemStatusFilter').value = '';
+        document.getElementById('groupFilter').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('dataSourceFilter').value = '';
+        document.getElementById('dqeResponsibleFilter').value = '';
         document.getElementById('testStartDateFilter').value = '';
         document.getElementById('testEndDateFilter').value = '';
 
@@ -5486,12 +5754,12 @@
     function clearReviewDetailFields() {
         // 清空所有显示字段
         const fields = [
-            'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase', 'detailVersion',
+            'detailGroup', 'detailCategory', 'detailDqeResponsible', 'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase', 'detailVersion',
             'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod', 'detailSupplier',
             'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason', 'detailImprovementMeasures',
             'detailIsPreventable', 'detailResponsibleDepartment', 'detailPlannedCompletionTime',
             'detailActualCompletionTime', 'detailDelayDays', 'detailProblemStatus', 'detailProblemTag1',
-            'detailProblemTag2', 'detailPreventionNotes', 'detailCreatedTime', 'detailUpdatedTime'
+            'detailProblemTag2', 'detailPreventionNotes', 'detailCreatedTime', 'detailUpdatedTime', 'detailDataSource'
         ];
         
         fields.forEach(fieldId => {
@@ -5505,50 +5773,89 @@
     // 显示新品质量详情
     function showReviewDetail(reviewId) {
         const review = filteredData.find(r => r.id === reviewId);
-        if (!review) return;
+        if (!review) {
+            console.error('未找到ID为', reviewId, '的新品质量记录');
+            showToast('未找到指定的记录', 'error');
+            return;
+        }
+
+        // 调试：打印review对象的内容
+        console.log('查看详情的review对象:', review);
+        console.log('组别字段值:', review.group);
+        console.log('品类字段值:', review.category);
+        console.log('DQE负责人字段值:', review.dqeResponsible);
+        console.log('数据来源字段值:', review.dataSource);
+        console.log('review对象的所有属性:', Object.keys(review));
+        console.log('review对象完整内容:', JSON.stringify(review, null, 2));
 
         // 先重置编辑状态（防止之前的状态影响）
         resetReviewEditMode();
         
         // 设置模态框标题
-        document.getElementById('reviewModalTitle').textContent = '新品质量详情';
+        const titleElement = document.getElementById('reviewModalTitle');
+        if (titleElement) {
+            titleElement.textContent = '新品质量详情';
+        }
 
         // 存储当前编辑的新品质量ID
         currentEditingReviewId = reviewId;
 
-        // 填充详情数据
-        document.getElementById('detailTestDate').textContent = review.testDate || '-';
-        document.getElementById('detailMajorCode').textContent = review.majorCode || '-';
-        document.getElementById('detailMinorCode').textContent = review.minorCode || '-';
-        document.getElementById('detailProjectPhase').textContent = review.projectPhase || '-';
-        document.getElementById('detailVersion').textContent = review.version || '-';
-        document.getElementById('detailProblemProcess').textContent = review.problemProcess || '-';
-        document.getElementById('detailProblemLevel').textContent = review.problemLevel || '-';
-        document.getElementById('detailDevelopmentMethod').textContent = review.developmentMethod || '-';
-        document.getElementById('detailSupplier').textContent = review.supplier || '-';
-        document.getElementById('detailSolutionProvider').textContent = review.solutionProvider || '-';
-        document.getElementById('detailProblemPoint').textContent = review.problemPoint || '-';
-        document.getElementById('detailProblemReason').textContent = review.problemReason || '-';
-        document.getElementById('detailImprovementMeasures').textContent = review.improvementMeasures || '-';
-        document.getElementById('detailIsPreventable').textContent = review.isPreventable || '-';
-        document.getElementById('detailResponsibleDepartment').textContent = review.responsibleDepartment || '-';
-        document.getElementById('detailPlannedCompletionTime').textContent = formatDate(review.plannedCompletionTime);
-        document.getElementById('detailActualCompletionTime').textContent = formatDate(review.actualCompletionTime);
-        document.getElementById('detailDelayDays').textContent = review.delayDays || '-';
-        document.getElementById('detailProblemStatus').textContent = review.problemStatus || '-';
-        document.getElementById('detailProblemTag1').textContent = review.problemTag1 || '-';
-        document.getElementById('detailProblemTag2').textContent = review.problemTag2 || '-';
-        document.getElementById('detailPreventionNotes').textContent = review.preventionNotes || '-';
-        document.getElementById('detailCreatedTime').textContent = review.createdTime || '-';
-        document.getElementById('detailUpdatedTime').textContent = review.updatedTime || '-';
+        // 填充详情数据 - 添加安全检查
+        const fields = [
+            { id: 'detailGroup', value: review.group },
+            { id: 'detailCategory', value: review.category },
+            { id: 'detailDqeResponsible', value: review.dqeResponsible },
+            { id: 'detailTestDate', value: review.testDate },
+            { id: 'detailMajorCode', value: review.majorCode },
+            { id: 'detailMinorCode', value: review.minorCode },
+            { id: 'detailProjectPhase', value: review.projectPhase },
+            { id: 'detailVersion', value: review.version },
+            { id: 'detailProblemProcess', value: review.problemProcess },
+            { id: 'detailProblemLevel', value: review.problemLevel },
+            { id: 'detailDevelopmentMethod', value: review.developmentMethod },
+            { id: 'detailSupplier', value: review.supplier },
+            { id: 'detailSolutionProvider', value: review.solutionProvider },
+            { id: 'detailProblemPoint', value: review.problemPoint },
+            { id: 'detailProblemReason', value: review.problemReason },
+            { id: 'detailImprovementMeasures', value: review.improvementMeasures },
+            { id: 'detailIsPreventable', value: review.isPreventable },
+            { id: 'detailResponsibleDepartment', value: review.responsibleDepartment },
+            { id: 'detailPlannedCompletionTime', value: formatDate(review.plannedCompletionTime) },
+            { id: 'detailActualCompletionTime', value: formatDate(review.actualCompletionTime) },
+            { id: 'detailDelayDays', value: review.delayDays },
+            { id: 'detailProblemStatus', value: review.problemStatus },
+            { id: 'detailProblemTag1', value: review.problemTag1 },
+            { id: 'detailProblemTag2', value: review.problemTag2 },
+            { id: 'detailPreventionNotes', value: review.preventionNotes },
+            { id: 'detailCreatedTime', value: review.createdTime },
+            { id: 'detailUpdatedTime', value: review.updatedTime },
+            { id: 'detailDataSource', value: review.dataSource }
+        ];
+
+        fields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (element) {
+                element.textContent = field.value || '-';
+                console.log(`设置字段 ${field.id} 的值为: ${field.value || '-'}`);
+            } else {
+                console.warn('未找到元素:', field.id);
+            }
+        });
 
         // 显示编辑按钮，隐藏保存和取消按钮
-        document.getElementById('editReviewBtn').style.display = 'inline-block';
-        document.getElementById('saveReviewBtn').style.display = 'none';
-        document.getElementById('cancelEditReviewBtn').style.display = 'none';
+        const editBtn = document.getElementById('editReviewBtn');
+        const saveBtn = document.getElementById('saveReviewBtn');
+        const cancelBtn = document.getElementById('cancelEditReviewBtn');
+        
+        if (editBtn) editBtn.style.display = 'inline-block';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
 
         // 显示模态框
-        document.getElementById('reviewDetailModal').style.display = 'block';
+        const modal = document.getElementById('reviewDetailModal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
     }
 
     // 进入编辑模式
@@ -5576,6 +5883,9 @@
     // 转换为编辑模式
     function convertToEditMode() {
         const fieldMappings = [
+            { id: 'detailGroup', type: 'text' },
+            { id: 'detailCategory', type: 'text' },
+            { id: 'detailDqeResponsible', type: 'text' },
             { id: 'detailTestDate', type: 'date' },
             { id: 'detailMajorCode', type: 'text' },
             { id: 'detailMinorCode', type: 'text' },
@@ -5597,7 +5907,8 @@
             { id: 'detailProblemStatus', type: 'select', options: ['open', 'close', 'follow up'] },
             { id: 'detailProblemTag1', type: 'text' },
             { id: 'detailProblemTag2', type: 'text' },
-            { id: 'detailPreventionNotes', type: 'textarea' }
+            { id: 'detailPreventionNotes', type: 'textarea' },
+            { id: 'detailDataSource', type: 'text' }
         ];
 
         fieldMappings.forEach(field => {
@@ -5713,6 +6024,9 @@
 
         // 收集编辑后的数据
         const editData = {
+            group: document.getElementById('editdetailGroup')?.value || '',
+            category: document.getElementById('editdetailCategory')?.value || '',
+            dqeResponsible: document.getElementById('editdetailDqeResponsible')?.value || '',
             testDate: document.getElementById('editdetailTestDate')?.value || '',
             majorCode: document.getElementById('editdetailMajorCode')?.value || '',
             minorCode: document.getElementById('editdetailMinorCode')?.value || '',
@@ -5734,7 +6048,8 @@
             problemStatus: document.getElementById('editdetailProblemStatus')?.value || '',
             problemTag1: document.getElementById('editdetailProblemTag1')?.value || '',
             problemTag2: document.getElementById('editdetailProblemTag2')?.value || '',
-            preventionNotes: document.getElementById('editdetailPreventionNotes')?.value || ''
+            preventionNotes: document.getElementById('editdetailPreventionNotes')?.value || '',
+            dataSource: document.getElementById('editdetailDataSource')?.value || ''
         };
 
         // 只有在更新时才添加id字段
@@ -6477,11 +6792,58 @@
 
         pageData.forEach(review => {
             const row = document.createElement('tr');
-            row.innerHTML = `
+            
+            // 根据编辑模式决定渲染方式
+            if (isGlobalEditMode) {
+                // 编辑模式：显示输入框
+                row.innerHTML = `
                     <td data-key="checkbox">
                         <input type="checkbox" class="table-row-checkbox" data-id="${review.id}" title="选择此行">
                     </td>
                     <td data-key="id">${review.id || '-'}</td>
+                    <td data-key="group"><input type="text" class="table-cell-input" data-field="group" value="${review.group || ''}" /></td>
+                    <td data-key="category"><input type="text" class="table-cell-input" data-field="category" value="${review.category || ''}" /></td>
+                    <td data-key="testDate"><input type="date" class="table-cell-date-input" data-field="testDate" value="${review.testDate ? formatDateForInput(review.testDate) : ''}" /></td>
+                    <td data-key="majorCode"><input type="text" class="table-cell-input" data-field="majorCode" value="${review.majorCode || ''}" /></td>
+                    <td data-key="minorCode"><input type="text" class="table-cell-input" data-field="minorCode" value="${review.minorCode || ''}" /></td>
+                    <td data-key="projectPhase"><input type="text" class="table-cell-input" data-field="projectPhase" value="${review.projectPhase || ''}" /></td>
+                    <td data-key="version"><input type="text" class="table-cell-input" data-field="version" value="${review.version || ''}" /></td>
+                    <td data-key="problemProcess"><input type="text" class="table-cell-input" data-field="problemProcess" value="${review.problemProcess || ''}" /></td>
+                    <td data-key="problemLevel"><input type="text" class="table-cell-input" data-field="problemLevel" value="${review.problemLevel || ''}" /></td>
+                    <td data-key="developmentMethod"><input type="text" class="table-cell-input" data-field="developmentMethod" value="${review.developmentMethod || ''}" /></td>
+                    <td data-key="supplier"><input type="text" class="table-cell-input" data-field="supplier" value="${review.supplier || ''}" /></td>
+                    <td data-key="solutionProvider"><input type="text" class="table-cell-input" data-field="solutionProvider" value="${review.solutionProvider || ''}" /></td>
+                    <td data-key="problemPoint"><input type="text" class="table-cell-input" data-field="problemPoint" value="${review.problemPoint || ''}" /></td>
+                    <td data-key="problemReason"><input type="text" class="table-cell-input" data-field="problemReason" value="${review.problemReason || ''}" /></td>
+                    <td data-key="improvementMeasures"><input type="text" class="table-cell-input" data-field="improvementMeasures" value="${review.improvementMeasures || ''}" /></td>
+                    <td data-key="isPreventable"><input type="text" class="table-cell-input" data-field="isPreventable" value="${review.isPreventable || ''}" /></td>
+                    <td data-key="responsibleDepartment"><input type="text" class="table-cell-input" data-field="responsibleDepartment" value="${review.responsibleDepartment || ''}" /></td>
+                    <td data-key="dqeResponsible"><input type="text" class="table-cell-input" data-field="dqeResponsible" value="${review.dqeResponsible || ''}" /></td>
+                    <td data-key="problemStatus"><input type="text" class="table-cell-input" data-field="problemStatus" value="${review.problemStatus || ''}" /></td>
+                    <td data-key="plannedCompletionTime"><input type="date" class="table-cell-date-input" data-field="plannedCompletionTime" value="${review.plannedCompletionTime ? formatDateForInput(review.plannedCompletionTime) : ''}" /></td>
+                    <td data-key="actualCompletionTime"><input type="date" class="table-cell-date-input" data-field="actualCompletionTime" value="${review.actualCompletionTime ? formatDateForInput(review.actualCompletionTime) : ''}" /></td>
+                    <td data-key="delayDays"><input type="number" class="table-cell-input" data-field="delayDays" value="${review.delayDays || ''}" /></td>
+                    <td data-key="problemTag1"><input type="text" class="table-cell-input" data-field="problemTag1" value="${review.problemTag1 || ''}" /></td>
+                    <td data-key="problemTag2"><input type="text" class="table-cell-input" data-field="problemTag2" value="${review.problemTag2 || ''}" /></td>
+                    <td data-key="preventionNotes"><input type="text" class="table-cell-input" data-field="preventionNotes" value="${review.preventionNotes || ''}" /></td>
+                    <td data-key="dataSource"><input type="text" class="table-cell-input" data-field="dataSource" value="${review.dataSource || ''}" /></td>
+                    <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="action">
+                        <button class="btn btn-sm btn-info" onclick="showReviewDetail(${review.id})" title="查看详情">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            } else {
+                // 普通模式：显示文本
+                row.innerHTML = `
+                    <td data-key="checkbox">
+                        <input type="checkbox" class="table-row-checkbox" data-id="${review.id}" title="选择此行">
+                    </td>
+                    <td data-key="id">${review.id || '-'}</td>
+                    <td data-key="group">${review.group || '-'}</td>
+                    <td data-key="category">${review.category || '-'}</td>
                     <td data-key="testDate">${review.testDate || '-'}</td>
                     <td data-key="majorCode">${review.majorCode || '-'}</td>
                     <td data-key="minorCode">${review.minorCode || '-'}</td>
@@ -6497,6 +6859,7 @@
                     <td data-key="improvementMeasures" class="problem-desc" title="${review.improvementMeasures || ''}">${(review.improvementMeasures || '').substring(0, 30)}${(review.improvementMeasures || '').length > 30 ? '...' : ''}</td>
                     <td data-key="isPreventable">${review.isPreventable || '-'}</td>
                     <td data-key="responsibleDepartment">${review.responsibleDepartment || '-'}</td>
+                    <td data-key="dqeResponsible">${review.dqeResponsible || '-'}</td>
                     <td data-key="problemStatus"><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
                     <td data-key="plannedCompletionTime">${formatDate(review.plannedCompletionTime)}</td>
                     <td data-key="actualCompletionTime">${formatDate(review.actualCompletionTime)}</td>
@@ -6504,6 +6867,7 @@
                     <td data-key="problemTag1" class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
                     <td data-key="problemTag2" class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
                     <td data-key="preventionNotes" class="problem-desc" title="${review.preventionNotes || ''}">${(review.preventionNotes || '').substring(0, 30)}${(review.preventionNotes || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="dataSource">${review.dataSource || '-'}</td>
                     <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
                     <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
                     <td data-key="action">
@@ -6512,6 +6876,7 @@
                         </button>
                     </td>
                 `;
+            }
             tbody.appendChild(row);
         });
 
@@ -7308,6 +7673,10 @@
             version: document.getElementById('versionFilter').value,
             supplier: document.getElementById('supplierFilter').value,
             problemStatus: document.getElementById('problemStatusFilter').value,
+            group: document.getElementById('groupFilter').value,
+            category: document.getElementById('categoryFilter').value,
+            dataSource: document.getElementById('dataSourceFilter').value,
+            dqeResponsible: document.getElementById('dqeResponsibleFilter').value,
             testStartDate: document.getElementById('testStartDateFilter').value,
             testEndDate: document.getElementById('testEndDateFilter').value
         };
@@ -7323,6 +7692,10 @@
         if (filters.version) descriptions.push(`版本: ${filters.version}`);
         if (filters.supplier) descriptions.push(`供应商: ${filters.supplier}`);
         if (filters.problemStatus) descriptions.push(`问题状态: ${filters.problemStatus}`);
+        if (filters.group) descriptions.push(`组别: ${filters.group}`);
+        if (filters.category) descriptions.push(`品类: ${filters.category}`);
+        if (filters.dataSource) descriptions.push(`数据来源: ${filters.dataSource}`);
+        if (filters.dqeResponsible) descriptions.push(`DQE责任人: ${filters.dqeResponsible}`);
         if (filters.testStartDate) descriptions.push(`测试开始: ${filters.testStartDate}`);
         if (filters.testEndDate) descriptions.push(`测试结束: ${filters.testEndDate}`);
 
@@ -7340,7 +7713,11 @@
             { id: 'projectPhaseFilter', field: 'projectPhase' },
             { id: 'versionFilter', field: 'version' },
             { id: 'supplierFilter', field: 'supplier' },
-            { id: 'problemStatusFilter', field: 'problemStatus' }
+            { id: 'problemStatusFilter', field: 'problemStatus' },
+            { id: 'groupFilter', field: 'group' },
+            { id: 'categoryFilter', field: 'category' },
+            { id: 'dataSourceFilter', field: 'dataSource' },
+            { id: 'dqeResponsibleFilter', field: 'dqeResponsible' }
         ];
         
         filterConfigs.forEach(config => {
@@ -7673,6 +8050,10 @@
         if (filters.version) document.getElementById('versionFilter').value = filters.version;
         if (filters.supplier) document.getElementById('supplierFilter').value = filters.supplier;
         if (filters.problemStatus) document.getElementById('problemStatusFilter').value = filters.problemStatus;
+        if (filters.group) document.getElementById('groupFilter').value = filters.group;
+        if (filters.category) document.getElementById('categoryFilter').value = filters.category;
+        if (filters.dataSource) document.getElementById('dataSourceFilter').value = filters.dataSource;
+        if (filters.dqeResponsible) document.getElementById('dqeResponsibleFilter').value = filters.dqeResponsible;
         if (filters.testStartDate) document.getElementById('testStartDateFilter').value = filters.testStartDate;
         if (filters.testEndDate) document.getElementById('testEndDateFilter').value = filters.testEndDate;
 
@@ -7834,7 +8215,7 @@
         if (mergedData.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                    <td colspan="25" style="text-align: center; color: #666;">没有数据</td>
+                    <td colspan="29" style="text-align: center; color: #666;">没有数据</td>
                 `;
             tbody.appendChild(row);
             return;
@@ -7843,36 +8224,43 @@
         mergedData.forEach((review, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                    <td>${review.id || '-'}</td>
-                    <td>${review.testDate || '-'}</td>
-                    <td>${review.majorCode || '-'}</td>
-                    <td>${review.minorCode || '-'}</td>
-                    <td>${review.projectPhase || '-'}</td>
-                    <td>${review.version || '-'}</td>
-                    <td class="problem-desc" title="${review.problemProcess || ''}">${(review.problemProcess || '').substring(0, 20)}${(review.problemProcess || '').length > 20 ? '...' : ''}</td>
-                    <td><span class="status-badge status-${review.problemLevel?.toLowerCase() || ''}">${review.problemLevel || '-'}</span></td>
-                    <td class="problem-desc" title="${review.developmentMethod || ''}">${(review.developmentMethod || '').substring(0, 20)}${(review.developmentMethod || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.supplier || ''}">${(review.supplier || '').substring(0, 20)}${(review.supplier || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.solutionProvider || ''}">${(review.solutionProvider || '').substring(0, 20)}${(review.solutionProvider || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.problemPoint || ''}">${(review.problemPoint || '').substring(0, 30)}${(review.problemPoint || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.problemReason || ''}">${(review.problemReason || '').substring(0, 30)}${(review.problemReason || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.improvementMeasures || ''}">${(review.improvementMeasures || '').substring(0, 30)}${(review.improvementMeasures || '').length > 30 ? '...' : ''}</td>
-                    <td>${review.isPreventable || '-'}</td>
-                    <td>${review.responsibleDepartment || '-'}</td>
-                    <td><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
-                    <td>${formatDate(review.plannedCompletionTime)}</td>
-                    <td>${formatDate(review.actualCompletionTime)}</td>
-                    <td>${review.delayDays || '-'}</td>
-                    <td class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${review.preventionNotes || ''}">${(review.preventionNotes || '').substring(0, 30)}${(review.preventionNotes || '').length > 30 ? '...' : ''}</td>
-                    <td>${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td>${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="id">${review.id || '-'}</td>
+                    <td data-key="group">${review.group || '-'}</td>
+                    <td data-key="category">${review.category || '-'}</td>
+                    <td data-key="testDate">${review.testDate || '-'}</td>
+                    <td data-key="majorCode">${review.majorCode || '-'}</td>
+                    <td data-key="minorCode">${review.minorCode || '-'}</td>
+                    <td data-key="projectPhase">${review.projectPhase || '-'}</td>
+                    <td data-key="version">${review.version || '-'}</td>
+                    <td data-key="problemProcess" class="problem-desc" title="${review.problemProcess || ''}">${(review.problemProcess || '').substring(0, 20)}${(review.problemProcess || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="problemLevel"><span class="status-badge status-${review.problemLevel?.toLowerCase() || ''}">${review.problemLevel || '-'}</span></td>
+                    <td data-key="developmentMethod" class="problem-desc" title="${review.developmentMethod || ''}">${(review.developmentMethod || '').substring(0, 20)}${(review.developmentMethod || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="supplier" class="problem-desc" title="${review.supplier || ''}">${(review.supplier || '').substring(0, 20)}${(review.supplier || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="solutionProvider" class="problem-desc" title="${review.solutionProvider || ''}">${(review.solutionProvider || '').substring(0, 20)}${(review.solutionProvider || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="problemPoint" class="problem-desc" title="${review.problemPoint || ''}">${(review.problemPoint || '').substring(0, 30)}${(review.problemPoint || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="problemReason" class="problem-desc" title="${review.problemReason || ''}">${(review.problemReason || '').substring(0, 30)}${(review.problemReason || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="improvementMeasures" class="problem-desc" title="${review.improvementMeasures || ''}">${(review.improvementMeasures || '').substring(0, 30)}${(review.improvementMeasures || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="isPreventable">${review.isPreventable || '-'}</td>
+                    <td data-key="responsibleDepartment">${review.responsibleDepartment || '-'}</td>
+                    <td data-key="dqeResponsible">${review.dqeResponsible || '-'}</td>
+                    <td data-key="problemStatus"><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
+                    <td data-key="plannedCompletionTime">${formatDate(review.plannedCompletionTime)}</td>
+                    <td data-key="actualCompletionTime">${formatDate(review.actualCompletionTime)}</td>
+                    <td data-key="delayDays">${review.delayDays || '-'}</td>
+                    <td data-key="problemTag1" class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="problemTag2" class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="preventionNotes" class="problem-desc" title="${review.preventionNotes || ''}">${(review.preventionNotes || '').substring(0, 30)}${(review.preventionNotes || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="dataSource">${review.dataSource || '-'}</td>
+                    <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
                 `;
             tbody.appendChild(row);
         });
 
         // console.log('合并数据表格渲染完成，实际渲染行数:', tbody.children.length);
+        
+        // 应用列可见性设置
+        applyColumnVisibility();
     }
 
     // ==================== 合并数据图表功能 ====================
@@ -8477,6 +8865,10 @@
             const version = document.getElementById('versionFilter').value.trim();
             const supplier = document.getElementById('supplierFilter').value.trim();
             const problemStatus = document.getElementById('problemStatusFilter').value;
+            const group = document.getElementById('groupFilter').value.trim();
+            const category = document.getElementById('categoryFilter').value.trim();
+            const dataSource = document.getElementById('dataSourceFilter').value.trim();
+            const dqeResponsible = document.getElementById('dqeResponsibleFilter').value.trim();
             const testStartDate = document.getElementById('testStartDateFilter').value;
             const testEndDate = document.getElementById('testEndDateFilter').value;
 
@@ -8490,6 +8882,10 @@
                 const normalizedStatus = normalizeProblemStatus(problemStatus);
                 params.append('problemStatus', normalizedStatus);
             }
+            if (group) params.append('group', group);
+            if (category) params.append('category', category);
+            if (dataSource) params.append('dataSource', dataSource);
+            if (dqeResponsible) params.append('dqeResponsible', dqeResponsible);
             if (testStartDate) params.append('testStartDate', testStartDate);
             if (testEndDate) params.append('testEndDate', testEndDate);
 
@@ -9264,6 +9660,224 @@
             });
         }
     }
+
+    // ========== 全局编辑功能 ==========
+    let isGlobalEditMode = false; // 全局编辑模式标志
+
+    // 切换全局编辑模式
+    function toggleGlobalEditMode() {
+        isGlobalEditMode = !isGlobalEditMode;
+        
+        const table = document.getElementById('reviewTable');
+        const globalEditBtn = document.getElementById('globalEditBtn');
+        const saveGlobalEditBtn = document.getElementById('saveGlobalEditBtn');
+        const btnText = document.getElementById('globalEditBtnText');
+        
+        if (isGlobalEditMode) {
+            // 进入编辑模式
+            table.classList.add('global-edit-mode');
+            globalEditBtn.classList.remove('btn-primary');
+            globalEditBtn.classList.add('btn-warning');
+            btnText.textContent = '退出编辑';
+            saveGlobalEditBtn.style.display = 'inline-block';
+            
+            // 重新渲染表格，显示输入框
+            renderTable();
+            showToast('已进入编辑模式，可以直接在表格中编辑数据', 'info');
+        } else {
+            // 退出编辑模式
+            table.classList.remove('global-edit-mode');
+            globalEditBtn.classList.remove('btn-warning');
+            globalEditBtn.classList.add('btn-primary');
+            btnText.textContent = '全局编辑';
+            saveGlobalEditBtn.style.display = 'none';
+            
+            // 重新渲染表格，显示普通文本
+            renderTable();
+            showToast('已退出编辑模式', 'info');
+        }
+    }
+
+    // 从表格保存全局编辑
+    async function saveGlobalEditFromTable() {
+        if (!isGlobalEditMode) {
+            return;
+        }
+
+        const inputs = document.querySelectorAll('.table-cell-input, .table-cell-date-input');
+        if (inputs.length === 0) {
+            showToast('没有数据需要保存', 'warning');
+            return;
+        }
+
+        // 收集所有编辑的数据
+        const editedDataMap = new Map();
+
+        inputs.forEach(input => {
+            const row = input.closest('tr');
+            const idCell = row.querySelector('td[data-key="id"]');
+            if (!idCell) return;
+            
+            const id = idCell.textContent.trim();
+            const field = input.getAttribute('data-field');
+            const value = input.value.trim();
+
+            if (!editedDataMap.has(id)) {
+                editedDataMap.set(id, { id: id });
+            }
+            editedDataMap.get(id)[field] = value;
+        });
+
+        const editedData = Array.from(editedDataMap.values());
+
+        if (editedData.length === 0) {
+            showToast('没有修改任何数据', 'warning');
+            return;
+        }
+
+        // 显示保存提示
+        const saveBtn = document.getElementById('saveGlobalEditBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+
+        try {
+            // 调用批量更新接口
+            const response = await fetch('/reviewResult/batchUpdate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: editedData
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showToast(`成功保存 ${result.updatedCount || editedData.length} 条数据`, 'success');
+                // 退出编辑模式
+                toggleGlobalEditMode();
+                // 重新加载数据，保持在当前页
+                loadReviewData();
+            } else {
+                showToast('保存失败: ' + (result.message || '未知错误'), 'error');
+            }
+        } catch (error) {
+            console.error('保存失败:', error);
+            showToast('保存失败: ' + error.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> 保存修改';
+        }
+    }
+
+    // 打开全局编辑模态框（保留但不使用）
+    async function openGlobalEditModal() {
+        // 不再使用模态框方式，改为直接切换编辑模式
+        toggleGlobalEditMode();
+    }
+
+    // 获取所有搜索结果数据用于全局编辑（保留但不使用）
+    function getAllSearchDataForGlobalEdit() {
+        return new Promise((resolve, reject) => {
+            const params = new URLSearchParams({
+                username: currentUser,
+                job: currentRole,
+                page: 1,
+                size: 50000
+            });
+
+            // 添加筛选条件（与当前搜索条件保持一致）
+            const majorCode = document.getElementById('majorCodeFilter').value.trim();
+            const minorCode = document.getElementById('minorCodeFilter').value.trim();
+            const projectPhase = document.getElementById('projectPhaseFilter').value.trim();
+            const version = document.getElementById('versionFilter').value.trim();
+            const supplier = document.getElementById('supplierFilter').value.trim();
+            const problemStatus = document.getElementById('problemStatusFilter').value;
+            const group = document.getElementById('groupFilter').value.trim();
+            const category = document.getElementById('categoryFilter').value.trim();
+            const dataSource = document.getElementById('dataSourceFilter').value.trim();
+            const dqeResponsible = document.getElementById('dqeResponsibleFilter').value.trim();
+            const testStartDate = document.getElementById('testStartDateFilter').value;
+            const testEndDate = document.getElementById('testEndDateFilter').value;
+
+            if (majorCode) params.append('majorCode', majorCode);
+            if (minorCode) params.append('minorCode', minorCode);
+            if (projectPhase) params.append('projectPhase', projectPhase);
+            if (version) params.append('version', version);
+            if (supplier) params.append('supplier', supplier);
+            if (problemStatus) {
+                const normalizedStatus = normalizeProblemStatus(problemStatus);
+                params.append('problemStatus', normalizedStatus);
+            }
+            if (group) params.append('group', group);
+            if (category) params.append('category', category);
+            if (dataSource) params.append('dataSource', dataSource);
+            if (dqeResponsible) params.append('dqeResponsible', dqeResponsible);
+            if (testStartDate) params.append('testStartDate', testStartDate);
+            if (testEndDate) params.append('testEndDate', testEndDate);
+
+            fetch('/reviewResult/getReviewResults?' + params.toString())
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        resolve(data.data || []);
+                    } else {
+                        reject(new Error(data.error || '获取数据失败'));
+                    }
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        });
+    }
+
+    // 填充全局编辑表格（保留但不使用）
+    function fillGlobalEditTable(data) {
+        const tbody = document.getElementById('globalEditTableBody');
+        tbody.innerHTML = '';
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="text" class="global-edit-input" data-field="majorCode" data-id="${item.id}" value="${item.majorCode || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="minorCode" data-id="${item.id}" value="${item.minorCode || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="projectPhase" data-id="${item.id}" value="${item.projectPhase || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="version" data-id="${item.id}" value="${item.version || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="supplier" data-id="${item.id}" value="${item.supplier || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="problemStatus" data-id="${item.id}" value="${item.problemStatus || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="group" data-id="${item.id}" value="${item.group || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="category" data-id="${item.id}" value="${item.category || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="dqeResponsible" data-id="${item.id}" value="${item.dqeResponsible || ''}" /></td>
+                <td><input type="text" class="global-edit-input" data-field="dataSource" data-id="${item.id}" value="${item.dataSource || ''}" /></td>
+                <td><input type="date" class="global-edit-input" data-field="testDate" data-id="${item.id}" value="${item.testDate ? formatDateForInput(item.testDate) : ''}" /></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 格式化日期为input[type="date"]需要的格式
+    function formatDateForInput(dateStr) {
+        if (!dateStr) return '';
+        // 处理各种日期格式
+        if (dateStr.includes('T')) {
+            return dateStr.split('T')[0];
+        }
+        return dateStr.substring(0, 10);
+    }
+
+    // 关闭全局编辑模态框（保留但不使用）
+    function closeGlobalEditModal() {
+        document.getElementById('globalEditModal').style.display = 'none';
+    }
+
+    // 保存全局编辑（保留但不使用，改为使用saveGlobalEditFromTable）
+    async function saveGlobalEdit() {
+        await saveGlobalEditFromTable();
+    }
+
+    // 关闭模态框事件
+    window.closeGlobalEditModal = closeGlobalEditModal;
 </script>
-</body>
-</html>

@@ -298,22 +298,23 @@ public class ReviewResultsService {
             return reviewResultsList;
         }
         
-        // 先验证表头是否包含所有必需字段
+        // 第一步：先验证表头格式（字段完整性、顺序、列数）
         List<String> missingHeaders = validateHeaders(headerRow);
         if (!missingHeaders.isEmpty()) {
-            StringBuilder headerError = new StringBuilder("第1行（表头）缺少以下字段列：");
+            StringBuilder headerError = new StringBuilder("表头格式不正确：");
             for (int i = 0; i < missingHeaders.size(); i++) {
                 headerError.append(missingHeaders.get(i));
                 if (i < missingHeaders.size() - 1) {
-                    headerError.append("、");
+                    headerError.append("；");
                 }
             }
-            headerError.append("（请确保上传的Excel文件包含所有必需的表头字段，请下载模板文件查看标准格式）");
+            headerError.append("。请按模板调整");
             validationErrors.add(headerError.toString());
-            return reviewResultsList; // 表头不完整，不进行数据解析
+            // 表头格式不正确，直接返回，不进行后续的数据验证
+            return reviewResultsList;
         }
         
-        // 创建列索引映射
+        // 第二步：表头验证通过，创建列索引映射，开始验证数据行
         ColumnMapping columnMapping = createColumnMapping(headerRow);
         
         // 从第二行开始解析数据
@@ -322,6 +323,39 @@ public class ReviewResultsService {
             if (row == null) continue;
             
             try {
+                // 第三步：检查数据行的必填字段（大编码、小编码、项目阶段、供应商、问题点）
+                String group = getCellValueAsString(getCellSafely(row, columnMapping.groupIndex));
+                String category = getCellValueAsString(getCellSafely(row, columnMapping.categoryIndex));
+                String dqeResponsible = getCellValueAsString(getCellSafely(row, columnMapping.dqeResponsibleIndex));
+                String majorCode = getCellValueAsString(getCellSafely(row, columnMapping.majorCodeIndex));
+                String minorCode = getCellValueAsString(getCellSafely(row, columnMapping.minorCodeIndex));
+                String projectPhase = getCellValueAsString(getCellSafely(row, columnMapping.projectPhaseIndex));
+                String supplier = getCellValueAsString(getCellSafely(row, columnMapping.supplierIndex));
+                String problemPoint = getCellValueAsString(getCellSafely(row, columnMapping.problemPointIndex));
+                
+                // 检查必填字段，发现第一个为空就立即停止并返回
+                // 组别、品类、DQE负责人已改为可选字段，不再进行必填验证
+                if (majorCode == null || majorCode.trim().isEmpty()) {
+                    validationErrors.add("第" + (rowIndex + 1) + "行大编码不能为空");
+                    return reviewResultsList;
+                }
+                if (minorCode == null || minorCode.trim().isEmpty()) {
+                    validationErrors.add("第" + (rowIndex + 1) + "行小编码不能为空");
+                    return reviewResultsList;
+                }
+                if (projectPhase == null || projectPhase.trim().isEmpty()) {
+                    validationErrors.add("第" + (rowIndex + 1) + "行项目阶段不能为空");
+                    return reviewResultsList;
+                }
+                if (supplier == null || supplier.trim().isEmpty()) {
+                    validationErrors.add("第" + (rowIndex + 1) + "行供应商不能为空");
+                    return reviewResultsList;
+                }
+                if (problemPoint == null || problemPoint.trim().isEmpty()) {
+                    validationErrors.add("第" + (rowIndex + 1) + "行问题点不能为空");
+                    return reviewResultsList;
+                }
+                
                 // 先检查各个格式字段
                 // 检查Delay天数字段
                 if (columnMapping.delayDaysIndex >= 0) {
@@ -371,43 +405,8 @@ public class ReviewResultsService {
                 ReviewResults reviewResult = parseRow(row, columnMapping);
                 if (reviewResult != null) {
                     reviewResultsList.add(reviewResult);
-                } else {
-                    // 创建临时对象来获取缺失字段信息
-                    ReviewResults tempResult = new ReviewResults();
-                    tempResult.setTestDate(getCellValueAsDate(getCellSafely(row, columnMapping.testDateIndex)));
-                    tempResult.setMajorCode(getCellValueAsString(getCellSafely(row, columnMapping.majorCodeIndex)));
-                    tempResult.setMinorCode(getCellValueAsString(getCellSafely(row, columnMapping.minorCodeIndex)));
-                    tempResult.setProjectPhase(getCellValueAsString(getCellSafely(row, columnMapping.projectPhaseIndex)));
-                    tempResult.setVersion(getCellValueAsString(getCellSafely(row, columnMapping.versionIndex)));
-                    tempResult.setSupplier(getCellValueAsString(getCellSafely(row, columnMapping.supplierIndex)));
-                    tempResult.setProblemPoint(getCellValueAsString(getCellSafely(row, columnMapping.problemPointIndex)));
-                    
-                    // 检查具体缺失的字段
-                    StringBuilder missingFields = new StringBuilder();
-                    if (tempResult.getMajorCode() == null || tempResult.getMajorCode().trim().isEmpty()) {
-                        missingFields.append("大编码 ");
-                    }
-                    if (tempResult.getMinorCode() == null || tempResult.getMinorCode().trim().isEmpty()) {
-                        missingFields.append("小编码 ");
-                    }
-                    if (tempResult.getProjectPhase() == null || tempResult.getProjectPhase().trim().isEmpty()) {
-                        missingFields.append("项目阶段 ");
-                    }
-                    if (tempResult.getSupplier() == null || tempResult.getSupplier().trim().isEmpty()) {
-                        missingFields.append("供应商 ");
-                    }
-                    if (tempResult.getProblemPoint() == null || tempResult.getProblemPoint().trim().isEmpty()) {
-                        missingFields.append("问题点 ");
-                    }
-                    
-                    // 收集错误信息
-                    if (missingFields.length() > 0) {
-                        validationErrors.add("第" + (rowIndex + 1) + "行缺少必填字段：" + missingFields.toString().trim());
-                    } else {
-                        // 如果所有必填字段都有值，但还是返回null，说明其他问题
-                        validationErrors.add("第" + (rowIndex + 1) + "行数据异常");
-                    }
                 }
+                // 注意：必填字段检查已在上面完成，parseRow返回null时不需要再次检查
             } catch (Exception e) {
                 System.err.println("解析第" + (rowIndex + 1) + "行数据时出错: " + e.getMessage());
                 e.printStackTrace();
@@ -462,6 +461,9 @@ public class ReviewResultsService {
                 } else {
                     // 创建一个临时对象来获取缺失字段信息
                     ReviewResults tempResult = new ReviewResults();
+                    tempResult.setGroup(getCellValueAsString(getCellSafely(row, columnMapping.groupIndex)));
+                    tempResult.setDqeResponsible(getCellValueAsString(getCellSafely(row, columnMapping.dqeResponsibleIndex)));
+                    tempResult.setDataSource(getCellValueAsString(getCellSafely(row, columnMapping.dataSourceIndex)));
                     tempResult.setTestDate(getCellValueAsDate(getCellSafely(row, columnMapping.testDateIndex)));
                     tempResult.setMajorCode(getCellValueAsString(getCellSafely(row, columnMapping.majorCodeIndex)));
                     tempResult.setMinorCode(getCellValueAsString(getCellSafely(row, columnMapping.minorCodeIndex)));
@@ -471,9 +473,7 @@ public class ReviewResultsService {
                     
                     // 检查具体缺失的字段
                     StringBuilder missingFields = new StringBuilder();
-                    if (tempResult.getMajorCode() == null || tempResult.getMajorCode().trim().isEmpty()) {
-                        missingFields.append("大编码 ");
-                    }
+                    // 组别、品类、DQE负责人、数据来源已改为可选字段，不再进行检查
                     if (tempResult.getMinorCode() == null || tempResult.getMinorCode().trim().isEmpty()) {
                         missingFields.append("小编码 ");
                     }
@@ -504,8 +504,11 @@ public class ReviewResultsService {
     private List<String> validateHeaders(Row headerRow) {
         List<String> missingHeaders = new ArrayList<>();
         
-        // 定义所有必需的字段及其可能的表头名称（与createColumnMapping保持一致）
+        // 定义所有必需的字段及其可能的表头名称（按照指定顺序）
         List<String[]> requiredHeaders = new ArrayList<>();
+        requiredHeaders.add(new String[]{"序号", "序号", "编号"});
+        requiredHeaders.add(new String[]{"组别", "组别"});
+        requiredHeaders.add(new String[]{"品类", "品类"});
         requiredHeaders.add(new String[]{"发生日期", "发生日期", "测试日期"});
         requiredHeaders.add(new String[]{"大编码", "大编码", "大码"});
         requiredHeaders.add(new String[]{"小编码", "小编码", "小码"});
@@ -521,6 +524,7 @@ public class ReviewResultsService {
         requiredHeaders.add(new String[]{"改善对策", "改善对策", "对策"});
         requiredHeaders.add(new String[]{"是否可预防", "是否可预防", "可预防"});
         requiredHeaders.add(new String[]{"责任部门", "责任部门"});
+        requiredHeaders.add(new String[]{"DQE责任人", "DQE负责人", "负责人", "DQE", "DQE责任人"});
         requiredHeaders.add(new String[]{"预计完成时间", "预计完成时间", "预计"});
         requiredHeaders.add(new String[]{"实际完成时间", "实际完成时间", "实际"});
         requiredHeaders.add(new String[]{"Delay天数", "Delay天数", "延迟"});
@@ -528,26 +532,31 @@ public class ReviewResultsService {
         requiredHeaders.add(new String[]{"问题打标1", "问题打标1", "打标1"});
         requiredHeaders.add(new String[]{"问题打标2", "问题打标2", "打标2"});
         requiredHeaders.add(new String[]{"预防备注", "预防备注", "备注"});
+        requiredHeaders.add(new String[]{"数据来源", "数据来源", "来源"});
         
-        // 获取所有表头内容
+        // 获取所有表头内容（包括空列）
         List<String> headerValues = new ArrayList<>();
-        for (int cellIndex = 0; cellIndex < headerRow.getLastCellNum(); cellIndex++) {
+        int totalColumns = headerRow.getLastCellNum(); // 获取总列数，包括空列
+        for (int cellIndex = 0; cellIndex < totalColumns; cellIndex++) {
             Cell cell = headerRow.getCell(cellIndex);
             if (cell != null) {
                 String headerValue = getCellValueAsString(cell).trim();
-                if (!headerValue.isEmpty()) {
-                    headerValues.add(headerValue);
-                }
+                headerValues.add(headerValue); // 即使是空的也添加，保持列位置对应
+            } else {
+                headerValues.add(""); // 空单元格也要算作一列
             }
         }
         
-        // 检查每个必需字段是否存在
+        // 第一步：先检查每个必需字段是否存在（跳过空列）
+        List<String> missingFields = new ArrayList<>();
         for (String[] requiredHeader : requiredHeaders) {
-            String fieldName = requiredHeader[0]; // 第一个元素是字段名称
+            String fieldName = requiredHeader[0];
             boolean found = false;
             
             for (String headerValue : headerValues) {
-                // 检查是否匹配任一可能的表头名称
+                if (headerValue == null || headerValue.trim().isEmpty()) {
+                    continue; // 跳过空列
+                }
                 for (int i = 1; i < requiredHeader.length; i++) {
                     if (headerValue.contains(requiredHeader[i])) {
                         found = true;
@@ -558,8 +567,95 @@ public class ReviewResultsService {
             }
             
             if (!found) {
-                missingHeaders.add(fieldName);
+                missingFields.add(fieldName);
             }
+        }
+        
+        // 如果有缺失字段，直接返回缺失字段信息
+        if (!missingFields.isEmpty()) {
+            missingHeaders.add("缺少以下字段：" + String.join("、", missingFields));
+            return missingHeaders;
+        }
+        
+        // 第二步：检查字段数量（包括空列）
+        String[] expectedOrder = {
+            "序号", "组别", "品类", "发生日期", "大编码", "小编码", "项目阶段", "版本",
+            "问题工序", "问题等级", "开发方式", "供应商", "方案商", "问题点", "问题原因", "改善对策",
+            "是否可预防", "责任部门", "DQE责任人", "预计完成时间", "实际完成时间", "Delay天数",
+            "问题状态", "问题打标1", "问题打标2", "预防备注", "数据来源"
+        };
+        
+        // 计算非空列的数量
+        int nonEmptyColumns = 0;
+        for (String headerValue : headerValues) {
+            if (headerValue != null && !headerValue.trim().isEmpty()) {
+                nonEmptyColumns++;
+            }
+        }
+        
+        // 检查是否有空列（如果总列数超过期望的非空列数，说明有多余的列）
+        if (totalColumns > expectedOrder.length) {
+            missingHeaders.add(String.format("表头列数过多，期望%d列，实际%d列（包含空列）", expectedOrder.length, totalColumns));
+            return missingHeaders;
+        }
+        
+        // 如果非空列数不等于期望列数，说明缺少或多了字段
+        if (nonEmptyColumns != expectedOrder.length) {
+            missingHeaders.add(String.format("表头列数不正确，期望%d列，实际%d列（非空）", expectedOrder.length, nonEmptyColumns));
+            return missingHeaders;
+        }
+        
+        // 第三步：检查字段顺序
+        List<String> orderErrors = new ArrayList<>();
+        // 过滤空列，只检查非空列的位置
+        List<Integer> nonEmptyIndices = new ArrayList<>();
+        for (int i = 0; i < headerValues.size(); i++) {
+            if (headerValues.get(i) != null && !headerValues.get(i).trim().isEmpty()) {
+                nonEmptyIndices.add(i);
+            }
+        }
+        
+        // 检查每个非空列是否在正确的位置
+        if (nonEmptyIndices.size() != expectedOrder.length) {
+            // 这种情况应该已经在第二步被捕获了，但为了安全还是检查一下
+            return missingHeaders;
+        }
+        
+        for (int idx = 0; idx < nonEmptyIndices.size(); idx++) {
+            int actualIndex = nonEmptyIndices.get(idx);
+            String actualHeader = headerValues.get(actualIndex);
+            String expectedField = expectedOrder[idx];
+            
+            boolean matches = false;
+            for (String[] headerGroup : requiredHeaders) {
+                if (headerGroup[0].equals(expectedField)) {
+                    for (int j = 1; j < headerGroup.length; j++) {
+                        if (actualHeader.contains(headerGroup[j])) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (matches) break;
+                }
+            }
+            
+            if (!matches) {
+                orderErrors.add(String.format("第%d列期望'%s'，实际'%s'", actualIndex + 1, expectedField, actualHeader));
+            }
+        }
+        
+        // 检查是否有空列在期望有字段的位置
+        for (int i = 0; i < expectedOrder.length; i++) {
+            if (i < headerValues.size()) {
+                String headerValue = headerValues.get(i);
+                if (headerValue == null || headerValue.trim().isEmpty()) {
+                    orderErrors.add(String.format("第%d列应为'%s'，但该列为空", i + 1, expectedOrder[i]));
+                }
+            }
+        }
+        
+        if (!orderErrors.isEmpty()) {
+            missingHeaders.add("字段顺序不正确：" + String.join("；", orderErrors));
         }
         
         return missingHeaders;
@@ -580,7 +676,13 @@ public class ReviewResultsService {
             String headerValue = getCellValueAsString(cell).trim();
             
             // 根据表头内容映射到对应字段
-            if (headerValue.contains("发生日期") || headerValue.contains("测试日期")) {
+            if (headerValue.contains("组别")) {
+                mapping.groupIndex = cellIndex;
+            } else if (headerValue.contains("品类")) {
+                mapping.categoryIndex = cellIndex;
+            } else if (headerValue.contains("DQE负责人") || headerValue.contains("负责人") || headerValue.contains("DQE")) {
+                mapping.dqeResponsibleIndex = cellIndex;
+            } else if (headerValue.contains("发生日期") || headerValue.contains("测试日期")) {
                 mapping.testDateIndex = cellIndex;
             } else if (headerValue.contains("大编码") || headerValue.contains("大码")) {
                 mapping.majorCodeIndex = cellIndex;
@@ -624,6 +726,8 @@ public class ReviewResultsService {
                 mapping.problemTag2Index = cellIndex;
             } else if (headerValue.contains("预防备注") || headerValue.contains("备注")) {
                 mapping.preventionNotesIndex = cellIndex;
+            } else if (headerValue.contains("数据来源") || headerValue.contains("来源")) {
+                mapping.dataSourceIndex = cellIndex;
             }
         }
         
@@ -640,6 +744,9 @@ public class ReviewResultsService {
         ReviewResults reviewResult = new ReviewResults();
         
         // 解析各个字段，使用安全的getter方法
+        reviewResult.setGroup(getCellValueAsString(getCellSafely(row, mapping.groupIndex)));
+        reviewResult.setCategory(getCellValueAsString(getCellSafely(row, mapping.categoryIndex)));
+        reviewResult.setDqeResponsible(getCellValueAsString(getCellSafely(row, mapping.dqeResponsibleIndex)));
         reviewResult.setTestDate(getCellValueAsDate(getCellSafely(row, mapping.testDateIndex)));
         reviewResult.setMajorCode(getCellValueAsString(getCellSafely(row, mapping.majorCodeIndex)));
         reviewResult.setMinorCode(getCellValueAsString(getCellSafely(row, mapping.minorCodeIndex)));
@@ -663,10 +770,12 @@ public class ReviewResultsService {
         reviewResult.setProblemTag1(getCellValueAsString(getCellSafely(row, mapping.problemTag1Index)));
         reviewResult.setProblemTag2(getCellValueAsString(getCellSafely(row, mapping.problemTag2Index)));
         reviewResult.setPreventionNotes(getCellValueAsString(getCellSafely(row, mapping.preventionNotesIndex)));
+        reviewResult.setDataSource(getCellValueAsString(getCellSafely(row, mapping.dataSourceIndex)));
         
-        // 检查必填字段（版本字段已改为可选）
+        // 检查必填字段（版本字段、组别、品类、DQE负责人、数据来源已改为可选）
         StringBuilder missingFields = new StringBuilder();
         
+        // 组别、品类、DQE负责人、数据来源已改为可选字段，不再进行检查
         if (reviewResult.getMajorCode() == null || reviewResult.getMajorCode().trim().isEmpty()) {
             missingFields.append("大编码 ");
         }
@@ -929,6 +1038,9 @@ public class ReviewResultsService {
      * 列映射内部类
      */
     private static class ColumnMapping {
+        int groupIndex = -1;
+        int categoryIndex = -1;
+        int dqeResponsibleIndex = -1;
         int testDateIndex = -1;
         int majorCodeIndex = -1;
         int minorCodeIndex = -1;
@@ -951,6 +1063,7 @@ public class ReviewResultsService {
         int problemTag1Index = -1;
         int problemTag2Index = -1;
         int preventionNotesIndex = -1;
+        int dataSourceIndex = -1;
     }
 
     /**

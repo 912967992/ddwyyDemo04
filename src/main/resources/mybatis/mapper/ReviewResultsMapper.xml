@@ -5,6 +5,9 @@
     <!-- 结果映射 -->
     <resultMap id="ReviewResultsMap" type="com.lu.ddwyydemo04.pojo.ReviewResults">
         <id property="id" column="id"/>
+        <result property="group" column="group_name"/>
+        <result property="category" column="category"/>
+        <result property="dqeResponsible" column="dqe"/>
         <result property="testDate" column="test_date"/>
         <result property="majorCode" column="major_code"/>
         <result property="minorCode" column="minor_code"/>
@@ -29,22 +32,23 @@
         <result property="preventionNotes" column="prevention_notes"/>
         <result property="createdTime" column="created_time"/>
         <result property="updatedTime" column="updated_time"/>
+        <result property="dataSource" column="data_source"/>
     </resultMap>
 
     <!-- 插入评审结果数据 -->
     <insert id="insert" parameterType="com.lu.ddwyydemo04.pojo.ReviewResults" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reviewResults (
-            test_date, major_code, minor_code, project_phase, version,
+            group_name, category, dqe, test_date, major_code, minor_code, project_phase, version,
             problem_process, problem_level, development_method, supplier, solution_provider,
             problem_point, problem_reason, improvement_measures, is_preventable, responsible_department,
             planned_completion_time, actual_completion_time, delay_days, problem_status,
-            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time
+            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time, data_source
         ) VALUES (
-            #{testDate}, #{majorCode}, #{minorCode}, #{projectPhase}, #{version},
+            #{group}, #{category}, #{dqeResponsible}, #{testDate}, #{majorCode}, #{minorCode}, #{projectPhase}, #{version},
             #{problemProcess}, #{problemLevel}, #{developmentMethod}, #{supplier}, #{solutionProvider},
             #{problemPoint}, #{problemReason}, #{improvementMeasures}, #{isPreventable}, #{responsibleDepartment},
             #{plannedCompletionTime}, #{actualCompletionTime}, #{delayDays}, #{problemStatus},
-            #{problemTag1}, #{problemTag2}, #{preventionNotes}, #{createdTime}, #{updatedTime}
+            #{problemTag1}, #{problemTag2}, #{preventionNotes}, #{createdTime}, #{updatedTime}, #{dataSource}
         )
     </insert>
 
@@ -67,6 +71,9 @@
     <!-- 更新评审结果数据 -->
     <update id="update" parameterType="com.lu.ddwyydemo04.pojo.ReviewResults">
         UPDATE reviewResults SET 
+            group_name = #{group},
+            category = #{category},
+            dqe = #{dqeResponsible},
             test_date = #{testDate},
             major_code = #{majorCode},
             minor_code = #{minorCode},
@@ -89,26 +96,27 @@
             problem_tag1 = #{problemTag1},
             problem_tag2 = #{problemTag2},
             prevention_notes = #{preventionNotes},
-            updated_time = #{updatedTime}
+            updated_time = #{updatedTime},
+            data_source = #{dataSource}
         WHERE id = #{id}
     </update>
 
     <!-- 批量插入评审结果数据 -->
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO reviewResults (
-            test_date, major_code, minor_code, project_phase, version,
+            group_name, category, dqe, test_date, major_code, minor_code, project_phase, version,
             problem_process, problem_level, development_method, supplier, solution_provider,
             problem_point, problem_reason, improvement_measures, is_preventable, responsible_department,
             planned_completion_time, actual_completion_time, delay_days, problem_status,
-            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time
+            problem_tag1, problem_tag2, prevention_notes, created_time, updated_time, data_source
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
-                #{item.testDate}, #{item.majorCode}, #{item.minorCode}, #{item.projectPhase}, #{item.version},
+                #{item.group}, #{item.category}, #{item.dqeResponsible}, #{item.testDate}, #{item.majorCode}, #{item.minorCode}, #{item.projectPhase}, #{item.version},
                 #{item.problemProcess}, #{item.problemLevel}, #{item.developmentMethod}, #{item.supplier}, #{item.solutionProvider},
                 #{item.problemPoint}, #{item.problemReason}, #{item.improvementMeasures}, #{item.isPreventable}, #{item.responsibleDepartment},
                 #{item.plannedCompletionTime}, #{item.actualCompletionTime}, #{item.delayDays}, #{item.problemStatus},
-                #{item.problemTag1}, #{item.problemTag2}, #{item.preventionNotes}, #{item.createdTime}, #{item.updatedTime}
+                #{item.problemTag1}, #{item.problemTag2}, #{item.preventionNotes}, #{item.createdTime}, #{item.updatedTime}, #{item.dataSource}
             )
         </foreach>
     </insert>
@@ -149,6 +157,18 @@
     <delete id="deleteByFilters" parameterType="java.util.Map">
         DELETE FROM reviewResults
         <where>
+            <if test="filters.group != null and filters.group != ''">
+                AND group_name = #{filters.group}
+            </if>
+            <if test="filters.category != null and filters.category != ''">
+                AND category LIKE CONCAT('%', #{filters.category}, '%')
+            </if>
+            <if test="filters.dqeResponsible != null and filters.dqeResponsible != ''">
+                AND dqe LIKE CONCAT('%', #{filters.dqeResponsible}, '%')
+            </if>
+            <if test="filters.dataSource != null and filters.dataSource != ''">
+                AND data_source LIKE CONCAT('%', #{filters.dataSource}, '%')
+            </if>
             <if test="filters.testDateFrom != null and filters.testDateFrom != ''">
                 AND test_date >= #{filters.testDateFrom}
             </if>
@@ -216,6 +236,18 @@
     <select id="findByFilters" parameterType="java.util.Map" resultMap="ReviewResultsMap">
         SELECT * FROM reviewResults
         <where>
+            <if test="filters.group != null and filters.group != ''">
+                AND group_name = #{filters.group}
+            </if>
+            <if test="filters.category != null and filters.category != ''">
+                AND category LIKE CONCAT('%', #{filters.category}, '%')
+            </if>
+            <if test="filters.dqeResponsible != null and filters.dqeResponsible != ''">
+                AND dqe LIKE CONCAT('%', #{filters.dqeResponsible}, '%')
+            </if>
+            <if test="filters.dataSource != null and filters.dataSource != ''">
+                AND data_source LIKE CONCAT('%', #{filters.dataSource}, '%')
+            </if>
             <if test="filters.testDateFrom != null and filters.testDateFrom != ''">
                 AND test_date >= #{filters.testDateFrom}
             </if>
@@ -283,6 +315,9 @@
     <!-- TestIssuesView结果映射 -->
     <resultMap id="TestIssuesViewMap" type="com.lu.ddwyydemo04.pojo.TestIssuesView">
         <id property="id" column="id"/>
+        <result property="group" column="group_name"/>
+        <result property="category" column="category"/>
+        <result property="dqeResponsible" column="dqe_responsible"/>
         <result property="problemTime" column="problem_time"/>
         <result property="sampleModel" column="sample_model"/>
         <result property="sampleCoding" column="sample_coding"/>
@@ -312,12 +347,15 @@
     <select id="findAllTestIssues" resultMap="TestIssuesViewMap">
         SELECT 
             t.id,
+            u.departmentName as group_name,
+            s.small_species as category,
+            s.sample_DQE as dqe_responsible,
             t.problem_time,
             s.sample_model,
             s.sample_coding,
             t.sample_stage,
             t.version,
-            '电气测试报告' as problem_process,
+            'DQE电气验证报告' as problem_process,
             t.defect_level,
             '' as development_method,
             t.supplier,
@@ -332,11 +370,12 @@
             '' as actual_completion_time,
             '' as delay_days,
             '' as problem_tag1,
-            '' as problem_tag2,
+            t.problemCategory as problem_tag2,
             t.remark,
             t.created_at
         FROM test_issues t
         INNER JOIN samples s ON t.sample_id = s.sample_id
+        LEFT JOIN users u ON s.sample_DQE = u.username
         INNER JOIN (
             SELECT sample_id, MAX(history_id) as max_history_id
             FROM test_issues
@@ -349,12 +388,15 @@
     <select id="findTestIssuesByIds" resultMap="TestIssuesViewMap">
         SELECT 
             t.id,
+            u.departmentName as group_name,
+            s.small_species as category,
+            s.sample_DQE as dqe_responsible,
             t.problem_time,
             s.sample_model,
             s.sample_coding,
             t.sample_stage,
             t.version,
-            '电气测试报告' as problem_process,
+            'DQE电气验证报告' as problem_process,
             t.defect_level,
             '' as development_method,
             t.supplier,
@@ -369,11 +411,12 @@
             '' as actual_completion_time,
             '' as delay_days,
             '' as problem_tag1,
-            '' as problem_tag2,
+            t.problemCategory as problem_tag2,
             t.remark,
             t.created_at
         FROM test_issues t
         INNER JOIN samples s ON t.sample_id = s.sample_id
+        LEFT JOIN users u ON s.sample_DQE = u.username
         WHERE t.id IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}

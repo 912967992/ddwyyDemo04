@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 public class ReviewResults {
     
     private Long id;
+    private String group;
+    private String category;
+    private String dqeResponsible;
     private LocalDate testDate;
     private String majorCode;
     private String minorCode;
@@ -34,12 +37,13 @@ public class ReviewResults {
     private String preventionNotes;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
+    private String dataSource;
 
     // 无参构造函数
     public ReviewResults() {}
 
     // 全参构造函数
-    public ReviewResults(Long id, LocalDate testDate, String majorCode, String minorCode, 
+    public ReviewResults(Long id, String group, String category, String dqeResponsible, LocalDate testDate, String majorCode, String minorCode, 
                         String projectPhase, String version, String problemProcess, 
                         String problemLevel, String developmentMethod, String supplier, 
                         String solutionProvider, String problemPoint, String problemReason, 
@@ -47,8 +51,11 @@ public class ReviewResults {
                         LocalDateTime plannedCompletionTime, LocalDateTime actualCompletionTime, 
                         Integer delayDays, String problemStatus, String problemTag1, 
                         String problemTag2, String preventionNotes, LocalDateTime createdTime, 
-                        LocalDateTime updatedTime) {
+                        LocalDateTime updatedTime, String dataSource) {
         this.id = id;
+        this.group = group;
+        this.category = category;
+        this.dqeResponsible = dqeResponsible;
         this.testDate = testDate;
         this.majorCode = majorCode;
         this.minorCode = minorCode;
@@ -73,6 +80,7 @@ public class ReviewResults {
         this.preventionNotes = preventionNotes;
         this.createdTime = createdTime;
         this.updatedTime = updatedTime;
+        this.dataSource = dataSource;
     }
 
     // Getter和Setter方法
@@ -82,6 +90,30 @@ public class ReviewResults {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getDqeResponsible() {
+        return dqeResponsible;
+    }
+
+    public void setDqeResponsible(String dqeResponsible) {
+        this.dqeResponsible = dqeResponsible;
     }
 
     public LocalDate getTestDate() {
@@ -276,10 +308,21 @@ public class ReviewResults {
         this.updatedTime = updatedTime;
     }
 
+    public String getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
+    }
+
     @Override
     public String toString() {
         return "ReviewResults{" +
                 "id=" + id +
+                ", group='" + group + '\'' +
+                ", category='" + category + '\'' +
+                ", dqeResponsible='" + dqeResponsible + '\'' +
                 ", testDate=" + testDate +
                 ", majorCode='" + majorCode + '\'' +
                 ", minorCode='" + minorCode + '\'' +
@@ -304,6 +347,7 @@ public class ReviewResults {
                 ", preventionNotes='" + preventionNotes + '\'' +
                 ", createdTime=" + createdTime +
                 ", updatedTime=" + updatedTime +
+                ", dataSource='" + dataSource + '\'' +
                 '}';
     }
 }

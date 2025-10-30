@@ -974,7 +974,7 @@ public class testManIndexController {
                     return "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus;
                 }
 
-                // 检查缺陷等级的值必须为S、A、B、C之一，要求必须为大写
+                // 检查缺陷等级的值必须为S、A、B、C、D之一，要求必须为大写
                 String defectLevel = rowMap.get("缺陷等级");
                 if (defectLevel == null || defectLevel.trim().isEmpty()) {
                     return "缺陷等级不能为空，请填写缺陷等级";
@@ -983,8 +983,9 @@ public class testManIndexController {
                 if (!normalizedDefectLevel.equals("S") && 
                     !normalizedDefectLevel.equals("A") && 
                     !normalizedDefectLevel.equals("B") && 
-                    !normalizedDefectLevel.equals("C")) {
-                    return "缺陷等级必须为S、A、B、C中的一个（大写），当前值：" + defectLevel;
+                    !normalizedDefectLevel.equals("C") && 
+                    !normalizedDefectLevel.equals("D")) {
+                    return "缺陷等级必须为S、A、B、C、D中的一个（大写），当前值：" + defectLevel;
                 }
 
                 filteredRows.add(rowMap);
@@ -2373,7 +2374,7 @@ public class testManIndexController {
                     return result;
                 }
 
-                // 检查缺陷等级的值必须为S、A、B、C之一，要求必须为大写
+                // 检查缺陷等级的值必须为S、A、B、C、D之一，要求必须为大写
                 String defectLevel = rowMap.get("缺陷等级");
                 if (defectLevel == null || defectLevel.trim().isEmpty()) {
                     result.put("message", "缺陷等级不能为空，请填写缺陷等级");
@@ -2383,8 +2384,9 @@ public class testManIndexController {
                 if (!normalizedDefectLevel.equals("S") && 
                     !normalizedDefectLevel.equals("A") && 
                     !normalizedDefectLevel.equals("B") && 
-                    !normalizedDefectLevel.equals("C")) {
-                    result.put("message", "缺陷等级必须为S、A、B、C中的一个（大写），当前值：" + defectLevel);
+                    !normalizedDefectLevel.equals("C") && 
+                    !normalizedDefectLevel.equals("D")) {
+                    result.put("message", "缺陷等级必须为S、A、B、C、D中的一个（大写），当前值：" + defectLevel);
                     return result;
                 }
 

@@ -328,8 +328,12 @@
 
 
 <!-- 进度条容器，初始时隐藏 -->
-<div id="uploadProgress" style="display: none;">
-    <div id="uploadProgressBar" style="width: 0%; height: 20px; background-color: #4CAF50;"></div>
+<div id="uploadProgress" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.95); border: 2px solid #4CAF50; border-radius: 8px; padding: 20px; min-width: 400px; max-width: 600px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); z-index: 10000;">
+    <div style="margin-bottom: 10px; font-weight: bold; text-align: center; color: #333;">文件上传进度</div>
+    <div style="width: 100%; height: 25px; background-color: #f0f0f0; border-radius: 12px; overflow: hidden; position: relative;">
+        <div id="uploadProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%); transition: width 0.3s ease; border-radius: 12px;"></div>
+    </div>
+    <div class="progress-text" style="text-align: center; padding: 10px 5px 5px; color: #666; font-size: 14px;"></div>
 </div>
 
     <!-- 自定义模态框 -->
@@ -1347,9 +1351,6 @@
                 }
 
                 const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2); // 将文件大小转换为MB并保留两位小数
-                const estimatedTime = (fileSizeInMB / 6).toFixed(1); // 计算预计时间并保留一位小数
-                // alert(`您选择的文件大小为 ${fileSizeInMB} MB，正在上传中，预计需要 ${estimatedTime} min，请先点击确认关闭本提示框，然后等结果框弹出再操作本文件`);
-                alert(`您选择的文件大小为 ${fileSizeInMB} MB，正在上传中，请先点击确认关闭本提示框，然后等结果框弹出说"替换成功"后再操作本文件`);
 
                 var sample_id = $('#edit_sample_id').val();
 
@@ -1376,21 +1377,81 @@
                         formData.append('file', file);
                         formData.append('filepath', jumpfilepath);
 
-                        $.ajax({
-                            url: '/testManIndex/replaceFilepath', // 你需要在后端创建处理这个路径替换的API
-                            type: 'POST',
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            success: async function (response) {
-                                await clearStorage(response)
-                                // 这里处理后端返回的消息
-                                alert(response.message); // 弹出服务器返回的消息（例如 "文件替换成功"）
-                            },
-                            error: function(xhr, status, error){
+                        // 显示进度条
+                        const progressContainer = document.getElementById('uploadProgress');
+                        const progressBar = document.getElementById('uploadProgressBar');
+                        const progressText = progressContainer.querySelector('.progress-text');
+                        
+                        progressContainer.style.display = 'block';
+                        progressBar.style.width = '0%';
+                        if (progressText) {
+                            progressText.textContent = `文件大小: ${fileSizeInMB} MB - 准备上传...`;
+                        }
+
+                        // 使用XMLHttpRequest来监听上传进度
+                        const xhr = new XMLHttpRequest();
+
+                        // 监听上传进度
+                        xhr.upload.addEventListener('progress', function(e) {
+                            if (e.lengthComputable) {
+                                const percentComplete = (e.loaded / e.total) * 100;
+                                progressBar.style.width = percentComplete + '%';
+                                const loadedMB = (e.loaded / (1024 * 1024)).toFixed(2);
+                                const totalMB = (e.total / (1024 * 1024)).toFixed(2);
+                                if (progressText) {
+                                    progressText.textContent = `文件大小: ${fileSizeInMB} MB - 上传进度: ${percentComplete.toFixed(1)}% (${loadedMB} MB / ${totalMB} MB)`;
+                                }
+                            }
+                        }, false);
+
+                        // 监听请求完成
+                        xhr.addEventListener('load', async function() {
+                            if (xhr.status === 200) {
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    progressBar.style.width = '100%';
+                                    if (progressText) {
+                                        progressText.textContent = '上传完成，正在处理...';
+                                    }
+                                    
+                                    await clearStorage(response);
+                                    // 延迟一下再隐藏进度条，让用户看到100%
+                                    setTimeout(() => {
+                                        progressContainer.style.display = 'none';
+                                        progressBar.style.width = '0%';
+                                    }, 500);
+                                    
+                                    alert(response.message || "文件替换成功");
+                                } catch (e) {
+                                    progressContainer.style.display = 'none';
+                                    alert("文件替换成功");
+                                }
+                            } else {
+                                progressContainer.style.display = 'none';
+                                progressBar.style.width = '0%';
                                 alert("文件替换失败，请稍后再试！");
                             }
-                        });
+                        }, false);
+
+                        // 监听错误
+                        xhr.addEventListener('error', function() {
+                            progressContainer.style.display = 'none';
+                            progressBar.style.width = '0%';
+                            alert("文件替换失败，请稍后再试！");
+                        }, false);
+
+                        // 监听取消
+                        xhr.addEventListener('abort', function() {
+                            progressContainer.style.display = 'none';
+                            progressBar.style.width = '0%';
+                            if (progressText) {
+                                progressText.textContent = '';
+                            }
+                        }, false);
+
+                        // 发送请求
+                        xhr.open('POST', '/testManIndex/replaceFilepath');
+                        xhr.send(formData);
                     },
                     error: function(xhr, status, error){
                         alert("替换文件失败,获取不到文件路径!");
@@ -2476,7 +2537,7 @@
                     { label: '研发确认', field: 'rd_confirm' },
                     { label: '研发意见信息', field: 'rd_confirm_inform' },
                     // 前移
-                    { label: '缺陷等级(只写SABC)', field: 'defect_level' },
+                    { label: '缺陷等级(只写SABCD)', field: 'defect_level' },
                     { label: '当前状态', field: 'current_status' },
                     { label: '问题类别', field: 'problemCategory' },
                     { label: '评审结论', field: 'review_conclusion' },
@@ -2734,7 +2795,7 @@
                                 valueDiv.appendChild(select);  // 添加下拉框到 valueDiv 中
                             } else if(index === 6){
                                 // 定义需要转换为下拉框的等级选项
-                                let validOptions = ['S', 'A', 'B', 'C', '待确定'];
+                                let validOptions = ['S', 'A', 'B', 'C', 'D', '待确定'];
 
                                 // 将传递过来的值转换为统一格式（大写）
                                 let normalizedValue = String(value).toUpperCase();
@@ -3425,7 +3486,7 @@
                             newDiv.appendChild(checkbox); // 将复选框添加到新单元格
                         }else if (attr.field === 'defect_level') {
                             // 定义缺陷等级的选项
-                            const validOptions = ['S', 'A', 'B', 'C', '待确定'];
+                            const validOptions = ['S', 'A', 'B', 'C', 'D', '待确定'];
 
                             // 创建下拉框
                             const select = document.createElement('select');

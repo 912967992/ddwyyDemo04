@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 public class TestIssuesView {
     
     private Long id;
+    private String group;           // 组别 - 从users表的departmentName获取（通过sample_DQE匹配）
+    private String category;         // 品类 - s.small_species
+    private String dqeResponsible;   // DQE负责人 - s.sample_DQE
     private String problemTime;  // 发生日期 - t.problem_time
     private String sampleModel;  // 大编码 - s.sample_model
     private String sampleCoding; // 小编码 - s.sample_coding
@@ -40,6 +43,30 @@ public class TestIssuesView {
     
     public void setId(Long id) {
         this.id = id;
+    }
+    
+    public String getGroup() {
+        return group;
+    }
+    
+    public void setGroup(String group) {
+        this.group = group;
+    }
+    
+    public String getCategory() {
+        return category;
+    }
+    
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    
+    public String getDqeResponsible() {
+        return dqeResponsible;
+    }
+    
+    public void setDqeResponsible(String dqeResponsible) {
+        this.dqeResponsible = dqeResponsible;
     }
     
     public String getProblemTime() {
