@@ -134,6 +134,9 @@ public interface DQEDao {
 
     Map<String, String> findUserByUsername(@Param("username") String username);
 
+    // 根据用户名获取部门名称
+    String getDepartmentNameByUsername(@Param("username") String username);
+
     // 查tb_test_engineer_info表，看工程师是不是已经存在
     Integer countEngineerByName(@Param("testEngineerName") String testEngineerName);
 

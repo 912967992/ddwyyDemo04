@@ -9,6 +9,7 @@ import com.dingtalk.api.request.*;
 import com.dingtalk.api.response.*;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.JsapiTicketService;
+import com.lu.ddwyydemo04.dao.DQE.DQEDao;
 import com.taobao.api.ApiException;
 
 import org.slf4j.Logger;
@@ -35,6 +36,9 @@ public class DingTalkH5Controller {
 
     @Autowired
     private AccessTokenService accessTokenService;
+
+    @Autowired
+    private DQEDao dqeDao;
 
     @Value("${dingtalk.agentid}")
     private String agentid;
@@ -130,6 +134,13 @@ public class DingTalkH5Controller {
             result.put("username", username);
 //            result.put("job", job);
             result.put("departmentId", departmentId);
+            
+            // 从 users 表获取 departmentName
+            String departmentName = dqeDao.getDepartmentNameByUsername(username);
+            if (departmentName != null && !departmentName.isEmpty()) {
+                result.put("departmentName", departmentName);
+            }
+            
             result.put("corp_id",corpid);
             result.put("templatespath",templatespath);
             result.put("imagepath",imagepath);

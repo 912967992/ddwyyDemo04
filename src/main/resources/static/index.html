@@ -116,6 +116,7 @@
                 sessionStorage.setItem('username', response.username);
                 sessionStorage.setItem('job', response.job);
                 sessionStorage.setItem('departmentId', response.departmentId);
+                sessionStorage.setItem('departmentName', response.departmentName || '');
                 sessionStorage.setItem('corp_id', response.corp_id);
                 sessionStorage.setItem('templatespath', response.templatespath);
                 sessionStorage.setItem('savepath', response.savepath);
@@ -125,6 +126,7 @@
                 localStorage.setItem('username', response.username);
                 localStorage.setItem('job', response.job);
                 localStorage.setItem('departmentId', response.departmentId);
+                localStorage.setItem('departmentName', response.departmentName || '');
                 localStorage.setItem('corp_id', response.corp_id);
                 localStorage.setItem('templatespath', response.templatespath);
                 localStorage.setItem('savepath', response.savepath);
@@ -132,6 +134,7 @@
 
                 setLocalStorageItem("username", response.username);
                 setLocalStorageItem("job", response.job);
+                setLocalStorageItem("departmentName", response.departmentName || '');
                 setLocalStorageItem("corp_id", response.corp_id);
 
                 // 使用自定义模态框

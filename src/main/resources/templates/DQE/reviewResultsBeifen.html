@@ -1160,13 +1160,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none; /* 覆盖层本身不拦截事件，允许图表点击事件穿透 */
             z-index: 10;
         }
 
-        .chart-annotation-overlay.active {
-            pointer-events: all;
-        }
+        /* 注意：覆盖层始终保持穿透，只有注释元素本身（.chart-annotation）会拦截事件 */
 
         .add-annotation-btn {
             position: absolute;
@@ -3571,6 +3569,7 @@
     // 全局变量
     let currentUser = '';
     let currentRole = '';
+    let departmentName = ''; // 用户所属部门名称
 
     // 图表相关变量 - 支持双图表
     var currentChart1 = null;
@@ -4029,7 +4028,6 @@
     let currentEditingReviewId = null;
     let filteredData = [];
     let allSearchData = []; // 存储搜索的全部数据，用于建议功能
-    let isSuperAdmin = false; // 是否为超级管理员
 
     // 购物车/收藏夹相关变量
     let cartItems = []; // 收藏夹项目
@@ -4720,6 +4718,7 @@
         // 优先从URL参数获取用户信息，其次从localStorage获取
         const urlUsername = getUrlParameter('username');
         const urlJob = getUrlParameter('job');
+        const urlDepartmentName = getUrlParameter('departmentName');
 
         if (urlUsername) {
             currentUser = urlUsername;
@@ -4740,9 +4739,17 @@
             localStorage.setItem('currentRole', currentRole);
         }
 
-        // 检查是否为超级管理员
-        const adminUsers = ['admin', 'root', 'administrator', '管理员'];
-        isSuperAdmin = adminUsers.includes(currentUser.toLowerCase()) || currentRole === 'SuperAdmin';
+        // 获取部门名称：优先从URL参数获取，其次从localStorage获取，最后从sessionStorage获取
+        if (urlDepartmentName) {
+            departmentName = urlDepartmentName;
+            localStorage.setItem('departmentName', departmentName);
+        } else {
+            departmentName = localStorage.getItem('departmentName')  || '';
+            // 如果从localStorage或sessionStorage获取到，也保存到另一个存储中，确保一致性
+            if (departmentName) {
+                localStorage.setItem('departmentName', departmentName);
+            }
+        }
 
         // 更新页面显示
         document.getElementById('currentUser').textContent = `用户: ${currentUser}`;
@@ -6383,14 +6390,10 @@
         document.getElementById('editDetailRemark').value = problem.remark || '';
         document.getElementById('editDetailTestOverseas').value = problem.test_Overseas || '';
 
-        // 根据权限控制编辑按钮显示
+        // 编辑按钮显示
         const editBtn = document.getElementById('editProblemBtn');
         if (editBtn) {
-            if (isSuperAdmin) {
-                editBtn.style.display = 'inline-flex';
-            } else {
-                editBtn.style.display = 'none';
-            }
+            editBtn.style.display = 'inline-flex';
         }
 
         // 确保退出编辑模式
@@ -6683,12 +6686,6 @@
 
     // 显示编辑问题点模态框
     function showEditProblemModal(problemId) {
-        // 检查权限
-        if (!isSuperAdmin) {
-            alert('您没有权限进行此操作！');
-            return;
-        }
-
         const problem = filteredData.find(p => p.id === problemId);
         if (!problem) return;
 
@@ -6873,12 +6870,6 @@
 
     // 保存问题点
     function saveProblem() {
-        // 检查权限
-        if (!isSuperAdmin) {
-            alert('您没有权限进行此操作！');
-            return;
-        }
-
         // 检查问题点字段是否为空
         const problemValue = document.getElementById('editProblem').value;
         if (!problemValue || problemValue.trim() === '') {
@@ -6933,46 +6924,92 @@
 
             // 根据编辑模式决定渲染方式
             if (isGlobalEditMode) {
-                // 编辑模式：显示输入框
-                row.innerHTML = `
-                    <td data-key="checkbox">
-                        <input type="checkbox" class="table-row-checkbox" data-id="${review.id}" title="选择此行">
-                    </td>
-                    <td data-key="id">${review.id || '-'}</td>
-                    <td data-key="group"><input type="text" class="table-cell-input" data-field="group" value="${review.group || ''}" /></td>
-                    <td data-key="category"><input type="text" class="table-cell-input" data-field="category" value="${review.category || ''}" /></td>
-                    <td data-key="testDate"><input type="date" class="table-cell-date-input" data-field="testDate" value="${review.testDate ? formatDateForInput(review.testDate) : ''}" /></td>
-                    <td data-key="majorCode"><input type="text" class="table-cell-input" data-field="majorCode" value="${review.majorCode || ''}" /></td>
-                    <td data-key="minorCode"><input type="text" class="table-cell-input" data-field="minorCode" value="${review.minorCode || ''}" /></td>
-                    <td data-key="projectPhase"><input type="text" class="table-cell-input" data-field="projectPhase" value="${review.projectPhase || ''}" /></td>
-                    <td data-key="version"><input type="text" class="table-cell-input" data-field="version" value="${review.version || ''}" /></td>
-                    <td data-key="problemProcess"><input type="text" class="table-cell-input" data-field="problemProcess" value="${review.problemProcess || ''}" /></td>
-                    <td data-key="problemLevel"><input type="text" class="table-cell-input" data-field="problemLevel" value="${review.problemLevel || ''}" /></td>
-                    <td data-key="developmentMethod"><input type="text" class="table-cell-input" data-field="developmentMethod" value="${review.developmentMethod || ''}" /></td>
-                    <td data-key="supplier"><input type="text" class="table-cell-input" data-field="supplier" value="${review.supplier || ''}" /></td>
-                    <td data-key="solutionProvider"><input type="text" class="table-cell-input" data-field="solutionProvider" value="${review.solutionProvider || ''}" /></td>
-                    <td data-key="problemPoint"><input type="text" class="table-cell-input" data-field="problemPoint" value="${review.problemPoint || ''}" /></td>
-                    <td data-key="problemReason"><input type="text" class="table-cell-input" data-field="problemReason" value="${review.problemReason || ''}" /></td>
-                    <td data-key="improvementMeasures"><input type="text" class="table-cell-input" data-field="improvementMeasures" value="${review.improvementMeasures || ''}" /></td>
-                    <td data-key="isPreventable"><input type="text" class="table-cell-input" data-field="isPreventable" value="${review.isPreventable || ''}" /></td>
-                    <td data-key="responsibleDepartment"><input type="text" class="table-cell-input" data-field="responsibleDepartment" value="${review.responsibleDepartment || ''}" /></td>
-                    <td data-key="dqeResponsible"><input type="text" class="table-cell-input" data-field="dqeResponsible" value="${review.dqeResponsible || ''}" /></td>
-                    <td data-key="problemStatus"><input type="text" class="table-cell-input" data-field="problemStatus" value="${review.problemStatus || ''}" /></td>
-                    <td data-key="plannedCompletionTime"><input type="date" class="table-cell-date-input" data-field="plannedCompletionTime" value="${review.plannedCompletionTime ? formatDateForInput(review.plannedCompletionTime) : ''}" /></td>
-                    <td data-key="actualCompletionTime"><input type="date" class="table-cell-date-input" data-field="actualCompletionTime" value="${review.actualCompletionTime ? formatDateForInput(review.actualCompletionTime) : ''}" /></td>
-                    <td data-key="delayDays"><input type="number" class="table-cell-input" data-field="delayDays" value="${review.delayDays || ''}" /></td>
-                    <td data-key="problemTag1"><input type="text" class="table-cell-input" data-field="problemTag1" value="${review.problemTag1 || ''}" /></td>
-                    <td data-key="problemTag2"><input type="text" class="table-cell-input" data-field="problemTag2" value="${review.problemTag2 || ''}" /></td>
-                    <td data-key="preventionNotes"><input type="text" class="table-cell-input" data-field="preventionNotes" value="${review.preventionNotes || ''}" /></td>
-                    <td data-key="dataSource"><input type="text" class="table-cell-input" data-field="dataSource" value="${review.dataSource || ''}" /></td>
-                    <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td data-key="action">
-                        <button class="btn btn-sm btn-info" onclick="showReviewDetail(${review.id})" title="查看详情">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                `;
+                // 判断是否允许编辑：只有当该行的 group 字段与用户的 departmentName 相同时才允许编辑
+                const canEdit = departmentName && review.group && review.group.trim() === departmentName.trim();
+
+                if (canEdit) {
+                    // 允许编辑的行：显示输入框
+                    row.innerHTML = `
+                        <td data-key="checkbox">
+                            <input type="checkbox" class="table-row-checkbox" data-id="${review.id}" title="选择此行">
+                        </td>
+                        <td data-key="id">${review.id || '-'}</td>
+                        <td data-key="group"><input type="text" class="table-cell-input" data-field="group" value="${review.group || ''}" /></td>
+                        <td data-key="category"><input type="text" class="table-cell-input" data-field="category" value="${review.category || ''}" /></td>
+                        <td data-key="testDate"><input type="date" class="table-cell-date-input" data-field="testDate" value="${review.testDate ? formatDateForInput(review.testDate) : ''}" /></td>
+                        <td data-key="majorCode"><input type="text" class="table-cell-input" data-field="majorCode" value="${review.majorCode || ''}" /></td>
+                        <td data-key="minorCode"><input type="text" class="table-cell-input" data-field="minorCode" value="${review.minorCode || ''}" /></td>
+                        <td data-key="projectPhase"><input type="text" class="table-cell-input" data-field="projectPhase" value="${review.projectPhase || ''}" /></td>
+                        <td data-key="version"><input type="text" class="table-cell-input" data-field="version" value="${review.version || ''}" /></td>
+                        <td data-key="problemProcess"><input type="text" class="table-cell-input" data-field="problemProcess" value="${review.problemProcess || ''}" /></td>
+                        <td data-key="problemLevel"><input type="text" class="table-cell-input" data-field="problemLevel" value="${review.problemLevel || ''}" /></td>
+                        <td data-key="developmentMethod"><input type="text" class="table-cell-input" data-field="developmentMethod" value="${review.developmentMethod || ''}" /></td>
+                        <td data-key="supplier"><input type="text" class="table-cell-input" data-field="supplier" value="${review.supplier || ''}" /></td>
+                        <td data-key="solutionProvider"><input type="text" class="table-cell-input" data-field="solutionProvider" value="${review.solutionProvider || ''}" /></td>
+                        <td data-key="problemPoint"><input type="text" class="table-cell-input" data-field="problemPoint" value="${review.problemPoint || ''}" /></td>
+                        <td data-key="problemReason"><input type="text" class="table-cell-input" data-field="problemReason" value="${review.problemReason || ''}" /></td>
+                        <td data-key="improvementMeasures"><input type="text" class="table-cell-input" data-field="improvementMeasures" value="${review.improvementMeasures || ''}" /></td>
+                        <td data-key="isPreventable"><input type="text" class="table-cell-input" data-field="isPreventable" value="${review.isPreventable || ''}" /></td>
+                        <td data-key="responsibleDepartment"><input type="text" class="table-cell-input" data-field="responsibleDepartment" value="${review.responsibleDepartment || ''}" /></td>
+                        <td data-key="dqeResponsible"><input type="text" class="table-cell-input" data-field="dqeResponsible" value="${review.dqeResponsible || ''}" /></td>
+                        <td data-key="problemStatus"><input type="text" class="table-cell-input" data-field="problemStatus" value="${review.problemStatus || ''}" /></td>
+                        <td data-key="plannedCompletionTime"><input type="date" class="table-cell-date-input" data-field="plannedCompletionTime" value="${review.plannedCompletionTime ? formatDateForInput(review.plannedCompletionTime) : ''}" /></td>
+                        <td data-key="actualCompletionTime"><input type="date" class="table-cell-date-input" data-field="actualCompletionTime" value="${review.actualCompletionTime ? formatDateForInput(review.actualCompletionTime) : ''}" /></td>
+                        <td data-key="delayDays"><input type="number" class="table-cell-input" data-field="delayDays" value="${review.delayDays || ''}" /></td>
+                        <td data-key="problemTag1"><input type="text" class="table-cell-input" data-field="problemTag1" value="${review.problemTag1 || ''}" /></td>
+                        <td data-key="problemTag2"><input type="text" class="table-cell-input" data-field="problemTag2" value="${review.problemTag2 || ''}" /></td>
+                        <td data-key="preventionNotes"><input type="text" class="table-cell-input" data-field="preventionNotes" value="${review.preventionNotes || ''}" /></td>
+                        <td data-key="dataSource"><input type="text" class="table-cell-input" data-field="dataSource" value="${review.dataSource || ''}" /></td>
+                        <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
+                        <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
+                        <td data-key="action">
+                            <button class="btn btn-sm btn-info" onclick="showReviewDetail(${review.id})" title="查看详情">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                } else {
+                    // 不允许编辑的行：直接显示普通文本（不变）
+                    row.innerHTML = `
+                        <td data-key="checkbox">
+                            <input type="checkbox" class="table-row-checkbox" data-id="${review.id}" title="选择此行">
+                        </td>
+                        <td data-key="id">${review.id || '-'}</td>
+                        <td data-key="group">${review.group || '-'}</td>
+                        <td data-key="category">${review.category || '-'}</td>
+                        <td data-key="testDate">${review.testDate || '-'}</td>
+                        <td data-key="majorCode">${review.majorCode || '-'}</td>
+                        <td data-key="minorCode">${review.minorCode || '-'}</td>
+                        <td data-key="projectPhase">${review.projectPhase || '-'}</td>
+                        <td data-key="version">${review.version || '-'}</td>
+                        <td data-key="problemProcess" class="problem-desc" title="${review.problemProcess || ''}">${(review.problemProcess || '').substring(0, 20)}${(review.problemProcess || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="problemLevel"><span class="status-badge status-${review.problemLevel?.toLowerCase() || ''}">${review.problemLevel || '-'}</span></td>
+                        <td data-key="developmentMethod" class="problem-desc" title="${review.developmentMethod || ''}">${(review.developmentMethod || '').substring(0, 20)}${(review.developmentMethod || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="supplier" class="problem-desc" title="${review.supplier || ''}">${(review.supplier || '').substring(0, 20)}${(review.supplier || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="solutionProvider" class="problem-desc" title="${review.solutionProvider || ''}">${(review.solutionProvider || '').substring(0, 20)}${(review.solutionProvider || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="problemPoint" class="problem-desc" title="${review.problemPoint || ''}">${(review.problemPoint || '').substring(0, 30)}${(review.problemPoint || '').length > 30 ? '...' : ''}</td>
+                        <td data-key="problemReason" class="problem-desc" title="${review.problemReason || ''}">${(review.problemReason || '').substring(0, 30)}${(review.problemReason || '').length > 30 ? '...' : ''}</td>
+                        <td data-key="improvementMeasures" class="problem-desc" title="${review.improvementMeasures || ''}">${(review.improvementMeasures || '').substring(0, 30)}${(review.improvementMeasures || '').length > 30 ? '...' : ''}</td>
+                        <td data-key="isPreventable">${review.isPreventable || '-'}</td>
+                        <td data-key="responsibleDepartment">${review.responsibleDepartment || '-'}</td>
+                        <td data-key="dqeResponsible">${review.dqeResponsible || '-'}</td>
+                        <td data-key="problemStatus"><span class="status-badge status-${review.problemStatus?.toLowerCase().replace(' ', '') || ''}">${review.problemStatus || '-'}</span></td>
+                        <td data-key="plannedCompletionTime">${formatDate(review.plannedCompletionTime)}</td>
+                        <td data-key="actualCompletionTime">${formatDate(review.actualCompletionTime)}</td>
+                        <td data-key="delayDays">${review.delayDays || '-'}</td>
+                        <td data-key="problemTag1" class="problem-desc" title="${review.problemTag1 || ''}">${(review.problemTag1 || '').substring(0, 20)}${(review.problemTag1 || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="problemTag2" class="problem-desc" title="${review.problemTag2 || ''}">${(review.problemTag2 || '').substring(0, 20)}${(review.problemTag2 || '').length > 20 ? '...' : ''}</td>
+                        <td data-key="preventionNotes" class="problem-desc" title="${review.preventionNotes || ''}">${(review.preventionNotes || '').substring(0, 30)}${(review.preventionNotes || '').length > 30 ? '...' : ''}</td>
+                        <td data-key="dataSource">${review.dataSource || '-'}</td>
+                        <td data-key="createdTime">${review.createdTime ? new Date(review.createdTime).toLocaleString('zh-CN') : '-'}</td>
+                        <td data-key="updatedTime">${review.updatedTime ? new Date(review.updatedTime).toLocaleString('zh-CN') : '-'}</td>
+                        <td data-key="action">
+                            <button class="btn btn-sm btn-info" onclick="showReviewDetail(${review.id})" title="查看详情">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                }
             } else {
                 // 普通模式：显示文本
                 row.innerHTML = `
@@ -7320,12 +7357,6 @@
 
     // 进入编辑模式
     function enterEditMode() {
-        // 检查权限
-        if (!isSuperAdmin) {
-            alert('您没有权限进行此操作！');
-            return;
-        }
-
         // 所有可编辑字段（除了提交时间）
         const editableFields = [
             'detailFullModel', 'detailBigSpecies', 'detailSmallSpecies', 'detailSampleStage', 'detailVersion', 'detailChipSolution',
@@ -7388,12 +7419,6 @@
 
     // 保存详情修改
     function saveDetailChanges() {
-        // 检查权限
-        if (!isSuperAdmin) {
-            alert('您没有权限进行此操作！');
-            return;
-        }
-
         // 检查问题点字段是否为空
         const problemValue = document.getElementById('editDetailProblem').value;
         if (!problemValue || problemValue.trim() === '') {
@@ -10221,10 +10246,15 @@
             return;
         }
 
-        // 收集所有编辑的数据
+        // 收集所有编辑的数据（只保存允许编辑的行）
         const editedDataMap = new Map();
 
         inputs.forEach(input => {
+            // 跳过被禁用的输入框（这些是不允许编辑的行）
+            if (input.disabled || input.readOnly) {
+                return;
+            }
+
             const row = input.closest('tr');
             const idCell = row.querySelector('td[data-key="id"]');
             if (!idCell) return;
@@ -10232,6 +10262,21 @@
             const id = idCell.textContent.trim();
             const field = input.getAttribute('data-field');
             const value = input.value.trim();
+
+            // 安全验证：检查该行的原始 group 字段是否与用户的 departmentName 匹配
+            // 应该基于原始数据判断是否有权限编辑，而不是修改后的值
+            // 这样即使用户修改了组别，只要原始组别匹配，就可以保存
+            const originalReview = allData.find(item => String(item.id) === id);
+            if (originalReview && originalReview.group) {
+                const originalGroup = originalReview.group.trim();
+                if (!departmentName || originalGroup !== departmentName.trim()) {
+                    return; // 原始组别不匹配，不允许编辑保存
+                }
+            } else if (!originalReview && departmentName) {
+                // 如果找不到原始数据但有 departmentName，为了安全起见，也跳过
+                // 这种情况理论上不应该发生，因为不允许编辑的行不会显示输入框
+                return;
+            }
 
             if (!editedDataMap.has(id)) {
                 editedDataMap.set(id, { id: id });

@@ -562,6 +562,14 @@
             LIMIT 1
     </select>
 
+    <!-- 根据用户名获取部门名称 -->
+    <select id="getDepartmentNameByUsername" resultType="String">
+        SELECT departmentName
+        FROM users
+        WHERE username = #{username}
+        LIMIT 1
+    </select>
+
     <!-- 查tb_test_engineer_info -->
     <select id="countEngineerByName" resultType="int">
         SELECT COUNT(1)
