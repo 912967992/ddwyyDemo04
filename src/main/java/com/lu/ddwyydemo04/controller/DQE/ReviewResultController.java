@@ -1,9 +1,11 @@
 package com.lu.ddwyydemo04.controller.DQE;
 
 import com.lu.ddwyydemo04.Service.ReviewResultsService;
+import com.lu.ddwyydemo04.Service.UserAccessLogService;
 import com.lu.ddwyydemo04.pojo.ReviewResults;
 import com.lu.ddwyydemo04.pojo.TestIssuesView;
 import com.lu.ddwyydemo04.dao.ReviewResultsDao;
+import com.lu.ddwyydemo04.pojo.UserAccessLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * 新品质量问题页面控制器
  * 处理新品质量问题相关的页面跳转和API请求
@@ -47,27 +51,19 @@ public class ReviewResultController {
     @Autowired
     private ReviewResultsDao reviewResultsDao;
 
+    @Autowired
+    private UserAccessLogService userAccessLogService;
+
     /**
      * 新品质量问题页面跳转
      * @return 新品质量问题页面视图
      */
     @GetMapping("/reviewResults")
-    public String reviewResultPage() {
+    public String reviewResultPage(String username,String job,HttpServletRequest request) {
+        userAccessLogService.recordUserAccess(username,job,"新品质量问题页面",request);
         return "DQE/reviewResults";
     }
 
-    /**
-     * 获取新品质量问题列表
-     * @param username 用户名
-     * @param job 角色
-     * @param page 页码（可选，默认为1）
-     * @param size 每页大小（可选，默认为20）
-     * @param sampleId 样品ID筛选（可选）
-     * @param status 评审状态筛选（可选）
-     * @param reviewer 评审人筛选（可选）
-     * @param reviewDate 评审日期筛选（可选）
-     * @return 新品质量问题列表
-     */
     @GetMapping("/reviewResult/getReviewResults")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getReviewResults(

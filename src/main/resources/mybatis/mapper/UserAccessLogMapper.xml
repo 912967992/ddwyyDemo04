@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.UserAccessLogDao">
+
+    <!-- 插入用户访问记录 -->
+    <insert id="insertUserAccessLog" parameterType="UserAccessLog">
+        INSERT INTO user_access_log (
+            username,
+            job,
+            access_time,
+            user_agent,
+            ip_address,
+            access_page
+        ) VALUES (
+            #{username},
+            #{job},
+            #{accessTime},
+            #{userAgent},
+            #{ipAddress},
+            #{accessPage}
+        )
+    </insert>
+
+    <!-- 根据用户名查询访问系统的次数（访问系统的值） -->
+    <select id="getAccessSystemCountByUsername" resultType="Integer">
+        SELECT COUNT(*)
+        FROM user_access_log
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据用户名查询最近的访问记录 -->
+    <select id="getRecentAccessLogsByUsername" resultType="UserAccessLog">
+        SELECT 
+            id,
+            username,
+            job,
+            access_time as accessTime,
+            user_agent as userAgent,
+            ip_address as ipAddress,
+            access_page as accessPage
+        FROM user_access_log
+        WHERE username = #{username}
+        ORDER BY access_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询所有用户的访问统计（每个用户访问系统的值） -->
+    <select id="getAllUserAccessStatistics" resultType="UserAccessLog">
+        SELECT 
+            username,
+            job,
+            MAX(access_time) as accessTime,
+            COUNT(*) as accessSystemCount,
+            MAX(user_agent) as userAgent,
+            MAX(ip_address) as ipAddress
+        FROM user_access_log
+        GROUP BY username, job
+        ORDER BY accessSystemCount DESC, accessTime DESC
+    </select>
+
+</mapper>

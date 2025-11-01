@@ -10,6 +10,9 @@ import com.dingtalk.api.response.*;
 import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.JsapiTicketService;
 import com.lu.ddwyydemo04.dao.DQE.DQEDao;
+import com.lu.ddwyydemo04.dao.UserAccessLogDao;
+import com.lu.ddwyydemo04.pojo.UserAccessLog;
+import com.lu.ddwyydemo04.Service.UserAccessLogService;
 import com.taobao.api.ApiException;
 
 import org.slf4j.Logger;
@@ -40,6 +43,12 @@ public class DingTalkH5Controller {
     @Autowired
     private DQEDao dqeDao;
 
+    @Autowired
+    private UserAccessLogDao userAccessLogDao;
+
+    @Autowired
+    private UserAccessLogService userAccessLogService;
+
     @Value("${dingtalk.agentid}")
     private String agentid;
 
@@ -63,17 +72,17 @@ public class DingTalkH5Controller {
 
     @PostMapping("/api/getUserInfo")
     @ResponseBody
-    public Map<String, Object> getUserInfo(@RequestBody Map<String, String> requestMap) throws ApiException {
+    public Map<String, Object> getUserInfo(@RequestBody Map<String, String> requestMap, HttpServletRequest request) throws ApiException {
         //获取免登授权码authCode
         String authCode = requestMap.get("authCode");
         String accessToken = accessTokenService.getAccessToken(); // 调用方法获取accessToken
 
         DingTalkClient client = new DefaultDingTalkClient(GET_USER_INFO_URL);
-        OapiUserGetuserinfoRequest request = new OapiUserGetuserinfoRequest();
-        request.setCode(authCode);
-        request.setHttpMethod("GET");
+        OapiUserGetuserinfoRequest getUserInfoRequest = new OapiUserGetuserinfoRequest();
+        getUserInfoRequest.setCode(authCode);
+        getUserInfoRequest.setHttpMethod("GET");
 
-        OapiUserGetuserinfoResponse response = client.execute(request, accessToken);
+        OapiUserGetuserinfoResponse response = client.execute(getUserInfoRequest, accessToken);
         Map<String, Object> result = new HashMap<>();
         if (response.getErrcode() == 0) {
             // 正常情况下返回用户userid   ,deviceid是设备的唯一标识符，用不太到
@@ -145,6 +154,10 @@ public class DingTalkH5Controller {
             result.put("templatespath",templatespath);
             result.put("imagepath",imagepath);
             result.put("savepath",savepath);
+
+            // 记录用户访问日志（使用服务类封装的方法）
+            // accessPage 可以自定义，例如："登录/获取用户信息"
+            userAccessLogService.recordUserAccess(username, job, "登录/获取用户信息", request);
 
         } else {
             // 发生错误时返回错误信息
@@ -370,6 +383,5 @@ public class DingTalkH5Controller {
         // 返回静态html页面名（不带后缀）
         return "authRedirect";
     }
-
 
 }

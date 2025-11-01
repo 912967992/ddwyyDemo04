@@ -2,6 +2,7 @@ package com.lu.ddwyydemo04.controller;
 
 import com.lu.ddwyydemo04.Service.NewProductProgressService;
 import com.lu.ddwyydemo04.Service.ProjectTableService;
+import com.lu.ddwyydemo04.Service.UserAccessLogService;
 import com.lu.ddwyydemo04.pojo.NewProductProgress;
 import com.lu.ddwyydemo04.pojo.ProjectTable;
 import org.apache.poi.ss.usermodel.*;
@@ -22,6 +23,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.ByteArrayResource;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.FileNotFoundException;
@@ -60,12 +62,16 @@ public class NewProductProgressController {
     @Autowired
     private ProjectTableService projectTableService;
 
+    @Autowired
+    private UserAccessLogService userAccessLogService;
+
     /**
      * 新品进度管理页面跳转
      * @return 新品进度管理页面视图
      */
     @GetMapping("/qualityProgress")
-    public String qualityProgressPage() {
+    public String qualityProgressPage(String username, String job, HttpServletRequest request) {
+        userAccessLogService.recordUserAccess(username,job,"新品质量进度页面",request);
         return "qualityProgress";
     }
 
