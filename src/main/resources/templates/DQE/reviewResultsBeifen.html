@@ -5915,6 +5915,45 @@
         });
     }
 
+    // 组别匹配辅助函数 - 兼容缺少"组"字的情况
+    function isGroupNameMatched(groupName1, groupName2) {
+        if (!groupName1 && !groupName2) return true;
+        if (!groupName1 || !groupName2) return false;
+
+        // 去除末尾的"组"字后比较
+        const normalize = (name) => {
+            if (!name) return '';
+            return name.trim().replace(/组$/, '');
+        };
+
+        const normalized1 = normalize(groupName1);
+        const normalized2 = normalize(groupName2);
+
+        // 直接相等或去除"组"字后相等都算匹配
+        return groupName1.trim() === groupName2.trim() || normalized1 === normalized2;
+    }
+
+    // 检查组别是否允许编辑
+    // 如果组别为空，则允许任何人编辑
+    // 如果departmentName为空，则允许编辑所有行
+    // 如果组别不为空且departmentName不为空，需要组别匹配
+    function canEditByGroup(reviewGroup, departmentName) {
+        const groupName = (reviewGroup || '').trim();
+
+        // 如果组别为空，允许编辑
+        if (!groupName) {
+            return true;
+        }
+
+        // 如果departmentName为空，允许编辑所有行
+        if (!departmentName) {
+            return true;
+        }
+
+        // 组别不为空且departmentName不为空，需要组别匹配
+        return isGroupNameMatched(groupName, departmentName);
+    }
+
     // 显示新品质量详情
     function showReviewDetail(reviewId) {
         const review = filteredData.find(r => r.id === reviewId);
@@ -5987,14 +6026,29 @@
             }
         });
 
-        // 显示编辑按钮，隐藏保存和取消按钮
+        // 检查组别是否允许编辑
+        // 如果组别为空，则允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
+        const reviewGroup = review.group || '';
+        const canEdit = canEditByGroup(reviewGroup, departmentName);
+
+        // 根据组别匹配情况显示或隐藏编辑按钮
         const editBtn = document.getElementById('editReviewBtn');
         const saveBtn = document.getElementById('saveReviewBtn');
         const cancelBtn = document.getElementById('cancelEditReviewBtn');
 
-        if (editBtn) editBtn.style.display = 'inline-block';
+        if (editBtn) {
+            if (canEdit) {
+                editBtn.style.display = 'inline-block';
+            } else {
+                editBtn.style.display = 'none';
+                console.log(`详情模态框编辑按钮已隐藏：组别不匹配（组别: ${reviewGroup}，当前部门: ${departmentName}）`);
+            }
+        }
         if (saveBtn) saveBtn.style.display = 'none';
         if (cancelBtn) cancelBtn.style.display = 'none';
+
+        // 确保所有字段都是只读模式（防止之前编辑状态的输入框残留）
+        convertToReadMode();
 
         // 显示模态框
         const modal = document.getElementById('reviewDetailModal');
@@ -6005,6 +6059,19 @@
 
     // 进入编辑模式
     function enterReviewEditMode() {
+        // 检查组别权限
+        if (currentEditingReviewId) {
+            const review = filteredData.find(r => r.id === currentEditingReviewId);
+            if (review) {
+                const reviewGroup = review.group || '';
+                // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
+                if (!canEditByGroup(reviewGroup, departmentName)) {
+                    showToast(`没有权限编辑此记录：组别不匹配（组别: ${reviewGroup}，当前部门: ${departmentName}）`, 'error');
+                    return;
+                }
+            }
+        }
+
         // 隐藏编辑按钮，显示保存和取消按钮
         document.getElementById('editReviewBtn').style.display = 'none';
         document.getElementById('saveReviewBtn').style.display = 'inline-block';
@@ -6115,6 +6182,7 @@
     // 转换为只读模式
     function convertToReadMode() {
         const fieldMappings = [
+            'detailGroup', 'detailCategory', 'detailDqeResponsible', 'detailDataSource',
             'detailTestDate', 'detailMajorCode', 'detailMinorCode', 'detailProjectPhase',
             'detailVersion', 'detailProblemProcess', 'detailProblemLevel', 'detailDevelopmentMethod',
             'detailSupplier', 'detailSolutionProvider', 'detailProblemPoint', 'detailProblemReason',
@@ -6165,6 +6233,19 @@
         if (!isNewRecord && !currentEditingReviewId) {
             showToast('没有找到要编辑的新品质量', 'error');
             return;
+        }
+
+        // 如果是更新操作，检查组别权限
+        if (!isNewRecord && currentEditingReviewId) {
+            const review = filteredData.find(r => r.id === currentEditingReviewId);
+            if (review) {
+                const reviewGroup = review.group || '';
+                // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
+                if (!canEditByGroup(reviewGroup, departmentName)) {
+                    showToast(`没有权限编辑此记录：组别不匹配（组别: ${reviewGroup}，当前部门: ${departmentName}）`, 'error');
+                    return;
+                }
+            }
         }
 
         // 收集编辑后的数据
@@ -6924,8 +7005,9 @@
 
             // 根据编辑模式决定渲染方式
             if (isGlobalEditMode) {
-                // 判断是否允许编辑：只有当该行的 group 字段与用户的 departmentName 相同时才允许编辑
-                const canEdit = departmentName && review.group && review.group.trim() === departmentName.trim();
+                // 判断是否允许编辑：如果组别为空，允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
+                const reviewGroup = review.group || '';
+                const canEdit = canEditByGroup(reviewGroup, departmentName);
 
                 if (canEdit) {
                     // 允许编辑的行：显示输入框
@@ -10263,16 +10345,16 @@
             const field = input.getAttribute('data-field');
             const value = input.value.trim();
 
-            // 安全验证：检查该行的原始 group 字段是否与用户的 departmentName 匹配
+            // 安全验证：检查该行的原始 group 字段是否允许编辑
             // 应该基于原始数据判断是否有权限编辑，而不是修改后的值
-            // 这样即使用户修改了组别，只要原始组别匹配，就可以保存
+            // 如果组别为空，允许任何人编辑；否则需要组别匹配
             const originalReview = allData.find(item => String(item.id) === id);
-            if (originalReview && originalReview.group) {
-                const originalGroup = originalReview.group.trim();
-                if (!departmentName || originalGroup !== departmentName.trim()) {
-                    return; // 原始组别不匹配，不允许编辑保存
+            if (originalReview) {
+                const originalGroup = originalReview.group || '';
+                if (!canEditByGroup(originalGroup, departmentName)) {
+                    return; // 原始组别不允许编辑，跳过
                 }
-            } else if (!originalReview && departmentName) {
+            } else if (departmentName) {
                 // 如果找不到原始数据但有 departmentName，为了安全起见，也跳过
                 // 这种情况理论上不应该发生，因为不允许编辑的行不会显示输入框
                 return;

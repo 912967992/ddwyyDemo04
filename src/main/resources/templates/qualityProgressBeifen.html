@@ -1897,6 +1897,39 @@
             color: #888;
         }
 
+        /* 导入规则说明样式 */
+        .import-rules {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .import-rules h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .import-rules-content {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .import-rules-content .rule-item {
+            margin: 8px 0;
+            padding-left: 8px;
+        }
+
+        .import-rules-content .rule-item strong {
+            color: #664d03;
+        }
+
         .upload-area {
             border: 2px dashed #007bff;
             border-radius: 8px;
@@ -2927,6 +2960,32 @@
             border: 1px dashed #ddd;
             border-radius: 4px;
         }
+
+        /* 禁用行样式 - 组别不匹配的行 */
+        .edit-mode .row-disabled {
+            background-color: #f5f5f5;
+            opacity: 0.6;
+        }
+
+        .edit-mode .row-disabled input,
+        .edit-mode .row-disabled select,
+        .edit-mode .row-disabled textarea {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #ced4da;
+        }
+
+        .edit-mode .row-disabled .text-edit-trigger {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            cursor: not-allowed;
+        }
+
+        .edit-mode .row-disabled .text-edit-trigger:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+        }
     </style>
 </head>
 <body>
@@ -3022,6 +3081,35 @@
                             <div class="progress-fill" id="progressFill"></div>
                         </div>
                         <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 导入规则说明 -->
+            <div class="import-rules">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    导入数据判断规则
+                </h4>
+                <div class="import-rules-content">
+                    <div class="rule-item">
+                        <strong>系统会根据以下字段判断是插入新数据还是更新现有数据：</strong>
+                    </div>
+                    <div class="rule-item">
+                        <strong>情况1：</strong> 当 SKU 不为空时，使用以下 4 个字段进行匹配：
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品三级类目
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 型号
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• SKU
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品名称
+                    </div>
+                    <div class="rule-item">
+                        <strong>情况2：</strong> 当 SKU 为空时，使用以下 3 个字段进行匹配：
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品三级类目
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 型号
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;• 产品名称
+                    </div>
+                    <div class="rule-item">
+                        <strong>说明：</strong> 如果数据库中已存在匹配的记录，则更新该记录；否则插入新记录。
                     </div>
                 </div>
             </div>
@@ -4273,6 +4361,7 @@
     // 全局变量
     let currentUser = '';
     let currentRole = '';
+    let currentDepartmentName = '';
 
     let currentPage = 1;
 
@@ -5754,6 +5843,7 @@
         // 优先从URL参数获取用户信息，其次从localStorage获取
         const urlUsername = getUrlParameter('username');
         const urlJob = getUrlParameter('job'); // 修改参数名从'role'改为'job'
+        const urlDepartmentName = getUrlParameter('departmentName');
 
         if (urlUsername) {
             currentUser = urlUsername;
@@ -5772,6 +5862,13 @@
             currentRole = localStorage.getItem('job') || localStorage.getItem('currentRole') || 'TestMan';
             // 将获取到的角色保存到currentRole中
             localStorage.setItem('currentRole', currentRole);
+        }
+
+        if (urlDepartmentName) {
+            currentDepartmentName = urlDepartmentName;
+            localStorage.setItem('departmentName', currentDepartmentName);
+        } else {
+            currentDepartmentName = localStorage.getItem('departmentName') || '';
         }
 
         // 检查是否为超级管理员
@@ -7087,8 +7184,23 @@
         document.getElementById('detailCreatedBy').textContent = product.createBy || '-';
         document.getElementById('detailUpdatedBy').textContent = product.updateBy || '-';
 
-        // 显示编辑按钮，隐藏保存和取消按钮
-        document.getElementById('editReviewBtn').style.display = 'inline-block';
+        // 检查组别是否允许编辑
+        // 如果组别为空，则允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
+        const productGroupName = product.groupName || '';
+        const canEdit = canEditByGroup(productGroupName, currentDepartmentName);
+
+        // 根据组别匹配情况显示或隐藏编辑按钮
+        const editBtn = document.getElementById('editReviewBtn');
+        if (editBtn) {
+            if (canEdit) {
+                editBtn.style.display = 'inline-block';
+            } else {
+                editBtn.style.display = 'none';
+                console.log(`详情模态框编辑按钮已隐藏：组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`);
+            }
+        }
+
+        // 隐藏保存和取消按钮
         document.getElementById('saveReviewBtn').style.display = 'none';
         document.getElementById('cancelEditReviewBtn').style.display = 'none';
 
@@ -7143,6 +7255,19 @@
 
     // 进入编辑模式
     function enterReviewEditMode() {
+        // 检查组别权限
+        if (currentEditingReviewId) {
+            const product = filteredData.find(p => p.id === currentEditingReviewId);
+            if (product) {
+                const productGroupName = product.groupName || '';
+                // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
+                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                    showToast(`没有权限编辑此记录：组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`, 'error');
+                    return;
+                }
+            }
+        }
+
         // 隐藏编辑按钮，显示保存和取消按钮
         document.getElementById('editReviewBtn').style.display = 'none';
         document.getElementById('saveReviewBtn').style.display = 'inline-block';
@@ -7444,6 +7569,19 @@
         if (!isNewRecord && !currentEditingReviewId) {
             showToast('没有找到要编辑的新品质量进度', 'error');
             return;
+        }
+
+        // 如果是更新操作，检查组别权限
+        if (!isNewRecord && currentEditingReviewId) {
+            const product = filteredData.find(p => p.id === currentEditingReviewId);
+            if (product) {
+                const productGroupName = product.groupName || '';
+                // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
+                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                    showToast(`没有权限编辑此记录：组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`, 'error');
+                    return;
+                }
+            }
         }
 
         // 收集编辑后的数据
@@ -8257,19 +8395,27 @@
             row.setAttribute('data-product-id', product.id);
 
             if (isGlobalEditMode) {
+                // 检查组别是否允许编辑
+                // 如果组别为空，则允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
+                const productGroupName = product.groupName || '';
+                const isGroupMatched = canEditByGroup(productGroupName, currentDepartmentName);
+                const rowDisabledClass = isGroupMatched ? '' : 'row-disabled';
+                const disabledAttr = isGroupMatched ? '' : 'disabled';
+                const rowTitle = isGroupMatched ? '' : `title="组别不匹配，无法编辑（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）"`;
+
                 row.innerHTML = `
                     <td>
-                        <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行">
+                        <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行" ${disabledAttr}>
                     </td>
                     <td>${product.id || '-'}</td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.groupName || ''}" data-field="groupName" data-original="${product.groupName || ''}">
+                    <td class="editable-cell ${rowDisabledClass}" ${rowTitle}>
+                        <input type="text" value="${product.groupName || ''}" data-field="groupName" data-original="${product.groupName || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.productCategoryLevel3 || ''}" data-field="productCategoryLevel3" data-original="${product.productCategoryLevel3 || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.productCategoryLevel3 || ''}" data-field="productCategoryLevel3" data-original="${product.productCategoryLevel3 || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <select data-field="priority" data-original="${product.priority || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <select data-field="priority" data-original="${product.priority || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="S+" ${product.priority === 'S+' ? 'selected' : ''}>S+</option>
                             <option value="S" ${product.priority === 'S' ? 'selected' : ''}>S</option>
@@ -8278,14 +8424,14 @@
                             <option value="C" ${product.priority === 'C' ? 'selected' : ''}>C</option>
                         </select>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.model || ''}" data-field="model" data-original="${product.model || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.model || ''}" data-field="model" data-original="${product.model || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.sku || ''}" data-field="sku" data-original="${product.sku || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.sku || ''}" data-field="sku" data-original="${product.sku || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <select data-field="stage" data-original="${product.stage || ''}" onchange="handleStageChange(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <select data-field="stage" data-original="${product.stage || ''}" onchange="handleStageChange(this)" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="设计中" ${product.stage === '设计中' ? 'selected' : ''}>设计中</option>
                             <option value="EVT" ${product.stage === 'EVT' ? 'selected' : ''}>EVT</option>
@@ -8293,8 +8439,8 @@
                             <option value="PVT" ${product.stage === 'PVT' ? 'selected' : ''}>PVT</option>
                         </select>
                     </td>
-                    <td class="editable-cell">
-                        <textarea data-field="productName" data-original="${product.productName || ''}">${product.productName || ''}</textarea>
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <textarea data-field="productName" data-original="${product.productName || ''}" ${disabledAttr}>${product.productName || ''}</textarea>
                     </td>
                     <td class="image-cell">
                         ${product.imageUrl ?
@@ -8302,34 +8448,34 @@
                     '<span class="no-image">暂无图片</span>'
                 }
                     </td>
-                    <td class="editable-cell">
-                        <input type="date" value="${product.projectStartTime || ''}" data-field="projectStartTime" data-original="${product.projectStartTime || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="date" value="${product.projectStartTime || ''}" data-field="projectStartTime" data-original="${product.projectStartTime || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="date" value="${product.targetLaunchTime || ''}" data-field="targetLaunchTime" data-original="${product.targetLaunchTime || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="date" value="${product.targetLaunchTime || ''}" data-field="targetLaunchTime" data-original="${product.targetLaunchTime || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.displayType || ''}" data-field="displayType" data-original="${product.displayType || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.displayType || ''}" data-field="displayType" data-original="${product.displayType || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <select data-field="productLevel" data-original="${product.productLevel || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <select data-field="productLevel" data-original="${product.productLevel || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="L1" ${product.productLevel === 'L1' ? 'selected' : ''}>L1</option>
                             <option value="L2" ${product.productLevel === 'L2' ? 'selected' : ''}>L2</option>
                             <option value="L3" ${product.productLevel === 'L3' ? 'selected' : ''}>L3</option>
                         </select>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.primarySupplier || ''}" data-field="primarySupplier" data-original="${product.primarySupplier || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.primarySupplier || ''}" data-field="primarySupplier" data-original="${product.primarySupplier || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.leadDqe || ''}" data-field="leadDqe" data-original="${product.leadDqe || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.leadDqe || ''}" data-field="leadDqe" data-original="${product.leadDqe || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <input type="text" value="${product.electronicRd || ''}" data-field="electronicRd" data-original="${product.electronicRd || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <input type="text" value="${product.electronicRd || ''}" data-field="electronicRd" data-original="${product.electronicRd || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell">
-                        <select data-field="status" data-original="${product.status || ''}">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <select data-field="status" data-original="${product.status || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="设计中" ${product.status === '设计中' ? 'selected' : ''}>设计中</option>
                             <option value="功能样" ${product.status === '功能样' ? 'selected' : ''}>功能样</option>
@@ -8337,28 +8483,28 @@
                             <option value="量产" ${product.status === '量产' ? 'selected' : ''}>量产</option>
                         </select>
                     </td>
-                    <td class="editable-cell">
-                        <div class="text-edit-trigger" data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}" onclick="openTextEdit(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <div class="text-edit-trigger" data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell">
-                        <div class="text-edit-trigger" data-field="evtProblem" data-original="${product.evtProblem || ''}" onclick="openTextEdit(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <div class="text-edit-trigger" data-field="evtProblem" data-original="${product.evtProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.evtProblem || ''}">${product.evtProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell">
-                        <div class="text-edit-trigger" data-field="dvtProblem" data-original="${product.dvtProblem || ''}" onclick="openTextEdit(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <div class="text-edit-trigger" data-field="dvtProblem" data-original="${product.dvtProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.dvtProblem || ''}">${product.dvtProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell">
-                        <div class="text-edit-trigger" data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}" onclick="openTextEdit(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <div class="text-edit-trigger" data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell">
-                        <div class="text-edit-trigger" data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}" onclick="openTextEdit(this)">
+                    <td class="editable-cell ${rowDisabledClass}">
+                        <div class="text-edit-trigger" data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</div>
                         </div>
                     </td>
@@ -8429,6 +8575,45 @@
         updatePagination();
     }
 
+    // 组别匹配辅助函数 - 兼容缺少"组"字的情况
+    function isGroupNameMatched(groupName1, groupName2) {
+        if (!groupName1 && !groupName2) return true;
+        if (!groupName1 || !groupName2) return false;
+
+        // 去除末尾的"组"字后比较
+        const normalize = (name) => {
+            if (!name) return '';
+            return name.trim().replace(/组$/, '');
+        };
+
+        const normalized1 = normalize(groupName1);
+        const normalized2 = normalize(groupName2);
+
+        // 直接相等或去除"组"字后相等都算匹配
+        return groupName1.trim() === groupName2.trim() || normalized1 === normalized2;
+    }
+
+    // 检查组别是否允许编辑
+    // 如果组别为空，则允许任何人编辑
+    // 如果departmentName为空，则允许编辑所有行
+    // 如果组别不为空且departmentName不为空，需要组别匹配
+    function canEditByGroup(productGroupName, departmentName) {
+        const groupName = (productGroupName || '').trim();
+
+        // 如果组别为空，允许编辑
+        if (!groupName) {
+            return true;
+        }
+
+        // 如果departmentName为空，允许编辑所有行
+        if (!departmentName) {
+            return true;
+        }
+
+        // 组别不为空且departmentName不为空，需要组别匹配
+        return isGroupNameMatched(groupName, departmentName);
+    }
+
     // 全局编辑模式相关函数
     function toggleGlobalEditMode() {
         if (isGlobalEditMode) {
@@ -8447,6 +8632,19 @@
         // 设置编辑模式
         isGlobalEditMode = true;
 
+        // 统计可编辑的行数（组别为空的行也计入可编辑）
+        const editableCount = filteredData.filter(product => {
+            const productGroupName = product.groupName || '';
+            return canEditByGroup(productGroupName, currentDepartmentName);
+        }).length;
+        const totalCount = filteredData.length;
+
+        if (editableCount < totalCount) {
+            showToast(`已进入全局编辑模式。可编辑: ${editableCount} 条，不可编辑: ${totalCount - editableCount} 条（组别不匹配）`, 'info');
+        } else {
+            showToast('已进入全局编辑模式，您可以同时编辑多行数据', 'success');
+        }
+
         // 更新UI
         document.getElementById('globalEditBtn').style.display = 'none';
         document.getElementById('saveAllBtn').style.display = 'inline-block';
@@ -8458,8 +8656,6 @@
 
         // 重新渲染表格
         renderTable();
-
-        showToast('已进入全局编辑模式，您可以同时编辑多行数据', 'success');
     }
 
     function cancelGlobalEdit() {
@@ -8511,9 +8707,43 @@
         const rows = tbody.querySelectorAll('tr[data-product-id]');
 
         console.log('检查表格行数:', rows.length);
+        console.log('当前departmentName:', currentDepartmentName || '(未设置，允许编辑所有行)');
+
+        let skippedCount = 0;
+        let checkedCount = 0;
 
         rows.forEach((row, index) => {
             const productId = row.getAttribute('data-product-id');
+
+            // 检查组别是否允许编辑
+            // 注意：应该使用原始值（data-original）来判断权限，而不是编辑后的值
+            const groupNameInput = row.querySelector('input[data-field="groupName"]');
+            if (groupNameInput) {
+                // 优先使用原始值判断权限，因为编辑后的值可能已经被用户修改
+                const productGroupName = groupNameInput.getAttribute('data-original') || groupNameInput.value || '';
+                // 如果组别不为空且departmentName不为空且不匹配，则不允许编辑
+                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                    console.log(`跳过第${index + 1}行（产品ID: ${productId}），组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`);
+                    skippedCount++;
+                    return; // 跳过不匹配的行
+                }
+            } else {
+                // 如果找不到组别输入框，从数据中获取（可能不是编辑模式的行）
+                // 这种情况下，从原始数据中查找
+                const rowProductId = row.getAttribute('data-product-id');
+                const originalProduct = filteredData.find(p => String(p.id) === rowProductId);
+                if (originalProduct) {
+                    const productGroupName = originalProduct.groupName || '';
+                    if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                        console.log(`跳过第${index + 1}行（产品ID: ${productId}），组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`);
+                        skippedCount++;
+                        return; // 跳过不匹配的行
+                    }
+                }
+            }
+
+            checkedCount++;
+
             const changes = {};
             let hasChanges = false;
 
@@ -8529,6 +8759,13 @@
                 // 跳过图片字段，因为图片字段在编辑模式下不可修改
                 if (field === 'imageUrl') {
                     console.log(`跳过图片字段: ${field}`);
+                    return;
+                }
+
+                // 跳过被禁用的输入框（这些是不匹配的行，不应该收集更改）
+                if (input.disabled || input.hasAttribute('disabled') ||
+                    (input.classList.contains('text-edit-trigger') && input.style.pointerEvents === 'none')) {
+                    console.log(`跳过已禁用的字段: ${field}`);
                     return;
                 }
 
@@ -8573,6 +8810,11 @@
             }
         });
 
+        console.log('=== 收集更改数据统计 ===');
+        console.log(`总行数: ${rows.length}`);
+        console.log(`跳过行数（组别不匹配）: ${skippedCount}`);
+        console.log(`检查行数: ${checkedCount}`);
+        console.log(`有更改的行数: ${changedData.length}`);
         console.log('最终收集到的更改数据:', changedData);
         return changedData;
     }
