@@ -4338,6 +4338,7 @@
         const showChartsBtn = document.getElementById('showChartsBtn');
         if (showChartsBtn) {
             showChartsBtn.addEventListener('click', function() {
+                AccessLogUtil.record("新品质量问题页面-数据可视化按钮")
                 openChartsModal();
             });
         }
@@ -4381,6 +4382,7 @@
         const testIssuesAddToReviewBtn = document.getElementById('testIssuesAddToReviewBtn');
         if (testIssuesAddToReviewBtn) {
             testIssuesAddToReviewBtn.addEventListener('click', function() {
+                AccessLogUtil.record("新品质量问题页面-导入到新品质量问题按钮");
                 addTestIssuesToReview();
             });
         }
@@ -10518,4 +10520,43 @@
 
     // 关闭模态框事件
     window.closeGlobalEditModal = closeGlobalEditModal;
+
+    // 创建一个通用的访问日志记录工具
+    const AccessLogUtil = {
+        /**
+         * 记录用户操作
+         * @param {string} actionName 操作名称，例如："导出按钮"、"搜索按钮"、"新增按钮"等
+         */
+        record: function(actionName) {
+            try {
+                const username = localStorage.getItem('username') || '';
+                const job = localStorage.getItem('job') || '';
+
+                if (!username || !job) {
+                    console.warn('用户信息不完整，无法记录访问日志');
+                    return;
+                }
+
+                // 使用fetch发送请求（不等待响应，避免影响用户体验）
+                fetch('/api/userAccessLog/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        job: job,
+                        accessPage: actionName
+                    })
+                }).catch(error => {
+                    // 静默失败，不影响用户操作
+                    console.error('记录访问日志失败:', error);
+                });
+            } catch (error) {
+                console.error('记录访问日志异常:', error);
+            }
+        }
+    };
+
+
 </script>
