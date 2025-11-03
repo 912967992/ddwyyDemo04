@@ -8575,22 +8575,31 @@
         updatePagination();
     }
 
-    // 组别匹配辅助函数 - 兼容缺少"组"字的情况
+    // 组别匹配辅助函数 - 兼容有无"组"字的情况，以及"数据存储"和"数据储存"的统一处理
     function isGroupNameMatched(groupName1, groupName2) {
         if (!groupName1 && !groupName2) return true;
         if (!groupName1 || !groupName2) return false;
         
-        // 去除末尾的"组"字后比较
+        // 标准化组别名称：去除空格、去除末尾"组"字、统一"数据储存"和"数据存储"
         const normalize = (name) => {
             if (!name) return '';
-            return name.trim().replace(/组$/, '');
+            // 去除首尾空格
+            let normalized = name.trim();
+            // 去除末尾的"组"字（如果有）
+            normalized = normalized.replace(/组$/, '');
+            // 将"数据储存"和"数据存储"视为同一个组别，统一为"数据存储"
+            if (normalized === '数据储存' || normalized === '数据存储') {
+                normalized = '数据存储';
+            }
+            return normalized;
         };
         
         const normalized1 = normalize(groupName1);
         const normalized2 = normalize(groupName2);
         
-        // 直接相等或去除"组"字后相等都算匹配
-        return groupName1.trim() === groupName2.trim() || normalized1 === normalized2;
+        // 标准化后的值相等则匹配（无论原始值是否有"组"字）
+        // 例如："数据存储组"与"数据存储"匹配，"数据储存组"与"数据存储"匹配
+        return normalized1 === normalized2;
     }
 
     // 检查组别是否允许编辑

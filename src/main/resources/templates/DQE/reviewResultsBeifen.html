@@ -4338,6 +4338,7 @@
         const showChartsBtn = document.getElementById('showChartsBtn');
         if (showChartsBtn) {
             showChartsBtn.addEventListener('click', function() {
+                AccessLogUtil.record("新品质量问题页面-数据可视化按钮")
                 openChartsModal();
             });
         }
@@ -4381,6 +4382,7 @@
         const testIssuesAddToReviewBtn = document.getElementById('testIssuesAddToReviewBtn');
         if (testIssuesAddToReviewBtn) {
             testIssuesAddToReviewBtn.addEventListener('click', function() {
+                AccessLogUtil.record("新品质量问题页面-导入到新品质量问题按钮");
                 addTestIssuesToReview();
             });
         }
@@ -5915,22 +5917,31 @@
         });
     }
 
-    // 组别匹配辅助函数 - 兼容缺少"组"字的情况
+    // 组别匹配辅助函数 - 兼容有无"组"字的情况，以及"数据存储"和"数据储存"的统一处理
     function isGroupNameMatched(groupName1, groupName2) {
         if (!groupName1 && !groupName2) return true;
         if (!groupName1 || !groupName2) return false;
 
-        // 去除末尾的"组"字后比较
+        // 标准化组别名称：去除空格、去除末尾"组"字、统一"数据储存"和"数据存储"
         const normalize = (name) => {
             if (!name) return '';
-            return name.trim().replace(/组$/, '');
+            // 去除首尾空格
+            let normalized = name.trim();
+            // 去除末尾的"组"字（如果有）
+            normalized = normalized.replace(/组$/, '');
+            // 将"数据储存"和"数据存储"视为同一个组别，统一为"数据存储"
+            if (normalized === '数据储存' || normalized === '数据存储') {
+                normalized = '数据存储';
+            }
+            return normalized;
         };
 
         const normalized1 = normalize(groupName1);
         const normalized2 = normalize(groupName2);
 
-        // 直接相等或去除"组"字后相等都算匹配
-        return groupName1.trim() === groupName2.trim() || normalized1 === normalized2;
+        // 标准化后的值相等则匹配（无论原始值是否有"组"字）
+        // 例如："数据存储组"与"数据存储"匹配，"数据储存组"与"数据存储"匹配
+        return normalized1 === normalized2;
     }
 
     // 检查组别是否允许编辑
@@ -10328,7 +10339,7 @@
             return;
         }
 
-        // 收集所有编辑的数据（只保存允许编辑的行）
+        // 收集所有编辑的数据（只保存允许编辑的行，且只保存实际有变化的字段）
         const editedDataMap = new Map();
 
         inputs.forEach(input => {
@@ -10343,7 +10354,7 @@
 
             const id = idCell.textContent.trim();
             const field = input.getAttribute('data-field');
-            const value = input.value.trim();
+            const currentValue = input.value.trim();
 
             // 安全验证：检查该行的原始 group 字段是否允许编辑
             // 应该基于原始数据判断是否有权限编辑，而不是修改后的值
@@ -10354,22 +10365,62 @@
                 if (!canEditByGroup(originalGroup, departmentName)) {
                     return; // 原始组别不允许编辑，跳过
                 }
+
+                // 获取原始值并与当前值比较，只有值发生变化时才保存
+                let originalValue = originalReview[field] || '';
+
+                // 处理日期字段：需要格式化后再比较
+                if (input.classList.contains('table-cell-date-input')) {
+                    originalValue = formatDateForInput(originalValue) || '';
+                    // 如果都是空字符串，视为相等
+                    if (originalValue === '' && currentValue === '') {
+                        return; // 值未变化，跳过
+                    }
+                    // 比较格式化后的值
+                    if (originalValue === currentValue) {
+                        return; // 值未变化，跳过
+                    }
+                } else {
+                    // 普通字段：去除空格后比较
+                    originalValue = String(originalValue).trim();
+                    // 如果都是空字符串，视为相等
+                    if (originalValue === '' && currentValue === '') {
+                        return; // 值未变化，跳过
+                    }
+                    // 比较值
+                    if (originalValue === currentValue) {
+                        return; // 值未变化，跳过
+                    }
+                }
             } else if (departmentName) {
                 // 如果找不到原始数据但有 departmentName，为了安全起见，也跳过
                 // 这种情况理论上不应该发生，因为不允许编辑的行不会显示输入框
                 return;
+            } else {
+                // 如果没有 departmentName 且找不到原始数据，也不保存
+                return;
             }
 
+            // 只有值真正发生变化时，才添加到编辑数据中
             if (!editedDataMap.has(id)) {
                 editedDataMap.set(id, { id: id });
             }
-            editedDataMap.get(id)[field] = value;
+            editedDataMap.get(id)[field] = currentValue;
         });
 
         const editedData = Array.from(editedDataMap.values());
 
         if (editedData.length === 0) {
             showToast('没有修改任何数据', 'warning');
+            return;
+        }
+
+        // 在保存前弹出确认窗口，显示要保存的数据条数
+        const dataCount = editedData.length;
+        const confirmMessage = `确定要保存修改的 ${dataCount} 条数据吗？`;
+
+        if (!confirm(confirmMessage)) {
+            // 用户取消保存
             return;
         }
 
@@ -10518,4 +10569,43 @@
 
     // 关闭模态框事件
     window.closeGlobalEditModal = closeGlobalEditModal;
+
+    // 创建一个通用的访问日志记录工具
+    const AccessLogUtil = {
+        /**
+         * 记录用户操作
+         * @param {string} actionName 操作名称，例如："导出按钮"、"搜索按钮"、"新增按钮"等
+         */
+        record: function(actionName) {
+            try {
+                const username = localStorage.getItem('username') || '';
+                const job = localStorage.getItem('job') || '';
+
+                if (!username || !job) {
+                    console.warn('用户信息不完整，无法记录访问日志');
+                    return;
+                }
+
+                // 使用fetch发送请求（不等待响应，避免影响用户体验）
+                fetch('/api/userAccessLog/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        job: job,
+                        accessPage: actionName
+                    })
+                }).catch(error => {
+                    // 静默失败，不影响用户操作
+                    console.error('记录访问日志失败:', error);
+                });
+            } catch (error) {
+                console.error('记录访问日志异常:', error);
+            }
+        }
+    };
+
+
 </script>
