@@ -2602,28 +2602,6 @@
         
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
-            // const selectedOption = $('#finalResult').val();
-            // const statusBarBgColor = "0xFF5E97F6";
-            // if(job==="DQE"){
-            //     //执行进度更新至"已完成"，并发送消息给rd和tester
-            //     const schedule = "4"; //4为已完成
-            //     const isReceiverTester = true;
-            //     updateSchedule(schedule,currentSampleId,currentRD,statusBarBgColor,username ,job, selectedOption);
-            //     //发送给测试人员，用isReceiverTester为true去告诉这个方法说要改一下部门id
-            //     // 等待 2 秒后发送给测试人员
-            //     setTimeout(() => {
-            //         updateSchedule(schedule, currentSampleId, currentTester, statusBarBgColor, username, job, selectedOption, isReceiverTester);
-            //     }, 2000); // 2000 毫秒 = 2 秒
-            //     // 等待 2 秒后发送给项目
-            //     setTimeout(() => {
-            //         updateSchedule(schedule, currentSampleId, currentProjectLeader, statusBarBgColor, username, job, selectedOption);
-            //     }, 2000); // 2000 毫秒 = 2 秒
-            // }else if(job === "rd"){
-            //     //执行进度更新至"待DQE判定"，并发送消息给DQE
-            //     const schedule = "3"; //3为待DQE判定
-            //     updateSchedule(schedule,currentSampleId,currentDQE,statusBarBgColor,username ,job, selectedOption);
-            // }
-            // $('#customModal').hide();
 
             // 再次验证
             const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
@@ -2648,6 +2626,8 @@
                 updateResult(currentSampleId,job,selectedOption)
                 alert("研发承认结果已保存为:"+returnResult(selectedOption));
             }
+            AccessLogUtil.record("签样按钮")
+
 
             $('#customModal').hide();
         });
@@ -3064,6 +3044,42 @@
     }
 
 
+    // 创建一个通用的访问日志记录工具
+    const AccessLogUtil = {
+        /**
+         * 记录用户操作
+         * @param {string} actionName 操作名称，例如："导出按钮"、"搜索按钮"、"新增按钮"等
+         */
+        record: function(actionName) {
+            try {
+                const username = localStorage.getItem('username') || '';
+                const job = localStorage.getItem('job') || '';
+
+                if (!username || !job) {
+                    console.warn('用户信息不完整，无法记录访问日志');
+                    return;
+                }
+
+                // 使用fetch发送请求（不等待响应，避免影响用户体验）
+                fetch('/api/userAccessLog/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        job: job,
+                        accessPage: actionName
+                    })
+                }).catch(error => {
+                    // 静默失败，不影响用户操作
+                    console.error('记录访问日志失败:', error);
+                });
+            } catch (error) {
+                console.error('记录访问日志异常:', error);
+            }
+        }
+    };
 
 
 </script>
