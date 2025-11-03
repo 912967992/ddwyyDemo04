@@ -10,6 +10,7 @@ import com.lu.ddwyydemo04.Service.AccessTokenService;
 import com.lu.ddwyydemo04.Service.DQE.DQEproblemMoudleService;
 import com.lu.ddwyydemo04.Service.ExcelShowService;
 import com.lu.ddwyydemo04.Service.TestManIndexService;
+import com.lu.ddwyydemo04.Service.UserAccessLogService;
 import com.lu.ddwyydemo04.exceptions.SessionTimeoutException;
 import com.lu.ddwyydemo04.pojo.*;
 
@@ -2480,7 +2481,7 @@ public class testManIndexController {
 
             // 回传成功后，这里默认帮electric_info的项目都打上勾，这样子DQE后续就可以直接签样
             int updateSamplePassbackConfirm = testManIndexService.updateSamplePassbackConfirm(sampleId,passbackConfirm);
-
+            System.out.println("sssss");
 
         } catch (Exception e) {
             e.printStackTrace();

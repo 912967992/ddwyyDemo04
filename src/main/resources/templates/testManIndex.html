@@ -1217,6 +1217,7 @@
                     isChecked = false;
                     console.log('使用默认值，复选框设置为:', isChecked);
                 }
+                // AccessLogUtil.record("回传问题点按钮");
                 
                 // 使用多种方式设置复选框
                 checkbox.checked = isChecked;
@@ -1244,6 +1245,7 @@
 
             // 立即保存到数据库
             updatePassbackConfirmInDatabase(sample_id, isChecked, product);
+            AccessLogUtil.record("已回传问题点按钮");
          
         });
 
@@ -1649,6 +1651,7 @@
                     }
 
                     const result = await response.json();
+                    AccessLogUtil.record("回传问题点按钮");
                     alert(result.message);
                 } catch (error) {
                     console.error('处理文件时出错:', error);
@@ -2259,16 +2262,19 @@
                     }, 2000); // 2000 毫秒 = 2 秒
 
                     // 等待 2 秒后发送给绮敏
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
+                    // setTimeout(() => {
+                    //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                    // }, 2000); // 2000 毫秒 = 2 秒
 
+                    AccessLogUtil.record("提交报告走审核流程按钮");
                 }else if(dqe && response.message.includes("退样成功")){
                     updateSchedule("9", sample_id, dqe, statusBarBgColor, username, job);
                     // 等待 2 秒后发送给绮敏
                     setTimeout(() => {
                         updateSchedule("9", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
+
+                    AccessLogUtil.record("提交报告走退样流程按钮");
 
                 }else if(response.message.includes("竞品文件完成")){
 
@@ -2288,6 +2294,8 @@
                     setTimeout(() => {
                         updateSchedule("10", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
+
+                    AccessLogUtil.record("提交报告走竞品流程按钮");
                 }
                 initData();
                 performSearch();
@@ -4473,6 +4481,42 @@
         }
     }
 
+    // 创建一个通用的访问日志记录工具
+    const AccessLogUtil = {
+        /**
+         * 记录用户操作
+         * @param {string} actionName 操作名称，例如："导出按钮"、"搜索按钮"、"新增按钮"等
+         */
+        record: function(actionName) {
+            try {
+                const username = localStorage.getItem('username') || '';
+                const job = localStorage.getItem('job') || '';
+
+                if (!username || !job) {
+                    console.warn('用户信息不完整，无法记录访问日志');
+                    return;
+                }
+
+                // 使用fetch发送请求（不等待响应，避免影响用户体验）
+                fetch('/api/userAccessLog/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        job: job,
+                        accessPage: actionName
+                    })
+                }).catch(error => {
+                    // 静默失败，不影响用户操作
+                    console.error('记录访问日志失败:', error);
+                });
+            } catch (error) {
+                console.error('记录访问日志异常:', error);
+            }
+        }
+    };
 
 
 
