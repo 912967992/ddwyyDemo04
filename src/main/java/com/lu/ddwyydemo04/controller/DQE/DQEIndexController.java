@@ -81,6 +81,12 @@ public class DQEIndexController {
         return "DQE/scheduleBoard";
     }
 
+    @GetMapping("/scheduleBoardNAS") // 处理页面跳转请求
+    public String loginScheduleBoardNAS() {
+        // 返回跳转页面的视图名称
+        return "DQE/scheduleBoardNAS";
+    }
+
     @PostMapping("/DQEIndex/saveWarningDays")
     @ResponseBody
     public ResponseEntity<String> saveWarningDays(@RequestBody Map<String, Object> request) {

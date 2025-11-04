@@ -130,6 +130,167 @@
         #setupAgentBtn:hover {
             background: #138496;
         }
+        
+        /* 项目排期选择模态框美化样式 */
+        #scheduleTypeModal .modal-content {
+            max-width: 500px;
+            padding: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        #scheduleTypeModal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        #scheduleTypeModal .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+        
+        #scheduleTypeModal .modal-header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+            color: white !important; /* 确保标题为白色，不被全局样式覆盖 */
+        }
+        
+        #scheduleTypeModal .schedule-type-close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #scheduleTypeModal .schedule-type-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        #scheduleTypeModal .modal-body {
+            padding: 35px 30px;
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+        }
+        
+        #scheduleTypeModal .modal-description {
+            color: #6c757d;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        #scheduleTypeModal .schedule-options {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn {
+            width: 100%;
+            padding: 20px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        #scheduleTypeModal .schedule-option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn:hover::before {
+            left: 100%;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        #scheduleTypeModal .schedule-option-btn:active {
+            transform: translateY(0);
+        }
+        
+        #scheduleTypeModal .schedule-option-btn i {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn:hover i {
+            transform: scale(1.1);
+        }
+        
+        #scheduleTypeModal .schedule-option-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn.primary:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+        }
+        
+        #scheduleTypeModal .schedule-option-btn.info {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        #scheduleTypeModal .schedule-option-btn.info:hover {
+            background: linear-gradient(135deg, #e084ee 0%, #e9485d 100%);
+        }
     </style>
 
 
@@ -445,6 +606,29 @@
                     </thead>
                     <tbody id="projectDetailList"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目排期选择模态框 -->
+    <div id="scheduleTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择项目排期类型</h2>
+                <span class="close schedule-type-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">请选择要查看的项目排期类型</p>
+                <div class="schedule-options">
+                    <button id="scheduleBoardBtn" class="schedule-option-btn primary">
+                        <i class="fas fa-flask"></i>
+                        <span>电子实验室项目排期</span>
+                    </button>
+                    <button id="scheduleBoardNASBtn" class="schedule-option-btn info">
+                        <i class="fas fa-server"></i>
+                        <span>NAS项目排期</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -793,12 +977,23 @@
         }
 
         function goToScheduleBoard() {
+            // 显示项目排期类型选择模态框
+            const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+            scheduleTypeModal.style.display = 'block';
+        }
+
+        // 跳转到电子实验室项目排期
+        function goToScheduleBoardLab() {
             // 检查是否在钉钉环境中
             const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
 
             const url = 'http://219.134.191.195:64000/scheduleBoard?username=' + encodeURIComponent(username);
             // const url = 'http://e888ccd6.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
             AccessLogUtil.record("项目排期页面");
+
+            // 关闭模态框
+            const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+            scheduleTypeModal.style.display = 'none';
 
             if (isDingTalk) {
                 // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
@@ -809,6 +1004,40 @@
                     url: url,
                     success: function() {
                         console.log('成功打开项目排期看板');
+                    },
+                    fail: function(err) {
+                        alert('打开页面失败：' + JSON.stringify(err));
+                        console.error('dd.openLink fail:', err);
+                    }
+                });
+            } else {
+                // 非钉钉环境使用普通跳转
+                window.location.href = url;
+            }
+        }
+
+        // 跳转到NAS项目排期
+        function goToScheduleBoardNAS() {
+            // 检查是否在钉钉环境中
+            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+
+            const url = 'http://219.134.191.195:64000/scheduleBoardNAS?username=' + encodeURIComponent(username);
+            // const url = 'http://e888ccd6.natappfree.cc/scheduleBoardNAS?username=' + encodeURIComponent(username);
+            AccessLogUtil.record("NAS项目排期页面");
+
+            // 关闭模态框
+            const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+            scheduleTypeModal.style.display = 'none';
+
+            if (isDingTalk) {
+                // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                // localStorage.setItem('username', username);
+                // localStorage.setItem('job', job);
+                
+                dd.openLink({
+                    url: url,
+                    success: function() {
+                        console.log('成功打开NAS项目排期看板');
                     },
                     fail: function(err) {
                         alert('打开页面失败：' + JSON.stringify(err));
@@ -1983,6 +2212,26 @@
         projectDetailModal.style.display = "none";
     };
 
+    // 项目排期选择模态框相关逻辑
+    const scheduleTypeModal = document.getElementById("scheduleTypeModal");
+    const scheduleTypeClose = document.getElementsByClassName("schedule-type-close")[0];
+    const scheduleBoardBtn = document.getElementById("scheduleBoardBtn");
+    const scheduleBoardNASBtn = document.getElementById("scheduleBoardNASBtn");
+
+    // 关闭模态框
+    scheduleTypeClose.onclick = function() {
+        scheduleTypeModal.style.display = "none";
+    };
+
+    // 电子实验室项目排期按钮点击事件
+    scheduleBoardBtn.onclick = function() {
+        goToScheduleBoardLab();
+    };
+
+    // NAS项目排期按钮点击事件
+    scheduleBoardNASBtn.onclick = function() {
+        goToScheduleBoardNAS();
+    };
 
     // 代理人设置模态框相关逻辑
     const agentModal = document.getElementById("agentModal");
@@ -2204,6 +2453,9 @@
         }
         if (event.target == projectDetailModal) {
             projectDetailModal.style.display = "none";
+        }
+        if (event.target == scheduleTypeModal) {
+            scheduleTypeModal.style.display = "none";
         }
     };
 

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.DQE.ScheduleBoardNASDao">
+
+    <select id="getReceivedDataNAS" resultType="PassbackData">
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_actual_id,
+            ei.sample_category,
+            ei.sample_model,
+            IFNULL(
+                    (
+                        SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                        FROM material_items mi
+                        WHERE mi.sample_id = ei.sample_id
+                    ),
+                    ei.materialCode
+            ) AS materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+            ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.isUsed,
+            ei.changeRecord,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_date,
+            ei.cancel_code,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.schedule_color,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.tester,
+            ei.testDuration,
+            ei.filepath,
+            ei.update_time,
+            ei.remark,
+            ei.waitSample_classify,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.sample_quantity,
+            ei.high_frequency
+        FROM electric_info ei
+        WHERE (ei.isUsed = 0 OR ei.isUsed IS NULL)
+          AND ei.isCancel = 0
+          AND (ei.waitSample_classify IS NULL OR ei.waitSample_classify = '')
+          AND ei.sample_leader NOT IN ('占海英', '贺斌' ,'姚遥')
+        AND ei.sample_category = 'NAS服务器'
+    </select>
+
+
+</mapper>
