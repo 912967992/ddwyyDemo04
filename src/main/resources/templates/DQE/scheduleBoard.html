@@ -767,19 +767,22 @@
     }
 
     const urlParams = getParams();
-    let username = urlParams.get('username');
-    let job = urlParams.get('job');
-
-    // 只有当参数存在时才存储到localStorage
-    if (username !== null) {
-        localStorage.setItem("username", username);
-    }else{
-        username = sessionStorage.getItem('username');
+    
+    // 优先从 localStorage 获取，如果没有再从 URL 参数获取
+    let username = localStorage.getItem('username');
+    if (!username) {
+        username = urlParams.get('username');
+        if (username) {
+            localStorage.setItem("username", username);
+        }
     }
-    if (job !== null) {
-        localStorage.setItem("job", job);
-    }else{
-        job = sessionStorage.getItem('job');
+    
+    let job = localStorage.getItem('job');
+    if (!job) {
+        job = urlParams.get('job');
+        if (job) {
+            localStorage.setItem("job", job);
+        }
     }
 
 
@@ -869,7 +872,7 @@
 
     // 检查用户是否有编辑权限
     function checkEditPermission() {
-        const currentUser = localStorage.getItem('username') || sessionStorage.getItem('username');
+        const currentUser = localStorage.getItem('username') ;
         canEdit = allowedEditors.includes(currentUser);
         return canEdit;
     }
@@ -5992,10 +5995,7 @@
             // 从URL参数或存储中获取username
             const urlParams = new URLSearchParams(window.location.search);
             let username = urlParams.get('username');
-            
-            if (username === null) {
-                username = sessionStorage.getItem('username');
-            }
+
             
             if (username === null) {
                 username = localStorage.getItem('username');
