@@ -32,11 +32,42 @@ public class ProblemLibraryController {
      * 搜索问题点
      */
     @PostMapping("/searchProblems")
-    public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> filters) {
+    public ResponseEntity<Map<String, Object>> searchProblems(@RequestBody Map<String, Object> requestData) {
         try {
+            // 提取搜索条件和用户信息
+            @SuppressWarnings("unchecked")
+            Map<String, Object> filters = (Map<String, Object>) requestData.get("filters");
+            String username = (String) requestData.get("username");
+            Boolean saveHistory = requestData.get("saveHistory") != null ? (Boolean) requestData.get("saveHistory") : true;
+            
+            // 如果filters为null，说明直接传的是filters对象（兼容旧的调用方式）
+            if (filters == null) {
+                filters = new HashMap<>(requestData);
+                // 从请求中提取username和saveHistory，但不影响filters本身
+                username = (String) filters.get("username");
+                saveHistory = filters.get("saveHistory") != null ? (Boolean) filters.get("saveHistory") : true;
+                // 从filters中移除这些字段，避免影响搜索逻辑
+                filters.remove("username");
+                filters.remove("saveHistory");
+            }
+            
             List<TestIssues> problems = problemLibraryService.searchProblems(filters);
-//            System.out.println("filters:1"+filters);
             Map<String, Integer> stats = problemLibraryService.getStatistics(problems);
+
+            // 保存搜索历史（如果用户已登录且允许保存，并且有筛选条件）
+            if (saveHistory && username != null && !username.isEmpty()) {
+                // 检查是否有任何筛选条件（排除空值）
+                boolean hasAnyFilter = hasAnyFilterCondition(filters);
+                
+                // 只有存在筛选条件时才保存历史
+                if (hasAnyFilter) {
+                    // 生成搜索条件描述（在移除username和saveHistory之后，使用纯净的filters）
+                    String filterDescription = generateFilterDescription(filters);
+                    // 设置页面名称为"问题库管理页面"
+                    String pageName = "问题库管理页面";
+                    problemLibraryService.saveSearchHistory(username, filters, filterDescription, pageName);
+                }
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -53,6 +84,105 @@ public class ProblemLibraryController {
             response.put("message", "搜索问题点失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    /**
+     * 检查是否有任何筛选条件
+     * @param filters 筛选条件Map
+     * @return 如果有任何非空筛选条件返回true，否则返回false
+     */
+    private boolean hasAnyFilterCondition(Map<String, Object> filters) {
+        // 检查所有可能的筛选条件
+        String[] filterKeys = {
+            "fullModel", "sampleStage", "version", "bigSpecies", "smallSpecies",
+            "problemCategory", "defectLevel", "currentStatus", "tester",
+            "responsibleDepartment", "startDate", "endDate", "dqe", "problem",
+            "testPlatform", "testDevice", "otherDevice"
+        };
+        
+        for (String key : filterKeys) {
+            Object value = filters.get(key);
+            if (value != null) {
+                String strValue = value.toString().trim();
+                if (!strValue.isEmpty() && 
+                    !strValue.equals("null") && 
+                    !strValue.equals("undefined")) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 生成搜索条件描述
+     */
+    private String generateFilterDescription(Map<String, Object> filters) {
+        StringBuilder desc = new StringBuilder();
+        
+        if (filters.get("fullModel") != null && !filters.get("fullModel").toString().trim().isEmpty()) {
+            desc.append("完整编码:").append(filters.get("fullModel")).append(" ");
+        }
+        if (filters.get("sampleStage") != null && !filters.get("sampleStage").toString().trim().isEmpty()) {
+            desc.append("样品阶段:").append(filters.get("sampleStage")).append(" ");
+        }
+        if (filters.get("version") != null && !filters.get("version").toString().trim().isEmpty()) {
+            desc.append("版本:").append(filters.get("version")).append(" ");
+        }
+        if (filters.get("bigSpecies") != null && !filters.get("bigSpecies").toString().trim().isEmpty()) {
+            desc.append("大类:").append(filters.get("bigSpecies")).append(" ");
+        }
+        if (filters.get("smallSpecies") != null && !filters.get("smallSpecies").toString().trim().isEmpty()) {
+            desc.append("小类:").append(filters.get("smallSpecies")).append(" ");
+        }
+        
+        // 问题类别特殊处理（检查是否有值，包括三级结构的组合）
+        Object problemCategoryObj = filters.get("problemCategory");
+        if (problemCategoryObj != null) {
+            String problemCategory = problemCategoryObj.toString().trim();
+            // 排除空字符串、"null"、"undefined"等无效值，但保留只有一级的情况（如"视频组"）
+            if (!problemCategory.isEmpty() && 
+                !problemCategory.equals("null") && 
+                !problemCategory.equals("undefined")) {
+                desc.append("问题类别:").append(problemCategory).append(" ");
+            }
+        }
+        if (filters.get("defectLevel") != null && !filters.get("defectLevel").toString().trim().isEmpty()) {
+            desc.append("缺陷等级:").append(filters.get("defectLevel")).append(" ");
+        }
+        if (filters.get("currentStatus") != null && !filters.get("currentStatus").toString().trim().isEmpty()) {
+            desc.append("当前状态:").append(filters.get("currentStatus")).append(" ");
+        }
+        if (filters.get("tester") != null && !filters.get("tester").toString().trim().isEmpty()) {
+            desc.append("测试人员:").append(filters.get("tester")).append(" ");
+        }
+        if (filters.get("responsibleDepartment") != null && !filters.get("responsibleDepartment").toString().trim().isEmpty()) {
+            desc.append("责任部门:").append(filters.get("responsibleDepartment")).append(" ");
+        }
+        if (filters.get("startDate") != null && !filters.get("startDate").toString().trim().isEmpty()) {
+            desc.append("开始时间:").append(filters.get("startDate")).append(" ");
+        }
+        if (filters.get("endDate") != null && !filters.get("endDate").toString().trim().isEmpty()) {
+            desc.append("结束时间:").append(filters.get("endDate")).append(" ");
+        }
+        if (filters.get("dqe") != null && !filters.get("dqe").toString().trim().isEmpty()) {
+            desc.append("DQE负责人:").append(filters.get("dqe")).append(" ");
+        }
+        if (filters.get("problem") != null && !filters.get("problem").toString().trim().isEmpty()) {
+            desc.append("问题描述:").append(filters.get("problem")).append(" ");
+        }
+        if (filters.get("testPlatform") != null && !filters.get("testPlatform").toString().trim().isEmpty()) {
+            desc.append("测试平台:").append(filters.get("testPlatform")).append(" ");
+        }
+        if (filters.get("testDevice") != null && !filters.get("testDevice").toString().trim().isEmpty()) {
+            desc.append("显示设备:").append(filters.get("testDevice")).append(" ");
+        }
+        if (filters.get("otherDevice") != null && !filters.get("otherDevice").toString().trim().isEmpty()) {
+            desc.append("其他设备:").append(filters.get("otherDevice")).append(" ");
+        }
+        
+        return desc.length() > 0 ? desc.toString().trim() : "无条件筛选";
     }
 
     /**
@@ -227,6 +357,104 @@ public class ProblemLibraryController {
             response.put("message", "获取大类小类选项失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    /**
+     * 获取搜索历史（所有用户的）
+     */
+    @GetMapping("/getSearchHistory")
+    public ResponseEntity<Map<String, Object>> getSearchHistory(@RequestParam(required = false) String username, @RequestParam(required = false) Integer limit) {
+        try {
+            // 如果不传username或为空，则查询所有用户的搜索历史
+            List<com.lu.ddwyydemo04.pojo.SearchHistory> histories = problemLibraryService.getSearchHistoryByUser(username, limit);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", histories);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "获取搜索历史失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    
+    /**
+     * 删除搜索历史
+     */
+    @DeleteMapping("/deleteSearchHistory")
+    public ResponseEntity<Map<String, Object>> deleteSearchHistory(
+            @RequestParam Long id,
+            @RequestParam String username,
+            @RequestParam String job) {
+        try {
+            // 权限检查：只有卢健、李良健并且job是manager可以删除
+            if (!hasDeletePermission(username, job)) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "您没有删除搜索历史的权限");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            boolean success = problemLibraryService.deleteSearchHistory(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", success);
+            response.put("message", success ? "删除成功" : "删除失败");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "删除搜索历史失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * 删除用户的所有搜索历史
+     */
+    @DeleteMapping("/deleteAllSearchHistory")
+    public ResponseEntity<Map<String, Object>> deleteAllSearchHistory(
+            @RequestParam String username,
+            @RequestParam String job) {
+        try {
+            // 权限检查：只有卢健、李良健并且job是manager可以删除
+            if (!hasDeletePermission(username, job)) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "您没有删除搜索历史的权限，只有卢健、李良健并且job是manager可以删除");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            // 传入null以删除所有用户的历史（因为已经通过权限验证的用户可以清空所有历史）
+            boolean success = problemLibraryService.deleteAllByUser(null);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", success);
+            response.put("message", success ? "删除成功" : "删除失败");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "删除搜索历史失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * 检查是否有删除搜索历史的权限
+     * @param username 用户名
+     * @param job 职位
+     * @return 有权限返回true，否则返回false
+     */
+    private boolean hasDeletePermission(String username, String job) {
+        // 只有卢健、李良健并且job是manager可以删除
+        return ("卢健".equals(username) || "李良健".equals(username)) && "manager".equals(job);
     }
 
     /**

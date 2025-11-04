@@ -615,6 +615,9 @@
                 <button id="showCartBtn" class="btn btn-info">
                     <i class="fas fa-list"></i> 查看收藏夹 (<span id="cartCount">0</span>)
                 </button>
+                <button id="showSearchHistoryBtn" class="btn btn-secondary">
+                    <i class="fas fa-history"></i> 搜索历史
+                </button>
             </div>
         </div>
     </div>
@@ -1450,6 +1453,47 @@
         </div>
     </div>
 
+    <!-- 搜索历史模态框 -->
+    <div id="searchHistoryModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>搜索历史</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="cart-controls">
+                    <button id="refreshHistoryBtn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sync"></i> 刷新
+                    </button>
+                    <button id="clearAllHistoryBtn" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> 清空历史
+                    </button>
+                </div>
+
+                <div class="cart-items-container">
+                    <table id="searchHistoryTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>搜索条件</th>
+                                <th>用户名</th>
+                                <th>保存的页面</th>
+                                <th>搜索时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchHistoryTableBody">
+                            <!-- 搜索历史将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeSearchHistoryModal" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 收藏夹详情模态框 -->
     <div id="cartDetailModal" class="modal">
         <div class="modal-content large-modal">
@@ -1958,12 +2002,14 @@
                     // 键盘事件 - 导航和选择
                     input.addEventListener('keydown', function(e) {
                         if (e.key === 'Enter') {
-                            // 回车键直接触发搜索
+                            // 回车键确认输入，但不自动触发搜索（避免重复保存）
                             e.preventDefault();
                             if (this.value.trim()) {
                                 confirmCategoryInput(level, this.value);
-                                searchProblems();
+                                // 不再自动触发搜索，让用户主动点击搜索按钮
                             }
+                            // 隐藏建议框
+                            hideSuggestions(suggestions);
                         } else {
                             handleInputKeydown(e, this, suggestions, level);
                         }
@@ -1976,8 +2022,7 @@
                             const level = this.id.replace('problemCategoryLevel', '').replace('Input', '');
                             if (this.value.trim()) {
                                 confirmCategoryInput(level, this.value);
-                                // 手动输入后自动触发搜索
-                                searchProblems();
+                                // 不再自动触发搜索，避免重复保存历史记录
                             }
                         }, 200);
                     });
@@ -2164,10 +2209,12 @@
                         const value = highlightedItem.getAttribute('data-value');
                         selectSuggestion(input, value, level);
                         hideSuggestions(suggestions);
+                        // 选择建议项后不自动触发搜索
                     } else if (input.value.trim()) {
-                        // 确认当前输入
+                        // 确认当前输入，但不自动触发搜索（避免重复保存）
                         confirmCategoryInput(level, input.value);
                         hideSuggestions(suggestions);
+                        // 不再自动触发搜索，让用户主动点击搜索按钮
                     }
                     break;
                     
@@ -2552,6 +2599,14 @@
             // 查看收藏夹按钮
             document.getElementById('showCartBtn').addEventListener('click', showCartModal);
 
+            // 搜索历史相关按钮
+            document.getElementById('showSearchHistoryBtn').addEventListener('click', showSearchHistoryModal);
+            document.getElementById('refreshHistoryBtn').addEventListener('click', loadSearchHistory);
+            document.getElementById('clearAllHistoryBtn').addEventListener('click', clearAllSearchHistory);
+            document.getElementById('closeSearchHistoryModal').addEventListener('click', function() {
+                closeSpecificModal('searchHistoryModal');
+            });
+
             // 收藏夹相关按钮
             document.getElementById('clearCartBtn').addEventListener('click', clearCart);
             document.getElementById('exportCartBtn').addEventListener('click', exportCartData);
@@ -2669,13 +2724,20 @@
 
             // 使用searchProblems接口，传入空的筛选条件来获取所有数据
             const filters = {};
+            
+            // 构建请求数据，不保存历史（初始加载）
+            const requestData = {
+                filters: filters,
+                username: currentUser,
+                saveHistory: false
+            };
 
             fetch('/problemLibrary/searchProblems', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(filters)
+                body: JSON.stringify(requestData)
             })
             .then(response => response.json())
             .then(data => {
@@ -2765,12 +2827,19 @@
                 otherDevice: document.getElementById('otherDeviceFilter').value
             };
 
+            // 构建请求数据，包含用户名用于保存搜索历史
+            const requestData = {
+                filters: filters,
+                username: currentUser,
+                saveHistory: true
+            };
+
             fetch('/problemLibrary/searchProblems', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(filters)
+                body: JSON.stringify(requestData)
             })
             .then(response => response.json())
             .then(data => {
@@ -4267,12 +4336,19 @@
                 otherDevice: document.getElementById('otherDeviceFilter').value
             };
 
+            // 构建请求数据，包含用户名用于保存搜索历史
+            const requestData = {
+                filters: filters,
+                username: currentUser,
+                saveHistory: true
+            };
+
             fetch('/problemLibrary/searchProblems', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(filters)
+                body: JSON.stringify(requestData)
             })
             .then(response => response.json())
             .then(data => {
@@ -5242,6 +5318,162 @@
                 console.error('加载收藏夹失败:', e);
                 cartItems = [];
             }
+        }
+
+        // ==================== 搜索历史功能 ====================
+        
+        let searchHistory = []; // 搜索历史列表
+
+        // 显示搜索历史模态框
+        function showSearchHistoryModal() {
+            loadSearchHistory();
+            document.getElementById('searchHistoryModal').style.display = 'block';
+        }
+
+        // 加载搜索历史（所有用户的）
+        function loadSearchHistory() {
+            // 不传递username参数，获取所有用户的搜索历史
+            fetch(`/problemLibrary/getSearchHistory?limit=50`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    searchHistory = data.data || [];
+                    renderSearchHistory();
+                } else {
+                    showToast('加载搜索历史失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('加载搜索历史时发生错误', 'error');
+            });
+        }
+
+        // 检查是否有删除搜索历史的权限
+        function canDeleteSearchHistory() {
+            // 只有卢健、李良健并且job是manager可以删除
+            const allowedUsers = ['卢健', '李良健'];
+            return allowedUsers.includes(currentUser) && currentRole === 'manager';
+        }
+
+        // 渲染搜索历史表格
+        function renderSearchHistory() {
+            const tbody = document.getElementById('searchHistoryTableBody');
+            tbody.innerHTML = '';
+
+            if (searchHistory.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="6" style="text-align: center; color: #666;">暂无搜索历史</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+
+            const hasDeletePermission = canDeleteSearchHistory();
+
+            searchHistory.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const timeStr = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '';
+                
+                // 根据权限决定是否显示删除按钮
+                const deleteButton = hasDeletePermission ? 
+                    `<button class="btn btn-sm btn-danger" onclick="deleteSearchHistoryItem(${item.id})">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled title="您没有删除权限">
+                        <i class="fas fa-lock"></i> 无权限
+                    </button>`;
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="filter-desc" title="${item.filterDescription || '无条件筛选'}">${item.filterDescription || '无条件筛选'}</td>
+                    <td>${item.username || '-'}</td>
+                    <td>${item.pageName || '问题库管理页面'}</td>
+                    <td>${timeStr}</td>
+                    <td>${deleteButton}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 应用搜索历史（由于没有保存完整搜索条件，只能作为查看参考）
+        function applySearchHistory(historyId) {
+            showToast('搜索历史仅作为记录参考，无法直接恢复搜索条件。请查看搜索条件描述后手动设置搜索条件。', 'info');
+        }
+
+        // 删除搜索历史项
+        function deleteSearchHistoryItem(id) {
+            // 检查权限
+            if (!canDeleteSearchHistory()) {
+                showToast('您没有删除搜索历史的权限', 'error');
+                return;
+            }
+
+            if (!confirm('确定要删除这条搜索历史吗？')) {
+                return;
+            }
+
+            // 传递用户名和job用于权限验证
+            fetch(`/problemLibrary/deleteSearchHistory?id=${id}&username=${encodeURIComponent(currentUser)}&job=${encodeURIComponent(currentRole)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('删除成功', 'success');
+                    loadSearchHistory();
+                } else {
+                    showToast('删除失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('删除时发生错误', 'error');
+            });
+        }
+
+        // 清空所有搜索历史
+        function clearAllSearchHistory() {
+            // 检查权限
+            if (!canDeleteSearchHistory()) {
+                showToast('您没有删除搜索历史的权限', 'error');
+                return;
+            }
+
+            if (!confirm('确定要清空所有用户的搜索历史吗？此操作不可恢复！')) {
+                return;
+            }
+
+            // 清空所有搜索历史，需要传递username和job进行权限验证
+            // 注意：这里仍然需要传递当前用户名用于权限验证，但实际删除的是所有用户的历史
+            fetch(`/problemLibrary/deleteAllSearchHistory?username=${encodeURIComponent(currentUser)}&job=${encodeURIComponent(currentRole)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('清空成功', 'success');
+                    loadSearchHistory();
+                } else {
+                    showToast('清空失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('清空时发生错误', 'error');
+            });
         }
     </script>
 </body>

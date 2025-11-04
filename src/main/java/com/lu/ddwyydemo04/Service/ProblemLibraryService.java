@@ -1,7 +1,10 @@
 package com.lu.ddwyydemo04.Service;
 
 import com.lu.ddwyydemo04.dao.ProblemLibraryDao;
+import com.lu.ddwyydemo04.dao.SearchHistoryDao;
+import com.lu.ddwyydemo04.pojo.SearchHistory;
 import com.lu.ddwyydemo04.pojo.TestIssues;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,11 @@ public class ProblemLibraryService {
 
     @Autowired
     private ProblemLibraryDao problemLibraryDao;
+    
+    @Autowired
+    private SearchHistoryDao searchHistoryDao;
+    
+    private ObjectMapper objectMapper = new ObjectMapper();
 
 
     /**
@@ -247,5 +255,81 @@ public class ProblemLibraryService {
         }
         
         return result;
+    }
+    
+    /**
+     * 保存搜索历史
+     * @param username 用户名
+     * @param filters 搜索条件（不再保存，仅用于生成描述）
+     * @param filterDescription 搜索条件描述
+     * @param pageName 保存的页面名称
+     * @return 是否保存成功
+     */
+    public boolean saveSearchHistory(String username, Map<String, Object> filters, String filterDescription, String pageName) {
+        try {
+            SearchHistory searchHistory = new SearchHistory();
+            searchHistory.setUsername(username);
+            searchHistory.setFilterDescription(filterDescription);
+            searchHistory.setPageName(pageName);
+            searchHistory.setCreatedAt(LocalDateTime.now());
+            
+            // 不再保存filters字段到数据库
+            
+            int result = searchHistoryDao.saveSearchHistory(searchHistory);
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * 根据用户名获取搜索历史
+     * @param username 用户名
+     * @param limit 限制数量（可选）
+     * @return 搜索历史列表
+     */
+    public List<SearchHistory> getSearchHistoryByUser(String username, Integer limit) {
+        return searchHistoryDao.getSearchHistoryByUser(username, limit);
+    }
+    
+    /**
+     * 删除搜索历史
+     * @param id 搜索历史ID
+     * @return 是否删除成功
+     */
+    public boolean deleteSearchHistory(Long id) {
+        int result = searchHistoryDao.deleteSearchHistory(id);
+        return result > 0;
+    }
+    
+    /**
+     * 删除用户的所有搜索历史（如果username为null或空，则删除所有用户的历史）
+     * @param username 用户名（可选，如果为null或空则删除所有用户的历史）
+     * @return 是否删除成功
+     */
+    public boolean deleteAllByUser(String username) {
+        int result = searchHistoryDao.deleteAllByUser(username);
+        return result >= 0;
+    }
+    
+    /**
+     * 从搜索历史中恢复搜索条件
+     * @param id 搜索历史ID
+     * @return 搜索条件Map（由于不再保存filters，返回空Map）
+     */
+    public Map<String, Object> getFiltersFromHistory(Long id) {
+        // 由于不再保存filters字段，无法恢复完整的搜索条件
+        // 返回空Map，前端可以提示用户手动设置搜索条件
+        return new HashMap<>();
+    }
+    
+    /**
+     * 根据ID获取搜索历史
+     * @param id 搜索历史ID
+     * @return 搜索历史对象
+     */
+    public SearchHistory getSearchHistoryById(Long id) {
+        return searchHistoryDao.getSearchHistoryById(id);
     }
 }

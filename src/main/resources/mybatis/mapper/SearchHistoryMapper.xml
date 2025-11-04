@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lu.ddwyydemo04.dao.SearchHistoryDao">
+
+    <!-- 保存搜索历史 -->
+    <insert id="saveSearchHistory" parameterType="SearchHistory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO search_history (
+            username,
+            filter_description,
+            page_name,
+            created_at
+        ) VALUES (
+            #{username},
+            #{filterDescription},
+            #{pageName},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 根据ID查询搜索历史 -->
+    <select id="getSearchHistoryById" resultType="SearchHistory">
+        SELECT 
+            id,
+            username,
+            filter_description as filterDescription,
+            page_name as pageName,
+            created_at as createdAt
+        FROM search_history
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户名查询搜索历史（按时间倒序） -->
+    <select id="getSearchHistoryByUser" resultType="SearchHistory">
+        SELECT 
+            id,
+            username,
+            filter_description as filterDescription,
+            page_name as pageName,
+            created_at as createdAt
+        FROM search_history
+        <where>
+            <if test="username != null and username != ''">
+                AND username = #{username}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 根据ID删除搜索历史 -->
+    <delete id="deleteSearchHistory">
+        DELETE FROM search_history
+        WHERE id = #{id}
+    </delete>
+
+
+    <!-- 删除用户的所有搜索历史（如果username为null或空，则删除所有用户的历史） -->
+    <delete id="deleteAllByUser">
+        DELETE FROM search_history
+        <where>
+            <if test="username != null and username != ''">
+                AND username = #{username}
+            </if>
+        </where>
+    </delete>
+
+</mapper>
+
