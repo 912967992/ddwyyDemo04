@@ -415,7 +415,10 @@
         SET schedule_color = 'gray'
         WHERE (schedule_color IS NULL OR schedule_color != 'gray')
           AND actual_finish_time IS NOT NULL
-          AND actual_finish_time &lt;= CURDATE();
+          AND actual_finish_time &lt;= CURDATE()
+          <if test="sample_category != null and sample_category != ''">
+              AND sample_category = #{sample_category}
+          </if>
     </update>
 
     <update id="updateScheduleColorGreen">
@@ -426,7 +429,10 @@
         AND (
         actual_finish_time IS NULL
         OR actual_finish_time &lt;= CURDATE()
-        );
+        )
+        <if test="sample_category != null and sample_category != ''">
+            AND sample_category = #{sample_category}
+        </if>
     </update>
 
 

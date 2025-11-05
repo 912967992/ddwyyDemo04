@@ -185,12 +185,12 @@ public class ScheduleBoardService {
         return scheduleBoardDao.getChangeRecordStatsNew(startDate, endDate);
     }
 
-    public int updateScheduleColorGray(){
-        return scheduleBoardDao.updateScheduleColorGray();
+    public int updateScheduleColorGray(String sample_category){
+        return scheduleBoardDao.updateScheduleColorGray(sample_category);
     }
 
-    public int updateScheduleColorGreen(){
-        return scheduleBoardDao.updateScheduleColorGreen();
+    public int updateScheduleColorGreen(String sample_category){
+        return scheduleBoardDao.updateScheduleColorGreen(sample_category);
     }
 
     public List<Map<String, Object>> findDQEUnconfirmedSamples() {

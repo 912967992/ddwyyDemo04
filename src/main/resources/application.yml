@@ -34,6 +34,7 @@ server:
 #  8082是测试开发门户网站
 #  port: 8082
   port: 8080
+  address: 0.0.0.0  # 监听所有网络接口，允许从其他机器访问
   servlet:
     session:
       timeout: 8h  # 设置会话超时时间为8小时

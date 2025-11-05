@@ -393,6 +393,14 @@
         FROM electric_info
         WHERE waitSample_classify = #{waitSample_classify}
           AND isCancel = 0
+          <choose>
+              <when test="sample_category != null and sample_category != ''">
+                  AND sample_category = #{sample_category}
+              </when>
+              <otherwise>
+                  AND (sample_category != 'NAS服务器' OR sample_category IS NULL)
+              </otherwise>
+          </choose>
     </select>
 
 

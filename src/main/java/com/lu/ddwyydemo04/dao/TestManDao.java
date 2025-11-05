@@ -124,7 +124,8 @@ public interface TestManDao {
                                    @Param("list") List<MaterialItem> list);
 
     public List<PassbackData> getAllReceivedData(@Param("sample_id") String sample_id);
-    public List<PassbackData> getPendingSampleData(@Param("waitSample_classify") String waitSample_classify);
+    public List<PassbackData> getPendingSampleData(@Param("waitSample_classify") String waitSample_classify, 
+                                                     @Param("sample_category") String sample_category);
 
 
     Map<String, Object> getScheduleInfoBySampleId(@Param("sample_id") String sample_id);

@@ -629,8 +629,8 @@ public class ScheduleBoardController {
     public Map<String, Object> refreshColor() {
         Map<String, Object> result = new HashMap<>();
         try {
-            int grayCount = scheduleBoardService.updateScheduleColorGray();
-            int greenCount = scheduleBoardService.updateScheduleColorGreen();
+            int grayCount = scheduleBoardService.updateScheduleColorGray(null);
+            int greenCount = scheduleBoardService.updateScheduleColorGreen(null);
 
             result.put("success", true);
             result.put("message", "刷新完成，灰色更新：" + grayCount + " 条，绿色更新：" + greenCount + " 条");

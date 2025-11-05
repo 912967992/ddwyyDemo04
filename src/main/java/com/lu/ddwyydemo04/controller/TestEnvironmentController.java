@@ -101,8 +101,9 @@ public class TestEnvironmentController {
 
     @GetMapping("/passback/getPendingSampleData")
     @ResponseBody
-    public ResponseEntity<List<PassbackData>> getPendingSampleData(@RequestParam(required = false) String category) {
-        List<PassbackData> pendingSampleData = testManIndexService.getPendingSampleData(category);
+    public ResponseEntity<List<PassbackData>> getPendingSampleData(@RequestParam(required = false) String category,
+                                                                    @RequestParam(required = false) String sample_category) {
+        List<PassbackData> pendingSampleData = testManIndexService.getPendingSampleData(category, sample_category);
 //        logger.info("/passback/getPendingSampleData 查询参数 category = " + category);
         return ResponseEntity.ok(pendingSampleData);
     }

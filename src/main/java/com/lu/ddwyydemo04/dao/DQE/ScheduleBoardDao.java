@@ -130,8 +130,8 @@ public interface ScheduleBoardDao {
     Map<String, Object> getChangeRecordStatsNew(@Param("startDate") String startDate,
                                                @Param("endDate") String endDate);
 
-    int updateScheduleColorGray();
-    int updateScheduleColorGreen();
+    int updateScheduleColorGray(@Param("sample_category") String sample_category);
+    int updateScheduleColorGreen(@Param("sample_category") String sample_category);
 
     List<Map<String, Object>> findDQEUnconfirmedSamples();
     List<Map<String, Object>> findRDUnconfirmedSamples();

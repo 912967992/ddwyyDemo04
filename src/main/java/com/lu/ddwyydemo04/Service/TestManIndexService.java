@@ -418,8 +418,8 @@ public class TestManIndexService {
     }
 
 
-    public List<PassbackData> getPendingSampleData(String waitSample_classify){
-        return testManDao.getPendingSampleData(waitSample_classify);
+    public List<PassbackData> getPendingSampleData(String waitSample_classify, String sample_category){
+        return testManDao.getPendingSampleData(waitSample_classify, sample_category);
     }
 
     public void saveAll(List<PassbackData> requestData) {
