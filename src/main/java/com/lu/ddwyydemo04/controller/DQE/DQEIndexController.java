@@ -584,4 +584,27 @@ public class DQEIndexController {
         return result;
     }
 
+    // 检查用户是否有权限访问NAS项目排期
+    @GetMapping("/DQEIndex/checkNASPermission")
+    @ResponseBody
+    public Map<String, Object> checkNASPermission(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            boolean hasPermission = dqeIndexService.checkNASPermission(username);
+            result.put("success", true);
+            result.put("hasPermission", hasPermission);
+            if (!hasPermission) {
+                result.put("message", "您无权限访问NAS项目排期页面，只有NAS网通组的成员或指定管理员才能访问");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("hasPermission", false);
+            result.put("error", "检查权限时出错: " + e.getMessage());
+        }
+        
+        return result;
+    }
+
 }

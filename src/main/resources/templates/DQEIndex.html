@@ -1018,36 +1018,63 @@
 
         // 跳转到NAS项目排期
         function goToScheduleBoardNAS() {
-            // 检查是否在钉钉环境中
-            const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
-
-            const url = 'http://219.134.191.195:64000/scheduleBoardNAS?username=' + encodeURIComponent(username);
-            // const url = 'http://e888ccd6.natappfree.cc/scheduleBoardNAS?username=' + encodeURIComponent(username);
-            AccessLogUtil.record("NAS项目排期页面");
-
-            // 关闭模态框
-            const scheduleTypeModal = document.getElementById('scheduleTypeModal');
-            scheduleTypeModal.style.display = 'none';
-
-            if (isDingTalk) {
-                // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
-                // localStorage.setItem('username', username);
-                // localStorage.setItem('job', job);
-                
-                dd.openLink({
-                    url: url,
-                    success: function() {
-                        console.log('成功打开NAS项目排期看板');
-                    },
-                    fail: function(err) {
-                        alert('打开页面失败：' + JSON.stringify(err));
-                        console.error('dd.openLink fail:', err);
-                    }
-                });
-            } else {
-                // 非钉钉环境使用普通跳转
-                window.location.href = url;
+            // 检查用户名是否存在
+            if (!username) {
+                alert("请先输入用户名！");
+                return;
             }
+
+            // 先检查用户权限
+            fetch(`/DQEIndex/checkNASPermission?username=${encodeURIComponent(username)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.hasPermission) {
+                        // 权限检查通过，继续跳转
+                        // 检查是否在钉钉环境中
+                        const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+
+                        const url = 'http://219.134.191.195:64000/scheduleBoardNAS?username=' + encodeURIComponent(username);
+                        // const url = 'http://e888ccd6.natappfree.cc/scheduleBoardNAS?username=' + encodeURIComponent(username);
+                        AccessLogUtil.record("NAS项目排期页面");
+
+                        // 关闭模态框
+                        const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+                        scheduleTypeModal.style.display = 'none';
+
+                        if (isDingTalk) {
+                            // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
+                            // localStorage.setItem('username', username);
+                            // localStorage.setItem('job', job);
+                            
+                            dd.openLink({
+                                url: url,
+                                success: function() {
+                                    console.log('成功打开NAS项目排期看板');
+                                },
+                                fail: function(err) {
+                                    alert('打开页面失败：' + JSON.stringify(err));
+                                    console.error('dd.openLink fail:', err);
+                                }
+                            });
+                        } else {
+                            // 非钉钉环境使用普通跳转
+                            window.location.href = url;
+                        }
+                    } else {
+                        // 权限检查失败
+                        alert(data.message || "您无权限访问NAS项目排期页面，只有NAS网通组的成员或指定管理员才能访问");
+                        // 关闭模态框
+                        const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+                        scheduleTypeModal.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error("检查权限时出错:", error);
+                    alert("检查权限时出错，请稍后重试");
+                    // 关闭模态框
+                    const scheduleTypeModal = document.getElementById('scheduleTypeModal');
+                    scheduleTypeModal.style.display = 'none';
+                });
         }
 
         function goToProjectTable() {

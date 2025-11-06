@@ -648,9 +648,10 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 55 3 * * ?") // 每天北京时间的 10:12
+    @Scheduled(cron = "0 15 6 * * ?") // 每天北京时间的 10:12
     public void refreshUserIds() throws ApiException {
-        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L); // 示例大部门 ID
+        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L,913639520L); // 示例大部门 ID,913639520是NAS网通组
+//        List<Long> targetDeptIds = Arrays.asList(913639520L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList( 63652303L); // 示例大部门 ID
         List<User> allUsers = new ArrayList<>(); // 用于存放所有用户的列表
 
@@ -680,7 +681,10 @@ public class AccessTokenService {
                 user.setPosition("tester"); // 特殊条件：如果是官旺华，则职位为 tester,因为他被放到了电子DQE租
             }else if (user.getUsername().equals("蓝明城")) {
                 user.setPosition("DQE");
-            }  else if (majorDeptId.equals(62712385L)) { // 产品研发部
+            } else if (majorDeptId.equals(913639520L)) { // NAS网通组
+                user.setPosition("DQE");
+                user.setDepartmentName("NAS网通组");
+            } else if (majorDeptId.equals(62712385L)) { // 产品研发部
                 user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
                 // 进一步检查是否在测试组
@@ -814,65 +818,6 @@ public class AccessTokenService {
         }
     }
 
-    // 每天凌晨3:10执行
-//    @Scheduled(cron = "0 30 4 * * ?")
-//    public void syncEngineers() {
-//        String[] engineerNames = {
-//                "郭喆", "游宏", "殷嘉俊", "唐日顺", "官旺华", "刘鹏飞", "赵梓宇", "段平", "魏民",
-//                "程奕阳", "赵爽", "罗清虎", "龙运", "黄兰姣", "李智龙", "肖灶炜", "肖龙生", "张国鹏",
-//                "戴杏华", "李素欣1", "张锐", "阮晓晴", "廖建伟", "蔡义会"
-//        }; // 测试人员数组
-//
-//        // 定义组别
-//        Map<String, String> groupMap = new HashMap<>();
-//        groupMap.put("龙运", "线材组");
-//        groupMap.put("张国鹏", "线材组");
-//        groupMap.put("唐日顺", "新人");
-//        groupMap.put("殷嘉俊", "视频组");
-//        groupMap.put("赵梓宇", "蓝牙组");
-//        groupMap.put("游宏", "新人");
-//        groupMap.put("郭喆", "PC");
-//        groupMap.put("冯兴旺", "PC");
-//        groupMap.put("戴杏华", "视频组");
-//        groupMap.put("李智龙", "视频组");
-//        groupMap.put("魏民", "视频组");
-//        groupMap.put("肖灶炜", "视频组");
-//        groupMap.put("李素欣1", "视频组");
-//        groupMap.put("程奕阳", "视频组");
-//        groupMap.put("张锐", "数据网通组");
-//        groupMap.put("赵爽", "数据网通组");
-//        groupMap.put("肖龙生", "数据网通组");
-//        groupMap.put("黄兰姣", "蓝牙组");
-//        groupMap.put("刘鹏飞", "蓝牙组");
-//        groupMap.put("段平", "蓝牙组");
-//        groupMap.put("罗清虎", "蓝牙组");
-//        groupMap.put("阮晓晴", "耳机组");
-//        groupMap.put("官旺华", "耳机组");
-//        groupMap.put("廖建伟", "高频组");
-//        groupMap.put("蔡义会", "高频组");
-//
-//        for (String name : engineerNames) {
-//            Map<String, String> userInfo = findUserByUsername(name);
-//
-//            if (userInfo != null) {
-//                String engineerId = userInfo.get("engineerId");
-//                String testEngineerName = userInfo.get("testEngineerName");
-//                String hire_date = userInfo.get("hire_date");
-//                String responsible_category = groupMap.getOrDefault(testEngineerName, null); // 获取组别
-//
-//                Integer count = countEngineerByName(testEngineerName);
-//
-//                if (count != null && count > 0) {
-//                    // 已存在，更新
-//                    updateEngineer(engineerId, testEngineerName, hire_date, responsible_category);
-//                } else {
-//                    // 不存在，插入
-//                    insertEngineer(engineerId, testEngineerName, hire_date, responsible_category);
-//                }
-//            }
-//        }
-//        logger.info("定时任务更新测试人员数据库已完毕!");
-//    }
 
 
     public Map<String, String> findUserByUsername(String username){
@@ -1359,6 +1304,73 @@ public class AccessTokenService {
         
         sendTextNotification(userId, message.toString());
         logger.info("已发送未确认通知给 " + role + " 用户: " + userName + ", 样品ID: " + sampleId);
+    }
+
+    /**
+     * 查询指定部门的子部门（分组）并打印详细信息
+     * @param deptId 部门ID
+     */
+    public void queryAndPrintDeptUsers(Long deptId) {
+        try {
+            logger.info("========== 开始查询部门 ID: " + deptId + " 的子部门（分组）信息 ==========");
+            
+            // 获取部门名称
+            String deptName = getDepartmentNameByDeptId(deptId);
+            logger.info("父部门名称: " + deptName);
+            logger.info("父部门ID: " + deptId);
+            logger.info("----------------------------------------");
+            
+            // 查询该部门的子部门列表
+            List<OapiV2DepartmentListsubResponse.DeptBaseResponse> subDepts = getDeptListByDeptId(deptId);
+            
+            logger.info("----------------------------------------");
+            logger.info("共找到 " + subDepts.size() + " 个子部门（分组）");
+            logger.info("========================================");
+            
+            // 打印子部门详细信息
+            if (subDepts.isEmpty()) {
+                logger.info("该部门下没有子部门（分组）");
+            } else {
+                int index = 1;
+                for (OapiV2DepartmentListsubResponse.DeptBaseResponse subDept : subDepts) {
+                    logger.info("【子部门（分组） " + index + "】");
+                    logger.info("  部门ID: " + subDept.getDeptId());
+                    logger.info("  部门名称: " + subDept.getName());
+                    logger.info("  父部门ID: " + subDept.getParentId());
+                    logger.info("  是否自动添加用户: " + subDept.getAutoAddUser());
+                    logger.info("  是否创建部门群: " + subDept.getCreateDeptGroup());
+                    logger.info("  ---");
+                    index++;
+                }
+            }
+            
+            logger.info("========== 查询完成 ==========");
+            
+        } catch (ApiException e) {
+            logger.error("查询部门子部门时发生错误: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("查询部门子部门时发生未知错误: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 定时任务：查询部门 63652303L 的子部门（分组）信息并打印
+     * 可以通过取消注释 @Scheduled 注解来启用定时执行
+     * 或者直接调用此方法手动执行
+     * 
+     * 使用方式：
+     * 1. 定时执行：取消下面任意一个 @Scheduled 注解的注释
+     * 2. 手动执行：在 Controller 或其他地方调用此方法
+     */
+//     @Scheduled(cron = "0 35 10 * * ?") // 每天早上10点31分执行
+    // @Scheduled(cron = "0 0 */1 * * ?") // 每1小时执行一次
+    // @Scheduled(fixedRate = 3600000) // 每1小时执行一次（毫秒）
+    // @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）
+    public void scheduledQueryDept63652303Users() {
+        logger.info("========== 定时任务开始：查询部门 63652303L 的子部门（分组）信息 ==========");
+        Long deptId = 63652303L;
+        queryAndPrintDeptUsers(deptId);
+        logger.info("========== 定时任务结束 ==========");
     }
 
 }

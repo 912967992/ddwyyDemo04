@@ -2660,6 +2660,27 @@ public class testManIndexController {
         return false;
     }
 
-
+    /**
+     * 手动触发查询部门 63652303L 的子部门（分组）信息
+     * 访问地址：/queryDeptUsers
+     */
+    @GetMapping("/queryDeptUsers")
+    @ResponseBody
+    public Map<String, Object> queryDeptUsers() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            logger.info("手动触发查询部门 63652303L 的子部门（分组）信息");
+            Long deptId = 63652303L;
+            accessTokenService.queryAndPrintDeptUsers(deptId);
+            result.put("success", true);
+            result.put("message", "查询完成，请查看日志获取详细信息");
+            result.put("deptId", deptId);
+        } catch (Exception e) {
+            logger.error("手动查询部门子部门时发生错误: " + e.getMessage(), e);
+            result.put("success", false);
+            result.put("message", "查询失败: " + e.getMessage());
+        }
+        return result;
+    }
 
 }

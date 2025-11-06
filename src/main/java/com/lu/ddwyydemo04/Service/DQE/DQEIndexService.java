@@ -117,4 +117,26 @@ public class DQEIndexService {
         return dqeDao.getScheduleDetails(scheduleStatus);
     }
 
+    // 检查用户是否有权限访问NAS项目排期（根据departmentName是否为"NAS网通组"，或指定的特殊用户）
+    public boolean checkNASPermission(String username) {
+        try {
+            // 特殊用户列表，可以直接访问
+            String[] allowedUsers = {"卢健", "李良健", "许梦瑶", "卢绮敏"};
+            
+            // 检查是否为特殊用户
+            for (String allowedUser : allowedUsers) {
+                if (allowedUser.equals(username)) {
+                    return true;
+                }
+            }
+            
+            // 检查departmentName是否为"NAS网通组"
+            String departmentName = dqeDao.getDepartmentNameByUsername(username);
+            return "NAS网通组".equals(departmentName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
