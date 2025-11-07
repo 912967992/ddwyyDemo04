@@ -2080,7 +2080,7 @@
             const searchLower = searchText.toLowerCase();
 
             allOptions.forEach(option => {
-                const parts = option.split('-');
+                const parts = splitCategory(option);
                 if (parts.length >= level) {
                     const targetPart = parts[level - 1];
                     if (targetPart && targetPart.toLowerCase().includes(searchLower)) {
@@ -2245,6 +2245,27 @@
             }
         }
 
+        // 标准化问题类别分隔符（将全角"－"转换为半角"-"）
+        function normalizeCategorySeparator(category) {
+            if (!category) return category;
+            // 将全角"－"（中文破折号）替换为半角"-"
+            return category.replace(/－/g, '-');
+        }
+
+        // 分割问题类别（同时支持半角"-"和全角"－"）
+        function splitCategory(category) {
+            if (!category) return [];
+            // 先标准化分隔符，然后分割
+            const normalized = normalizeCategorySeparator(category);
+            return normalized.split('-').map(part => part.trim()).filter(part => part !== '');
+        }
+
+        // 检查是否包含分隔符（同时支持半角和全角）
+        function hasCategorySeparator(category) {
+            if (!category) return false;
+            return category.includes('-') || category.includes('－');
+        }
+
         // 从缓存数据中提取一级分类选项
         function extractLevel1FromCache(cachedData) {
             console.log('=== 开始提取一级分类 ===');
@@ -2255,9 +2276,9 @@
             cachedData.forEach((item, index) => {
                 console.log(`处理第${index}项:`, item, '类型:', typeof item);
                 if (item && item.trim() !== '') {
-                    if (item.includes('-')) {
-                        // 处理有分隔符的格式：aaa-xxx-xxx
-                        const parts = item.split('-');
+                    if (hasCategorySeparator(item)) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx 或 aaa－xxx－xxx
+                        const parts = splitCategory(item);
                         console.log('分割后的部分:', parts);
                         if (parts.length >= 1 && parts[0].trim() !== '') {
                             const level1Value = parts[0].trim();
@@ -2293,8 +2314,6 @@
             // console.log('选中的一级分类:', level1);
             
             const level2Set = new Set();
-            const searchPrefix = level1 + '-';
-            // console.log('搜索前缀:', searchPrefix);
             
             cachedData.forEach((item, index) => {
                 // console.log(`\n--- 检查第${index}项 ---`);
@@ -2303,31 +2322,28 @@
                 if (item && item.trim() !== '') {
                     const trimmedItem = item.trim();
                     // console.log('处理后的项目:', trimmedItem);
-                    // console.log('是否包含分隔符:', trimmedItem.includes('-'));
-                    // console.log('是否以前缀开头:', trimmedItem.startsWith(searchPrefix));
                     
-                    if (trimmedItem.includes('-') && trimmedItem.startsWith(searchPrefix)) {
-                        // 处理有分隔符的格式：aaa-xxx-xxx
-                        const parts = trimmedItem.split('-');
+                    if (hasCategorySeparator(trimmedItem)) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx 或 aaa－xxx－xxx
+                        const parts = splitCategory(trimmedItem);
                         // console.log('分割后的部分:', parts);
                         // console.log('分割后长度:', parts.length);
                         
-                        if (parts.length >= 2 && parts[1] && parts[1].trim() !== '') {
+                        // 检查第一部分是否匹配一级分类
+                        if (parts.length >= 2 && parts[0] === level1 && parts[1] && parts[1].trim() !== '') {
                             const level2Value = parts[1].trim();
                             level2Set.add(level2Value);
                             // console.log('✓ 添加二级分类:', level2Value);
                         } else {
-                            // console.log('✗ 分割后第二部分为空或不存在');
+                            // console.log('✗ 分割后第二部分为空或不存在，或不匹配一级分类');
                         }
-                    } else if (!trimmedItem.includes('-') && trimmedItem === level1) {
+                    } else if (trimmedItem === level1) {
                         // 处理无分隔符的格式：如果是一级分类本身，则没有二级分类
                         // console.log('○ 无分隔符的一级分类，跳过二级分类提取');
                     } else {
                         // console.log('✗ 项目不匹配一级分类');
                         // console.log('  - 项目值:', trimmedItem);
-                        // console.log('  - 是否包含分隔符:', trimmedItem.includes('-'));
-                        // console.log('  - 是否以前缀开头:', trimmedItem.startsWith(searchPrefix));
-                        // console.log('  - 期望的前缀:', searchPrefix);
+                        // console.log('  - 是否包含分隔符:', hasCategorySeparator(trimmedItem));
                     }
                 } else {
                     // console.log('✗ 项目为空或无效:', item);
@@ -2353,8 +2369,6 @@
             // console.log('选中的二级分类:', level2);
             
             const level3Set = new Set();
-            const prefix = level1 + '-' + level2 + '-';
-            // console.log('搜索前缀:', prefix);
             
             cachedData.forEach((item, index) => {
                 // console.log(`\n--- 检查第${index}项 ---`);
@@ -2363,31 +2377,28 @@
                 if (item && item.trim() !== '') {
                     const trimmedItem = item.trim();
                     // console.log('处理后的项目:', trimmedItem);
-                    // console.log('是否包含分隔符:', trimmedItem.includes('-'));
-                    // console.log('是否以前缀开头:', trimmedItem.startsWith(prefix));
                     
-                    if (trimmedItem.includes('-') && trimmedItem.startsWith(prefix)) {
-                        // 处理有分隔符的格式：aaa-xxx-xxx
-                        const parts = trimmedItem.split('-');
+                    if (hasCategorySeparator(trimmedItem)) {
+                        // 处理有分隔符的格式：aaa-xxx-xxx 或 aaa－xxx－xxx
+                        const parts = splitCategory(trimmedItem);
                         // console.log('分割后的部分:', parts);
                         // console.log('分割后长度:', parts.length);
                         
-                        if (parts.length >= 3 && parts[2] && parts[2].trim() !== '') {
+                        // 检查前两部分是否匹配一级和二级分类
+                        if (parts.length >= 3 && parts[0] === level1 && parts[1] === level2 && parts[2] && parts[2].trim() !== '') {
                             const level3Value = parts[2].trim();
                             level3Set.add(level3Value);
                             // console.log('✓ 添加三级分类:', level3Value);
                         } else {
-                            // console.log('✗ 分割后第三部分为空或不存在');
+                            // console.log('✗ 分割后第三部分为空或不存在，或不匹配一级/二级分类');
                         }
-                    } else if (!trimmedItem.includes('-') && trimmedItem === level1) {
+                    } else if (trimmedItem === level1) {
                         // 处理无分隔符的格式：如果是一级分类本身，则没有三级分类
                         // console.log('○ 无分隔符的一级分类，跳过三级分类提取');
                     } else {
                         // console.log('✗ 项目不匹配二级分类');
                         // console.log('  - 项目值:', trimmedItem);
-                        // console.log('  - 是否包含分隔符:', trimmedItem.includes('-'));
-                        // console.log('  - 是否以前缀开头:', trimmedItem.startsWith(prefix));
-                        // console.log('  - 期望的前缀:', prefix);
+                        // console.log('  - 是否包含分隔符:', hasCategorySeparator(trimmedItem));
                     }
                 } else {
                     // console.log('✗ 项目为空或无效:', item);
@@ -3851,10 +3862,21 @@
                 if (filters.testDevice && !item.test_device?.toLowerCase().includes(filters.testDevice.toLowerCase())) return false;
                 if (filters.otherDevice && !item.other_device?.toLowerCase().includes(filters.otherDevice.toLowerCase())) return false;
                 
-                // 问题类别过滤
+                // 问题类别过滤（精确前缀匹配）
                 if (filters.problemCategory) {
+                    // 构建问题类别字符串（使用半角"-"）
                     const itemCategory = `${item.problem_category_level1 || ''}-${item.problem_category_level2 || ''}-${item.problem_category_level3 || ''}`.replace(/-+$/, '');
-                    if (!itemCategory.toLowerCase().includes(filters.problemCategory.toLowerCase())) return false;
+                    // 标准化搜索关键字和项目类别，确保能匹配半角和全角分隔符
+                    const normalizedItemCategory = normalizeCategorySeparator(itemCategory);
+                    const normalizedFilterCategory = normalizeCategorySeparator(filters.problemCategory);
+                    
+                    // 精确前缀匹配：匹配以"关键字-"开头的类别，或精确匹配
+                    // 例如：搜索"兼容性"只匹配"兼容性-xxx"，不匹配"电子兼容性-xxx"
+                    const itemLower = normalizedItemCategory.toLowerCase();
+                    const filterLower = normalizedFilterCategory.toLowerCase();
+                    if (itemLower !== filterLower && !itemLower.startsWith(filterLower + '-')) {
+                        return false;
+                    }
                 }
                 
                 return true;
@@ -3940,8 +3962,8 @@
             const level3Categories = new Set();
 
             uniqueCategories.forEach(category => {
-                // 假设问题类别使用 "-" 分隔三级结构
-                const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                // 问题类别使用 "-" 或 "－" 分隔三级结构
+                const parts = splitCategory(category);
                 
                 if (parts.length >= 1) {
                     level1Categories.add(parts[0]);
@@ -4015,7 +4037,7 @@
             dataForCategoryOptions.forEach(item => {
                 const category = item.problemCategory;
                 if (category && category.trim() !== '') {
-                    const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                    const parts = splitCategory(category);
                     if (parts.length >= 2 && parts[0] === selectedLevel1) {
                         level2Categories.add(parts[1]);
                     }
@@ -4040,7 +4062,7 @@
             dataForCategoryOptions.forEach(item => {
                 const category = item.problemCategory;
                 if (category && category.trim() !== '') {
-                    const parts = category.split('-').map(part => part.trim()).filter(part => part !== '');
+                    const parts = splitCategory(category);
                     if (parts.length >= 3 && parts[0] === selectedLevel1 && parts[1] === selectedLevel2) {
                         level3Categories.add(parts[2]);
                     }

@@ -79,7 +79,12 @@
             AND s.small_species LIKE CONCAT('%', #{filters.smallSpecies}, '%')
         </if>
         <if test="filters.problemCategory != null and filters.problemCategory != ''">
-            AND t.problemCategory LIKE CONCAT('%', #{filters.problemCategory}, '%')
+            <!-- 问题类别精确前缀匹配：匹配以"关键字-"开头的类别，或精确匹配 -->
+            <!-- 例如：搜索"兼容性"只匹配"兼容性-xxx"，不匹配"电子兼容性-xxx" -->
+            AND (
+                REPLACE(t.problemCategory, '－', '-') LIKE CONCAT(REPLACE(#{filters.problemCategory}, '－', '-'), '-%')
+                OR REPLACE(t.problemCategory, '－', '-') = REPLACE(#{filters.problemCategory}, '－', '-')
+            )
         </if>
         <if test="filters.defectLevel != null and filters.defectLevel != ''">
             AND t.defect_level = #{filters.defectLevel}
@@ -100,7 +105,7 @@
             <!-- 当前状态筛选: #{filters.currentStatus} -->
         </if>
         <if test="filters.tester != null and filters.tester != ''">
-            AND t.tester LIKE CONCAT('%', #{filters.tester}, '%')
+            AND s.tester LIKE CONCAT('%', #{filters.tester}, '%')
         </if>
         <if test="filters.responsibleDepartment != null and filters.responsibleDepartment != ''">
             AND t.responsibleDepartment = #{filters.responsibleDepartment}
@@ -352,7 +357,7 @@
                             SEPARATOR ','
                     ) as tester
              FROM (
-                      SELECT ti.tester, COUNT(*) as count
+                      SELECT s.tester, COUNT(*) as count
                       FROM test_issues ti
                                INNER JOIN samples s ON ti.sample_id = s.sample_id
                                INNER JOIN (
@@ -361,8 +366,8 @@
                           GROUP BY sample_id
                       ) latest ON ti.sample_id = latest.sample_id AND ti.history_id = latest.max_history_id
                       WHERE s.finish_time >= '2025-07-01 00:00:00'
-                        AND ti.tester IS NOT NULL AND ti.tester != ''
-                      GROUP BY ti.tester
+                        AND s.tester IS NOT NULL AND s.tester != ''
+                      GROUP BY s.tester
                   ) as ranked_tester) as tester,
             (SELECT GROUP_CONCAT(
                             responsibleDepartment
