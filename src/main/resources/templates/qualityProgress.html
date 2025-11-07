@@ -2274,6 +2274,62 @@
             border: 1px solid #e9ecef;
         }
 
+        .edit-permission-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 400px;
+            max-width: 500px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .edit-permission-dropdown.show {
+            display: block;
+        }
+
+        .edit-permission-dropdown .dropdown-header {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #e7f3ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-permission-dropdown .dropdown-header i {
+            color: #0066cc;
+            font-size: 16px;
+        }
+
+        .edit-permission-dropdown .dropdown-header span {
+            font-weight: 600;
+            color: #004085;
+            font-size: 14px;
+        }
+
+        .edit-permission-dropdown .dropdown-content {
+            padding: 15px;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        .edit-permission-dropdown .info-item {
+            margin: 6px 0;
+            padding-left: 10px;
+        }
+
+        .table-actions .btn-wrapper {
+            position: relative;
+        }
+
         .edit-status {
             color: #28a745;
             font-weight: 500;
@@ -3357,6 +3413,24 @@
 <div class="table-section">
     <!-- 表格操作栏 -->
     <div class="table-actions">
+        <div class="btn-wrapper">
+            <button id="editPermissionBtn" class="btn btn-info" title="编辑权限说明">
+                <i class="fas fa-question-circle"></i> 编辑权限说明
+            </button>
+            <div id="editPermissionDropdown" class="edit-permission-dropdown">
+                <div class="dropdown-header">
+                    <i class="fas fa-info-circle"></i>
+                    <span>编辑权限说明</span>
+                </div>
+                <div class="dropdown-content">
+                    <div class="info-item">• 当您的用户名与"主导DQE"字段一致时，可以编辑该条数据</div>
+                    <div class="info-item">• 蓝牙家居组 ↔ 工控线材组可以互相编辑</div>
+                    <div class="info-item">• 壳膜创意组 ↔ 创意家居组可以互相编辑</div>
+                    <div class="info-item">• 数据存储组 ↔ 数据储存组可以互相编辑</div>
+                    <div class="info-item">• 组别匹配时可以编辑（组别为空时允许任何人编辑）</div>
+                </div>
+            </div>
+        </div>
         <button id="globalEditBtn" class="btn btn-primary" onclick="toggleGlobalEditMode()">
             <i class="fas fa-edit"></i> 全局编辑
         </button>
@@ -5923,6 +5997,24 @@
 
         // 全局键盘事件监听器（搜索按钮已移除）
 
+        // 编辑权限说明按钮事件监听器
+        const editPermissionBtn = document.getElementById('editPermissionBtn');
+        if (editPermissionBtn) {
+            editPermissionBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleEditPermissionDropdown();
+            });
+        }
+
+        // 点击页面其他地方关闭编辑权限说明下拉菜单
+        document.addEventListener('click', function(e) {
+            const permissionDropdown = document.getElementById('editPermissionDropdown');
+            const permissionBtn = document.getElementById('editPermissionBtn');
+            if (permissionDropdown && permissionBtn && !permissionDropdown.contains(e.target) && !permissionBtn.contains(e.target)) {
+                hideEditPermissionDropdown();
+            }
+        });
+
         // 分页相关事件监听器
         document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
         document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
@@ -5952,7 +6044,26 @@
                 closeImportModal();
             }
         });
+    }
 
+    // 切换编辑权限说明下拉菜单显示
+    function toggleEditPermissionDropdown() {
+        const dropdown = document.getElementById('editPermissionDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    // 隐藏编辑权限说明下拉菜单
+    function hideEditPermissionDropdown() {
+        const dropdown = document.getElementById('editPermissionDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // 初始化事件监听器（第二个版本，用于导入功能）
+    function initEventListeners() {
         // 下载模板按钮
         document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
             fetch('/newProductProgress/downloadTemplate')
@@ -6057,10 +6168,71 @@
 
         // 筛选器已移除，无需添加键盘事件监听器
 
-        // 导入按钮 - 显示模态框
-        document.getElementById('importBtn').addEventListener('click', function() {
-            document.getElementById('importModal').style.display = 'block';
+        // 全局键盘事件监听器（搜索按钮已移除）
+
+        // 编辑权限说明按钮事件监听器
+        const editPermissionBtn = document.getElementById('editPermissionBtn');
+        if (editPermissionBtn) {
+            editPermissionBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleEditPermissionDropdown();
+            });
+        }
+
+        // 点击页面其他地方关闭编辑权限说明下拉菜单
+        document.addEventListener('click', function(e) {
+            const permissionDropdown = document.getElementById('editPermissionDropdown');
+            const permissionBtn = document.getElementById('editPermissionBtn');
+            if (permissionDropdown && permissionBtn && !permissionDropdown.contains(e.target) && !permissionBtn.contains(e.target)) {
+                hideEditPermissionDropdown();
+            }
         });
+
+        // 分页相关事件监听器
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+        const lastPageBtn = document.getElementById('lastPageBtn');
+        if (prevPageBtn) prevPageBtn.addEventListener('click', () => changePage(-1));
+        if (nextPageBtn) nextPageBtn.addEventListener('click', () => changePage(1));
+        if (jumpBtn) jumpBtn.addEventListener('click', jumpToPage);
+        if (lastPageBtn) lastPageBtn.addEventListener('click', goToLastPage);
+
+        // 页面大小选择
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1; // 重置到第一页
+                // 重新计算分页
+                totalCount = filteredData.length;
+                totalPages = Math.ceil(totalCount / pageSize);
+                renderTable(); // 直接渲染表格
+                updatePagination();
+            });
+        }
+
+        // 导入按钮 - 显示模态框
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) {
+            importBtn.addEventListener('click', function() {
+                document.getElementById('importModal').style.display = 'block';
+            });
+        }
+
+        // 关闭导入模态框
+        const closeImportModalBtn = document.getElementById('closeImportModal');
+        if (closeImportModalBtn) {
+            closeImportModalBtn.addEventListener('click', closeImportModal);
+        }
+        const importModal = document.getElementById('importModal');
+        if (importModal) {
+            importModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeImportModal();
+                }
+            });
+        }
 
         // 关闭导入模态框
         window.closeImportModal = function() {
@@ -7187,7 +7359,8 @@
         // 检查组别是否允许编辑
         // 如果组别为空，则允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
         const productGroupName = product.groupName || '';
-        const canEdit = canEditByGroup(productGroupName, currentDepartmentName);
+        const leadDqe = product.leadDqe || product.主导DQE || product.lead_dqe || '';
+        const canEdit = canEditByGroup(productGroupName, currentDepartmentName, leadDqe);
         
         // 根据组别匹配情况显示或隐藏编辑按钮
         const editBtn = document.getElementById('editReviewBtn');
@@ -7260,8 +7433,9 @@
             const product = filteredData.find(p => p.id === currentEditingReviewId);
             if (product) {
                 const productGroupName = product.groupName || '';
+                const leadDqe = product.leadDqe || product.主导DQE || product.lead_dqe || '';
                 // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
-                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                if (!canEditByGroup(productGroupName, currentDepartmentName, leadDqe)) {
                     showToast(`没有权限编辑此记录：组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`, 'error');
                     return;
                 }
@@ -7576,8 +7750,9 @@
             const product = filteredData.find(p => p.id === currentEditingReviewId);
             if (product) {
                 const productGroupName = product.groupName || '';
+                const leadDqe = product.leadDqe || product.主导DQE || product.lead_dqe || '';
                 // 检查组别是否允许编辑（如果组别为空，允许任何人编辑）
-                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                if (!canEditByGroup(productGroupName, currentDepartmentName, leadDqe)) {
                     showToast(`没有权限编辑此记录：组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`, 'error');
                     return;
                 }
@@ -8398,7 +8573,8 @@
                 // 检查组别是否允许编辑
                 // 如果组别为空，则允许任何人编辑；如果departmentName为空，允许编辑所有行；否则需要组别匹配
                 const productGroupName = product.groupName || '';
-                const isGroupMatched = canEditByGroup(productGroupName, currentDepartmentName);
+                const leadDqe = product.leadDqe || product.主导DQE || product.lead_dqe || '';
+                const isGroupMatched = canEditByGroup(productGroupName, currentDepartmentName, leadDqe);
                 const rowDisabledClass = isGroupMatched ? '' : 'row-disabled';
                 const disabledAttr = isGroupMatched ? '' : 'disabled';
                 const rowTitle = isGroupMatched ? '' : `title="组别不匹配，无法编辑（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）"`;
@@ -8606,7 +8782,7 @@
     // 如果组别为空，则允许任何人编辑
     // 如果departmentName为空，则允许编辑所有行
     // 如果组别不为空且departmentName不为空，需要组别匹配
-    function canEditByGroup(productGroupName, departmentName) {
+    function canEditByGroup(productGroupName, departmentName, leadDqe) {
         const groupName = (productGroupName || '').trim();
         
         // 如果组别为空，允许编辑
@@ -8616,6 +8792,50 @@
         
         // 如果departmentName为空，允许编辑所有行
         if (!departmentName) {
+            return true;
+        }
+        
+        // 特殊权限：如果username是张华或者易湄洁，不管是什么组，都可以编辑
+        const username = getCurrentUsername();
+        if (username === '张华' || username === '易湄洁') {
+            return true;
+        }
+        
+        // 如果本地缓存的username和主导DQE（leadDqe）一致，就可以编辑
+        if (leadDqe && username) {
+            // 处理可能的字段名变体：leadDqe、主导DQE、lead_dqe
+            const normalizedLeadDqe = String(leadDqe || '').trim();
+            const normalizedUsername = String(username).trim();
+            if (normalizedLeadDqe === normalizedUsername) {
+                return true;
+            }
+        }
+        
+        // 标准化组名（去除末尾"组"字）
+        const normalizeGroupName = (name) => {
+            if (!name) return '';
+            let normalized = name.trim();
+            normalized = normalized.replace(/组$/, '');
+            return normalized;
+        };
+        
+        const normalizedGroupName = normalizeGroupName(groupName);
+        const normalizedDepartmentName = normalizeGroupName(departmentName);
+        
+        // 特殊组别匹配规则：
+        // 1. 蓝牙家居组 - 工控线材也可以编辑
+        if (normalizedGroupName === '蓝牙家居' && normalizedDepartmentName === '工控线材') {
+            return true;
+        }
+        if (normalizedDepartmentName === '蓝牙家居' && normalizedGroupName === '工控线材') {
+            return true;
+        }
+        
+        // 2. 壳膜创意组 - 创意家居可以编辑（双向匹配）
+        if (normalizedGroupName === '壳膜创意' && normalizedDepartmentName === '创意家居') {
+            return true;
+        }
+        if (normalizedDepartmentName === '壳膜创意' && normalizedGroupName === '创意家居') {
             return true;
         }
         
@@ -8644,7 +8864,8 @@
         // 统计可编辑的行数（组别为空的行也计入可编辑）
         const editableCount = filteredData.filter(product => {
             const productGroupName = product.groupName || '';
-            return canEditByGroup(productGroupName, currentDepartmentName);
+            const leadDqe = product.leadDqe || product.主导DQE || product.lead_dqe || '';
+            return canEditByGroup(productGroupName, currentDepartmentName, leadDqe);
         }).length;
         const totalCount = filteredData.length;
         
@@ -8730,8 +8951,11 @@
             if (groupNameInput) {
                 // 优先使用原始值判断权限，因为编辑后的值可能已经被用户修改
                 const productGroupName = groupNameInput.getAttribute('data-original') || groupNameInput.value || '';
+                // 获取 leadDqe 字段（从输入框或原始数据）
+                const leadDqeInput = row.querySelector('input[data-field="leadDqe"]');
+                const leadDqe = leadDqeInput ? (leadDqeInput.getAttribute('data-original') || leadDqeInput.value || '') : '';
                 // 如果组别不为空且departmentName不为空且不匹配，则不允许编辑
-                if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                if (!canEditByGroup(productGroupName, currentDepartmentName, leadDqe)) {
                     console.log(`跳过第${index + 1}行（产品ID: ${productId}），组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`);
                     skippedCount++;
                     return; // 跳过不匹配的行
@@ -8743,7 +8967,8 @@
                 const originalProduct = filteredData.find(p => String(p.id) === rowProductId);
                 if (originalProduct) {
                     const productGroupName = originalProduct.groupName || '';
-                    if (!canEditByGroup(productGroupName, currentDepartmentName)) {
+                    const leadDqe = originalProduct.leadDqe || originalProduct.主导DQE || originalProduct.lead_dqe || '';
+                    if (!canEditByGroup(productGroupName, currentDepartmentName, leadDqe)) {
                         console.log(`跳过第${index + 1}行（产品ID: ${productId}），组别不匹配（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）`);
                         skippedCount++;
                         return; // 跳过不匹配的行
