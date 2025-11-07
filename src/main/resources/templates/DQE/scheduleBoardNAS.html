@@ -825,7 +825,9 @@
     }
 
     //默认让endDate+14天，进入页面的时候
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', async function () {
+        // 先检查编辑权限（异步）
+        await checkEditPermissionAsync();
         // 初始化权限状态指示器
         updatePermissionIndicator();
 
@@ -868,12 +870,37 @@
 
     // 权限控制相关变量
     let canEdit = false;
-    const allowedEditors = ['许梦瑶', '卢绮敏', '卢健', '李良健'];
+    let permissionChecked = false; // 标记权限是否已检查
 
-    // 检查用户是否有编辑权限
+    // 检查用户是否有编辑权限（通过后端接口）
+    async function checkEditPermissionAsync() {
+        const currentUser = localStorage.getItem('username');
+        if (!currentUser) {
+            canEdit = false;
+            permissionChecked = true;
+            return false;
+        }
+
+        try {
+            const response = await fetch(`/DQEIndex/checkNASPermission?username=${encodeURIComponent(currentUser)}`);
+            const data = await response.json();
+            canEdit = data.success && data.hasPermission;
+            permissionChecked = true;
+            return canEdit;
+        } catch (error) {
+            console.error("检查编辑权限时出错:", error);
+            canEdit = false;
+            permissionChecked = true;
+            return false;
+        }
+    }
+
+    // 同步检查用户是否有编辑权限（返回缓存的权限状态）
     function checkEditPermission() {
-        const currentUser = localStorage.getItem('username') ;
-        canEdit = allowedEditors.includes(currentUser);
+        // 如果权限还未检查，返回false（只读模式）
+        if (!permissionChecked) {
+            return false;
+        }
         return canEdit;
     }
 
