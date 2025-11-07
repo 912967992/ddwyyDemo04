@@ -2114,13 +2114,60 @@
             return;
         }
         
-        // 构建导出URL
-        const exportUrl = `/scheduleBoardController/exportScheduleToExcel?startDate=${startDate}&endDate=${endDate}`;
+        // 从实际渲染的表格中提取所有日期
+        // 方法1: 从表头中提取日期
+        const scheduleBoardTable = document.getElementById('scheduleBoardTable');
+        let actualDates = [];
+        
+        if (scheduleBoardTable) {
+            const headerRow = scheduleBoardTable.querySelector('thead tr');
+            if (headerRow) {
+                const headerCells = headerRow.querySelectorAll('th');
+                headerCells.forEach(th => {
+                    // 从表头文本中提取日期（格式：YYYY-MM-DD 或 YYYY-MM-DD<br>周六/周日/节假日名称）
+                    const text = th.textContent.trim();
+                    // 提取日期部分（YYYY-MM-DD格式）
+                    const dateMatch = text.match(/^\d{4}-\d{2}-\d{2}/);
+                    if (dateMatch) {
+                        actualDates.push(dateMatch[0]);
+                    }
+                });
+            }
+        }
+        
+        // 如果从表头提取失败，尝试从数据行的 data-date 属性中提取
+        if (actualDates.length === 0) {
+            const dataRows = scheduleBoardTable ? scheduleBoardTable.querySelectorAll('tbody tr') : [];
+            const dateSet = new Set();
+            dataRows.forEach(row => {
+                const cells = row.querySelectorAll('td[data-date]');
+                cells.forEach(cell => {
+                    const date = cell.getAttribute('data-date');
+                    if (date) {
+                        dateSet.add(date);
+                    }
+                });
+            });
+            actualDates = Array.from(dateSet).sort();
+        }
+        
+        // 如果仍然没有找到日期，使用用户输入的日期范围
+        if (actualDates.length === 0) {
+            actualDates = getDateRange(startDate, endDate);
+        }
+        
+        // 获取实际渲染的日期范围（最小和最大日期）
+        actualDates.sort();
+        const actualStartDate = actualDates.length > 0 ? actualDates[0] : startDate;
+        const actualEndDate = actualDates.length > 0 ? actualDates[actualDates.length - 1] : endDate;
+        
+        // 构建导出URL，使用实际渲染的日期范围
+        const exportUrl = `/scheduleBoardController/exportScheduleToExcel?startDate=${actualStartDate}&endDate=${actualEndDate}`;
         
         // 创建隐藏的下载链接
         const link = document.createElement('a');
         link.href = exportUrl;
-        link.download = `排期面板_${startDate}_${endDate}.xlsx`;
+        link.download = `排期面板_${actualStartDate}_${actualEndDate}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

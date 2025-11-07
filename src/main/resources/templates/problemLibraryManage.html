@@ -1960,8 +1960,19 @@
                                 this.innerHTML = '<i class="fas fa-list"></i>';
                                 this.title = '切换下拉选择';
                                 
-                                // 清空输入框和建议框
-                                targetInput.value = '';
+                                // 如果下拉框有值，复制到输入框；否则清空输入框
+                                if (targetSelect.value) {
+                                    targetInput.value = targetSelect.value;
+                                    // 如果有值，触发级联更新
+                                    if (level === '1') {
+                                        updateLevel2Options();
+                                    } else if (level === '2') {
+                                        updateLevel3Options();
+                                    }
+                                } else {
+                                    targetInput.value = '';
+                                }
+                                
                                 if (suggestions) {
                                     hideSuggestions(suggestions);
                                 }
@@ -1980,6 +1991,15 @@
                                 if (suggestions) {
                                     hideSuggestions(suggestions);
                                 }
+                                
+                                // 如果下拉框有值，触发级联更新
+                                if (targetSelect.value) {
+                                    if (level === '1') {
+                                        updateLevel2Options();
+                                    } else if (level === '2') {
+                                        updateLevel3Options();
+                                    }
+                                }
                             }
                         }
                     });
@@ -1994,9 +2014,35 @@
                     const suggestionsId = `problemCategoryLevel${level}Suggestions`;
                     const suggestions = document.getElementById(suggestionsId);
                     
-                    // 输入事件 - 实时搜索
+                    // 输入事件 - 实时搜索和级联更新
+                    let inputDebounceTimer;
                     input.addEventListener('input', function() {
-                        searchCategoryOptions(level, this.value);
+                        const inputValue = this.value.trim();
+                        searchCategoryOptions(level, inputValue);
+                        
+                        // 防抖处理，延迟触发级联更新（避免输入过程中频繁更新）
+                        clearTimeout(inputDebounceTimer);
+                        inputDebounceTimer = setTimeout(() => {
+                            if (inputValue) {
+                                // 触发级联更新
+                                if (level === '1') {
+                                    updateLevel2Options();
+                                } else if (level === '2') {
+                                    updateLevel3Options();
+                                }
+                            } else {
+                                // 如果输入为空，清空下一级选项
+                                if (level === '1') {
+                                    const level2Select = document.getElementById('problemCategoryLevel2Filter');
+                                    const level3Select = document.getElementById('problemCategoryLevel3Filter');
+                                    if (level2Select) level2Select.innerHTML = '<option value="">全部</option>';
+                                    if (level3Select) level3Select.innerHTML = '<option value="">全部</option>';
+                                } else if (level === '2') {
+                                    const level3Select = document.getElementById('problemCategoryLevel3Filter');
+                                    if (level3Select) level3Select.innerHTML = '<option value="">全部</option>';
+                                }
+                            }
+                        }, 300); // 300ms 防抖延迟
                     });
 
                     // 键盘事件 - 导航和选择
@@ -2418,12 +2464,19 @@
         // 更新二级下拉框选项
         function updateLevel2Options() {
             const level1Select = document.getElementById('problemCategoryLevel1Filter');
+            const level1Input = document.getElementById('problemCategoryLevel1Input');
             const level2Select = document.getElementById('problemCategoryLevel2Filter');
             const level3Select = document.getElementById('problemCategoryLevel3Filter');
             
             if (!level1Select || !level2Select || !level3Select) return;
 
-            const selectedLevel1 = level1Select.value;
+            // 优先从手动输入框获取值，如果输入框显示且不为空；否则从下拉框获取
+            let selectedLevel1 = '';
+            if (level1Input && level1Input.style.display !== 'none' && level1Input.value.trim()) {
+                selectedLevel1 = level1Input.value.trim();
+            } else if (level1Select.value) {
+                selectedLevel1 = level1Select.value;
+            }
             
             // 清空二级和三级下拉框
             level2Select.innerHTML = '<option value="">全部</option>';
@@ -2472,13 +2525,27 @@
         // 更新三级下拉框选项
         function updateLevel3Options() {
             const level1Select = document.getElementById('problemCategoryLevel1Filter');
+            const level1Input = document.getElementById('problemCategoryLevel1Input');
             const level2Select = document.getElementById('problemCategoryLevel2Filter');
+            const level2Input = document.getElementById('problemCategoryLevel2Input');
             const level3Select = document.getElementById('problemCategoryLevel3Filter');
             
             if (!level1Select || !level2Select || !level3Select) return;
 
-            const selectedLevel1 = level1Select.value;
-            const selectedLevel2 = level2Select.value;
+            // 优先从手动输入框获取值，如果输入框显示且不为空；否则从下拉框获取
+            let selectedLevel1 = '';
+            if (level1Input && level1Input.style.display !== 'none' && level1Input.value.trim()) {
+                selectedLevel1 = level1Input.value.trim();
+            } else if (level1Select.value) {
+                selectedLevel1 = level1Select.value;
+            }
+            
+            let selectedLevel2 = '';
+            if (level2Input && level2Input.style.display !== 'none' && level2Input.value.trim()) {
+                selectedLevel2 = level2Input.value.trim();
+            } else if (level2Select.value) {
+                selectedLevel2 = level2Select.value;
+            }
             
             // 清空三级下拉框
             level3Select.innerHTML = '<option value="">全部</option>';
