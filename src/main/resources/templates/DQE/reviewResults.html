@@ -997,6 +997,158 @@
             margin-left: 0 !important;
             margin-right: 0 !important;
             max-width: 100% !important;
+            display: flex;
+            gap: 20px;
+            align-items: stretch; /* 确保两个容器高度一致 */
+        }
+
+        /* 组别统计展示区域 */
+        .group-stats-container {
+            flex: 0 0 50%;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 100%; /* 确保最小高度填满 */
+        }
+
+        .group-stats-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #007bff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-selector-wrapper {
+            flex: 0 0 auto;
+            margin-left: 15px;
+        }
+
+        .group-selector {
+            padding: 6px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .group-selector:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .group-stats-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .group-stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            border-left: 3px solid #007bff;
+        }
+
+        .group-stat-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .group-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .group-stat-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .group-stat-total {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .group-stat-details {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .group-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 6px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .group-stat-item-label {
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .group-stat-item-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .group-stat-item.s-level .group-stat-item-value {
+            color: #dc3545;
+        }
+
+        .group-stat-item.a-level .group-stat-item-value {
+            color: #ffc107;
+        }
+
+        .group-stat-item.b-level .group-stat-item-value {
+            color: #17a2b8;
+        }
+
+        .group-stat-item.c-level .group-stat-item-value {
+            color: #28a745;
+        }
+
+        .group-stat-item.unclosed .group-stat-item-value {
+            color: #6f42c1;
+        }
+
+        .group-stat-item-rate {
+            font-size: 10px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+        .no-group-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 14px;
         }
 
         /* 数据表格区域样式 */
@@ -1018,17 +1170,28 @@
 
 
         .filter-container {
+            flex: 0 0 50%;
             background: #ffffff;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 100%; /* 填满网格单元格 */
-            overflow-y: auto; /* 如果内容过多，允许滚动 */
-            min-width: 0; /* 防止内容溢出 */
-            max-width: 100% !important; /* 覆盖外部CSS的限制，铺满页面宽度 */
-            width: 100% !important; /* 确保宽度为100% */
+            min-height: 100%; /* 确保最小高度填满 */
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        /* 响应式设计 - 小屏幕时垂直排列 */
+        @media (max-width: 1200px) {
+            .filter-section {
+                flex-direction: column;
+            }
+            
+            .group-stats-container,
+            .filter-container {
+                flex: 1 1 100%;
+            }
         }
 
         /* 双图表容器样式 */
@@ -2216,6 +2379,22 @@
 
 <!-- 筛选和操作区域 -->
 <div class="filter-section">
+    <!-- 左侧：组别统计展示 -->
+    <div class="group-stats-container">
+        <div class="group-stats-title">
+            <span><i class="fas fa-chart-pie"></i> 组别统计</span>
+            <div class="group-selector-wrapper">
+                <select id="groupSelector" class="group-selector">
+                    <option value="">请选择组别</option>
+                </select>
+            </div>
+        </div>
+        <div class="group-stats-display" id="groupStatsDisplay">
+            <div class="no-group-data">请选择组别查看统计</div>
+        </div>
+    </div>
+    
+    <!-- 右侧：过滤器 -->
     <div class="filter-container">
         <!-- 筛选器主容器（横向布局） -->
         <div class="filters-main-container">
@@ -4374,6 +4553,9 @@
         
         // 加载初始的全部数据用于建议功能
         loadAllSearchDataForSuggestions();
+        
+        // 加载所有数据用于组别统计（不受过滤器影响）
+        loadAllDataForGroupStats();
 
         // 初始化缓存状态显示
         loadCacheFromStorage();
@@ -5433,6 +5615,19 @@
             editImageField.addEventListener('input', updateImagePreview);
             editImageField.addEventListener('blur', updateImagePreview);
         }
+
+        // 组别选择器事件监听器
+        const groupSelector = document.getElementById('groupSelector');
+        if (groupSelector) {
+            groupSelector.addEventListener('change', function() {
+                const selectedGroup = this.value;
+                if (selectedGroup && allDataForGroupStats && allDataForGroupStats.length > 0) {
+                    displayGroupStats(allDataForGroupStats, selectedGroup);
+                } else {
+                    document.getElementById('groupStatsDisplay').innerHTML = '<div class="no-group-data">请选择组别查看统计</div>';
+                }
+            });
+        }
     }
 
     // 加载新品质量数据
@@ -5508,6 +5703,9 @@
                     
                     // 获取全部搜索数据用于建议功能
                     loadAllSearchDataForSuggestions();
+                    
+                    // 加载所有数据用于组别统计（不受过滤器影响）
+                    loadAllDataForGroupStats();
                 } else {
                     console.error('API返回错误:', data);
                     showToast('加载数据失败: ' + (data.error || data.message || '未知错误'), 'error');
@@ -5588,6 +5786,176 @@
                 console.error('❌ 加载全部搜索数据时发生错误:', error);
                 allSearchData = [];
             });
+    }
+
+    // 加载所有数据用于组别统计（不受过滤器影响）
+    let allDataForGroupStats = []; // 存储所有数据用于组别统计
+    
+    function loadAllDataForGroupStats() {
+        console.log('🔄 加载所有数据用于组别统计（不受过滤器影响）');
+        
+        // 构建查询参数（不包含任何筛选条件，只包含用户和角色）
+        const params = new URLSearchParams({
+            username: currentUser,
+            job: currentRole,
+            page: 1,
+            size: 10000 // 设置一个很大的值来获取所有数据
+        });
+
+        fetch('/reviewResult/getReviewResults?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allDataForGroupStats = data.data || [];
+                    console.log('✅ 所有数据加载完成用于组别统计，数据量:', allDataForGroupStats.length);
+                    // 使用所有数据更新组别统计（不受过滤器影响）
+                    updateGroupStats(allDataForGroupStats);
+                } else {
+                    console.error('❌ 加载所有数据失败:', data);
+                    allDataForGroupStats = [];
+                }
+            })
+            .catch(error => {
+                console.error('❌ 加载所有数据时发生错误:', error);
+                allDataForGroupStats = [];
+            });
+    }
+
+    // 更新组别下拉框选项
+    function updateGroupSelector(data) {
+        const selector = document.getElementById('groupSelector');
+        const currentValue = selector.value;
+        
+        if (!data || data.length === 0) {
+            selector.innerHTML = '<option value="">暂无组别数据</option>';
+            return;
+        }
+
+        // 获取所有唯一的组别
+        const groups = [...new Set(data.map(item => item.group || '未分组').filter(g => g))].sort();
+        
+        // 生成选项
+        let html = '<option value="">请选择组别</option>';
+        groups.forEach(group => {
+            html += `<option value="${group}">${group}</option>`;
+        });
+        
+        selector.innerHTML = html;
+        
+        // 如果之前有选中的值且仍然存在，恢复选中
+        if (currentValue && groups.includes(currentValue)) {
+            selector.value = currentValue;
+            displayGroupStats(data, currentValue);
+        } else {
+            // 清空显示
+            document.getElementById('groupStatsDisplay').innerHTML = '<div class="no-group-data">请选择组别查看统计</div>';
+        }
+    }
+
+    // 显示选中组别的统计数据
+    function displayGroupStats(data, selectedGroup) {
+        const statsDisplay = document.getElementById('groupStatsDisplay');
+        
+        if (!selectedGroup || !data || data.length === 0) {
+            statsDisplay.innerHTML = '<div class="no-group-data">请选择组别查看统计</div>';
+            return;
+        }
+
+        // 过滤出选中组别的数据
+        const groupData = data.filter(item => (item.group || '未分组') === selectedGroup);
+        
+        if (groupData.length === 0) {
+            statsDisplay.innerHTML = '<div class="no-group-data">该组别暂无数据</div>';
+            return;
+        }
+
+        // 统计该组别的数据
+        const stats = {
+            total: groupData.length,
+            sLevel: 0,
+            aLevel: 0,
+            bLevel: 0,
+            cLevel: 0,
+            unclosed: 0
+        };
+        
+        groupData.forEach(item => {
+            // 统计各等级问题（按优先级：S > A > B > C）
+            const level = (item.problemLevel || '').toUpperCase();
+            if (level.includes('S')) {
+                stats.sLevel++;
+            } else if (level.includes('A')) {
+                stats.aLevel++;
+            } else if (level.includes('B')) {
+                stats.bLevel++;
+            } else if (level.includes('C')) {
+                stats.cLevel++;
+            }
+            
+            // 统计未关闭问题（如果状态包含"close"或"closed"则算已关闭，否则算未关闭）
+            const status = (item.problemStatus || '').toLowerCase().trim();
+            if (!status.includes('close')) {
+                stats.unclosed++;
+            }
+        });
+        
+        // 计算占比
+        const unclosedRate = stats.total > 0 ? ((stats.unclosed / stats.total) * 100).toFixed(1) : 0;
+        const sRate = stats.total > 0 ? ((stats.sLevel / stats.total) * 100).toFixed(1) : 0;
+        const aRate = stats.total > 0 ? ((stats.aLevel / stats.total) * 100).toFixed(1) : 0;
+        const bRate = stats.total > 0 ? ((stats.bLevel / stats.total) * 100).toFixed(1) : 0;
+        const cRate = stats.total > 0 ? ((stats.cLevel / stats.total) * 100).toFixed(1) : 0;
+        
+        // 生成HTML
+        const html = `
+            <div class="group-stat-card">
+                <div class="group-stat-header">
+                    <div class="group-stat-name">${selectedGroup}</div>
+                    <div class="group-stat-total">总计: ${stats.total}</div>
+                </div>
+                <div class="group-stat-details">
+                    <div class="group-stat-item s-level">
+                        <div class="group-stat-item-label">S级</div>
+                        <div class="group-stat-item-value">${stats.sLevel}</div>
+                        <div class="group-stat-item-rate">${sRate}%</div>
+                    </div>
+                    <div class="group-stat-item a-level">
+                        <div class="group-stat-item-label">A级</div>
+                        <div class="group-stat-item-value">${stats.aLevel}</div>
+                        <div class="group-stat-item-rate">${aRate}%</div>
+                    </div>
+                    <div class="group-stat-item b-level">
+                        <div class="group-stat-item-label">B级</div>
+                        <div class="group-stat-item-value">${stats.bLevel}</div>
+                        <div class="group-stat-item-rate">${bRate}%</div>
+                    </div>
+                    <div class="group-stat-item c-level">
+                        <div class="group-stat-item-label">C级</div>
+                        <div class="group-stat-item-value">${stats.cLevel}</div>
+                        <div class="group-stat-item-rate">${cRate}%</div>
+                    </div>
+                    <div class="group-stat-item unclosed">
+                        <div class="group-stat-item-label">未关闭率</div>
+                        <div class="group-stat-item-value">${unclosedRate}%</div>
+                        <div class="group-stat-item-rate">${stats.unclosed}/${stats.total}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        statsDisplay.innerHTML = html;
+    }
+
+    // 更新组别统计数据（更新下拉框和显示）
+    function updateGroupStats(data) {
+        // 更新下拉框选项
+        updateGroupSelector(data);
+        
+        // 如果有选中的组别，更新显示
+        const selectedGroup = document.getElementById('groupSelector').value;
+        if (selectedGroup) {
+            displayGroupStats(data, selectedGroup);
+        }
     }
 
     // 重置筛选条件

@@ -496,6 +496,10 @@ public class NewProductProgressService {
             Integer dvtProblemIndex = columnMapping.get("DVT主要问题");
             Integer mainProjectProgressIndex = columnMapping.get("主要项目进度（只填重要内容或一句话）");
             Integer mainQualityRisksIndex = columnMapping.get("质量主要风险（只填重要内容或一句话）");
+            Integer unclosedSClassIndex = columnMapping.get("未关闭S类");
+            Integer unclosedAClassIndex = columnMapping.get("未关闭A类");
+            Integer unclosedBClassIndex = columnMapping.get("未关闭B类");
+            Integer unclosedCClassIndex = columnMapping.get("未关闭C类");
             
              // 根据字段标题动态获取数据
              newProductProgress.setProductCategoryLevel3(getCellValueByIndex(row, productCategoryIndex));
@@ -519,6 +523,52 @@ public class NewProductProgressService {
             newProductProgress.setDvtProblem(getCellValueByIndex(row, dvtProblemIndex));
             newProductProgress.setMainProjectProgress(getCellValueByIndex(row, mainProjectProgressIndex));
             newProductProgress.setMainQualityRisks(getCellValueByIndex(row, mainQualityRisksIndex));
+            
+            // 处理四个新字段（整数类型）
+            String unclosedSClassStr = getCellValueByIndex(row, unclosedSClassIndex);
+            if (unclosedSClassStr != null && !unclosedSClassStr.trim().isEmpty()) {
+                try {
+                    newProductProgress.setUnclosedSClass(Integer.valueOf(unclosedSClassStr.trim()));
+                } catch (NumberFormatException e) {
+                    // 如果转换失败，设置为null
+                    newProductProgress.setUnclosedSClass(null);
+                }
+            } else {
+                newProductProgress.setUnclosedSClass(null);
+            }
+            
+            String unclosedAClassStr = getCellValueByIndex(row, unclosedAClassIndex);
+            if (unclosedAClassStr != null && !unclosedAClassStr.trim().isEmpty()) {
+                try {
+                    newProductProgress.setUnclosedAClass(Integer.valueOf(unclosedAClassStr.trim()));
+                } catch (NumberFormatException e) {
+                    newProductProgress.setUnclosedAClass(null);
+                }
+            } else {
+                newProductProgress.setUnclosedAClass(null);
+            }
+            
+            String unclosedBClassStr = getCellValueByIndex(row, unclosedBClassIndex);
+            if (unclosedBClassStr != null && !unclosedBClassStr.trim().isEmpty()) {
+                try {
+                    newProductProgress.setUnclosedBClass(Integer.valueOf(unclosedBClassStr.trim()));
+                } catch (NumberFormatException e) {
+                    newProductProgress.setUnclosedBClass(null);
+                }
+            } else {
+                newProductProgress.setUnclosedBClass(null);
+            }
+            
+            String unclosedCClassStr = getCellValueByIndex(row, unclosedCClassIndex);
+            if (unclosedCClassStr != null && !unclosedCClassStr.trim().isEmpty()) {
+                try {
+                    newProductProgress.setUnclosedCClass(Integer.valueOf(unclosedCClassStr.trim()));
+                } catch (NumberFormatException e) {
+                    newProductProgress.setUnclosedCClass(null);
+                }
+            } else {
+                newProductProgress.setUnclosedCClass(null);
+            }
             
             // 设置创建时间和更新时间
             newProductProgress.setCreateTime(LocalDateTime.now());

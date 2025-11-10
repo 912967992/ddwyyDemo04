@@ -31,6 +31,10 @@ public class NewProductProgress {
     private String dvtProblem;
     private String mainProjectProgress;
     private String mainQualityRisks;
+    private Integer unclosedSClass;
+    private Integer unclosedAClass;
+    private Integer unclosedBClass;
+    private Integer unclosedCClass;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     private String createBy;
@@ -252,6 +256,38 @@ public class NewProductProgress {
         this.mainQualityRisks = mainQualityRisks;
     }
 
+    public Integer getUnclosedSClass() {
+        return unclosedSClass;
+    }
+
+    public void setUnclosedSClass(Integer unclosedSClass) {
+        this.unclosedSClass = unclosedSClass;
+    }
+
+    public Integer getUnclosedAClass() {
+        return unclosedAClass;
+    }
+
+    public void setUnclosedAClass(Integer unclosedAClass) {
+        this.unclosedAClass = unclosedAClass;
+    }
+
+    public Integer getUnclosedBClass() {
+        return unclosedBClass;
+    }
+
+    public void setUnclosedBClass(Integer unclosedBClass) {
+        this.unclosedBClass = unclosedBClass;
+    }
+
+    public Integer getUnclosedCClass() {
+        return unclosedCClass;
+    }
+
+    public void setUnclosedCClass(Integer unclosedCClass) {
+        this.unclosedCClass = unclosedCClass;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -310,6 +346,10 @@ public class NewProductProgress {
                 ", dvtProblem='" + dvtProblem + '\'' +
                 ", mainProjectProgress='" + mainProjectProgress + '\'' +
                 ", mainQualityRisks='" + mainQualityRisks + '\'' +
+                ", unclosedSClass=" + unclosedSClass +
+                ", unclosedAClass=" + unclosedAClass +
+                ", unclosedBClass=" + unclosedBClass +
+                ", unclosedCClass=" + unclosedCClass +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 ", createBy='" + createBy + '\'' +

@@ -26,6 +26,10 @@
         <result property="dvtProblem" column="dvt_problem"/>
         <result property="mainProjectProgress" column="main_project_progress"/>
         <result property="mainQualityRisks" column="main_quality_risks"/>
+        <result property="unclosedSClass" column="unclosed_s_class"/>
+        <result property="unclosedAClass" column="unclosed_a_class"/>
+        <result property="unclosedBClass" column="unclosed_b_class"/>
+        <result property="unclosedCClass" column="unclosed_c_class"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
@@ -38,12 +42,14 @@
             product_category_level3, priority, model, sku, stage, product_name, image_url,
             project_start_time, target_launch_time, display_type, product_level, primary_supplier,
             lead_dqe, electronic_rd, group_name, status, design_review_problem, evt_problem, dvt_problem,
-            main_project_progress, main_quality_risks, create_time, update_time, create_by, update_by
+            main_project_progress, main_quality_risks, unclosed_s_class, unclosed_a_class, unclosed_b_class, unclosed_c_class,
+            create_time, update_time, create_by, update_by
         ) VALUES (
             #{productCategoryLevel3}, #{priority}, #{model}, #{sku}, #{stage}, #{productName}, #{imageUrl},
             #{projectStartTime}, #{targetLaunchTime}, #{displayType}, #{productLevel}, #{primarySupplier},
             #{leadDqe}, #{electronicRd}, #{groupName}, #{status}, #{designReviewProblem}, #{evtProblem}, #{dvtProblem},
-            #{mainProjectProgress}, #{mainQualityRisks}, #{createTime}, #{updateTime}, #{createBy}, #{updateBy}
+            #{mainProjectProgress}, #{mainQualityRisks}, #{unclosedSClass}, #{unclosedAClass}, #{unclosedBClass}, #{unclosedCClass},
+            #{createTime}, #{updateTime}, #{createBy}, #{updateBy}
         )
     </insert>
 
@@ -116,6 +122,10 @@
             dvt_problem = #{dvtProblem},
             main_project_progress = #{mainProjectProgress},
             main_quality_risks = #{mainQualityRisks},
+            unclosed_s_class = #{unclosedSClass},
+            unclosed_a_class = #{unclosedAClass},
+            unclosed_b_class = #{unclosedBClass},
+            unclosed_c_class = #{unclosedCClass},
             update_time = #{updateTime},
             update_by = #{updateBy}
         WHERE id = #{id}

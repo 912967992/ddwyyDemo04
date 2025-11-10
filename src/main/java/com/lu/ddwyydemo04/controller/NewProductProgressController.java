@@ -402,6 +402,55 @@ public class NewProductProgressController {
         if (requestData.get("mainQualityRisks") != null) {
             product.setMainQualityRisks(requestData.get("mainQualityRisks").toString());
         }
+        if (requestData.get("unclosedSClass") != null) {
+            Object value = requestData.get("unclosedSClass");
+            if (value != null && !value.toString().trim().isEmpty()) {
+                try {
+                    product.setUnclosedSClass(Integer.valueOf(value.toString()));
+                } catch (NumberFormatException e) {
+                    // 如果转换失败，设置为null
+                    product.setUnclosedSClass(null);
+                }
+            } else {
+                product.setUnclosedSClass(null);
+            }
+        }
+        if (requestData.get("unclosedAClass") != null) {
+            Object value = requestData.get("unclosedAClass");
+            if (value != null && !value.toString().trim().isEmpty()) {
+                try {
+                    product.setUnclosedAClass(Integer.valueOf(value.toString()));
+                } catch (NumberFormatException e) {
+                    product.setUnclosedAClass(null);
+                }
+            } else {
+                product.setUnclosedAClass(null);
+            }
+        }
+        if (requestData.get("unclosedBClass") != null) {
+            Object value = requestData.get("unclosedBClass");
+            if (value != null && !value.toString().trim().isEmpty()) {
+                try {
+                    product.setUnclosedBClass(Integer.valueOf(value.toString()));
+                } catch (NumberFormatException e) {
+                    product.setUnclosedBClass(null);
+                }
+            } else {
+                product.setUnclosedBClass(null);
+            }
+        }
+        if (requestData.get("unclosedCClass") != null) {
+            Object value = requestData.get("unclosedCClass");
+            if (value != null && !value.toString().trim().isEmpty()) {
+                try {
+                    product.setUnclosedCClass(Integer.valueOf(value.toString()));
+                } catch (NumberFormatException e) {
+                    product.setUnclosedCClass(null);
+                }
+            } else {
+                product.setUnclosedCClass(null);
+            }
+        }
     }
 
     /**
@@ -728,6 +777,10 @@ public class NewProductProgressController {
             fieldDisplayNames.put("dvtProblem", "DVT主要问题");
             fieldDisplayNames.put("mainProjectProgress", "主要项目进度（只填重要内容或一句话）");
             fieldDisplayNames.put("mainQualityRisks", "质量主要风险（只填重要内容或一句话）");
+            fieldDisplayNames.put("unclosedSClass", "未关闭S类");
+            fieldDisplayNames.put("unclosedAClass", "未关闭A类");
+            fieldDisplayNames.put("unclosedBClass", "未关闭B类");
+            fieldDisplayNames.put("unclosedCClass", "未关闭C类");
             
             // 创建标题行
             Row headerRow = sheet.createRow(0);
