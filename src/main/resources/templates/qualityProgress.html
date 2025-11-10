@@ -3042,6 +3042,126 @@
             background-color: #e9ecef;
             border-color: #ced4da;
         }
+
+        /* 列管理样式 */
+        .column-manager-btn-wrapper {
+            position: relative;
+        }
+
+        .column-manager-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 400px;
+            max-height: 500px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .column-manager-dropdown.show {
+            display: block;
+        }
+
+        .column-manager-header {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .column-manager-header span {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .column-manager-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .column-manager-actions .btn-link {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+
+        .column-manager-actions .btn-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .column-manager-tip {
+            padding: 10px 15px;
+            background: #e7f3ff;
+            border-bottom: 1px solid #d0e7ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #0066cc;
+        }
+
+        .column-manager-tip i {
+            color: #0066cc;
+        }
+
+        .column-manager-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .column-manager-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .column-manager-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .column-manager-item:last-child {
+            border-bottom: none;
+        }
+
+        .column-manager-item input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .column-manager-item label {
+            cursor: pointer;
+            flex: 1;
+            user-select: none;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 隐藏的列 */
+        .data-table th[data-key].hidden,
+        .data-table td[data-key].hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -3442,6 +3562,26 @@
         <button id="cancelEditBtn" class="btn btn-secondary" onclick="cancelGlobalEdit()" style="display: none;">
             <i class="fas fa-times"></i> 取消编辑
         </button>
+        <div class="column-manager-btn-wrapper">
+            <button id="columnManagerBtn" class="btn btn-secondary" title="列管理">
+                <i class="fas fa-columns"></i> 列管理
+            </button>
+            <div id="columnManagerDropdown" class="column-manager-dropdown">
+                <div class="column-manager-header">
+                    <span>选择要显示的列</span>
+                    <div class="column-manager-actions">
+                        <button class="btn-link" onclick="toggleAllColumns(true)" title="全选">全选</button>
+                        <button class="btn-link" onclick="toggleAllColumns(false)" title="全不选">全不选</button>
+                    </div>
+                </div>
+                <div class="column-manager-tip">
+                    <i class="fas fa-info-circle"></i> 隐藏的列不会显示在导出文件中
+                </div>
+                <div class="column-manager-content">
+                    <!-- 列选项将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
         <span id="editStatus" class="edit-status" style="display: none;">编辑模式已启用</span>
     </div>
     
@@ -3449,38 +3589,38 @@
         <table id="reviewTable" class="data-table">
             <thead>
             <tr>
-                <th>
+                <th data-key="checkbox">
                     <input type="checkbox" id="selectAllTableRows" title="全选/取消全选">
                 </th>
-                <th>ID</th>
-                <th>组别</th>
-                <th>产品三级类目</th>
-                <th>优先级</th>
-                <th>型号</th>
-                <th>SKU</th>
-                <th>阶段</th>
-                <th>产品名称</th>
-                <th>图片</th>
-                <th>立项时间</th>
-                <th>目标上市时间</th>
-                <th>显示类型</th>
-                <th>产品等级</th>
-                <th>一级供方</th>
-                <th>主导DQE</th>
-                <th>电子研发</th>
-                <th>状态</th>
-                <th>设计评审主要问题</th>
-                <th>EVT主要问题</th>
-                <th>DVT主要问题</th>
-                <th>项目进度主要事项</th>
-                <th>质量主要风险</th>
-                <th>未关闭S类</th>
-                <th>未关闭A类</th>
-                <th>未关闭B类</th>
-                <th>未关闭C类</th>
-                <th>创建时间</th>
-                <th>更新时间</th>
-                <th>操作</th>
+                <th data-key="id">ID</th>
+                <th data-key="groupName">组别</th>
+                <th data-key="productCategoryLevel3">产品三级类目</th>
+                <th data-key="priority">优先级</th>
+                <th data-key="model">型号</th>
+                <th data-key="sku">SKU</th>
+                <th data-key="stage">阶段</th>
+                <th data-key="productName">产品名称</th>
+                <th data-key="imageUrl">图片</th>
+                <th data-key="projectStartTime">立项时间</th>
+                <th data-key="targetLaunchTime">目标上市时间</th>
+                <th data-key="displayType">显示类型</th>
+                <th data-key="productLevel">产品等级</th>
+                <th data-key="primarySupplier">一级供方</th>
+                <th data-key="leadDqe">主导DQE</th>
+                <th data-key="electronicRd">电子研发</th>
+                <th data-key="status">状态</th>
+                <th data-key="designReviewProblem">设计评审主要问题</th>
+                <th data-key="evtProblem">EVT主要问题</th>
+                <th data-key="dvtProblem">DVT主要问题</th>
+                <th data-key="mainProjectProgress">项目进度主要事项</th>
+                <th data-key="mainQualityRisks">质量主要风险</th>
+                <th data-key="unclosedSClass">未关闭S类</th>
+                <th data-key="unclosedAClass">未关闭A类</th>
+                <th data-key="unclosedBClass">未关闭B类</th>
+                <th data-key="unclosedCClass">未关闭C类</th>
+                <th data-key="createTime">创建时间</th>
+                <th data-key="updateTime">更新时间</th>
+                <th data-key="action">操作</th>
             </tr>
             </thead>
             <tbody id="reviewTableBody">
@@ -5604,6 +5744,9 @@
         // 初始化事件监听器
         initEventListeners();
 
+        // 初始化列管理功能
+        initColumnManager();
+
         // 初始化缓存状态显示
         loadCacheFromStorage();
         updateCacheStatusDisplay();
@@ -7051,6 +7194,9 @@
 
         showLoading();
 
+        // 获取当前隐藏的列
+        const hiddenColumns = getHiddenColumns();
+
         // 准备导出数据
         const exportData = {
             data: selectedRows,
@@ -7059,7 +7205,8 @@
             totalCount: selectedRows.length,
             exportTime: new Date().toISOString(),
             username: getCurrentUsername(),
-            job: currentRole
+            job: currentRole,
+            hiddenColumns: hiddenColumns
         };
 
         console.log('📋 导出参数:', exportData);
@@ -7113,15 +7260,68 @@
             return;
         }
 
-        // 确认删除
-        if (!confirm(`确定要删除选中的 ${selectedRows.length} 条数据吗？此操作不可恢复！`)) {
+        // 检查权限：筛选出有权限删除的行
+        const deletableRows = [];
+        const nonDeletableRows = [];
+        const deletableIds = []; // 存储可删除行的ID
+        const nonDeletableIds = []; // 存储不可删除行的ID
+
+        selectedRows.forEach(row => {
+            const productGroupName = row.groupName || '';
+            const leadDqe = row.leadDqe || row.主导DQE || row.lead_dqe || '';
+            
+            if (canEditByGroup(productGroupName, currentDepartmentName, leadDqe)) {
+                deletableRows.push(row);
+                if (row.id) {
+                    deletableIds.push(row.id);
+                }
+            } else {
+                nonDeletableRows.push(row);
+                if (row.id) {
+                    nonDeletableIds.push(row.id);
+                }
+            }
+        });
+
+        // 如果没有可删除的行，提示用户
+        if (deletableRows.length === 0) {
+            if (nonDeletableRows.length > 0) {
+                const nonDeletableIdsStr = nonDeletableIds.length > 0 
+                    ? `（ID：${nonDeletableIds.join('、')}）` 
+                    : '';
+                showToast(`您没有权限删除选中的数据（组别不匹配或不是主导DQE）${nonDeletableIdsStr}`, 'error');
+            } else {
+                showToast('请先选择要删除的数据行！', 'warning');
+            }
             return;
+        }
+
+        // 如果有部分行没有权限，提示用户
+        if (nonDeletableRows.length > 0) {
+            const deletableIdsStr = deletableIds.length > 0 
+                ? `（ID：${deletableIds.join('、')}）` 
+                : '';
+            const nonDeletableIdsStr = nonDeletableIds.length > 0 
+                ? `（ID：${nonDeletableIds.join('、')}）` 
+                : '';
+            const message = `选中的 ${selectedRows.length} 条数据中，有 ${nonDeletableRows.length} 条没有删除权限${nonDeletableIdsStr}（组别不匹配或不是主导DQE），将只删除 ${deletableRows.length} 条有权限的数据${deletableIdsStr}。\n\n确定要继续吗？`;
+            if (!confirm(message)) {
+                return;
+            }
+        } else {
+            // 确认删除
+            const deletableIdsStr = deletableIds.length > 0 
+                ? `（ID：${deletableIds.join('、')}）` 
+                : '';
+            if (!confirm(`确定要删除选中的 ${deletableRows.length} 条数据${deletableIdsStr}吗？此操作不可恢复！`)) {
+                return;
+            }
         }
 
         showLoading();
 
-        // 提取要删除的ID列表
-        const idsToDelete = selectedRows.map(row => row.id);
+        // 提取要删除的ID列表（只删除有权限的行）
+        const idsToDelete = deletableRows.map(row => row.id);
 
         // 发送删除请求
         fetch('/newProductProgress/deleteSelected', {
@@ -8667,17 +8867,17 @@
                 const rowTitle = isGroupMatched ? '' : `title="组别不匹配，无法编辑（组别: ${productGroupName}，当前部门: ${currentDepartmentName}）"`;
                 
                 row.innerHTML = `
-                    <td>
+                    <td data-key="checkbox">
                         <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行" ${disabledAttr}>
                     </td>
-                    <td>${product.id || '-'}</td>
-                    <td class="editable-cell ${rowDisabledClass}" ${rowTitle}>
+                    <td data-key="id">${product.id || '-'}</td>
+                    <td data-key="groupName" class="editable-cell ${rowDisabledClass}" ${rowTitle}>
                         <input type="text" value="${product.groupName || ''}" data-field="groupName" data-original="${product.groupName || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="productCategoryLevel3" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.productCategoryLevel3 || ''}" data-field="productCategoryLevel3" data-original="${product.productCategoryLevel3 || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="priority" class="editable-cell ${rowDisabledClass}">
                         <select data-field="priority" data-original="${product.priority || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="S+" ${product.priority === 'S+' ? 'selected' : ''}>S+</option>
@@ -8687,13 +8887,13 @@
                             <option value="C" ${product.priority === 'C' ? 'selected' : ''}>C</option>
                         </select>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="model" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.model || ''}" data-field="model" data-original="${product.model || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="sku" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.sku || ''}" data-field="sku" data-original="${product.sku || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="stage" class="editable-cell ${rowDisabledClass}">
                         <select data-field="stage" data-original="${product.stage || ''}" onchange="handleStageChange(this)" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="设计中" ${product.stage === '设计中' ? 'selected' : ''}>设计中</option>
@@ -8702,25 +8902,25 @@
                             <option value="PVT" ${product.stage === 'PVT' ? 'selected' : ''}>PVT</option>
                         </select>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="productName" class="editable-cell ${rowDisabledClass}">
                         <textarea data-field="productName" data-original="${product.productName || ''}" ${disabledAttr}>${product.productName || ''}</textarea>
                     </td>
-                    <td class="image-cell">
+                    <td data-key="imageUrl" class="image-cell">
                         ${product.imageUrl ? 
                             `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图" style="max-width: 50px; max-height: 50px;">` : 
                             '<span class="no-image">暂无图片</span>'
                         }
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="projectStartTime" class="editable-cell ${rowDisabledClass}">
                         <input type="date" value="${product.projectStartTime || ''}" data-field="projectStartTime" data-original="${product.projectStartTime || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="targetLaunchTime" class="editable-cell ${rowDisabledClass}">
                         <input type="date" value="${product.targetLaunchTime || ''}" data-field="targetLaunchTime" data-original="${product.targetLaunchTime || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="displayType" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.displayType || ''}" data-field="displayType" data-original="${product.displayType || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="productLevel" class="editable-cell ${rowDisabledClass}">
                         <select data-field="productLevel" data-original="${product.productLevel || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="L1" ${product.productLevel === 'L1' ? 'selected' : ''}>L1</option>
@@ -8728,16 +8928,16 @@
                             <option value="L3" ${product.productLevel === 'L3' ? 'selected' : ''}>L3</option>
                         </select>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="primarySupplier" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.primarySupplier || ''}" data-field="primarySupplier" data-original="${product.primarySupplier || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="leadDqe" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.leadDqe || ''}" data-field="leadDqe" data-original="${product.leadDqe || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="electronicRd" class="editable-cell ${rowDisabledClass}">
                         <input type="text" value="${product.electronicRd || ''}" data-field="electronicRd" data-original="${product.electronicRd || ''}" ${disabledAttr}>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="status" class="editable-cell ${rowDisabledClass}">
                         <select data-field="status" data-original="${product.status || ''}" ${disabledAttr}>
                             <option value="">请选择</option>
                             <option value="设计中" ${product.status === '设计中' ? 'selected' : ''}>设计中</option>
@@ -8746,46 +8946,46 @@
                             <option value="量产" ${product.status === '量产' ? 'selected' : ''}>量产</option>
                         </select>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="designReviewProblem" class="editable-cell ${rowDisabledClass}">
                         <div class="text-edit-trigger" data-field="designReviewProblem" data-original="${product.designReviewProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.designReviewProblem || ''}">${product.designReviewProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="evtProblem" class="editable-cell ${rowDisabledClass}">
                         <div class="text-edit-trigger" data-field="evtProblem" data-original="${product.evtProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.evtProblem || ''}">${product.evtProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="dvtProblem" class="editable-cell ${rowDisabledClass}">
                         <div class="text-edit-trigger" data-field="dvtProblem" data-original="${product.dvtProblem || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.dvtProblem || ''}">${product.dvtProblem || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="mainProjectProgress" class="editable-cell ${rowDisabledClass}">
                         <div class="text-edit-trigger" data-field="mainProjectProgress" data-original="${product.mainProjectProgress || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.mainProjectProgress || ''}">${product.mainProjectProgress || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="mainQualityRisks" class="editable-cell ${rowDisabledClass}">
                         <div class="text-edit-trigger" data-field="mainQualityRisks" data-original="${product.mainQualityRisks || ''}" ${isGroupMatched ? 'onclick="openTextEdit(this)"' : ''} style="${isGroupMatched ? '' : 'pointer-events: none; opacity: 0.6;'}" title="${isGroupMatched ? '' : '组别不匹配，无法编辑'}">
                             <div class="text-preview" title="${product.mainQualityRisks || ''}">${product.mainQualityRisks || ''}</div>
                         </div>
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="unclosedSClass" class="editable-cell ${rowDisabledClass}">
                         <input type="number" value="${product.unclosedSClass || ''}" data-field="unclosedSClass" data-original="${product.unclosedSClass || ''}" min="0" ${disabledAttr} style="width: 80px;">
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="unclosedAClass" class="editable-cell ${rowDisabledClass}">
                         <input type="number" value="${product.unclosedAClass || ''}" data-field="unclosedAClass" data-original="${product.unclosedAClass || ''}" min="0" ${disabledAttr} style="width: 80px;">
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="unclosedBClass" class="editable-cell ${rowDisabledClass}">
                         <input type="number" value="${product.unclosedBClass || ''}" data-field="unclosedBClass" data-original="${product.unclosedBClass || ''}" min="0" ${disabledAttr} style="width: 80px;">
                     </td>
-                    <td class="editable-cell ${rowDisabledClass}">
+                    <td data-key="unclosedCClass" class="editable-cell ${rowDisabledClass}">
                         <input type="number" value="${product.unclosedCClass || ''}" data-field="unclosedCClass" data-original="${product.unclosedCClass || ''}" min="0" ${disabledAttr} style="width: 80px;">
                     </td>
-                    <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td>
+                    <td data-key="createTime">${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="updateTime">${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="action">
                         <button class="btn btn-sm btn-info" onclick="showProductDetail(${product.id})" title="查看详情">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -8793,43 +8993,43 @@
                 `;
             } else {
                 row.innerHTML = `
-                    <td>
+                    <td data-key="checkbox">
                         <input type="checkbox" class="table-row-checkbox" data-id="${product.id}" title="选择此行">
                     </td>
-                    <td>${product.id || '-'}</td>
-                    <td class="problem-desc" title="${product.groupName || ''}">${(product.groupName || '').substring(0, 20)}${(product.groupName || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.productCategoryLevel3 || ''}">${(product.productCategoryLevel3 || '').substring(0, 20)}${(product.productCategoryLevel3 || '').length > 20 ? '...' : ''}</td>
-                    <td><span class="status-badge status-${product.priority?.toLowerCase() || ''}">${product.priority || '-'}</span></td>
-                    <td class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
-                    <td><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
-                    <td class="image-cell">
+                    <td data-key="id">${product.id || '-'}</td>
+                    <td data-key="groupName" class="problem-desc" title="${product.groupName || ''}">${(product.groupName || '').substring(0, 20)}${(product.groupName || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="productCategoryLevel3" class="problem-desc" title="${product.productCategoryLevel3 || ''}">${(product.productCategoryLevel3 || '').substring(0, 20)}${(product.productCategoryLevel3 || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="priority"><span class="status-badge status-${product.priority?.toLowerCase() || ''}">${product.priority || '-'}</span></td>
+                    <td data-key="model" class="problem-desc" title="${product.model || ''}">${(product.model || '').substring(0, 20)}${(product.model || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="sku" class="problem-desc" title="${product.sku || ''}">${(product.sku || '').substring(0, 20)}${(product.sku || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="stage"><span class="status-badge status-${product.stage?.toLowerCase() || ''}">${product.stage || '-'}</span></td>
+                    <td data-key="productName" class="problem-desc clickable-text" title="${product.productName || ''}" onclick="showContentViewModal('产品名称', '${(product.productName || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.productName || '').substring(0, 30))}${(product.productName || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="imageUrl" class="image-cell">
                         ${product.imageUrl ? 
                             `<img src="${product.imageUrl}" alt="产品图片" class="product-thumbnail" onclick="showImagePreview('${product.imageUrl}')" title="点击查看大图">` : 
                             '<span class="no-image">暂无图片</span>'
                         }
                     </td>
-                    <td>${product.projectStartTime || '-'}</td>
-                    <td>${product.targetLaunchTime || '-'}</td>
-                    <td><span class="status-badge status-${product.displayType?.toLowerCase() || ''}">${product.displayType || '-'}</span></td>
-                    <td><span class="status-badge status-${product.productLevel?.toLowerCase() || ''}">${product.productLevel || '-'}</span></td>
-                    <td class="problem-desc" title="${product.primarySupplier || ''}">${(product.primarySupplier || '').substring(0, 20)}${(product.primarySupplier || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
-                    <td class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
-                    <td><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
-                    <td class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
-                    <td class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
-                    <td>${product.unclosedSClass || '-'}</td>
-                    <td>${product.unclosedAClass || '-'}</td>
-                    <td>${product.unclosedBClass || '-'}</td>
-                    <td>${product.unclosedCClass || '-'}</td>
-                    <td>${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td>${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
-                    <td>
+                    <td data-key="projectStartTime">${product.projectStartTime || '-'}</td>
+                    <td data-key="targetLaunchTime">${product.targetLaunchTime || '-'}</td>
+                    <td data-key="displayType"><span class="status-badge status-${product.displayType?.toLowerCase() || ''}">${product.displayType || '-'}</span></td>
+                    <td data-key="productLevel"><span class="status-badge status-${product.productLevel?.toLowerCase() || ''}">${product.productLevel || '-'}</span></td>
+                    <td data-key="primarySupplier" class="problem-desc" title="${product.primarySupplier || ''}">${(product.primarySupplier || '').substring(0, 20)}${(product.primarySupplier || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="leadDqe" class="problem-desc" title="${product.leadDqe || ''}">${(product.leadDqe || '').substring(0, 20)}${(product.leadDqe || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="electronicRd" class="problem-desc" title="${product.electronicRd || ''}">${(product.electronicRd || '').substring(0, 20)}${(product.electronicRd || '').length > 20 ? '...' : ''}</td>
+                    <td data-key="status"><span class="status-badge status-${product.status?.toLowerCase().replace(' ', '') || ''}">${product.status || '-'}</span></td>
+                    <td data-key="designReviewProblem" class="problem-desc clickable-text" title="${product.designReviewProblem || ''}" onclick="showContentViewModal('设计评审主要问题', '${(product.designReviewProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.designReviewProblem || '').substring(0, 30))}${(product.designReviewProblem || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="evtProblem" class="problem-desc clickable-text" title="${product.evtProblem || ''}" onclick="showContentViewModal('EVT主要问题', '${(product.evtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.evtProblem || '').substring(0, 30))}${(product.evtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="dvtProblem" class="problem-desc clickable-text" title="${product.dvtProblem || ''}" onclick="showContentViewModal('DVT主要问题', '${(product.dvtProblem || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.dvtProblem || '').substring(0, 30))}${(product.dvtProblem || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="mainProjectProgress" class="problem-desc clickable-text" title="${product.mainProjectProgress || ''}" onclick="showContentViewModal('项目进度主要事项', '${(product.mainProjectProgress || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainProjectProgress || '').substring(0, 30))}${(product.mainProjectProgress || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="mainQualityRisks" class="problem-desc clickable-text" title="${product.mainQualityRisks || ''}" onclick="showContentViewModal('质量主要风险', '${(product.mainQualityRisks || '').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">${formatTextWithLineBreaks((product.mainQualityRisks || '').substring(0, 30))}${(product.mainQualityRisks || '').length > 30 ? '...' : ''}</td>
+                    <td data-key="unclosedSClass">${product.unclosedSClass || '-'}</td>
+                    <td data-key="unclosedAClass">${product.unclosedAClass || '-'}</td>
+                    <td data-key="unclosedBClass">${product.unclosedBClass || '-'}</td>
+                    <td data-key="unclosedCClass">${product.unclosedCClass || '-'}</td>
+                    <td data-key="createTime">${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="updateTime">${product.updateTime ? new Date(product.updateTime).toLocaleString('zh-CN') : '-'}</td>
+                    <td data-key="action">
                         <button class="btn btn-sm btn-info" onclick="showProductDetail(${product.id})" title="查看详情">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -8852,6 +9052,9 @@
         updateTableRowSelectionStyles();
 
         updatePagination();
+        
+        // 应用列的可见性设置
+        applyColumnVisibility();
     }
 
     // 组别匹配辅助函数 - 兼容有无"组"字的情况，以及"数据存储"和"数据储存"的统一处理
@@ -11051,6 +11254,270 @@
 
 
 
+
+    // ========== 列管理功能 ==========
+    // 列定义
+    const columnDefinitions = [
+        { key: 'checkbox', label: '选择', alwaysVisible: true },
+        { key: 'id', label: 'ID', alwaysVisible: true },
+        { key: 'groupName', label: '组别', alwaysVisible: true },
+        { key: 'productCategoryLevel3', label: '产品三级类目' },
+        { key: 'priority', label: '优先级' },
+        { key: 'model', label: '型号' },
+        { key: 'sku', label: 'SKU' },
+        { key: 'stage', label: '阶段' },
+        { key: 'productName', label: '产品名称' },
+        { key: 'imageUrl', label: '图片' },
+        { key: 'projectStartTime', label: '立项时间' },
+        { key: 'targetLaunchTime', label: '目标上市时间' },
+        { key: 'displayType', label: '显示类型' },
+        { key: 'productLevel', label: '产品等级' },
+        { key: 'primarySupplier', label: '一级供方' },
+        { key: 'leadDqe', label: '主导DQE', alwaysVisible: true },
+        { key: 'electronicRd', label: '电子研发' },
+        { key: 'status', label: '状态' },
+        { key: 'designReviewProblem', label: '设计评审主要问题' },
+        { key: 'evtProblem', label: 'EVT主要问题' },
+        { key: 'dvtProblem', label: 'DVT主要问题' },
+        { key: 'mainProjectProgress', label: '项目进度主要事项' },
+        { key: 'mainQualityRisks', label: '质量主要风险' },
+        { key: 'unclosedSClass', label: '未关闭S类' },
+        { key: 'unclosedAClass', label: '未关闭A类' },
+        { key: 'unclosedBClass', label: '未关闭B类' },
+        { key: 'unclosedCClass', label: '未关闭C类' },
+        { key: 'createTime', label: '创建时间' },
+        { key: 'updateTime', label: '更新时间' },
+        { key: 'action', label: '操作', alwaysVisible: true }
+    ];
+
+    // 初始化列管理
+    function initColumnManager() {
+        // 从localStorage加载列可见性设置
+        loadColumnVisibility();
+        
+        // 创建列管理菜单
+        createColumnManagerMenu();
+        
+        // 绑定事件
+        bindColumnManagerEvents();
+    }
+
+    // 创建列管理菜单
+    function createColumnManagerMenu() {
+        const content = document.querySelector('.column-manager-content');
+        if (!content) return;
+        
+        content.innerHTML = '';
+        
+        columnDefinitions.forEach(col => {
+            const item = document.createElement('div');
+            item.className = 'column-manager-item';
+            item.innerHTML = `
+                <input type="checkbox" id="col_${col.key}" data-key="${col.key}" 
+                       ${col.alwaysVisible ? 'disabled checked' : ''} />
+                <label for="col_${col.key}">${col.label}${col.alwaysVisible ? ' (必显)' : ''}</label>
+            `;
+            content.appendChild(item);
+        });
+        
+        // 更新checkbox状态
+        updateColumnManagerCheckboxes();
+    }
+
+    // 绑定列管理事件
+    function bindColumnManagerEvents() {
+        // 列管理按钮点击事件
+        const btn = document.getElementById('columnManagerBtn');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleColumnManager();
+            });
+        }
+
+        // 点击checkbox切换列显示
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' && e.target.id.startsWith('col_')) {
+                const key = e.target.dataset.key;
+                const checked = e.target.checked;
+                toggleColumn(key, checked);
+                saveColumnVisibility();
+            }
+        });
+
+        // 点击页面其他地方关闭菜单
+        document.addEventListener('click', function(e) {
+            const columnDropdown = document.getElementById('columnManagerDropdown');
+            const columnBtn = document.getElementById('columnManagerBtn');
+            if (columnDropdown && columnBtn && !columnDropdown.contains(e.target) && !columnBtn.contains(e.target)) {
+                hideColumnManager();
+            }
+        });
+    }
+
+    // 切换列管理菜单显示
+    function toggleColumnManager() {
+        const dropdown = document.getElementById('columnManagerDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    // 隐藏列管理菜单
+    function hideColumnManager() {
+        const dropdown = document.getElementById('columnManagerDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // 切换列显示/隐藏
+    function toggleColumn(key, visible) {
+        // 隐藏所有表格的表头
+        const headers = document.querySelectorAll(`th[data-key="${key}"]`);
+        headers.forEach(header => {
+            if (visible) {
+                header.classList.remove('hidden');
+            } else {
+                header.classList.add('hidden');
+            }
+        });
+        
+        // 隐藏所有表格的数据行对应的单元格
+        const rows = document.querySelectorAll('#reviewTableBody tr');
+        rows.forEach(row => {
+            const cell = row.querySelector(`td[data-key="${key}"]`);
+            if (cell) {
+                if (visible) {
+                    cell.classList.remove('hidden');
+                } else {
+                    cell.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // 全选/全不选
+    function toggleAllColumns(checked) {
+        columnDefinitions.forEach(col => {
+            if (!col.alwaysVisible) {
+                const checkbox = document.getElementById(`col_${col.key}`);
+                if (checkbox && !checkbox.disabled) {
+                    checkbox.checked = checked;
+                    toggleColumn(col.key, checked);
+                }
+            }
+        });
+        saveColumnVisibility();
+    }
+
+    // 保存列可见性设置到localStorage
+    function saveColumnVisibility() {
+        const visibility = {};
+        columnDefinitions.forEach(col => {
+            if (!col.alwaysVisible) {
+                const checkbox = document.getElementById(`col_${col.key}`);
+                if (checkbox) {
+                    visibility[col.key] = checkbox.checked;
+                }
+            }
+        });
+        
+        try {
+            localStorage.setItem('qualityProgressColumnVisibility', JSON.stringify(visibility));
+        } catch (e) {
+            console.error('保存列可见性设置失败:', e);
+        }
+    }
+
+    // 从localStorage加载列可见性设置
+    function loadColumnVisibility() {
+        try {
+            const saved = localStorage.getItem('qualityProgressColumnVisibility');
+            if (saved) {
+                const visibility = JSON.parse(saved);
+                // 应用设置
+                columnDefinitions.forEach(col => {
+                    if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
+                        toggleColumn(col.key, visibility[col.key]);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('加载列可见性设置失败:', e);
+        }
+    }
+
+    // 更新列管理checkbox状态
+    function updateColumnManagerCheckboxes() {
+        columnDefinitions.forEach(col => {
+            if (!col.alwaysVisible) {
+                // 检查第一个表格的表头状态
+                const header = document.querySelector(`th[data-key="${col.key}"]`);
+                const checkbox = document.getElementById(`col_${col.key}`);
+                if (checkbox && header) {
+                    checkbox.checked = !header.classList.contains('hidden');
+                }
+            }
+        });
+    }
+
+    // 应用列的可见性设置（用于重新渲染表格后恢复状态）
+    function applyColumnVisibility() {
+        try {
+            const saved = localStorage.getItem('qualityProgressColumnVisibility');
+            if (saved) {
+                const visibility = JSON.parse(saved);
+                // 应用设置到所有表头
+                columnDefinitions.forEach(col => {
+                    if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
+                        const headers = document.querySelectorAll(`th[data-key="${col.key}"]`);
+                        headers.forEach(header => {
+                            if (visibility[col.key]) {
+                                header.classList.remove('hidden');
+                            } else {
+                                header.classList.add('hidden');
+                            }
+                        });
+                    }
+                });
+                
+                // 应用设置到所有表格的数据行
+                const rows = document.querySelectorAll('#reviewTableBody tr');
+                rows.forEach(row => {
+                    columnDefinitions.forEach(col => {
+                        if (!col.alwaysVisible && visibility.hasOwnProperty(col.key)) {
+                            const cell = row.querySelector(`td[data-key="${col.key}"]`);
+                            if (cell) {
+                                if (visibility[col.key]) {
+                                    cell.classList.remove('hidden');
+                                } else {
+                                    cell.classList.add('hidden');
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        } catch (e) {
+            console.error('应用列可见性设置失败:', e);
+        }
+    }
+
+    // 获取当前隐藏的列
+    function getHiddenColumns() {
+        const hiddenColumns = [];
+        columnDefinitions.forEach(col => {
+            if (!col.alwaysVisible) {
+                // 检查第一个表格的表头状态
+                const header = document.querySelector(`th[data-key="${col.key}"]`);
+                if (header && header.classList.contains('hidden')) {
+                    hiddenColumns.push(col.key);
+                }
+            }
+        });
+        return hiddenColumns;
+    }
 
     // 从表格获取数据的辅助函数
     function getDataFromTable() {

@@ -715,12 +715,15 @@ public class NewProductProgressController {
             Integer totalCount = (Integer) requestData.get("totalCount");
             String username = (String) requestData.get("username");
             String job = (String) requestData.get("job");
+            @SuppressWarnings("unchecked")
+            List<String> hiddenColumns = (List<String>) requestData.get("hiddenColumns");
             
             System.out.println("导出数据量: " + (dataList != null ? dataList.size() : 0));
             System.out.println("导出类型: " + exportType);
             System.out.println("文件名: " + fileName);
             System.out.println("用户名: " + username);
             System.out.println("角色: " + job);
+            System.out.println("隐藏的列: " + (hiddenColumns != null ? hiddenColumns : "无"));
             
             // 打印数据字段信息
             if (!dataList.isEmpty()) {
@@ -787,17 +790,24 @@ public class NewProductProgressController {
             List<String> orderedHeaders = new ArrayList<>();
             List<String> orderedFieldNames = new ArrayList<>();
             
-            // 按照预定义顺序添加字段
+            // 如果存在隐藏列列表，过滤掉隐藏的列
+            Set<String> hiddenColumnsSet = new HashSet<>();
+            if (hiddenColumns != null && !hiddenColumns.isEmpty()) {
+                hiddenColumnsSet.addAll(hiddenColumns);
+                System.out.println("将排除以下隐藏的列: " + hiddenColumnsSet);
+            }
+            
+            // 按照预定义顺序添加字段（排除隐藏的列）
             for (Map.Entry<String, String> entry : fieldDisplayNames.entrySet()) {
-                if (allFields.contains(entry.getKey())) {
+                if (allFields.contains(entry.getKey()) && !hiddenColumnsSet.contains(entry.getKey())) {
                     orderedHeaders.add(entry.getValue());
                     orderedFieldNames.add(entry.getKey());
                 }
             }
             
-            // 添加其他未预定义的字段
+            // 添加其他未预定义的字段（排除隐藏的列）
             for (String field : allFields) {
-                if (!orderedFieldNames.contains(field)) {
+                if (!orderedFieldNames.contains(field) && !hiddenColumnsSet.contains(field)) {
                     orderedHeaders.add(field);
                     orderedFieldNames.add(field);
                 }

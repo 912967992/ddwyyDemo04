@@ -6188,23 +6188,76 @@
 
     // 删除选中数据
     function deleteSelectedData() {
-        // 获取选中的行ID
-        const selectedIds = getSelectedRowIds();
+        // 获取选中的行
+        const selectedRows = getSelectedTableRows();
         
-        if (selectedIds.length === 0) {
+        if (selectedRows.length === 0) {
             showToast('请先选择要删除的数据行！', 'warning');
             return;
         }
 
-        // 确认删除
-        if (!confirm(`确定要删除选中的 ${selectedIds.length} 条数据吗？此操作不可恢复！`)) {
+        // 检查权限：筛选出有权限删除的行
+        const deletableRows = [];
+        const nonDeletableRows = [];
+        const deletableIds = []; // 存储可删除行的ID
+        const nonDeletableIds = []; // 存储不可删除行的ID
+
+        selectedRows.forEach(row => {
+            const reviewGroup = row.group || '';
+            const dqeResponsible = row.dqeResponsible || '';
+            
+            if (canEditByGroup(reviewGroup, departmentName, dqeResponsible)) {
+                deletableRows.push(row);
+                if (row.id) {
+                    deletableIds.push(row.id);
+                }
+            } else {
+                nonDeletableRows.push(row);
+                if (row.id) {
+                    nonDeletableIds.push(row.id);
+                }
+            }
+        });
+
+        // 如果没有可删除的行，提示用户
+        if (deletableRows.length === 0) {
+            if (nonDeletableRows.length > 0) {
+                const nonDeletableIdsStr = nonDeletableIds.length > 0 
+                    ? `（ID：${nonDeletableIds.join('、')}）` 
+                    : '';
+                showToast(`您没有权限删除选中的数据（组别不匹配或不是DQE负责人）${nonDeletableIdsStr}`, 'error');
+            } else {
+                showToast('请先选择要删除的数据行！', 'warning');
+            }
             return;
+        }
+
+        // 如果有部分行没有权限，提示用户
+        if (nonDeletableRows.length > 0) {
+            const deletableIdsStr = deletableIds.length > 0 
+                ? `（ID：${deletableIds.join('、')}）` 
+                : '';
+            const nonDeletableIdsStr = nonDeletableIds.length > 0 
+                ? `（ID：${nonDeletableIds.join('、')}）` 
+                : '';
+            const message = `选中的 ${selectedRows.length} 条数据中，有 ${nonDeletableRows.length} 条没有删除权限${nonDeletableIdsStr}（组别不匹配或不是DQE负责人），将只删除 ${deletableRows.length} 条有权限的数据${deletableIdsStr}。\n\n确定要继续吗？`;
+            if (!confirm(message)) {
+                return;
+            }
+        } else {
+            // 确认删除
+            const deletableIdsStr = deletableIds.length > 0 
+                ? `（ID：${deletableIds.join('、')}）` 
+                : '';
+            if (!confirm(`确定要删除选中的 ${deletableRows.length} 条数据${deletableIdsStr}吗？此操作不可恢复！`)) {
+                return;
+            }
         }
 
         showLoading();
 
-        // 使用选中的ID列表
-        const idsToDelete = selectedIds;
+        // 提取要删除的ID列表（只删除有权限的行）
+        const idsToDelete = deletableIds;
 
         // 发送删除请求
         fetch('/reviewResult/deleteSelected', {
