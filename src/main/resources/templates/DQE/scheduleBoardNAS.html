@@ -4396,7 +4396,14 @@
             fetch(`/passback/getPendingSampleData?category=${category.name}&sample_category=NAS服务器`)
                 .then(response => response.json())
                 .then(data => {
-                    renderPendingSamplePool(data, category.id);
+                    // 过滤 sample_category，兼容空格：匹配包含"NAS服务器"这几个字的所有值（忽略空格）
+                    const filteredData = data.filter(item => {
+                        if (!item.sample_category) return false;
+                        // 移除所有空格后判断是否包含"NAS服务器"
+                        const categoryWithoutSpaces = item.sample_category.replace(/\s+/g, '');
+                        return categoryWithoutSpaces.includes('NAS服务器');
+                    });
+                    renderPendingSamplePool(filteredData, category.id);
                 })
                 .catch(error => {
                     // 如果后端接口不存在，为新的池子添加示例数据

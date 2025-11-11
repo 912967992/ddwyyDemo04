@@ -113,6 +113,8 @@ public class ReviewResultsService {
             int insertCount = 0;
             int updateCount = 0;
             int errorCount = 0;
+            final int MAX_UPDATE_DETAILS = 20;
+            List<String> updatedRecordDetails = new ArrayList<>();
 
             for (ReviewResults reviewResult : reviewResultsList) {
                 try {
@@ -132,6 +134,17 @@ public class ReviewResultsService {
                         reviewResult.setUpdatedTime(LocalDateTime.now());
                         reviewResultsDao.update(reviewResult);
                         updateCount++;
+                        if (updatedRecordDetails.size() < MAX_UPDATE_DETAILS) {
+                            String detail = String.format(
+                                "大编码:%s | 小编码:%s | 项目阶段:%s | 供应商:%s | 问题点:%s",
+                                defaultString(reviewResult.getMajorCode()),
+                                defaultString(reviewResult.getMinorCode()),
+                                defaultString(reviewResult.getProjectPhase()),
+                                defaultString(reviewResult.getSupplier()),
+                                defaultString(reviewResult.getProblemPoint())
+                            );
+                            updatedRecordDetails.add(detail);
+                        }
                     } else {
                         // 插入新记录
                         reviewResult.setCreatedTime(LocalDateTime.now());
@@ -151,6 +164,7 @@ public class ReviewResultsService {
             result.setInsertCount(insertCount);
             result.setUpdateCount(updateCount);
             result.setErrorCount(errorCount);
+            result.setUpdatedRecords(updatedRecordDetails);
 
         } catch (Exception e) {
             result.setSuccess(false);
@@ -158,6 +172,10 @@ public class ReviewResultsService {
         }
 
         return result;
+    }
+
+    private String defaultString(String value) {
+        return (value == null || value.trim().isEmpty()) ? "-" : value.trim();
     }
 
     /**
@@ -363,9 +381,14 @@ public class ReviewResultsService {
                 if (columnMapping.delayDaysIndex >= 0) {
                     String delayDaysStr = getCellValueAsString(getCellSafely(row, columnMapping.delayDaysIndex));
                     if (delayDaysStr != null && !delayDaysStr.trim().isEmpty()) {
-                        try {
-                            Integer.parseInt(delayDaysStr.trim());
-                        } catch (NumberFormatException e) {
+                        String normalizedDelay = delayDaysStr.trim();
+                        // 允许“无Delay”“无”“暂无”等表示没有延迟的写法
+                        String normalizedLower = normalizedDelay.toLowerCase();
+                        if (normalizedLower.equals("无delay") || normalizedLower.equals("无") || normalizedLower.equals("暂无") ||
+                                normalizedLower.equals("none") || normalizedLower.equals("n/a") || normalizedLower.equals("na") ||
+                                normalizedLower.equals("没有") || normalizedLower.equals("无延迟") || normalizedLower.equals("无延时")) {
+                            // 将内容视为无延迟，不做校验
+                        } else if (!normalizedDelay.matches("-?\\d+")) {
                             validationErrors.add("第" + (rowIndex + 1) + "行Delay天数格式错误：" + delayDaysStr + "（应为整数）");
                         }
                     }
@@ -872,9 +895,14 @@ public class ReviewResultsService {
      */
     private LocalDate getCellValueAsDate(Cell cell) {
         if (cell == null) return null;
-        
+
         try {
-            if (cell.getCellType() == CellType.NUMERIC) {
+            CellType cellType = cell.getCellType();
+            if (cellType == CellType.FORMULA) {
+                cellType = cell.getCachedFormulaResultType();
+            }
+
+            if (cellType == CellType.NUMERIC) {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     // 标准日期格式
                     return cell.getDateCellValue().toInstant()
@@ -887,11 +915,40 @@ public class ReviewResultsService {
                         return DateUtil.getJavaDate(numericValue).toInstant()
                             .atZone(java.time.ZoneId.systemDefault())
                             .toLocalDate();
+                    } else {
+                        long longValue = Math.round(numericValue);
+                        String numericStr = String.valueOf(longValue);
+                        if (numericStr.length() == 8) {
+                            try {
+                                return LocalDate.parse(numericStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+                            } catch (Exception ignored) {
+                                // fall through
+                            }
+                        }
                     }
                 }
-            } else if (cell.getCellType() == CellType.STRING) {
+            } else if (cellType == CellType.STRING) {
                 String dateStr = cell.getStringCellValue().trim();
                 if (!dateStr.isEmpty()) {
+                    if (dateStr.matches("\\d{8}")) {
+                        try {
+                            return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+                        } catch (Exception ignored) {
+                            // fall through to other patterns
+                        }
+                    }
+                    if (dateStr.contains("T")) {
+                        try {
+                            return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME).toLocalDate();
+                        } catch (Exception ignored) {
+                            try {
+                                String normalized = dateStr.replace('T', ' ');
+                                return LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                            } catch (Exception ignored2) {
+                                // 继续尝试常规模式
+                            }
+                        }
+                    }
                     // 尝试多种日期格式（包括月份和日期可以是1位或2位数字的格式）
                     String[] patterns = {
                         "yyyy-MM-dd", "yyyy-M-d", "yyyy/MM/dd", "yyyy/M/d",
@@ -899,7 +956,7 @@ public class ReviewResultsService {
                         "yyyy年MM月dd日", "yyyy年M月d日", "MM月dd日", "M月d日",
                         "yyyy-MM", "yyyy-M", "yyyy"
                     };
-                    
+
                     for (String pattern : patterns) {
                         try {
                             return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(pattern));
@@ -912,7 +969,7 @@ public class ReviewResultsService {
         } catch (Exception e) {
             System.err.println("解析日期失败: " + e.getMessage() + ", 单元格值: " + getCellValueAsString(cell));
         }
-        
+
         return null;
     }
 
@@ -921,9 +978,14 @@ public class ReviewResultsService {
      */
     private LocalDateTime getCellValueAsDateTime(Cell cell) {
         if (cell == null) return null;
-        
+
         try {
-            if (cell.getCellType() == CellType.NUMERIC) {
+            CellType cellType = cell.getCellType();
+            if (cellType == CellType.FORMULA) {
+                cellType = cell.getCachedFormulaResultType();
+            }
+
+            if (cellType == CellType.NUMERIC) {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     // 标准日期时间格式
                     return cell.getDateCellValue().toInstant()
@@ -936,11 +998,40 @@ public class ReviewResultsService {
                         return DateUtil.getJavaDate(numericValue).toInstant()
                             .atZone(java.time.ZoneId.systemDefault())
                             .toLocalDateTime();
+                    } else {
+                        long longValue = Math.round(numericValue);
+                        String numericStr = String.valueOf(longValue);
+                        if (numericStr.length() == 8) {
+                            try {
+                                return LocalDate.parse(numericStr, DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay();
+                            } catch (Exception ignored) {
+                                // fall through
+                            }
+                        }
                     }
                 }
-            } else if (cell.getCellType() == CellType.STRING) {
+            } else if (cellType == CellType.STRING) {
                 String dateTimeStr = cell.getStringCellValue().trim();
                 if (!dateTimeStr.isEmpty()) {
+                    if (dateTimeStr.matches("\\d{8}")) {
+                        try {
+                            return LocalDate.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay();
+                        } catch (Exception ignored) {
+                            // continue
+                        }
+                    }
+                    if (dateTimeStr.contains("T")) {
+                        try {
+                            return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                        } catch (Exception ignored) {
+                            try {
+                                String normalized = dateTimeStr.replace('T', ' ');
+                                return LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                            } catch (Exception ignored2) {
+                                // 继续尝试常规模式
+                            }
+                        }
+                    }
                     // 尝试多种日期时间格式（包括月份和日期可以是1位或2位数字的格式）
                     String[] patterns = {
                         "yyyy-MM-dd HH:mm:ss", "yyyy-M-d HH:mm:ss",
@@ -952,7 +1043,7 @@ public class ReviewResultsService {
                         "yyyy年MM月dd日 HH:mm:ss", "yyyy年M月d日 HH:mm:ss",
                         "yyyy年MM月dd日", "yyyy年M月d日"
                     };
-                    
+
                     for (String pattern : patterns) {
                         try {
                             if (pattern.contains("HH:mm:ss")) {
@@ -970,7 +1061,7 @@ public class ReviewResultsService {
         } catch (Exception e) {
             System.err.println("解析日期时间失败: " + e.getMessage() + ", 单元格值: " + getCellValueAsString(cell));
         }
-        
+
         return null;
     }
 
@@ -1077,6 +1168,7 @@ public class ReviewResultsService {
         private int insertCount;
         private int updateCount;
         private int errorCount;
+        private List<String> updatedRecords = new ArrayList<>();
 
         // Getters and Setters
         public boolean isSuccess() {
@@ -1117,6 +1209,14 @@ public class ReviewResultsService {
 
         public void setErrorCount(int errorCount) {
             this.errorCount = errorCount;
+        }
+
+        public List<String> getUpdatedRecords() {
+            return updatedRecords;
+        }
+
+        public void setUpdatedRecords(List<String> updatedRecords) {
+            this.updatedRecords = updatedRecords != null ? updatedRecords : new ArrayList<>();
         }
     }
 

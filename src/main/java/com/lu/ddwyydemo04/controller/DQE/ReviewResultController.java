@@ -761,6 +761,7 @@ public class ReviewResultController {
             result.put("insertCount", importResult.getInsertCount());
             result.put("updateCount", importResult.getUpdateCount());
             result.put("errorCount", importResult.getErrorCount());
+            result.put("updatedRecords", importResult.getUpdatedRecords());
 
             return ResponseEntity.ok(result);
 

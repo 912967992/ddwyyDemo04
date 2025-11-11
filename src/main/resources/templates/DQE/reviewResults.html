@@ -93,6 +93,73 @@
             color: #17a2b8;
         }
 
+        .copyable-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .copyable-modal-content {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            width: 520px;
+            max-width: calc(100% - 40px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .copyable-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copyable-modal-header h4 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .copyable-modal-close {
+            cursor: pointer;
+            color: #999;
+            font-size: 18px;
+            transition: color 0.2s ease;
+        }
+
+        .copyable-modal-close:hover {
+            color: #333;
+        }
+
+        .copyable-modal-textarea {
+            width: 100%;
+            min-height: 160px;
+            resize: vertical;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            background: #fafafa;
+        }
+
+        .copyable-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
         /* 问题图片容器样式 */
         .problem-image-container {
             max-width: 100%;
@@ -3795,6 +3862,21 @@
     </div>
 </div>
 
+<!-- 可复制消息模态框 -->
+<div id="copyableModal" class="copyable-modal-overlay">
+    <div class="copyable-modal-content">
+        <div class="copyable-modal-header">
+            <h4 id="copyableModalTitle">提示信息</h4>
+            <span class="copyable-modal-close" onclick="closeCopyableDialog()">&times;</span>
+        </div>
+        <textarea id="copyableModalTextarea" class="copyable-modal-textarea" readonly></textarea>
+        <div class="copyable-modal-actions">
+            <button class="btn btn-secondary" onclick="closeCopyableDialog()">关闭</button>
+            <button class="btn btn-primary" id="copyableModalCopyBtn">复制内容</button>
+        </div>
+    </div>
+</div>
+
 <!-- 底部导航 -->
 <div class="bottom-nav">
     <button class="nav-btn" onclick="goBack()">
@@ -3824,6 +3906,33 @@
     let currentPage = 1;
     let pageSize = 20;
     let totalCount = 0;
+
+    const copyableModal = document.getElementById('copyableModal');
+    const copyableModalTitle = document.getElementById('copyableModalTitle');
+    const copyableModalTextarea = document.getElementById('copyableModalTextarea');
+    const copyableModalCopyBtn = document.getElementById('copyableModalCopyBtn');
+
+    if (copyableModalCopyBtn) {
+        copyableModalCopyBtn.addEventListener('click', () => {
+            if (!copyableModalTextarea) {
+                return;
+            }
+            const text = copyableModalTextarea.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('内容已复制到剪贴板', 'success'))
+                    .catch(() => {
+                        copyableModalTextarea.select();
+                        document.execCommand('copy');
+                        showToast('内容已复制到剪贴板', 'success');
+                    });
+            } else {
+                copyableModalTextarea.select();
+                document.execCommand('copy');
+                showToast('内容已复制到剪贴板', 'success');
+            }
+        });
+    }
 
     // 图表模态框控制函数
     function openChartsModal() {
@@ -6034,17 +6143,38 @@
 
                 setTimeout(() => {
                     if (data.success) {
-                        showToast(`导入成功！${data.message}`, 'success');
+                        const successMessage = data.message
+                            ? data.message
+                            : `导入成功！新增 ${data.insertCount || 0} 条，更新 ${data.updateCount || 0} 条，错误 ${data.errorCount || 0} 条`;
+                        showToast(successMessage, 'success', 5000);
                         // 关闭模态框
                         closeImportModal();
                         // 刷新数据
                         loadReviewData();
+                        if (Array.isArray(data.updatedRecords) && data.updatedRecords.length > 0) {
+                            const totalUpdateCount = typeof data.updateCount === 'number' ? data.updateCount : data.updatedRecords.length;
+                            const shownCount = data.updatedRecords.length;
+                            let detailMessage = `本次更新共 ${totalUpdateCount} 条记录。`;
+                            if (totalUpdateCount > shownCount) {
+                                detailMessage += `\n下方仅展示前 ${shownCount} 条，剩余 ${totalUpdateCount - shownCount} 条记录请参考导入结果统计。`;
+                            }
+                            detailMessage += '\n\n';
+                            detailMessage += data.updatedRecords.map((item, index) => `${index + 1}. ${item}`).join('\n');
+                            showCopyableDialog(detailMessage, '更新记录清单');
+                        }
                     } else {
-                        // 如果错误消息包含换行符，使用 alert 显示，否则使用 showToast
-                        if (data.message && data.message.includes('\\n')) {
-                            alert(data.message.replace(/\\n/g, '\n'));
+                        if (data.message) {
+                            const normalizedMessage = data.message.replace(/\\n/g, '\n');
+                            if (normalizedMessage.includes('\n') || normalizedMessage.length > 80) {
+                                showCopyableDialog(normalizedMessage, '导入失败');
+                            } else {
+                                const toastMessage = normalizedMessage.startsWith('导入失败')
+                                    ? normalizedMessage
+                                    : `导入失败：${normalizedMessage}`;
+                                showToast(toastMessage, 'error', 6000);
+                            }
                         } else {
-                            showToast(`导入失败：${data.message}`, 'error');
+                            showToast('导入失败：服务器未返回错误信息', 'error', 6000);
                         }
                         document.getElementById('confirmImportBtn').disabled = false;
                     }
@@ -8173,6 +8303,38 @@
     // 隐藏加载状态
     function hideLoading() {
         document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    function showCopyableDialog(message, title = '提示信息') {
+        if (!copyableModal || !copyableModalTextarea || !copyableModalTitle) {
+            alert(message);
+            return;
+        }
+        copyableModalTitle.textContent = title;
+        copyableModalTextarea.value = message;
+        copyableModal.style.display = 'flex';
+        copyableModal.addEventListener('click', handleCopyableModalOutsideClick);
+        setTimeout(() => {
+            copyableModalTextarea.focus();
+            copyableModalTextarea.select();
+        }, 50);
+    }
+
+    function closeCopyableDialog() {
+        if (copyableModal) {
+            copyableModal.style.display = 'none';
+            copyableModal.removeEventListener('click', handleCopyableModalOutsideClick);
+        }
+    }
+
+    function handleCopyableModalOutsideClick(event) {
+        if (!copyableModal) {
+            return;
+        }
+        const content = copyableModal.querySelector('.copyable-modal-content');
+        if (content && !content.contains(event.target)) {
+            closeCopyableDialog();
+        }
     }
 
     // 显示自定义提示框
