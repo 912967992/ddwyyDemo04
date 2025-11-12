@@ -57,7 +57,7 @@
           AND ei.isCancel = 0
           AND (ei.waitSample_classify IS NULL OR ei.waitSample_classify = '')
           AND ei.sample_leader NOT IN ('占海英', '贺斌' ,'姚遥')
-        AND ei.sample_category = 'NAS服务器'
+        AND REPLACE(ei.sample_category, ' ', '') = 'NAS服务器'
     </select>
 
 

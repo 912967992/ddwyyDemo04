@@ -384,6 +384,7 @@
           AND ei.isCancel = 0
           AND (ei.waitSample_classify IS NULL OR ei.waitSample_classify = '')
           AND ei.sample_leader NOT IN ('占海英', '贺斌' ,'姚遥')
+          AND REPLACE(ei.sample_category, ' ', '') != 'NAS服务器'
     </select>
 
 
@@ -395,10 +396,17 @@
           AND isCancel = 0
           <choose>
               <when test="sample_category != null and sample_category != ''">
-                  AND sample_category = #{sample_category}
+                  <choose>
+                      <when test="sample_category == 'NAS服务器' or sample_category == 'NAS 服务器'">
+                          AND REPLACE(sample_category, ' ', '') = 'NAS服务器'
+                      </when>
+                      <otherwise>
+                          AND sample_category = #{sample_category}
+                      </otherwise>
+                  </choose>
               </when>
               <otherwise>
-                  AND (sample_category != 'NAS服务器' OR sample_category IS NULL)
+                  AND (REPLACE(sample_category, ' ', '') != 'NAS服务器' OR sample_category IS NULL)
               </otherwise>
           </choose>
     </select>
