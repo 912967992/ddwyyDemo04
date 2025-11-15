@@ -72,19 +72,29 @@ public class DingTalkH5Controller {
 
     @PostMapping("/api/getUserInfo")
     @ResponseBody
-    public Map<String, Object> getUserInfo(@RequestBody Map<String, String> requestMap, HttpServletRequest request) throws ApiException {
-        //获取免登授权码authCode
-        String authCode = requestMap.get("authCode");
-        String accessToken = accessTokenService.getAccessToken(); // 调用方法获取accessToken
-
-        DingTalkClient client = new DefaultDingTalkClient(GET_USER_INFO_URL);
-        OapiUserGetuserinfoRequest getUserInfoRequest = new OapiUserGetuserinfoRequest();
-        getUserInfoRequest.setCode(authCode);
-        getUserInfoRequest.setHttpMethod("GET");
-
-        OapiUserGetuserinfoResponse response = client.execute(getUserInfoRequest, accessToken);
+    public Map<String, Object> getUserInfo(@RequestBody Map<String, String> requestMap, HttpServletRequest request) {
         Map<String, Object> result = new HashMap<>();
-        if (response.getErrcode() == 0) {
+        
+        try {
+            //获取免登授权码authCode
+            String authCode = requestMap.get("authCode");
+            if (authCode == null || authCode.isEmpty()) {
+                result.put("errorCode", -1);
+                result.put("errorMessage", "授权码为空，请重新登录");
+                logger.error("获取用户信息失败：授权码为空");
+                return result;
+            }
+            
+            String accessToken = accessTokenService.getAccessToken(); // 调用方法获取accessToken
+
+            DingTalkClient client = new DefaultDingTalkClient(GET_USER_INFO_URL);
+            OapiUserGetuserinfoRequest getUserInfoRequest = new OapiUserGetuserinfoRequest();
+            getUserInfoRequest.setCode(authCode);
+            getUserInfoRequest.setHttpMethod("GET");
+
+            OapiUserGetuserinfoResponse response = client.execute(getUserInfoRequest, accessToken);
+            
+            if (response.getErrcode() == 0) {
             // 正常情况下返回用户userid   ,deviceid是设备的唯一标识符，用不太到
             String userid = response.getUserid();
 
@@ -155,14 +165,42 @@ public class DingTalkH5Controller {
             result.put("imagepath",imagepath);
             result.put("savepath",savepath);
 
-            // 记录用户访问日志（使用服务类封装的方法）
-            // accessPage 可以自定义，例如："登录/获取用户信息"
-            userAccessLogService.recordUserAccess(username, job, "登录/获取用户信息", request);
+                // 记录用户访问日志（使用服务类封装的方法）
+                // accessPage 可以自定义，例如："登录/获取用户信息"
+                userAccessLogService.recordUserAccess(username, job, "登录/获取用户信息", request);
 
-        } else {
-            // 发生错误时返回错误信息
-            result.put("errorCode", response.getErrcode());
-            result.put("errorMessage", response.getErrmsg());
+            } else {
+                // 发生错误时返回错误信息
+                result.put("errorCode", response.getErrcode());
+                result.put("errorMessage", "获取用户信息失败：" + response.getErrmsg());
+                logger.error("获取用户信息失败，钉钉API返回错误码: {}, 错误信息: {}", response.getErrcode(), response.getErrmsg());
+            }
+        } catch (ApiException e) {
+            // 处理钉钉API异常
+            String errorMsg = e.getMessage();
+            logger.error("获取用户信息时发生ApiException: {}", errorMsg, e);
+            
+            // 根据错误类型返回友好的错误信息
+            if (errorMsg != null) {
+                if (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect")) {
+                    result.put("errorCode", -2);
+                    result.put("errorMessage", "连接钉钉服务器超时，请检查网络连接后重试");
+                } else if (errorMsg.contains("errcode")) {
+                    result.put("errorCode", -3);
+                    result.put("errorMessage", "钉钉API调用失败：" + errorMsg);
+                } else {
+                    result.put("errorCode", -4);
+                    result.put("errorMessage", "获取用户信息失败：" + errorMsg);
+                }
+            } else {
+                result.put("errorCode", -5);
+                result.put("errorMessage", "获取用户信息失败，请稍后重试");
+            }
+        } catch (Exception e) {
+            // 处理其他异常
+            logger.error("获取用户信息时发生未知异常: ", e);
+            result.put("errorCode", -6);
+            result.put("errorMessage", "系统错误，请联系管理员");
         }
 
         //目前只返回userid: ,name:卢健，job:测试专员，departmentIds:[523459714]，后续看还需要的话可以从这里获取然后前端保存到sessionStorage

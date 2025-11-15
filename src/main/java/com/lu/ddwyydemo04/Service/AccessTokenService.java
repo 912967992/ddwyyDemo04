@@ -61,18 +61,78 @@ public class AccessTokenService {
     private ScheduleBoardService scheduleBoardService;
 
     public String getAccessToken() throws ApiException {
-        DefaultDingTalkClient client = new DefaultDingTalkClient(GET_TOKEN_URL);
-        OapiGettokenRequest request = new OapiGettokenRequest();
-        request.setAppkey(APP_KEY);
-        request.setAppsecret(APP_SECRET);
-        request.setHttpMethod("GET");
+        int maxRetries = 2; // 最大重试次数（减少重试次数，避免用户等待过久）
+        int retryDelay = 1000; // 重试延迟（毫秒，缩短延迟时间）
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                logger.info("尝试获取钉钉AccessToken，第 {} 次尝试", attempt);
+                DefaultDingTalkClient client = new DefaultDingTalkClient(GET_TOKEN_URL);
+                OapiGettokenRequest request = new OapiGettokenRequest();
+                request.setAppkey(APP_KEY);
+                request.setAppsecret(APP_SECRET);
+                request.setHttpMethod("GET");
 
-        OapiGettokenResponse response = client.execute(request);
-        if (response.getErrcode() == 0) {
-            return response.getAccessToken();
-        } else {
-            throw new ApiException("Unable to get access_token, errcode: " + response.getErrcode() + ", errmsg: " + response.getErrmsg());
+                OapiGettokenResponse response = client.execute(request);
+                if (response.getErrcode() == 0) {
+                    logger.info("成功获取钉钉AccessToken");
+                    return response.getAccessToken();
+                } else {
+                    String errorMsg = "Unable to get access_token, errcode: " + response.getErrcode() + ", errmsg: " + response.getErrmsg();
+                    logger.error("获取AccessToken失败: {}", errorMsg);
+                    throw new ApiException(errorMsg);
+                }
+            } catch (ApiException e) {
+                String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                
+                // 如果是业务错误（非网络错误），直接抛出
+                if (errorMsg.contains("errcode") && !errorMsg.contains("timeout") && !errorMsg.contains("timed out")) {
+                    throw e;
+                }
+                
+                // 网络超时或其他网络错误，进行重试
+                if (attempt < maxRetries) {
+                    logger.warn("获取AccessToken失败（第 {} 次尝试），{} 毫秒后重试。错误信息: {}", 
+                               attempt, retryDelay, e.getMessage());
+                    try {
+                        Thread.sleep(retryDelay);
+                        retryDelay *= 2; // 指数退避：每次重试延迟时间翻倍
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new ApiException("获取AccessToken时被中断", e);
+                    }
+                } else {
+                    logger.error("获取AccessToken失败，已达到最大重试次数 {}。最后一次错误: {}", maxRetries, e.getMessage(), e);
+                    throw new ApiException("获取AccessToken失败，已重试 " + maxRetries + " 次: " + e.getMessage(), e);
+                }
+            } catch (Exception e) {
+                // 捕获其他可能的异常（如SocketTimeoutException等）
+                String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                boolean isNetworkError = errorMsg.contains("timeout") || 
+                                       errorMsg.contains("timed out") || 
+                                       errorMsg.contains("connect") ||
+                                       e.getClass().getSimpleName().contains("Timeout");
+                
+                if (isNetworkError && attempt < maxRetries) {
+                    logger.warn("网络错误（第 {} 次尝试），{} 毫秒后重试。错误类型: {}, 错误信息: {}", 
+                               attempt, retryDelay, e.getClass().getSimpleName(), e.getMessage());
+                    try {
+                        Thread.sleep(retryDelay);
+                        retryDelay *= 2;
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new ApiException("获取AccessToken时被中断", e);
+                    }
+                } else {
+                    logger.error("获取AccessToken时发生异常，第 {} 次尝试。错误类型: {}, 错误信息: {}", 
+                                attempt, e.getClass().getSimpleName(), e.getMessage(), e);
+                    throw new ApiException("获取AccessToken失败: " + e.getMessage(), e);
+                }
+            }
         }
+        
+        // 理论上不会到达这里，但为了编译通过
+        throw new ApiException("获取AccessToken失败");
     }
 
     // 根据dept_id去部门列表信息：部门ID: 971739387

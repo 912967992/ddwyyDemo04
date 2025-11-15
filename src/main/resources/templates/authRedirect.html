@@ -93,52 +93,119 @@
     }
 
     async function sendAuthCodeToServer(authCode) {
+        // 显示加载提示
+        const loadingMessage = document.getElementById('alert-message');
+        const loadingOverlay = document.getElementById('alert-overlay');
+        const loadingModal = document.getElementById('alert-modal');
+        loadingMessage.textContent = '正在获取用户信息，请稍候...';
+        loadingOverlay.style.display = 'block';
+        loadingModal.style.display = 'block';
+        
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/getUserInfo', true); // 后端接口地址，请确认
         xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        // 设置超时时间：30秒
+        xhr.timeout = 30000;
+        
+        // 超时处理
+        xhr.ontimeout = async function() {
+            loadingOverlay.style.display = 'none';
+            loadingModal.style.display = 'none';
+            await alertModal('请求超时，请检查网络连接后重试。如果问题持续，请联系管理员。');
+            // 允许用户重试
+            location.reload();
+        };
+        
+        // 网络错误处理
+        xhr.onerror = async function() {
+            loadingOverlay.style.display = 'none';
+            loadingModal.style.display = 'none';
+            await alertModal('网络错误，无法连接到服务器。请检查网络连接后重试。');
+            location.reload();
+        };
+        
         xhr.onreadystatechange = async function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                var response = JSON.parse(xhr.responseText);
+            if (xhr.readyState == 4) {
+                // 隐藏加载提示
+                loadingOverlay.style.display = 'none';
+                loadingModal.style.display = 'none';
+                
+                if (xhr.status == 200) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        
+                        // 检查是否有错误信息
+                        if (response.errorCode || response.errorMessage) {
+                            await alertModal('获取用户信息失败：' + (response.errorMessage || '未知错误'));
+                            return;
+                        }
 
-                // 存储用户信息
-                sessionStorage.setItem('userId', response.userId);
-                sessionStorage.setItem('username', response.username);
-                sessionStorage.setItem('job', response.job);
-                // 你需要的其他信息也存储...
+                        // 存储用户信息
+                        sessionStorage.setItem('userId', response.userId);
+                        sessionStorage.setItem('username', response.username);
+                        sessionStorage.setItem('job', response.job);
+                        // 你需要的其他信息也存储...
 
-                setLocalStorageItem("username", response.username);
-                setLocalStorageItem("job", response.job);
-                setLocalStorageItem("corp_id", response.corp_id);
+                        setLocalStorageItem("username", response.username);
+                        setLocalStorageItem("job", response.job);
+                        setLocalStorageItem("corp_id", response.corp_id);
 
-                // 显示欢迎提示
-                await alertModal('姓名: ' + response.username + '，角色：' + response.job + '，你好！');
+                        // 显示欢迎提示
+                        await alertModal('姓名: ' + response.username + '，角色：' + response.job + '，你好！');
 
-                // 解析URL参数
-                const urlParams = new URLSearchParams(window.location.search);
-                const sampleId = urlParams.get('sample_id');
+                        // 解析URL参数
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const sampleId = urlParams.get('sample_id');
 
-                if (sampleId && response.job !== "tester") {
-                    // 构造跳转的钉钉链接
-                    const baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
-                    // const baseUrl = "http://x58b7659.natappfree.cc/problemMoudle?dd_orientation=landscape";
-                    const redirectUrl = `${baseUrl}&sample_id=${encodeURIComponent(sampleId)}&username=${encodeURIComponent(response.username)}&job=${encodeURIComponent(response.job)}`;
+                        if (sampleId && response.job !== "tester") {
+                            // 构造跳转的钉钉链接
+                            const baseUrl = "http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape";
+                            // const baseUrl = "http://x58b7659.natappfree.cc/problemMoudle?dd_orientation=landscape";
+                            const redirectUrl = `${baseUrl}&sample_id=${encodeURIComponent(sampleId)}&username=${encodeURIComponent(response.username)}&job=${encodeURIComponent(response.job)}`;
 
-                    const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;
-                    // const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;
+                            const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3078576183&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;
+                            // const messageUrl = `dingtalk://dingtalkclient/action/openapp?corpid=ding39a9d20442a933ec35c2f4657eb6378f&container_type=work_platform&app_id=0_3152575892&redirect_type=jump&redirect_url=${encodeURIComponent(redirectUrl)}`;
 
-                    window.location.href = messageUrl;
-                } else {
-                    // 根据角色跳转默认页面
-                    if(response.job === "it" ){
-                        window.location.href = '/loginTestEnvironment';
-                    } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
-                        window.location.href = '/DQEIndex';
-                    } else {
-                        window.location.href = '/testManIndex';
+                            window.location.href = messageUrl;
+                        } else {
+                            // 根据角色跳转默认页面
+                            if(response.job === "it" ){
+                                window.location.href = '/loginTestEnvironment';
+                            } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
+                                window.location.href = '/DQEIndex';
+                            } else {
+                                window.location.href = '/testManIndex';
+                            }
+                        }
+                    } catch (e) {
+                        await alertModal('解析服务器响应失败：' + e.message + '。请重试。');
+                        console.error('解析响应失败:', e);
                     }
+                } else {
+                    // HTTP错误状态码处理
+                    let errorMsg = '获取用户信息失败';
+                    if (xhr.status === 0) {
+                        errorMsg = '无法连接到服务器，请检查网络连接';
+                    } else if (xhr.status === 500) {
+                        errorMsg = '服务器内部错误，请稍后重试或联系管理员';
+                    } else if (xhr.status === 503) {
+                        errorMsg = '服务暂时不可用，请稍后重试';
+                    } else {
+                        errorMsg = '获取用户信息失败，状态码：' + xhr.status;
+                    }
+                    
+                    try {
+                        var errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse.errorMessage) {
+                            errorMsg = errorResponse.errorMessage;
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                    
+                    await alertModal(errorMsg);
                 }
-            } else if(xhr.readyState == 4) {
-                await alertModal('获取用户信息失败，状态码：' + xhr.status);
             }
         };
         xhr.send(JSON.stringify({ authCode: authCode }));
