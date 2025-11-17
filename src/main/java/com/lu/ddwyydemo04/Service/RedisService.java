@@ -188,6 +188,17 @@ public class RedisService {
     }
 
     /**
+     * List操作 - 获取指定范围的元素
+     * @param key 键
+     * @param start 开始位置（0表示第一个）
+     * @param end 结束位置（-1表示最后一个）
+     * @return 元素列表
+     */
+    public List<Object> lRange(String key, long start, long end) {
+        return redisTemplate.opsForList().range(key, start, end);
+    }
+
+    /**
      * Set操作 - 添加元素
      * @param key 键
      * @param values 值

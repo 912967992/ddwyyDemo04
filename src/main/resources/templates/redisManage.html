@@ -454,6 +454,10 @@
                 <span class="stat-label">👥 用户缓存</span>
             </div>
             <div class="stat-card">
+                <span class="stat-number" id="problemLibraryCacheCount">-</span>
+                <span class="stat-label">📋 问题库缓存</span>
+            </div>
+            <div class="stat-card">
                 <span class="stat-number" id="tokenCount">-</span>
                 <span class="stat-label">🔑 Token 缓存</span>
             </div>
@@ -474,6 +478,7 @@
             <div class="tabs">
                 <button class="tab active" data-category="all" onclick="switchTab('all')">全部</button>
                 <button class="tab" data-category="user" onclick="switchTab('user')">👥 用户缓存</button>
+                <button class="tab" data-category="problemLibrary" onclick="switchTab('problemLibrary')">📋 问题库</button>
                 <button class="tab" data-category="token" onclick="switchTab('token')">🔑 Token</button>
                 <button class="tab" data-category="ticket" onclick="switchTab('ticket')">🎫 Ticket</button>
                 <button class="tab" data-category="other" onclick="switchTab('other')">📦 其他</button>
@@ -500,6 +505,7 @@
             </div>
 
             <div id="userCategory" class="category-section"></div>
+            <div id="problemLibraryCategory" class="category-section"></div>
             <div id="tokenCategory" class="category-section"></div>
             <div id="ticketCategory" class="category-section"></div>
             <div id="otherCategory" class="category-section"></div>
@@ -570,6 +576,7 @@
         function updateStats(stats) {
             document.getElementById('totalKeys').textContent = stats.totalKeys || 0;
             document.getElementById('userCacheCount').textContent = stats.userCacheCount || 0;
+            document.getElementById('problemLibraryCacheCount').textContent = stats.problemLibraryCacheCount || 0;
             document.getElementById('tokenCount').textContent = stats.tokenCount || 0;
             document.getElementById('otherCount').textContent = stats.otherCount || 0;
         }
@@ -627,6 +634,7 @@
         function displayCategoryData(category) {
             const categoryMap = {
                 'user': '用户缓存',
+                'problemLibrary': '问题库缓存',
                 'token': 'Access Token',
                 'ticket': 'JSAPI Ticket',
                 'other': '其他缓存'

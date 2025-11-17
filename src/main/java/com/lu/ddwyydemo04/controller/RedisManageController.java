@@ -22,6 +22,9 @@ public class RedisManageController {
 
     @Autowired
     private DingTalkUserCacheService userCacheService;
+    
+    @Autowired
+    private com.lu.ddwyydemo04.Service.ProblemLibraryCacheService problemLibraryCacheService;
 
     /**
      * Redis 缓存管理页面
@@ -44,6 +47,7 @@ public class RedisManageController {
             // 分类统计
             Map<String, List<Map<String, Object>>> categories = new LinkedHashMap<>();
             categories.put("用户缓存", new ArrayList<>());
+            categories.put("问题库缓存", new ArrayList<>());
             categories.put("Access Token", new ArrayList<>());
             categories.put("JSAPI Ticket", new ArrayList<>());
             categories.put("其他缓存", new ArrayList<>());
@@ -54,6 +58,8 @@ public class RedisManageController {
                     
                     if (key.startsWith("dingtalk:user:info:")) {
                         categories.get("用户缓存").add(keyInfo);
+                    } else if (key.startsWith("problemLibrary:")) {
+                        categories.get("问题库缓存").add(keyInfo);
                     } else if (key.contains("access_token") || key.equals("dingtalk:access_token")) {
                         categories.get("Access Token").add(keyInfo);
                     } else if (key.contains("jsapi_ticket")) {
@@ -89,6 +95,7 @@ public class RedisManageController {
             
             // 统计不同类型的键
             int userCacheCount = 0;
+            int problemLibraryCacheCount = 0;
             int tokenCount = 0;
             int otherCount = 0;
             long totalMemory = 0;
@@ -97,6 +104,8 @@ public class RedisManageController {
                 for (String key : allKeys) {
                     if (key.startsWith("dingtalk:user:info:")) {
                         userCacheCount++;
+                    } else if (key.startsWith("problemLibrary:")) {
+                        problemLibraryCacheCount++;
                     } else if (key.contains("token")) {
                         tokenCount++;
                     } else {
@@ -108,6 +117,7 @@ public class RedisManageController {
             result.put("success", true);
             result.put("totalKeys", totalKeys);
             result.put("userCacheCount", userCacheCount);
+            result.put("problemLibraryCacheCount", problemLibraryCacheCount);
             result.put("tokenCount", tokenCount);
             result.put("otherCount", otherCount);
             
@@ -219,9 +229,21 @@ public class RedisManageController {
                 case "list":
                     Long listSize = redisService.lLen(key);
                     valuePreview = "List (" + (listSize != null ? listSize : 0) + " 元素)";
+                    // 对于问题库缓存，显示更详细的信息
+                    if (key.equals("problemLibrary:all:data")) {
+                        valuePreview = "问题库数据 - " + (listSize != null ? listSize : 0) + " 条记录";
+                    }
+                    // 获取 List 的前几个元素作为预览（可选）
+                    try {
+                        List<Object> listPreview = redisService.lRange(key, 0, 2);
+                        value = listPreview;
+                    } catch (Exception e) {
+                        value = "List (" + listSize + " 元素)";
+                    }
                     break;
                 case "set":
                     Set<Object> setValue = redisService.sMembers(key);
+                    value = setValue;
                     valuePreview = "Set (" + (setValue != null ? setValue.size() : 0) + " 元素)";
                     break;
                 default:
@@ -243,23 +265,47 @@ public class RedisManageController {
      */
     private String getKeyType(String key) {
         try {
-            // Redis 返回的类型需要通过判断来确定
-            if (redisService.hExists(key, "userId") || redisService.hGetAll(key).size() > 0) {
-                return "hash";
+            // 先检查 List 类型（避免误判）
+            try {
+                Long listSize = redisService.lLen(key);
+                if (listSize != null && listSize >= 0) {
+                    return "list";
+                }
+            } catch (Exception listEx) {
+                // 不是 List 类型，继续判断其他类型
             }
-            Object value = redisService.get(key);
-            if (value != null) {
-                return "string";
+            
+            // 检查 Hash 类型
+            try {
+                Map<Object, Object> hashMap = redisService.hGetAll(key);
+                if (hashMap != null && hashMap.size() > 0) {
+                    return "hash";
+                }
+            } catch (Exception hashEx) {
+                // 不是 Hash 类型，继续判断
             }
-            Long listSize = redisService.lLen(key);
-            if (listSize != null && listSize > 0) {
-                return "list";
+            
+            // 检查 Set 类型
+            try {
+                Set<Object> setValue = redisService.sMembers(key);
+                if (setValue != null && !setValue.isEmpty()) {
+                    return "set";
+                }
+            } catch (Exception setEx) {
+                // 不是 Set 类型，继续判断
             }
-            Set<Object> setValue = redisService.sMembers(key);
-            if (setValue != null && !setValue.isEmpty()) {
-                return "set";
+            
+            // 检查 String 类型
+            try {
+                Object value = redisService.get(key);
+                if (value != null) {
+                    return "string";
+                }
+            } catch (Exception stringEx) {
+                // 不是 String 类型
             }
-            return "string";
+            
+            return "unknown";
         } catch (Exception e) {
             return "unknown";
         }

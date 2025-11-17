@@ -618,6 +618,32 @@
                 <button id="showSearchHistoryBtn" class="btn btn-secondary">
                     <i class="fas fa-history"></i> 搜索历史
                 </button>
+                
+                <!-- Redis缓存刷新按钮（放在最右侧） -->
+                <div style="display: inline-flex; align-items: center; gap: 8px; position: relative; margin-left: 10px;">
+                    <button id="refreshCacheBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sync-alt"></i> 刷新缓存
+                    </button>
+                    <button id="cacheInfoBtn" class="btn btn-info btn-sm" style="display: inline-flex; align-items: center; width: 32px; height: 32px; justify-content: center; padding: 0; border-radius: 50%;" title="点击查看缓存信息">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                    
+                    <!-- 缓存信息弹窗 -->
+                    <div id="cacheInfoPopup" style="display: none; position: absolute; top: 45px; right: 0; background: white; border: 2px solid #17a2b8; border-radius: 8px; padding: 15px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 350px;">
+                        <div style="margin-bottom: 8px; font-weight: 600; color: #17a2b8; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">
+                            <i class="fas fa-database"></i> Redis 缓存状态
+                        </div>
+                        <div id="cacheRefreshTime" style="font-size: 13px; color: #666; margin-bottom: 6px; line-height: 1.6;">
+                            <i class="fas fa-clock"></i> 缓存时间：加载中...
+                        </div>
+                        <div id="cacheDataCount" style="font-size: 13px; color: #666; line-height: 1.6;">
+                            <i class="fas fa-database"></i> 数据量：--
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #999; padding-top: 8px; border-top: 1px solid #f0f0f0;">
+                            <i class="fas fa-info-circle"></i> 提示：缓存有效期为1小时，刷新间隔≥60秒
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1577,11 +1603,11 @@
 
     <!-- 底部导航 -->
     <div class="bottom-nav">
-        <button class="nav-btn" onclick="goBack()">
+        <button class="nav-btn" onclick="goBack()" title="返回上一页或主页">
             <i class="fas fa-arrow-left"></i>
             <span>返回</span>
         </button>
-        <button class="nav-btn" onclick="goHome()">
+        <button class="nav-btn" onclick="goHome()" title="返回 DQE 主页">
             <i class="fas fa-home"></i>
             <span>主页</span>
         </button>
@@ -1601,6 +1627,10 @@
         // 购物车/收藏夹相关变量
         let cartItems = []; // 收藏夹项目
         let mergedData = []; // 合并后的数据
+
+        // Redis缓存相关变量
+        let lastRefreshTime = null; // 上次刷新时间
+        let refreshCooldown = 60000; // 刷新冷却时间（60秒）
 
         // 缓存相关变量
         let speciesCache = {
@@ -2642,6 +2672,31 @@
 
         // 初始化事件监听器
         function initEventListeners() {
+            // Redis缓存刷新按钮
+            document.getElementById('refreshCacheBtn').addEventListener('click', refreshRedisCache);
+
+            // 缓存信息按钮 - 切换显示/隐藏
+            document.getElementById('cacheInfoBtn').addEventListener('click', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡
+                const popup = document.getElementById('cacheInfoPopup');
+                if (popup.style.display === 'none') {
+                    popup.style.display = 'block';
+                    loadCacheStatus(); // 点击时刷新缓存状态
+                } else {
+                    popup.style.display = 'none';
+                }
+            });
+
+            // 点击页面其他地方关闭弹窗
+            document.addEventListener('click', function(e) {
+                const popup = document.getElementById('cacheInfoPopup');
+                const infoBtn = document.getElementById('cacheInfoBtn');
+                if (popup && popup.style.display === 'block' && 
+                    !popup.contains(e.target) && e.target !== infoBtn && !infoBtn.contains(e.target)) {
+                    popup.style.display = 'none';
+                }
+            });
+
             // 搜索按钮
             document.getElementById('searchBtn').addEventListener('click', searchProblems);
 
@@ -4883,7 +4938,8 @@
 
         // 返回上一页
         function goBack() {
-            window.history.back();
+            // 直接跳转到 DQEIndex 主页
+            window.location.href = '/DQEIndex';
         }
 
         // 返回主页
@@ -5562,6 +5618,146 @@
             .catch(error => {
                 console.error('Error:', error);
                 showToast('清空时发生错误', 'error');
+            });
+        }
+
+        // ==================== Redis缓存管理功能 ====================
+
+        /**
+         * 获取并显示Redis缓存状态
+         */
+        function loadCacheStatus() {
+            fetch('/problemLibrary/getCacheStatus')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayCacheStatus(data.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取缓存状态失败:', error);
+                });
+        }
+
+        /**
+         * 显示缓存状态
+         */
+        function displayCacheStatus(cacheData) {
+            const refreshTimeElem = document.getElementById('cacheRefreshTime');
+            const dataCountElem = document.getElementById('cacheDataCount');
+            const infoBtn = document.getElementById('cacheInfoBtn');
+
+            if (cacheData.cached) {
+                // 缓存存在
+                const ttlMinutes = cacheData.ttlMinutes || 0;
+                const cachedAtStr = cacheData.cachedAtStr;
+                const dataCount = cacheData.dataCount || 0;
+                
+                // 更新感叹号按钮颜色（绿色表示缓存正常）
+                infoBtn.className = 'btn btn-success btn-sm';
+                infoBtn.style.cssText = 'display: inline-flex; align-items: center; width: 32px; height: 32px; justify-content: center; padding: 0; border-radius: 50%;';
+                infoBtn.title = '缓存正常 - 点击查看详情';
+                
+                // 显示缓存时间
+                if (cachedAtStr) {
+                    refreshTimeElem.innerHTML = `<i class="fas fa-check-circle"></i> 缓存时间：${cachedAtStr} <span style="color: #28a745; font-weight: 500;">(剩余 ${Math.round(ttlMinutes)} 分钟)</span>`;
+                    refreshTimeElem.style.color = '#28a745';
+                } else if (cacheData.cacheTimeInfo) {
+                    // 直接显示可读的缓存信息
+                    refreshTimeElem.innerHTML = `<i class="fas fa-check-circle"></i> ${cacheData.cacheTimeInfo}`;
+                    refreshTimeElem.style.color = '#28a745';
+                } else {
+                    refreshTimeElem.innerHTML = `<i class="fas fa-check-circle"></i> 缓存时间：未知 <span style="color: #28a745;">(剩余 ${Math.round(ttlMinutes)} 分钟)</span>`;
+                }
+                
+                // 显示数据量
+                if (dataCount > 0) {
+                    dataCountElem.innerHTML = `<i class="fas fa-database"></i> 缓存数据：<span style="color: #28a745; font-weight: 600;">${dataCount}</span> 条`;
+                } else {
+                    dataCountElem.innerHTML = '<i class="fas fa-database"></i> 缓存数据：-- 条';
+                }
+            } else {
+                // 缓存不存在
+                // 更新感叹号按钮颜色（橙色表示警告）
+                infoBtn.className = 'btn btn-warning btn-sm';
+                infoBtn.style.cssText = 'display: inline-flex; align-items: center; width: 32px; height: 32px; justify-content: center; padding: 0; border-radius: 50%;';
+                infoBtn.title = '无缓存 - 点击查看详情';
+                
+                refreshTimeElem.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 缓存状态：<span style="color: #dc3545; font-weight: 500;">无缓存（首次搜索会较慢）</span>';
+                refreshTimeElem.style.color = '#dc3545';
+                dataCountElem.innerHTML = '<i class="fas fa-database"></i> 缓存数据：<span style="color: #6c757d;">0</span> 条';
+            }
+        }
+
+        /**
+         * 格式化日期时间显示
+         */
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        /**
+         * 刷新Redis缓存
+         */
+        function refreshRedisCache() {
+            const now = Date.now();
+            const btn = document.getElementById('refreshCacheBtn');
+            
+            // 检查冷却时间（60秒内不能重复刷新）
+            if (lastRefreshTime && (now - lastRefreshTime) < refreshCooldown) {
+                const remainingSeconds = Math.ceil((refreshCooldown - (now - lastRefreshTime)) / 1000);
+                showToast(`请稍后再试，刷新冷却中... 剩余 ${remainingSeconds} 秒`, 'warning');
+                return;
+            }
+
+            if (!confirm('刷新缓存会从数据库重新加载所有数据，可能需要几秒钟。\n\n确定要刷新吗？')) {
+                return;
+            }
+
+            // 禁用按钮，显示加载状态
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刷新中...';
+            showLoading();
+
+            fetch('/problemLibrary/refreshCache', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    lastRefreshTime = now;
+                    showToast(data.message, 'success', 4000);
+                    
+                    // 更新缓存状态显示
+                    loadCacheStatus();
+                    
+                    // 自动显示缓存信息弹窗
+                    document.getElementById('cacheInfoPopup').style.display = 'block';
+                    
+                    // 刷新当前页面数据
+                    loadProblemData();
+                } else {
+                    showToast('刷新缓存失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('刷新缓存时发生错误', 'error');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> 刷新缓存';
+                hideLoading();
             });
         }
     </script>

@@ -22,32 +22,82 @@ public class ProblemLibraryService {
     @Autowired
     private SearchHistoryDao searchHistoryDao;
     
+    @Autowired
+    private ProblemLibraryCacheService cacheService;
+    
     private ObjectMapper objectMapper = new ObjectMapper();
 
 
     /**
-     * 根据条件搜索问题点
+     * 根据条件搜索问题点（使用Redis缓存优化）
      * @param filters 搜索条件
      * @return 问题点列表
      */
     public List<TestIssues> searchProblems(Map<String, Object> filters) {
-        // 处理当前状态的兼容性筛选
-        if (filters.containsKey("currentStatus") && filters.get("currentStatus") != null) {
-            String currentStatus = (String) filters.get("currentStatus");
-            if (!currentStatus.isEmpty()) {
-                // 根据选择的状态，添加兼容的搜索条件
-                if ("Closed".equals(currentStatus)) {
-                    // Closed状态兼容 close, closed, Close, CLOSED
-                    filters.put("currentStatusCompatible", "close,closed,Close,CLOSED");
-                } else if ("Follow up".equals(currentStatus)) {
-                    // Follow up状态兼容 follow up, followup, Follow up, FOLLOW UP
-                    filters.put("currentStatusCompatible", "follow up,followup,Follow up,FOLLOW UP");
-                }
-                // Open状态不需要兼容处理，保持原值
+        // 检查是否有任何过滤条件
+        boolean hasFilters = hasAnyFilter(filters);
+        
+        // 1. 尝试从Redis缓存获取所有数据
+        List<TestIssues> allProblems = cacheService.getCachedProblems();
+        
+        if (allProblems == null) {
+            // 2. 缓存不存在，从数据库加载
+            System.out.println("📡 Redis缓存不存在，从数据库加载问题库数据...");
+            allProblems = problemLibraryDao.searchProblems(new HashMap<>()); // 查询所有数据
+            
+            // 3. 缓存到Redis（1小时）
+            if (allProblems != null && !allProblems.isEmpty()) {
+                cacheService.cacheAllProblems(allProblems);
+                System.out.println("✅ 已将 " + allProblems.size() + " 条数据缓存到Redis");
+            }
+        } else {
+            System.out.println("⚡ 从Redis缓存读取数据，跳过数据库查询！");
+        }
+        
+        // 4. 如果没有过滤条件，直接返回所有数据
+        if (!hasFilters) {
+            return allProblems;
+        }
+        
+        // 5. 在内存中进行过滤（速度极快！）
+        System.out.println("🔍 在内存中过滤数据，条件: " + filters);
+        List<TestIssues> filteredProblems = cacheService.filterProblemsInMemory(allProblems, filters);
+        System.out.println("✅ 过滤完成，结果: " + filteredProblems.size() + " 条");
+        
+        return filteredProblems;
+    }
+    
+    /**
+     * 检查是否有任何过滤条件
+     */
+    private boolean hasAnyFilter(Map<String, Object> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return false;
+        }
+        
+        String[] filterKeys = {
+            "fullModel", "sampleStage", "version", "bigSpecies", "smallSpecies",
+            "problemCategory", "defectLevel", "currentStatus", "tester",
+            "responsibleDepartment", "startDate", "endDate", "dqe", "problem",
+            "testPlatform", "testDevice", "otherDevice"
+        };
+        
+        for (String key : filterKeys) {
+            Object value = filters.get(key);
+            if (value != null && !value.toString().trim().isEmpty()) {
+                return true;
             }
         }
         
-        return problemLibraryDao.searchProblems(filters);
+        return false;
+    }
+    
+    /**
+     * 从数据库加载所有问题点（不使用缓存，用于强制刷新）
+     * @return 问题点列表
+     */
+    public List<TestIssues> loadAllProblemsFromDatabase() {
+        return problemLibraryDao.searchProblems(new HashMap<>());
     }
 
     /**
@@ -60,6 +110,13 @@ public class ProblemLibraryService {
         testIssues.setModify_at(LocalDateTime.now());
 
         int result = problemLibraryDao.updateProblem(testIssues);
+        
+        // 更新成功后，清除Redis缓存，下次查询会重新加载最新数据
+        if (result > 0) {
+            cacheService.clearCache();
+            System.out.println("✅ 问题点更新成功，已清除Redis缓存");
+        }
+        
         return result > 0;
     }
 
