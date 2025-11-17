@@ -30,6 +30,20 @@ spring:
     password: a134679
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # Redis 配置
+  redis:
+    host: localhost
+    port: 6380
+    password:  # 如果Redis设置了密码，在这里配置
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 20  # 连接池最大连接数
+        max-wait: -1ms  # 连接池最大阻塞等待时间
+        max-idle: 10    # 连接池最大空闲连接
+        min-idle: 5     # 连接池最小空闲连接
+
 server:
 #  8082是测试开发门户网站
 #  port: 8082
@@ -58,17 +72,17 @@ mybatis:
 
 dingtalk:
 #  测试用Demo版本
-#  appKey: dingdopwfacnq4jwxetg
-#  appSecret: wwXuKPRFKVXhQBHBqkT7C6_U13RkxFK_FksYqVP5CsIIU2X-nAqISyNrweHzJQn5
-#  corpid: ding39a9d20442a933ec35c2f4657eb6378f
-#  agentid: 3152575892
-#  apiToDingTalkUrl: https://api.dingtalk.coml
-##  研发质量管理系统
-  appKey: dingifih6yjygcaok5xp
-  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox
+  appKey: dingdopwfacnq4jwxetg
+  appSecret: wwXuKPRFKVXhQBHBqkT7C6_U13RkxFK_FksYqVP5CsIIU2X-nAqISyNrweHzJQn5
   corpid: ding39a9d20442a933ec35c2f4657eb6378f
-  agentid: 3078576183
-  apiToDingTalkUrl: https://api.dingtalk.com
+  agentid: 3152575892
+  apiToDingTalkUrl: https://api.dingtalk.coml
+##  研发质量管理系统
+#  appKey: dingifih6yjygcaok5xp
+#  appSecret: yr7WJIMCnn_mlePueyQij4PVkP5XjDxCFtVec-yIVotV0sDS-xQnPJKAAgZ3e1ox
+#  corpid: ding39a9d20442a933ec35c2f4657eb6378f
+#  agentid: 3078576183
+#  apiToDingTalkUrl: https://api.dingtalk.com
 
 #  测试开发门户网站
 #  appKey: dingljsbvvtgiaofoa4l
@@ -91,15 +105,15 @@ file:
 #    jsonpath: C:/ddwyy-lj/jsonpath
 #    issuespath: C:/ddwyy-lj/issuespath
 #    研发质量管理系统
-    templatespath: Z:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
-    savepath: Z:/ddwyy-lj/savepath
-    imagepath: Z:/ddwyy-lj/imageDirectory
-    jsonpath: Z:/ddwyy-lj/jsonpath
-    issuespath: Z:/ddwyy-lj/issuespath
+#    templatespath: Z:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
+#    savepath: Z:/ddwyy-lj/savepath
+#    imagepath: Z:/ddwyy-lj/imageDirectory
+#    jsonpath: Z:/ddwyy-lj/jsonpath
+#    issuespath: Z:/ddwyy-lj/issuespath
 #   ROG枪神8 测试用
-#    templatespath: E:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
-#    savepath: E:/ddwyy-lj/savepath
-#    imagepath: E:/ddwyy-lj/imageDirectory
-#    jsonpath: E:/ddwyy-lj/jsonpath
-#    issuespath: E:/ddwyy-lj/issuespath
+    templatespath: E:/ddwyy-lj/templatesDirectory  #模板文件存放的路径
+    savepath: E:/ddwyy-lj/savepath
+    imagepath: E:/ddwyy-lj/imageDirectory
+    jsonpath: E:/ddwyy-lj/jsonpath
+    issuespath: E:/ddwyy-lj/issuespath
 

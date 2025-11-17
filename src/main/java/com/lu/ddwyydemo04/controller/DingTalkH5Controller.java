@@ -49,6 +49,9 @@ public class DingTalkH5Controller {
     @Autowired
     private UserAccessLogService userAccessLogService;
 
+    @Autowired
+    private com.lu.ddwyydemo04.Service.DingTalkUserCacheService userCacheService;
+
     @Value("${dingtalk.agentid}")
     private String agentid;
 
@@ -69,6 +72,67 @@ public class DingTalkH5Controller {
 
     // 获取access_token的方法
 
+    /**
+     * 恢复用户 Session（用于页面跳转时快速恢复登录状态）
+     * 通过 username 从 Redis 缓存中获取用户信息并恢复到 session
+     */
+    @PostMapping("/api/restoreSession")
+    @ResponseBody
+    public Map<String, Object> restoreSession(@RequestBody Map<String, String> requestMap, HttpServletRequest httpRequest) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            String username = requestMap.get("username");
+            String job = requestMap.get("job");
+            
+            if (username == null || username.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "缺少用户名参数");
+                return result;
+            }
+            
+            System.out.println("🔄 尝试恢复 Session: username=" + username + ", job=" + job);
+            logger.info("尝试恢复 Session: username=" + username);
+            
+            // 从 Redis 缓存中查找用户信息（通过遍历所有缓存的用户）
+            com.lu.ddwyydemo04.Service.DingTalkUserCacheService.UserInfo userInfo = userCacheService.getUserInfoByUsername(username);
+            
+            if (userInfo != null) {
+                // 找到了用户信息，恢复到 session
+                javax.servlet.http.HttpSession session = httpRequest.getSession(true);
+                session.setAttribute("userId", userInfo.getUserId());
+                session.setAttribute("username", userInfo.getUsername());
+                session.setAttribute("job", userInfo.getJob());
+                session.setAttribute("departmentId", userInfo.getDepartmentId());
+                if (userInfo.getDepartmentName() != null && !userInfo.getDepartmentName().isEmpty()) {
+                    session.setAttribute("departmentName", userInfo.getDepartmentName());
+                }
+                session.setAttribute("corp_id", userInfo.getCorpId());
+                
+                System.out.println("✅ Session 恢复成功: " + username + " (ID: " + userInfo.getUserId() + ")");
+                logger.info("Session 恢复成功: " + username);
+                
+                result.put("success", true);
+                result.put("message", "Session 恢复成功");
+                result.put("username", userInfo.getUsername());
+                result.put("job", userInfo.getJob());
+            } else {
+                // Redis 缓存中没有找到用户信息
+                System.out.println("⚠️ Redis 缓存中未找到用户信息: " + username);
+                logger.warn("Redis 缓存中未找到用户信息: " + username);
+                result.put("success", false);
+                result.put("message", "缓存中未找到用户信息，请重新登录");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("❌ Session 恢复失败: " + e.getMessage());
+            logger.error("Session 恢复失败: " + e.getMessage(), e);
+            result.put("success", false);
+            result.put("message", "Session 恢复失败: " + e.getMessage());
+        }
+        
+        return result;
+    }
 
     @PostMapping("/api/getUserInfo")
     @ResponseBody
@@ -87,6 +151,7 @@ public class DingTalkH5Controller {
             
             String accessToken = accessTokenService.getAccessToken(); // 调用方法获取accessToken
 
+            // 首先使用authCode获取userid（这个API调用是必需的，不能缓存）
             DingTalkClient client = new DefaultDingTalkClient(GET_USER_INFO_URL);
             OapiUserGetuserinfoRequest getUserInfoRequest = new OapiUserGetuserinfoRequest();
             getUserInfoRequest.setCode(authCode);
@@ -95,8 +160,30 @@ public class DingTalkH5Controller {
             OapiUserGetuserinfoResponse response = client.execute(getUserInfoRequest, accessToken);
             
             if (response.getErrcode() == 0) {
-            // 正常情况下返回用户userid   ,deviceid是设备的唯一标识符，用不太到
+            // 正常情况下返回用户userid
             String userid = response.getUserid();
+
+            // 检查Redis缓存中是否已有该用户的信息
+            System.out.println("检查用户 " + userid + " 的缓存信息...");
+            com.lu.ddwyydemo04.Service.DingTalkUserCacheService.UserInfo cachedUserInfo = userCacheService.getUserInfo(userid);
+            if (cachedUserInfo != null) {
+                // 从缓存中获取用户信息，完全避免调用钉钉API
+                System.out.println("🎉 从缓存中获取用户信息成功，避免调用钉钉API: " + userid + " (" + cachedUserInfo.getUsername() + ")");
+                logger.info("从缓存获取用户信息: " + cachedUserInfo.getUsername());
+
+                // 返回缓存的用户信息
+                result.putAll(cachedUserInfo.toMap());
+                
+                // 记录用户访问日志
+                userAccessLogService.recordUserAccess(cachedUserInfo.getUsername(), cachedUserInfo.getJob(), "登录/获取用户信息", request);
+                
+                System.out.println("✅ 用户登录成功（使用缓存），返回用户信息: " + cachedUserInfo.getUsername());
+                return result;
+            }
+
+            // 缓存中没有，从钉钉API获取详细信息（首次登录）
+            System.out.println("📡 缓存中没有用户信息，从钉钉API获取: " + userid);
+            logger.info("缓存中没有用户信息，从钉钉API获取: " + userid);
 
             // 使用userId获取用户的详细信息
             DingTalkClient infoClient = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/v2/user/get");
@@ -105,7 +192,6 @@ public class DingTalkH5Controller {
             infoReq.setLanguage("zh_CN");
             OapiV2UserGetResponse infoRsp = infoClient.execute(infoReq, accessToken);
             String username = extractParamOfResult(infoRsp.getBody(),"name");
-//            System.out.println("name:"+username);
             logger.info("name:"+username);
 
 
@@ -140,26 +226,32 @@ public class DingTalkH5Controller {
 //            System.out.println(job);
             logger.info("job:"+job);
 
-            // 特殊用户名覆盖 job 为 "it"
+            // 特殊用户名覆盖 job 为 "projectLeader"
             if ("陈少侠".equals(username) || "郭丽纯".equals(username) ||
                     "占海英".equals(username) || "刘定荣".equals(username) || "姚遥".equals(username)) {
                 job = "projectLeader";
             }
 
-            result.put("job", job);
+            // 从 users 表获取 departmentName
+            String departmentName = dqeDao.getDepartmentNameByUsername(username);
+            
+            // 创建用户信息对象并缓存到Redis（7天有效期）
+            com.lu.ddwyydemo04.Service.DingTalkUserCacheService.UserInfo userInfo = 
+                new com.lu.ddwyydemo04.Service.DingTalkUserCacheService.UserInfo(
+                    userid, username, job, departmentId, departmentName, corpid, templatespath, imagepath, savepath
+                );
+            System.out.println("🔄 首次登录，准备缓存用户信息: " + username + " (ID: " + userid + ")");
+            logger.info("首次登录，缓存用户信息: " + username);
+            userCacheService.cacheUserInfo(userInfo);
 
             //将想要返回的结果保存起来
             result.put("userId", userid);
             result.put("username", username);
-//            result.put("job", job);
+            result.put("job", job);
             result.put("departmentId", departmentId);
-            
-            // 从 users 表获取 departmentName
-            String departmentName = dqeDao.getDepartmentNameByUsername(username);
             if (departmentName != null && !departmentName.isEmpty()) {
                 result.put("departmentName", departmentName);
             }
-            
             result.put("corp_id",corpid);
             result.put("templatespath",templatespath);
             result.put("imagepath",imagepath);

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis 缓存管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "SF Pro Display", -apple-system, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .readonly-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px 40px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 30px 40px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            color: #718096;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .category-section {
+            display: none;
+        }
+
+        .category-section.active {
+            display: block;
+        }
+
+        .cache-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .cache-table thead {
+            background: #f7fafc;
+        }
+
+        .cache-table th {
+            padding: 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cache-table td {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        .cache-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .cache-table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .key-text {
+            font-family: "Consolas", "Monaco", monospace;
+            color: #667eea;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-string { background: #bee3f8; color: #2c5282; }
+        .type-hash { background: #c6f6d5; color: #22543d; }
+        .type-list { background: #fed7d7; color: #742a2a; }
+        .type-set { background: #feebc8; color: #7c2d12; }
+
+        .ttl-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #edf2f7;
+            color: #4a5568;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .value-preview {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #718096;
+            font-size: 13px;
+            font-family: "Consolas", "Monaco", monospace;
+        }
+
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+
+        /* Modal 样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: #2d3748;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-row {
+            margin-bottom: 20px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .detail-value {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 13px;
+            color: #2d3748;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .hash-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .hash-table td {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 12px;
+        }
+
+        .hash-table td:first-child {
+            font-weight: 600;
+            background: #f7fafc;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🗄️ Redis 缓存管理系统
+                <span class="readonly-badge">🔒 只读模式</span>
+            </h1>
+            <p>实时查看系统中的所有 Redis 缓存数据（只读，不可删除）</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number" id="totalKeys">-</span>
+                <span class="stat-label">📊 总缓存数</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="userCacheCount">-</span>
+                <span class="stat-label">👥 用户缓存</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="tokenCount">-</span>
+                <span class="stat-label">🔑 Token 缓存</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="otherCount">-</span>
+                <span class="stat-label">📦 其他缓存</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="alert" class="alert"></div>
+
+            <div class="controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索缓存键名...">
+                <button class="btn-primary" onclick="loadAllData()">🔄 刷新</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-category="all" onclick="switchTab('all')">全部</button>
+                <button class="tab" data-category="user" onclick="switchTab('user')">👥 用户缓存</button>
+                <button class="tab" data-category="token" onclick="switchTab('token')">🔑 Token</button>
+                <button class="tab" data-category="ticket" onclick="switchTab('ticket')">🎫 Ticket</button>
+                <button class="tab" data-category="other" onclick="switchTab('other')">📦 其他</button>
+            </div>
+
+            <div id="loading" class="loading">⏳ 加载中...</div>
+            
+            <div id="allCategory" class="category-section active">
+                <table class="cache-table" id="allTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">缓存键</th>
+                            <th style="width: 12%">类型</th>
+                            <th style="width: 33%">值预览</th>
+                            <th style="width: 15%">过期时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allTableBody">
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px; padding: 16px; background: #f7fafc; border-radius: 8px; color: #718096; font-size: 13px; text-align: center;">
+                    💡 提示：点击任意行即可查看详细信息（只读模式，无法删除）
+                </div>
+            </div>
+
+            <div id="userCategory" class="category-section"></div>
+            <div id="tokenCategory" class="category-section"></div>
+            <div id="ticketCategory" class="category-section"></div>
+            <div id="otherCategory" class="category-section"></div>
+
+            <div id="empty" class="empty" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>暂无缓存数据</h3>
+                <p>Redis 中还没有任何缓存数据</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔍 缓存详情</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let currentTab = 'all';
+
+        window.onload = function() {
+            loadAllData();
+        };
+
+        // 搜索功能
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const keyword = e.target.value.toLowerCase();
+            filterTable(keyword);
+        });
+
+        // 加载所有数据
+        function loadAllData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('allCategory').style.display = 'none';
+            document.getElementById('empty').style.display = 'none';
+
+            Promise.all([
+                fetch('/redis/api/stats/all').then(r => r.json()),
+                fetch('/redis/api/keys/all').then(r => r.json())
+            ]).then(([stats, keys]) => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (stats.success) {
+                    updateStats(stats);
+                }
+                
+                if (keys.success) {
+                    allData = keys.categories;
+                    displayAllData();
+                } else {
+                    showAlert('加载失败: ' + keys.error, 'error');
+                }
+            }).catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showAlert('网络错误: ' + error, 'error');
+            });
+        }
+
+        // 更新统计信息
+        function updateStats(stats) {
+            document.getElementById('totalKeys').textContent = stats.totalKeys || 0;
+            document.getElementById('userCacheCount').textContent = stats.userCacheCount || 0;
+            document.getElementById('tokenCount').textContent = stats.tokenCount || 0;
+            document.getElementById('otherCount').textContent = stats.otherCount || 0;
+        }
+
+        // 显示所有数据
+        function displayAllData() {
+            const tbody = document.getElementById('allTableBody');
+            const empty = document.getElementById('empty');
+            
+            let allKeys = [];
+            Object.values(allData).forEach(category => {
+                allKeys = allKeys.concat(category);
+            });
+
+            if (allKeys.length === 0) {
+                document.getElementById('allCategory').style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            document.getElementById('allCategory').style.display = 'block';
+            empty.style.display = 'none';
+
+            tbody.innerHTML = allKeys.map(item => `
+                <tr data-key="${item.key}" onclick="viewDetail('${escapeHtml(item.key)}')" style="cursor: pointer;">
+                    <td><span class="key-text">${item.key}</span></td>
+                    <td><span class="type-badge type-${item.type}">${item.type}</span></td>
+                    <td><span class="value-preview">${item.valuePreview || '-'}</span></td>
+                    <td><span class="ttl-badge">${item.ttlFormatted}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // 切换标签
+        function switchTab(category) {
+            currentTab = category;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            if (category === 'all') {
+                displayAllData();
+            } else {
+                displayCategoryData(category);
+            }
+        }
+
+        // 显示分类数据
+        function displayCategoryData(category) {
+            const categoryMap = {
+                'user': '用户缓存',
+                'token': 'Access Token',
+                'ticket': 'JSAPI Ticket',
+                'other': '其他缓存'
+            };
+
+            const categoryName = categoryMap[category];
+            const data = allData[categoryName] || [];
+
+            const container = document.getElementById(category + 'Category');
+            container.classList.add('active');
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📭</div>
+                        <h3>暂无${categoryName}</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="cache-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">缓存键</th>
+                            <th style="width: 12%">类型</th>
+                            <th style="width: 33%">值预览</th>
+                            <th style="width: 15%">过期时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr data-key="${item.key}" onclick="viewDetail('${escapeHtml(item.key)}')" style="cursor: pointer;">
+                                <td><span class="key-text">${item.key}</span></td>
+                                <td><span class="type-badge type-${item.type}">${item.type}</span></td>
+                                <td><span class="value-preview">${item.valuePreview || '-'}</span></td>
+                                <td><span class="ttl-badge">${item.ttlFormatted}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // 过滤表格
+        function filterTable(keyword) {
+            const rows = document.querySelectorAll('.cache-table tbody tr');
+            rows.forEach(row => {
+                const key = row.getAttribute('data-key').toLowerCase();
+                if (key.includes(keyword)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // 查看详情
+        function viewDetail(key) {
+            fetch('/redis/api/key/detail?key=' + encodeURIComponent(key))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showDetailModal(data);
+                    } else {
+                        showAlert('加载失败: ' + data.error, 'error');
+                    }
+                });
+        }
+
+        // 显示详情弹窗
+        function showDetailModal(data) {
+            const modal = document.getElementById('detailModal');
+            const body = document.getElementById('modalBody');
+
+            let valueHtml = '';
+            if (data.type === 'hash' && data.value) {
+                valueHtml = `
+                    <table class="hash-table">
+                        ${Object.entries(data.value).map(([k, v]) => `
+                            <tr>
+                                <td>${k}</td>
+                                <td>${v}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                `;
+            } else {
+                valueHtml = `<div class="detail-value">${JSON.stringify(data.value, null, 2)}</div>`;
+            }
+
+            body.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">缓存键</div>
+                    <div class="detail-value">${data.key}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">数据类型</div>
+                    <div class="detail-value">${data.type}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">过期时间</div>
+                    <div class="detail-value">${data.ttlFormatted} (${data.ttl} 秒)</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">缓存值</div>
+                    ${valueHtml}
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        // 显示提示
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
