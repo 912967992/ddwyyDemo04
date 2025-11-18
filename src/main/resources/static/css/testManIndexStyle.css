@@ -864,6 +864,23 @@ h3{
 }
 
 
+.report-query-btn {
+    position: absolute;
+    top: 10px;
+    right: 320px;
+    padding: 10px;
+    background-color: #9C27B0;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.report-query-btn:hover {
+    background-color: #7B1FA2;
+}
+
 .problem-library-btn {
     position: absolute;
     top: 10px;

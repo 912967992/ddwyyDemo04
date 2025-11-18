@@ -19,7 +19,7 @@
 
 <div class="header-container">
     <div class="title">问题点模块</div>
-    <button class="BackBtn" id="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+    <button class="BackBtn" id="BackBtn">返回<br>主页</button>
 </div>
 
 <div class="search-container">
@@ -422,16 +422,31 @@
 
     //调试用,job有以下几种：DQE,rd,projectLeader
 
+    // 左上角返回主页按钮
+    const backBtn = document.getElementById('BackBtn');
+    
+    // 返回主页按钮点击事件 - 根据角色跳转不同页面
+    backBtn.addEventListener('click', function() {
+        if (job === 'tester') {
+            window.location.href = '/testManIndex';
+        } else {
+            window.location.href = '/DQEIndex';
+        }
+    });
 
     // 下方三个按钮跳转页面
     const homeBtn = document.getElementById('homeBtn');
     const cloudBtn = document.getElementById('cloudBtn');
     const profileBtn = document.getElementById('profileBtn');
 
-    // 添加点击事件监听器
+    // 添加点击事件监听器 - 根据角色跳转不同页面
     $(homeBtn).click(function() {
         // 跳转到主页
-        window.location.href = '/DQEIndex';
+        if (job === 'tester') {
+            window.location.href = '/testManIndex';
+        } else {
+            window.location.href = '/DQEIndex';
+        }
     });
 
     // $(cloudBtn).click(function() {
@@ -556,7 +571,7 @@
             currentPage = 1;
 
             globalFormData = $(this).serialize();  // 获取表单数据
-            console.log("globalFormData:",globalFormData)
+            // console.log("globalFormData:",globalFormData)
 
             performSearch(globalFormData);  // 执行搜索并传递表单数据
         });

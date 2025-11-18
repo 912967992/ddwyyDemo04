@@ -26,6 +26,8 @@
 <div class="title-container">
     <button id="announcement-btn">查看公告(v2.3，20251018去除进入报告操作)</button>
     <div class="title">主页</div>
+    <!-- 报告查询页面按钮 -->
+    <button id="report-query-btn" class="report-query-btn">问题审核页面(可下载他人报告)</button>
     <!-- 问题库管理按钮 -->
     <button id="problem-library-btn" class="problem-library-btn">问题库管理</button>
     <!-- 数据看板按钮 -->
@@ -3977,6 +3979,53 @@
                 console.error('上传出错:', error);
                 // 在这里处理错误情况，比如提示用户
             });
+    }
+
+    // 报告查询页面按钮功能
+    const reportQueryBtn = document.getElementById("report-query-btn");
+    
+    // 报告查询页面按钮点击事件
+    reportQueryBtn.addEventListener("click", () => {
+        goToReportQuery();
+    });
+    
+    // 跳转到报告查询页面
+    function goToReportQuery() {
+        if (!username) {
+            alert("请先输入用户名！");
+            return;
+        }
+        
+        if (!job) {
+            alert("请先选择角色！");
+            return;
+        }
+
+        // 检查是否在钉钉环境中
+        const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
+        
+        // 如果是tester，添加readonly参数
+        let url = 'http://219.134.191.195:64000/problemMoudle?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        // let url = 'http://xf9deff9.natappfree.cc/problemMoudle?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+        if (job === 'tester') {
+            url += '&readonly=true';
+        }
+
+        if (isDingTalk) {
+            dd.openLink({
+                url: url,
+                success: function() {
+                    console.log('成功打开报告查询页面');
+                },
+                fail: function(err) {
+                    alert('打开页面失败：' + JSON.stringify(err));
+                    console.error('dd.openLink fail:', err);
+                }
+            });
+        } else {
+            // 非钉钉环境使用普通跳转
+            window.location.href = url;
+        }
     }
 
     // 问题库管理按钮功能
