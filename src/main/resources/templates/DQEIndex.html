@@ -425,6 +425,14 @@
                     <i class="fas fa-user-tie"></i>
                     <span>主管</span>
                 </button>
+                <button id="sqeBtn" class="role-btn">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>SQE</span>
+                </button>
+                <button id="cqeBtn" class="role-btn">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>CQE</span>
+                </button>
             </div>
         </div>
 
@@ -941,15 +949,15 @@
         }
 
         function checkProblemLibraryPermission() {
-            // 检查权限：DQE角色 或者 指定的用户
+            // 检查权限：DQE、SQE角色 或者 指定的用户
             const allowedUsers = ['邓小英', '邓令章', '卢健','许梦瑶','卢绮敏', '李良健', '黄家灿', '荣成彧'];
-            const hasPermission = job === 'DQE' || allowedUsers.includes(username);
+            const hasPermission = job === 'DQE' || job === 'SQE' || allowedUsers.includes(username);
             
             if (hasPermission) {
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
                 const url = 'http://219.134.191.195:64000/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-                // const url = 'http://xf9deff9.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // const url = 'http://e5eddb82.natappfree.cc/problemLibraryManage?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
 
                 if (isDingTalk) {
                     // 在钉钉环境中，先保存用户信息到localStorage，然后跳转
@@ -988,7 +996,7 @@
             const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
 
             const url = 'http://219.134.191.195:64000/scheduleBoard?username=' + encodeURIComponent(username);
-            // const url = 'http://e888ccd6.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
+            // const url = 'http://e5eddb82.natappfree.cc/scheduleBoard?username=' + encodeURIComponent(username);
             AccessLogUtil.record("项目排期页面");
 
             // 关闭模态框
@@ -1131,15 +1139,15 @@
                 return;
             }
 
-            // 只检查角色是否为DQE
-            if (job === 'DQE' || job === 'manager') {
+            // 检查角色是否为DQE、manager或SQE
+            if (job === 'DQE' || job === 'manager' || job === 'SQE') {
                 // 从 localStorage 获取 departmentName
                 const departmentName = localStorage.getItem('departmentName') || '';
                 
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
                 let url = 'http://219.134.191.195:64000/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-                // let url = 'http://xd6969a4.natappfree.cc/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // let url = 'http://e5eddb82.natappfree.cc/reviewResults?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
                 // 如果存在 departmentName，添加到 URL 参数中
                 if (departmentName) {
                     url += '&departmentName=' + encodeURIComponent(departmentName);
@@ -1186,15 +1194,15 @@
                 return;
             }
 
-            // 只检查角色是否为DQE
-            if (job === 'DQE' || job === 'manager') {
+            // 检查角色是否为DQE、manager、CQE或SQE
+            if (job === 'DQE' || job === 'manager' || job === 'CQE' || job === 'SQE') {
                 // 从 localStorage 获取 departmentName
                 const departmentName = localStorage.getItem('departmentName') || '';
                 
                 // 检查是否在钉钉环境中
                 const isDingTalk = typeof dd !== 'undefined' && dd.env.platform !== 'notInDingTalk';
                 let url = 'http://219.134.191.195:64000/qualityProgress?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-                // let url = 'http://xd6969a4.natappfree.cc/qualityProgress?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+                // let url = 'http://e5eddb82.natappfree.cc/qualityProgress?username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
                 // 如果存在 departmentName，添加到 URL 参数中
                 if (departmentName) {
                     url += '&departmentName=' + encodeURIComponent(departmentName);
@@ -1223,7 +1231,7 @@
                     window.location.href = url;
                 }
             } else {
-                alert("只有DQE角色才能进入新品质量进度管理页面");
+                alert("只有DQE、manager或CQE角色才能进入新品质量进度管理页面");
             }
 
         }
@@ -1237,6 +1245,12 @@
             
             if (!job) {
                 alert("请先选择角色！");
+                return;
+            }
+
+            // 禁止 CQE 访问数据看板（SQE可以访问）
+            if (job === 'CQE') {
+                alert("CQE 角色无法访问数据看板");
                 return;
             }
 
@@ -1319,6 +1333,7 @@
             switch(job) {
                 case 'DQE':
                 case 'projectLeader':
+                case 'SQE':
                     return 'dqeDashboard';
                 case 'rd':
                     return 'rdDashboard';
@@ -1661,6 +1676,14 @@
         updateUserInfo('tester');
         updateProjectSummary();
     });
+    document.getElementById('sqeBtn').addEventListener('click', function() {
+        updateUserInfo('SQE');
+        updateProjectSummary();
+    });
+    document.getElementById('cqeBtn').addEventListener('click', function() {
+        updateUserInfo('CQE');
+        updateProjectSummary();
+    });
 
     document.getElementById('saveUsernameBtn').addEventListener('click',function (){
         const usernameInput = document.getElementById('usernameInput');
@@ -1706,7 +1729,7 @@
             // url = 'http://e888ccd6.natappfree.cc/ProjectLeaderMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
         } else {
             url = 'http://219.134.191.195:64000/problemMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
-            // url = 'http://e888ccd6.natappfree.cc/problemMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
+            // url = 'http://e5eddb82.natappfree.cc/problemMoudle?dd_orientation=landscape&username=' + encodeURIComponent(username) + '&job=' + encodeURIComponent(job);
         }
 
         if (isDingTalk) {
@@ -1759,6 +1782,10 @@
         indexTitle.textContent = "研发主页";
     }else if (job === "projectLeader") {
         indexTitle.textContent = "项目主页";
+    }else if (job === "CQE") {
+        indexTitle.textContent = "CQE主页";
+    }else if (job === "SQE") {
+        indexTitle.textContent = "SQE主页";
     }else{
         indexTitle.textContent = "管理员角色的主页";
     }

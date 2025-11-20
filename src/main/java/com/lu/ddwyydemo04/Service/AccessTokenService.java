@@ -1422,7 +1422,7 @@ public class AccessTokenService {
      * 1. 定时执行：取消下面任意一个 @Scheduled 注解的注释
      * 2. 手动执行：在 Controller 或其他地方调用此方法
      */
-//     @Scheduled(cron = "0 35 10 * * ?") // 每天早上10点31分执行
+//     @Scheduled(cron = "0 47 10 * * ?") // 每天早上10点31分执行
     // @Scheduled(cron = "0 0 */1 * * ?") // 每1小时执行一次
     // @Scheduled(fixedRate = 3600000) // 每1小时执行一次（毫秒）
     // @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）

@@ -4611,6 +4611,15 @@
     // 全局变量
     let currentUser = '';
     let currentRole = '';
+    
+    // 统一的权限检查函数：只有DQE或manager角色可以使用
+    function checkDQEOrManagerPermission() {
+        if (currentRole !== 'DQE' && currentRole !== 'manager') {
+            showToast('只有DQE或manager角色才能进行此操作', 'error');
+            return false;
+        }
+        return true;
+    }
     let currentDepartmentName = '';
 
     let currentPage = 1;
@@ -6213,6 +6222,10 @@
 
         // 导入相关事件监听器
         document.getElementById('importBtn').addEventListener('click', function() {
+            // 权限检查：只有DQE或manager可以使用
+            if (!checkDQEOrManagerPermission()) {
+                return;
+            }
             document.getElementById('importModal').style.display = 'block';
         });
 
@@ -6395,6 +6408,10 @@
         const importBtn = document.getElementById('importBtn');
         if (importBtn) {
             importBtn.addEventListener('click', function() {
+                // 权限检查：只有DQE或manager可以使用
+                if (!checkDQEOrManagerPermission()) {
+                    return;
+                }
                 document.getElementById('importModal').style.display = 'block';
             });
         }
@@ -7099,6 +7116,11 @@
 
     // 处理文件导入
     function handleFileImport() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
@@ -7252,6 +7274,11 @@
 
     // 删除选中数据
     function deleteSelectedData() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 获取选中的行
         const selectedRows = getSelectedTableRows();
 
@@ -7360,6 +7387,11 @@
 
     // 显示新增模态框
     function showAddNewModal() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 检查当前是否在详细数据管理页面
         const detailView = document.getElementById('detailView');
         const dashboardView = document.getElementById('dashboardView');
@@ -7443,6 +7475,11 @@
 
     // 显示新品质量进度详情
     function showProductDetail(reviewId) {
+        // 权限检查：只有DQE或manager可以查看详情
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const product = filteredData.find(p => p.id === reviewId);
         if (!product) return;
 
@@ -7668,6 +7705,11 @@
 
     // 进入编辑模式
     function enterReviewEditMode() {
+        // 权限检查：只有DQE或manager可以编辑
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 检查组别权限
         if (currentEditingReviewId) {
             const product = filteredData.find(p => p.id === currentEditingReviewId);
@@ -8020,6 +8062,11 @@
 
     // 保存新品质量进度编辑
     async function saveReviewEdit() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 判断是新增还是更新
         const isNewRecord = !currentEditingReviewId;
 
@@ -8786,6 +8833,10 @@
 
     // 保存问题点
     function saveProblem() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
         // 检查权限
         if (!isSuperAdmin) {
             alert('您没有权限进行此操作！');
@@ -9151,6 +9202,11 @@
 
     // 全局编辑模式相关函数
     function toggleGlobalEditMode() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         if (isGlobalEditMode) {
             // 如果已经在编辑模式，则取消编辑
             cancelGlobalEdit();
@@ -9217,6 +9273,10 @@
     }
 
     function saveAllChanges() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
         // 收集所有更改的数据
         const changedData = collectChangedData();
         
@@ -9586,6 +9646,10 @@
 
     // 打开文本编辑弹窗
     function openTextEdit(element) {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
         currentTextEditElement = element;
         currentTextEditField = element.getAttribute('data-field');
         const currentValue = element.getAttribute('data-original') || '';
@@ -9622,6 +9686,10 @@
 
     // 保存文本编辑
     function saveTextEdit() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
         if (!currentTextEditElement || !currentTextEditField) {
             console.error('没有找到当前编辑的元素或字段');
             return;
@@ -10045,6 +10113,10 @@
 
     // 保存详情修改
     function saveDetailChanges() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
         alert("sasdasd")
         // 检查权限
         if (!isSuperAdmin) {

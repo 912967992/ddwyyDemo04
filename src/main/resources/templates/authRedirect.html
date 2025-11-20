@@ -172,7 +172,7 @@
                             // 根据角色跳转默认页面
                             if(response.job === "it" ){
                                 window.location.href = '/loginTestEnvironment';
-                            } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager")) {
+                            } else if (response.job.includes("DQE") || response.job.includes("rd") || response.job.includes("projectLeader") || response.job.includes("manager") || response.job === "SQE" || response.job === "CQE") {
                                 window.location.href = '/DQEIndex';
                             } else {
                                 window.location.href = '/testManIndex';

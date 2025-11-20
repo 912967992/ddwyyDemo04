@@ -439,9 +439,16 @@ public class DingTalkH5Controller {
         } else {
             if ("卢健".equals(username) || "许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) ) {
                 return "DQE";
+            }else if("吴川".equals(username)){
+                return "SQE";
+            }else if ("刘涛".equals(username)){
+                return "CQE";
             }
 
         }
+
+
+
 
 
         // 解析 JSON 响应

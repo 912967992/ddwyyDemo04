@@ -3894,6 +3894,15 @@
     let currentUser = '';
     let currentRole = '';
     let departmentName = ''; // 用户所属部门名称
+    
+    // 统一的权限检查函数：只有DQE或manager角色可以使用
+    function checkDQEOrManagerPermission() {
+        if (currentRole !== 'DQE' && currentRole !== 'manager') {
+            showToast('只有DQE或manager角色才能进行此操作', 'error');
+            return false;
+        }
+        return true;
+    }
 
     // 图表相关变量 - 支持双图表
     var currentChart1 = null;
@@ -3970,6 +3979,11 @@
 
     // 打开电气测试问题点模态框
     function openTestIssuesModal() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const modal = document.getElementById('testIssuesModal');
         if (modal) {
             modal.style.display = 'block';
@@ -4164,6 +4178,11 @@
 
     // 导入电气测试问题点到新品质量问题
     function addTestIssuesToReview() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 获取所有选中的checkbox
         const checkedBoxes = document.querySelectorAll('.test-issues-row-checkbox:checked');
         
@@ -5210,6 +5229,10 @@
 
         // 导入相关事件监听器
         document.getElementById('importBtn').addEventListener('click', function() {
+            // 权限检查：只有DQE或manager可以使用
+            if (!checkDQEOrManagerPermission()) {
+                return;
+            }
             document.getElementById('importModal').style.display = 'block';
         });
 
@@ -5450,6 +5473,10 @@
 
         // 导入按钮 - 显示模态框
         document.getElementById('importBtn').addEventListener('click', function() {
+            // 权限检查：只有DQE或manager可以使用
+            if (!checkDQEOrManagerPermission()) {
+                return;
+            }
             document.getElementById('importModal').style.display = 'block';
         });
 
@@ -6094,6 +6121,11 @@
 
     // 处理文件导入
     function handleFileImport() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
@@ -6255,6 +6287,11 @@
 
     // 导出全部筛选结果
     function exportAllSearchResults() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 获取当前搜索条件
         const currentFilters = getCurrentFilters();
         
@@ -6318,6 +6355,11 @@
 
     // 删除选中数据
     function deleteSelectedData() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 获取选中的行
         const selectedRows = getSelectedTableRows();
         
@@ -6526,6 +6568,11 @@
 
     // 显示新增模态框
     function showAddNewModal() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 重置编辑状态
         resetReviewEditMode();
         
@@ -6655,6 +6702,11 @@
 
     // 显示新品质量详情
     function showReviewDetail(reviewId) {
+        // 权限检查：只有DQE或manager可以查看详情
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const review = filteredData.find(r => r.id === reviewId);
         if (!review) {
             console.error('未找到ID为', reviewId, '的新品质量记录');
@@ -6758,6 +6810,11 @@
 
     // 进入编辑模式
     function enterReviewEditMode() {
+        // 权限检查：只有DQE或manager可以编辑
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 检查组别权限
         if (currentEditingReviewId) {
             const review = filteredData.find(r => r.id === currentEditingReviewId);
@@ -6926,6 +6983,11 @@
 
     // 保存新品质量编辑
     function saveReviewEdit() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 判断是新增还是更新
         const isNewRecord = !currentEditingReviewId;
         
@@ -7063,6 +7125,11 @@
 
     // 显示问题点详情
     function showProblemDetail(problemId) {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 首先尝试从当前过滤数据中查找
         let problem = filteredData.find(p => p.id === problemId);
 
@@ -7466,6 +7533,11 @@
 
     // 显示编辑问题点模态框
     function showEditProblemModal(problemId) {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         const problem = filteredData.find(p => p.id === problemId);
         if (!problem) return;
 
@@ -7650,6 +7722,11 @@
 
     // 保存问题点
     function saveProblem() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         // 检查问题点字段是否为空
         const problemValue = document.getElementById('editProblem').value;
         if (!problemValue || problemValue.trim() === '') {
@@ -11015,6 +11092,11 @@
 
     // 切换全局编辑模式
     function toggleGlobalEditMode() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         isGlobalEditMode = !isGlobalEditMode;
         
         const table = document.getElementById('reviewTable');
@@ -11049,6 +11131,11 @@
 
     // 从表格保存全局编辑
     async function saveGlobalEditFromTable() {
+        // 权限检查：只有DQE或manager可以使用
+        if (!checkDQEOrManagerPermission()) {
+            return;
+        }
+        
         if (!isGlobalEditMode) {
             return;
         }
