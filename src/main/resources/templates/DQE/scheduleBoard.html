@@ -4400,8 +4400,8 @@
                 .catch(error => {
                     // 如果后端接口不存在，为新的池子添加示例数据
                     if (error.message.includes('404') || error.message.includes('Not Found')) {
-                        const sampleData = getSampleDataForCategory(category.name);
-                        renderPendingSamplePool(sampleData, category.id);
+                        // const sampleData = getSampleDataForCategory(category.name);
+                        // renderPendingSamplePool(sampleData, category.id);
                     } else {
                         document.getElementById(category.id).innerHTML = '加载失败，请稍后重试。';
                         console.error('Error fetching pending sample data:', error);

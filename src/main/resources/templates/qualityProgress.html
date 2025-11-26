@@ -9179,6 +9179,11 @@
         const normalizedGroupName = normalizeGroupName(groupName);
         const normalizedDepartmentName = normalizeGroupName(departmentName);
         
+        // 特殊权限：邓令章可以编辑包含"蓝牙"的组别
+        if (username === '邓令章' && groupName.includes('蓝牙')) {
+            return true;
+        }
+        
         // 特殊组别匹配规则：
         // 1. 蓝牙家居组 - 工控线材也可以编辑
         if (normalizedGroupName === '蓝牙家居' && normalizedDepartmentName === '工控线材') {

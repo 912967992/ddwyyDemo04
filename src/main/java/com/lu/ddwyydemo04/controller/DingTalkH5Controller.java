@@ -429,7 +429,7 @@ public class DingTalkH5Controller {
 
     public String checkParentDepartment(String jsonResponse,String username) {
         // 如果用户名是黄家灿，直接设置 job 为 DQE 并返回
-        if ("黄家灿".equals(username) || "荣成彧".equals(username) || "李良健".equals(username) ) {
+        if ("黄家灿".equals(username) || "荣成彧".equals(username) || "李良健".equals(username) || "邓继元".equals(username)) {
             return "manager";
         }
 
