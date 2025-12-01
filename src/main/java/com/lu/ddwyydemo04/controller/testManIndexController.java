@@ -1930,10 +1930,13 @@ public class testManIndexController {
 
         int quantity = Integer.parseInt(projectData.get("sample_quantity").toString());
 
-
-//        System.out.println("category:"+category);
-//        System.out.println("isHighFrequency:"+isHighFrequency);
-//        System.out.println("quantity:"+quantity);
+        // 20251129新增
+        String apply_createdAt = (String) projectData.get("apply_createdAt");
+        String demandFinishedTime = (String) projectData.get("demandFinishedTime");
+        String sample_dqe = (String) projectData.get("sample_dqe");
+        String sample_rd = (String) projectData.get("sample_rd");
+        String reliability_quantity = (String) projectData.get("reliability_quantity");
+        String envproction_quantity = (String) projectData.get("envproction_quantity");
 
         // 20250616 判断是否包含 "XZ"
         if (electric_sample_id != null && !electric_sample_id.isEmpty() && electric_sample_id.contains("XZ")) {
@@ -2039,7 +2042,7 @@ public class testManIndexController {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
                                 int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
-                                System.out.println("count:"+count);
+//                                System.out.println("count:"+count);
                                 if(count == 0){
                                     workbook.write(out);
                                     sample.setFilepath(filePath);
@@ -2061,6 +2064,10 @@ public class testManIndexController {
                                     sample.setSample_quantity(quantity);
                                     sample.setSample_frequency(sampleFrequency);
                                     sample.setTester_teamwork(tester);
+
+                                    //20251129新增
+                                    sample.setSample_DQE(sample_dqe);
+                                    sample.setSample_Developer(sample_rd);
 
                                     int insert = testManIndexService.insertSampleFromElectric(sample);
                                     if(insert==0){

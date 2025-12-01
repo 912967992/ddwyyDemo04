@@ -71,6 +71,19 @@ public class PassbackData {
     private String productApprovalDoc;   // 产品承认书
     private String dqe_group;   // DQE分组
 
+    // 20251129 新增
+    private LocalDateTime apply_createdAt;// 样品申请提单时间
+
+    private LocalDateTime demandFinishedTime; //需求完成时间
+
+    private String sample_dqe;
+
+    private String sample_rd;
+
+    private String reliability_quantity;
+
+    private String envproction_quantity;
+
 
     // 0707新增字段，送养人，样品状态，送样备注，电气测试数量，是否含高频，产品开发要求，产品承认书
 
@@ -436,6 +449,54 @@ public class PassbackData {
         this.dqe_group = dqe_group;
     }
 
+    public LocalDateTime getApply_createdAt() {
+        return apply_createdAt;
+    }
+
+    public void setApply_createdAt(LocalDateTime apply_createdAt) {
+        this.apply_createdAt = apply_createdAt;
+    }
+
+    public LocalDateTime getDemandFinishedTime() {
+        return demandFinishedTime;
+    }
+
+    public void setDemandFinishedTime(LocalDateTime demandFinishedTime) {
+        this.demandFinishedTime = demandFinishedTime;
+    }
+
+    public String getSample_dqe() {
+        return sample_dqe;
+    }
+
+    public void setSample_dqe(String sample_dqe) {
+        this.sample_dqe = sample_dqe;
+    }
+
+    public String getSample_rd() {
+        return sample_rd;
+    }
+
+    public void setSample_rd(String sample_rd) {
+        this.sample_rd = sample_rd;
+    }
+
+    public String getReliability_quantity() {
+        return reliability_quantity;
+    }
+
+    public void setReliability_quantity(String reliability_quantity) {
+        this.reliability_quantity = reliability_quantity;
+    }
+
+    public String getEnvproction_quantity() {
+        return envproction_quantity;
+    }
+
+    public void setEnvproction_quantity(String envproction_quantity) {
+        this.envproction_quantity = envproction_quantity;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -484,6 +545,12 @@ public class PassbackData {
                 ", productRequirement='" + productRequirement + '\'' +
                 ", productApprovalDoc='" + productApprovalDoc + '\'' +
                 ", dqe_group='" + dqe_group + '\'' +
+                ", apply_createdAt=" + apply_createdAt +
+                ", demandFinishedTime=" + demandFinishedTime +
+                ", sample_dqe='" + sample_dqe + '\'' +
+                ", sample_rd='" + sample_rd + '\'' +
+                ", reliability_quantity='" + reliability_quantity + '\'' +
+                ", envproction_quantity='" + envproction_quantity + '\'' +
                 '}';
     }
 }

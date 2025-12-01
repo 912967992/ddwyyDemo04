@@ -796,13 +796,13 @@ public class TestEnvironmentController {
             }
         }
 
-        System.out.println("sampleName: " + sampleName);
-        System.out.println("sampleModel: " + sampleModel);
-        System.out.println("materialCode: " + materialCode);
-        System.out.println("sampleLeader: " + sampleLeader);
-        System.out.println("scheduleDays: " + scheduleDays);
-        System.out.println("scheduleColor: " + scheduleColor);
-        System.out.println("remark: " + remark);
+//        System.out.println("sampleName: " + sampleName);
+//        System.out.println("sampleModel: " + sampleModel);
+//        System.out.println("materialCode: " + materialCode);
+//        System.out.println("sampleLeader: " + sampleLeader);
+//        System.out.println("scheduleDays: " + scheduleDays);
+//        System.out.println("scheduleColor: " + scheduleColor);
+//        System.out.println("remark: " + remark);
 
         // 电气编号用XZ+时间来命名：  XZ202506101500
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");

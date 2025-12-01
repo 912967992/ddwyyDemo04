@@ -442,7 +442,13 @@
             sample_quantity,
             high_frequency,
             productRequirement,
-            productApprovalDoc
+            productApprovalDoc,
+            apply_createdAt,
+            demandFinishedTime,
+            sample_dqe,
+            sample_rd,
+            reliability_quantity,
+            envproction_quantity
         )
         VALUES (
                    #{sample_id},
@@ -468,7 +474,13 @@
                    #{sample_quantity},
                    #{high_frequency},
                    #{productRequirement},
-                   #{productApprovalDoc}
+                   #{productApprovalDoc},
+                   #{apply_createdAt},
+                   #{demandFinishedTime},
+                   #{sample_dqe},
+                   #{sample_rd},
+                   #{reliability_quantity},
+                   #{envproction_quantity}
                )
     </insert>
 
@@ -487,7 +499,13 @@
             supplier = #{supplier},
             testProjectCategory = #{testProjectCategory},
             testProjects = #{testProjects},
-            schedule = #{schedule}
+            schedule = #{schedule},
+            apply_createdAt = #{apply_createdAt},
+            demandFinishedTime = #{demandFinishedTime},
+            sample_dqe = #{sample_dqe},
+            sample_rd = #{sample_rd},
+            reliability_quantity = #{reliability_quantity},
+            envproction_quantity = #{envproction_quantity}
         WHERE sample_id = #{sample_id}
     </update>
 
@@ -1071,12 +1089,14 @@
             tester, tester_teamwork, filepath, sample_model, sample_coding, full_model,
             sample_category, version, sample_name, create_time, sample_schedule,
             sample_frequency, sample_quantity, big_species, small_species, high_frequency,
-            questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle,electric_sample_id
+            questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle,electric_sample_id,sample_DQE,
+                             sample_Developer
         ) VALUES (
                      #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model},
                      #{sample_category}, #{version}, #{sample_name}, NOW(), '0',
                      #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency},
-                     #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}, #{electric_sample_id}
+                     #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}, #{electric_sample_id},
+                  #{sample_DQE}, #{sample_Developer}
                  )
     </insert>
 

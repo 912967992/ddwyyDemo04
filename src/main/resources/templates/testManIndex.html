@@ -4204,9 +4204,14 @@
                 <p><strong>测试负责人：</strong> ${data.tester || ''}</p>
                 <p><strong>实际测试时长：</strong> ${data.testDuration || ''}</p>
                 <p><strong>样品承认结果：</strong> ${data.sampleRecognizeResult || ''}</p>
-
                 <p><strong>产品类别：</strong> ${data.sample_type || ''}</p>
-                <p><strong>样品数量：</strong> ${data.sample_quantity || ''}</p>
+                <p><strong>样品提单申请时间：</strong> ${data.apply_createdAt || ''}</p>
+                <p><strong>需求完成时间：</strong> ${data.demandFinishedTime || ''}</p>
+                <p><strong>DQE负责人：</strong> ${data.sample_dqe || ''}</p>
+                <p><strong>研发负责人：</strong> ${data.sample_rd || ''}</p>
+                <p><strong>可靠性测试数量：</strong> ${data.reliability_quantity || ''}</p>
+                <p><strong>环保测试数量：</strong> ${data.envproction_quantity || ''}</p>
+                <p><strong>电气测试数量：</strong> ${data.sample_quantity || ''}</p>
                 <p><strong>是否高频：</strong> ${data.high_frequency || ''}</p>
             `;
                 document.getElementById("project-detail-info").innerHTML = html;
