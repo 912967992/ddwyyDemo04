@@ -367,26 +367,237 @@
 
 
 <!-- 详情内容模态框 -->
-<div id="projectDetailModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1001;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>项目详细信息</h3>
-        <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">关闭</button>
+<div id="projectDetailModal" style="display:none; position:fixed; top:5%; left:50%; transform:translateX(-50%); background:#fff; padding:0; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.2); z-index:1001; max-width:1200px; width:90%; max-height:90vh; overflow-y:auto;">
+    <style>
+        #projectDetailModal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #projectDetailModal .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        #projectDetailModal .modal-header button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        #projectDetailModal .modal-header button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        #projectDetailModal .modal-body {
+            padding: 25px;
+        }
+        #projectDetailModal .detail-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        #projectDetailModal .detail-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #projectDetailModal .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        @media (max-width: 1200px) {
+            #projectDetailModal .detail-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 900px) {
+            #projectDetailModal .detail-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        #projectDetailModal .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        #projectDetailModal .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        #projectDetailModal .detail-value {
+            font-size: 13px;
+            color: #212529;
+            font-weight: 400;
+            word-break: break-word;
+        }
+        #projectDetailModal .cancel-info {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        #projectDetailModal .recover-btn-container {
+            margin-top: 20px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        #projectDetailModal #recoverBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #projectDetailModal #recoverBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+    
+    <div class="modal-header">
+        <h3>📋 项目详细信息</h3>
+        <button id="closeTransBtn" onclick="document.getElementById('projectDetailModal').style.display='none'">✕ 关闭</button>
     </div>
 
-    <p><strong>电气编号：</strong><span id="detail_sample_id"></span></p>
-    <p><strong>项目名称：</strong><span id="detail_sample_name"></span></p>
-    <p><strong>大小编码：</strong><span id="detail_sizecoding"></span></p>
-    <p><strong>项目负责人：</strong><span id="detail_sample_leader"></span></p>
-    <p><strong>排期天数：</strong><span id="detail_scheduleDays"></span></p>
-    <p><strong>颜色：</strong><span id="detail_schedule_color"></span></p>
-    <p><strong>放池子分类：</strong><span id="detail_waitSample_classify"></span></p>
-    <p><strong>送样备注：</strong><span id="detail_remark"></span></p>
-    <p><strong>作废人：</strong><span id="detail_cancel_by"></span></p>
-    <p><strong>作废工号：</strong><span id="detail_job_number"></span></p>
-    <p><strong>作废时间：</strong><span id="detail_cancel_date"></span></p>
-    <p><strong>作废理由：</strong><span id="detail_cancel_reason"></span></p>
+    <div class="modal-body">
+        <!-- 基本信息 -->
+        <div class="detail-section">
+            <div class="detail-section-title">📋 基本信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">电气编号</span>
+                    <span class="detail-value" id="detail_sample_id">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">项目名称</span>
+                    <span class="detail-value" id="detail_sample_name">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">大小编码</span>
+                    <span class="detail-value" id="detail_sizecoding">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">项目负责人</span>
+                    <span class="detail-value" id="detail_sample_leader">-</span>
+                </div>
+            </div>
+        </div>
 
-    <button id="recoverBtn" onclick="recoverProject()">恢复</button>
+        <!-- 排期信息 -->
+        <div class="detail-section">
+            <div class="detail-section-title">📅 排期信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">排期天数</span>
+                    <span class="detail-value" id="detail_scheduleDays">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">颜色</span>
+                    <span class="detail-value" id="detail_schedule_color">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">放池子分类</span>
+                    <span class="detail-value" id="detail_waitSample_classify">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">送样备注</span>
+                    <span class="detail-value" id="detail_remark">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时间信息 -->
+        <div class="detail-section">
+            <div class="detail-section-title">⏰ 时间信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">样品申请提单时间</span>
+                    <span class="detail-value" id="detail_apply_createdAt">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">需求完成时间</span>
+                    <span class="detail-value" id="detail_demandFinishedTime">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 人员信息 -->
+        <div class="detail-section">
+            <div class="detail-section-title">👥 人员信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">DQE</span>
+                    <span class="detail-value" id="detail_sample_dqe">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">RD</span>
+                    <span class="detail-value" id="detail_sample_rd">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数量信息 -->
+        <div class="detail-section">
+            <div class="detail-section-title">📦 数量信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">可靠性数量</span>
+                    <span class="detail-value" id="detail_reliability_quantity">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">环境防护数量</span>
+                    <span class="detail-value" id="detail_envproction_quantity">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 作废信息 -->
+        <div class="detail-section cancel-info">
+            <div class="detail-section-title">⚠️ 作废信息</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">作废人</span>
+                    <span class="detail-value" id="detail_cancel_by">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">作废工号</span>
+                    <span class="detail-value" id="detail_job_number">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">作废时间</span>
+                    <span class="detail-value" id="detail_cancel_date">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">作废理由</span>
+                    <span class="detail-value" id="detail_cancel_reason">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 恢复按钮 -->
+        <div class="recover-btn-container">
+            <button id="recoverBtn" onclick="recoverProject()">🔄 恢复项目</button>
+        </div>
+    </div>
 </div>
 
 
@@ -1017,7 +1228,13 @@
                 'project-sample_sender': projectEl.getAttribute('data-sample_sender'),
                 'project-sample_type': projectEl.getAttribute('data-sample_type'),
                 'project-sample_quantity': projectEl.getAttribute('data-sample_quantity'),
-                'project-high_frequency': projectEl.getAttribute('data-high_frequency')
+                'project-high_frequency': projectEl.getAttribute('data-high_frequency'),
+                'project-apply_createdAt': projectEl.getAttribute('data-apply_createdAt'),
+                'project-demandFinishedTime': projectEl.getAttribute('data-demandFinishedTime'),
+                'project-sample_dqe': projectEl.getAttribute('data-sample_dqe'),
+                'project-sample_rd': projectEl.getAttribute('data-sample_rd'),
+                'project-reliability_quantity': projectEl.getAttribute('data-reliability_quantity'),
+                'project-envproction_quantity': projectEl.getAttribute('data-envproction_quantity')
             };
 
             draggedElement = projectEl;
@@ -1264,11 +1481,17 @@
             }
         });
         
-        // 确保这四个重要属性被正确设置
+        // 确保这些重要属性被正确设置
         card.setAttribute('data-sample_sender', dragData['project-sample_sender'] || '');
         card.setAttribute('data-sample_type', dragData['project-sample_type'] || '');
         card.setAttribute('data-sample_quantity', dragData['project-sample_quantity'] || '');
         card.setAttribute('data-high_frequency', dragData['project-high_frequency'] || '');
+        card.setAttribute('data-apply_createdAt', dragData['project-apply_createdAt'] || '');
+        card.setAttribute('data-demandFinishedTime', dragData['project-demandFinishedTime'] || '');
+        card.setAttribute('data-sample_dqe', dragData['project-sample_dqe'] || '');
+        card.setAttribute('data-sample_rd', dragData['project-sample_rd'] || '');
+        card.setAttribute('data-reliability_quantity', dragData['project-reliability_quantity'] || '');
+        card.setAttribute('data-envproction_quantity', dragData['project-envproction_quantity'] || '');
         card.setAttribute('draggable', 'false');
         setDraggable(card, true);
         
@@ -1293,7 +1516,13 @@
             sample_sender: dragData['project-sample_sender'],
             sample_type: dragData['project-sample_type'],
             sample_quantity: dragData['project-sample_quantity'],
-            high_frequency: dragData['project-high_frequency']
+            high_frequency: dragData['project-high_frequency'],
+            apply_createdAt: dragData['project-apply_createdAt'],
+            demandFinishedTime: dragData['project-demandFinishedTime'],
+            sample_dqe: dragData['project-sample_dqe'],
+            sample_rd: dragData['project-sample_rd'],
+            reliability_quantity: dragData['project-reliability_quantity'],
+            envproction_quantity: dragData['project-envproction_quantity']
         };
         
         // 绑定右键菜单
@@ -1410,7 +1639,8 @@
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                        'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                     ];
                     attributes.forEach(attr => {
                         taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -1640,6 +1870,12 @@
             card.setAttribute('data-sample_type', item.sample_type != null ? item.sample_type : '');
             card.setAttribute('data-sample_quantity', item.sample_quantity != null ? item.sample_quantity : '');
             card.setAttribute('data-high_frequency', item.high_frequency != null ? item.high_frequency : '');
+            card.setAttribute('data-apply_createdAt', item.apply_createdAt != null ? item.apply_createdAt : '');
+            card.setAttribute('data-demandFinishedTime', item.demandFinishedTime != null ? item.demandFinishedTime : '');
+            card.setAttribute('data-sample_dqe', item.sample_dqe != null ? item.sample_dqe : '');
+            card.setAttribute('data-sample_rd', item.sample_rd != null ? item.sample_rd : '');
+            card.setAttribute('data-reliability_quantity', item.reliability_quantity != null ? item.reliability_quantity : '');
+            card.setAttribute('data-envproction_quantity', item.envproction_quantity != null ? item.envproction_quantity : '');
             card.setAttribute('draggable', 'false'); // 禁用默认拖拽，使用双击拖拽
 
             setDraggable(card, true);
@@ -1689,29 +1925,225 @@
 
             console.log("这个触发bindCardContextMenu")
 
-            // 设置模态框内容
+            // 设置模态框内容 - 美化后的UI
             document.getElementById('modalBody').innerHTML = `
-            <!--            <p><strong>电气编号：</strong>${item.sample_id}</p>-->
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <p><strong>电气编号：</strong></p>
+            <style>
+                .detail-section {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-left: 4px solid #007bff;
+                }
+                .detail-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                }
+                @media (max-width: 1200px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                @media (max-width: 900px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+                .detail-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .detail-label {
+                    font-size: 12px;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+                .detail-value {
+                    font-size: 13px;
+                    color: #212529;
+                    font-weight: 400;
+                    word-break: break-word;
+                }
+                .detail-edit-group {
+                    background: #fff;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 15px;
+                    border: 1px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .detail-edit-group label {
+                    font-weight: 600;
+                    color: #495057;
+                    min-width: 80px;
+                }
+                .detail-edit-group input {
+                    flex: 1;
+                    padding: 6px 10px;
+                    border: 1px solid #ced4da;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+                .detail-edit-group button {
+                    padding: 6px 16px;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    transition: background 0.2s;
+                }
+                .detail-edit-group button:hover {
+                    background: #0056b3;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            </style>
+            
+            <!-- 电气编号编辑区域 -->
+            <div class="detail-edit-group">
+                <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${item.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
             </div>
-            <p><strong>项目名称：</strong>${item.sample_name}</p>
-            <p><strong>大小编码：</strong>${item.sample_model + ' ' + item.materialCode}</p>
-            <p><strong>产品类别：</strong>${item.sample_category}</p>
-            <p><strong>版本：</strong>${item.version}</p>
-            <p><strong>优先级：</strong>${item.priority}</p>
-            <p><strong>项目负责人：</strong>${item.sample_leader}</p>
-            <p><strong>供应商：</strong>${item.supplier}</p>
-            <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
-            <p><strong>测试子项目：</strong>${item.testProjects}</p>
-            <p><strong>状态：</strong>${getScheduleText(item.schedule)}</p>
-            <p><strong>送样人：</strong>${item.sample_sender}</p>
-            <p><strong>送样类别：</strong>${item.sample_type}</p>
-            <p><strong>送样数量：</strong>${item.sample_quantity}</p>
-            <p><strong>是否高频：</strong>${item.high_frequency}</p>
-            <p><strong>创建时间：</strong>${item.create_time}</p>
+
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📋 基本信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目名称</span>
+                        <span class="detail-value">${item.sample_name || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">大小编码</span>
+                        <span class="detail-value">${item.sample_model || ''} ${item.materialCode || ''}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">产品类别</span>
+                        <span class="detail-value">${item.sample_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">版本</span>
+                        <span class="detail-value">${item.version || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">优先级</span>
+                        <span class="detail-value">${item.priority || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">状态</span>
+                        <span class="detail-value"><span class="status-badge" style="background: #e7f3ff; color: #0066cc;">${getScheduleText(item.schedule) || '-'}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 人员信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">👥 人员信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目负责人</span>
+                        <span class="detail-value">${item.sample_leader || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样人</span>
+                        <span class="detail-value">${item.sample_sender || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">DQE</span>
+                        <span class="detail-value">${item.sample_dqe || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">RD</span>
+                        <span class="detail-value">${item.sample_rd || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">🧪 测试信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">试验项目类别</span>
+                        <span class="detail-value">${item.testProjectCategory || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">测试子项目</span>
+                        <span class="detail-value">${item.testProjects || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">是否高频</span>
+                        <span class="detail-value">${item.high_frequency || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样类别</span>
+                        <span class="detail-value">${item.sample_type || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数量信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📦 数量信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">送样数量</span>
+                        <span class="detail-value">${item.sample_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">可靠性数量</span>
+                        <span class="detail-value">${item.reliability_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">环境防护数量</span>
+                        <span class="detail-value">${item.envproction_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">供应商</span>
+                        <span class="detail-value">${item.supplier || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">⏰ 时间信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">接单时间</span>
+                        <span class="detail-value">${item.create_time || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">样品申请提单时间</span>
+                        <span class="detail-value">${item.apply_createdAt || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">需求完成时间</span>
+                        <span class="detail-value">${item.demandFinishedTime || '-'}</span>
+                    </div>
+                </div>
+            </div>
         `;
 
             document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
@@ -2229,7 +2661,13 @@
                         sample_sender: item.sample_sender,
                         sample_type: item.sample_type,
                         sample_quantity: item.sample_quantity,
-                        high_frequency: item.high_frequency
+                        high_frequency: item.high_frequency,
+                        apply_createdAt: item.apply_createdAt,
+                        demandFinishedTime: item.demandFinishedTime,
+                        sample_dqe: item.sample_dqe,
+                        sample_rd: item.sample_rd,
+                        reliability_quantity: item.reliability_quantity,
+                        envproction_quantity: item.envproction_quantity
                     };
 
                     const tester = item.tester || '未知测试人员';
@@ -2432,7 +2870,13 @@
                         data-sample_sender="${firstTask.sample_sender || ''}"
                         data-sample_type="${firstTask.sample_type || ''}"
                         data-sample_quantity="${firstTask.sample_quantity || ''}"
-                        data-high_frequency="${firstTask.high_frequency || ''}"`;
+                        data-high_frequency="${firstTask.high_frequency || ''}"
+                        data-apply_createdAt="${firstTask.apply_createdAt || ''}"
+                        data-demandFinishedTime="${firstTask.demandFinishedTime || ''}"
+                        data-sample_dqe ="${firstTask.sample_dqe || ''}"
+                        data-sample_rd="${firstTask.sample_rd || ''}"
+                        data-reliability_quantity="${firstTask.reliability_quantity || ''}"
+                        data-envproction_quantity="${firstTask.envproction_quantity || ''}"`;
 
                         // 设置其他任务的 dataX- 属性
                         let displayText = `${firstTask.sizecoding} (${firstTask.schedule_days}天)`;
@@ -2579,7 +3023,8 @@
                     'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                     'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                     'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                    'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                    'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                    'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                 ];
                 attributes.forEach(attr => {
                     taskData[`project-${attr}`] = cell.getAttribute(`data-${attr}`);
@@ -2719,7 +3164,13 @@
                     sample_sender: e.dataTransfer.getData('project-sample_sender'),
                     sample_type: e.dataTransfer.getData('project-sample_type'),
                     sample_quantity: e.dataTransfer.getData('project-sample_quantity'),
-                    high_frequency: e.dataTransfer.getData('project-high_frequency')
+                    high_frequency: e.dataTransfer.getData('project-high_frequency'),
+                    apply_createdAt: e.dataTransfer.getData('project-apply_createdAt'),
+                    demandFinishedTime: e.dataTransfer.getData('project-demandFinishedTime'),
+                    sample_dqe: e.dataTransfer.getData('project-sample_dqe'),
+                    sample_rd: e.dataTransfer.getData('project-sample_rd'),
+                    reliability_quantity: e.dataTransfer.getData('project-reliability_quantity'),
+                    envproction_quantity: e.dataTransfer.getData('project-envproction_quantity')
                 };
 
                 const rowCells = Array.from(cell.parentElement.querySelectorAll('.drop-cell'));
@@ -2792,7 +3243,8 @@
                                             'supplier', 'test_project_category', 'test_projects', 'schedule',
                                             'create_time', 'schedule_days', 'schedule_start_date',
                                             'schedule_end_date', 'schedule_color', 'remark', 'job_number', 'tester',
-                                            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                                            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                                            'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                                         ];
                                         attributesToCopy.forEach(attr => {
                                             originalAttributes[attr] = targetCell.getAttribute(`data-${attr}`);
@@ -3005,7 +3457,8 @@
                                                             'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                                                             'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                                                             'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                                                            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                                                            'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                                                            'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                                                         ];
                                                         attributes.forEach(attr => {
                                                             taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -3102,7 +3555,10 @@
                                         'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
                                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                                        'apply_createdAt', 'demandFinishedTime', 'sample_dqe', 'sample_rd',
+                                        'reliability_quantity', 'envproction_quantity'
                                     ];
 
                                     attributes.forEach(attr => {
@@ -3135,7 +3591,10 @@
                                         'sample_id', 'sizecoding', 'tester', 'job_number', 'sample_name',
                                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                        'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                                        'apply_createdAt', 'demandFinishedTime', 'sample_dqe', 'sample_rd',
+                                        'reliability_quantity', 'envproction_quantity'
                                     ];
                                     attributes.forEach(attr => {
                                         projectData[attr] = currentCell.getAttribute(`data-${attr}`);
@@ -3358,7 +3817,10 @@
                                     'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                                     'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                                     'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                                    'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                                    'apply_createdAt', 'demandFinishedTime', 'sample_dqe', 'sample_rd',
+                                    'reliability_quantity', 'envproction_quantity'
                                 ];
                                 attributes.forEach(attr => {
                                     taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -3473,6 +3935,12 @@
           data-sample_type="${task.sample_type || ''}"
           data-sample_quantity="${task.sample_quantity || ''}"
           data-high_frequency="${task.high_frequency || ''}"
+          data-apply_createdAt="${task.apply_createdAt || ''}"
+          data-demandFinishedTime="${task.demandFinishedTime || ''}"
+          data-sample_dqe="${task.sample_dqe || ''}"
+          data-sample_rd="${task.sample_rd || ''}"
+          data-reliability_quantity="${task.reliability_quantity || ''}"
+          data-envproction_quantity="${task.envproction_quantity || ''}"
           ${classAttribute}
           >${task.sizecoding} (${task.schedule_days}天)</td>
       `;
@@ -3660,7 +4128,8 @@
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                        'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                        'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                     ];
                     attributes.forEach(attr => {
                         taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -3793,7 +4262,8 @@
                 'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                 'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                 'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color' , 'remark',
-                'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency'
+                'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
             ];
             attributes.forEach(attr => {
                 taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -3917,7 +4387,8 @@
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                        'sample_sender','sample_type','sample_quantity','high_frequency'
+                        'sample_sender','sample_type','sample_quantity','high_frequency',
+                        'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                     ];
                     attributes.forEach(attr => {
                         taskData[`project-${attr}`] = this.getAttribute(`data-${attr}`);
@@ -4027,7 +4498,13 @@
                 sample_sender: taskData.sample_sender,
                 sample_type: taskData.sample_type,
                 sample_quantity: taskData.sample_quantity,
-                high_frequency: taskData.high_frequency
+                high_frequency: taskData.high_frequency,
+                apply_createdAt: item.apply_createdAt,
+                demandFinishedTime: item.demandFinishedTime,
+                sample_dqe: item.sample_dqe,
+                sample_rd: item.sample_rd,
+                reliability_quantity: item.reliability_quantity,
+                envproction_quantity: item.envproction_quantity
             };
 
             restoredProject.oncontextmenu = (event) => {
@@ -4109,31 +4586,234 @@
             sample_sender: currentRightClickCell.getAttribute('data-sample_sender'),
             sample_type: currentRightClickCell.getAttribute('data-sample_type'),
             sample_quantity: currentRightClickCell.getAttribute('data-sample_quantity'),
-            high_frequency: currentRightClickCell.getAttribute('data-high_frequency')
+            high_frequency: currentRightClickCell.getAttribute('data-high_frequency'),
+            apply_createdAt: currentRightClickCell.getAttribute('data-apply_createdAt'),
+            demandFinishedTime: currentRightClickCell.getAttribute('data-demandFinishedTime'),
+            sample_dqe: currentRightClickCell.getAttribute('data-sample_dqe'),
+            sample_rd: currentRightClickCell.getAttribute('data-sample_rd'),
+            reliability_quantity: currentRightClickCell.getAttribute('data-reliability_quantity'),
+            envproction_quantity: currentRightClickCell.getAttribute('data-envproction_quantity'),
         };
 
         // 设置模态框内容
         document.getElementById('modalBody').innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <p><strong>电气编号：</strong></p>
+            <style>
+                .detail-section {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-left: 4px solid #007bff;
+                }
+                .detail-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                }
+                @media (max-width: 1200px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                @media (max-width: 900px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+                .detail-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .detail-label {
+                    font-size: 12px;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+                .detail-value {
+                    font-size: 13px;
+                    color: #212529;
+                    font-weight: 400;
+                    word-break: break-word;
+                }
+                .detail-edit-group {
+                    background: #fff;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 15px;
+                    border: 1px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .detail-edit-group label {
+                    font-weight: 600;
+                    color: #495057;
+                    min-width: 80px;
+                }
+                .detail-edit-group input {
+                    flex: 1;
+                    padding: 6px 10px;
+                    border: 1px solid #ced4da;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+                .detail-edit-group button {
+                    padding: 6px 16px;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    transition: background 0.2s;
+                }
+                .detail-edit-group button:hover {
+                    background: #0056b3;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            </style>
+            
+            <!-- 电气编号编辑区域 -->
+            <div class="detail-edit-group">
+                <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${taskData.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
             </div>
-            <p><strong>项目名称：</strong>${taskData.sample_name}</p>
-            <p><strong>大小编码：</strong>${taskData.sample_model + ' ' + taskData.materialCode}</p>
-            <p><strong>产品类别：</strong>${taskData.sample_category}</p>
-            <p><strong>版本：</strong>${taskData.version}</p>
-            <p><strong>优先级：</strong>${taskData.priority}</p>
-            <p><strong>项目负责人：</strong>${taskData.sample_leader}</p>
-            <p><strong>供应商：</strong>${taskData.supplier}</p>
-            <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
-            <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
-            <p><strong>状态：</strong>${getScheduleText(taskData.schedule)}</p>
-            <p><strong>送样人：</strong>${taskData.sample_sender}</p>
-            <p><strong>送样类别：</strong>${taskData.sample_type}</p>
-            <p><strong>送样数量：</strong>${taskData.sample_quantity}</p>
-            <p><strong>是否高频：</strong>${taskData.high_frequency}</p>
-            <p><strong>创建时间：</strong>${taskData.create_time}</p>
+
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📋 基本信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目名称</span>
+                        <span class="detail-value">${taskData.sample_name || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">大小编码</span>
+                        <span class="detail-value">${taskData.sample_model || ''} ${taskData.materialCode || ''}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">产品类别</span>
+                        <span class="detail-value">${taskData.sample_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">版本</span>
+                        <span class="detail-value">${taskData.version || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">优先级</span>
+                        <span class="detail-value">${taskData.priority || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">状态</span>
+                        <span class="detail-value"><span class="status-badge" style="background: #e7f3ff; color: #0066cc;">${getScheduleText(taskData.schedule) || '-'}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 人员信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">👥 人员信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目负责人</span>
+                        <span class="detail-value">${taskData.sample_leader || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样人</span>
+                        <span class="detail-value">${taskData.sample_sender || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">DQE</span>
+                        <span class="detail-value">${taskData.sample_dqe || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">RD</span>
+                        <span class="detail-value">${taskData.sample_rd || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">🧪 测试信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">试验项目类别</span>
+                        <span class="detail-value">${taskData.test_project_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">测试子项目</span>
+                        <span class="detail-value">${taskData.test_projects || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">是否高频</span>
+                        <span class="detail-value">${taskData.high_frequency || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样类别</span>
+                        <span class="detail-value">${taskData.sample_type || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数量信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📦 数量信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">送样数量</span>
+                        <span class="detail-value">${taskData.sample_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">可靠性数量</span>
+                        <span class="detail-value">${taskData.reliability_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">环境防护数量</span>
+                        <span class="detail-value">${taskData.envproction_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">供应商</span>
+                        <span class="detail-value">${taskData.supplier || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">⏰ 时间信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">接单时间</span>
+                        <span class="detail-value">${taskData.create_time || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">样品申请提单时间</span>
+                        <span class="detail-value">${taskData.apply_createdAt || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">需求完成时间</span>
+                        <span class="detail-value">${taskData.demandFinishedTime || '-'}</span>
+                    </div>
+                </div>
+            </div>
         `;
 
         document.getElementById('scheduleDays').value = taskData.scheduleDays != null ? taskData.scheduleDays : '';
@@ -4488,6 +5168,12 @@
             card.setAttribute('data-sample_type', item.sample_type != null ? item.sample_type : '');
             card.setAttribute('data-sample_quantity', item.sample_quantity != null ? item.sample_quantity : '');
             card.setAttribute('data-high_frequency', item.high_frequency != null ? item.high_frequency : '');
+            card.setAttribute('data-apply_createdAt', item.apply_createdAt != null ? item.apply_createdAt : '');
+            card.setAttribute('data-demandFinishedTime', item.demandFinishedTime != null ? item.demandFinishedTime : '');
+            card.setAttribute('data-sample_dqe', item.sample_dqe != null ? item.sample_dqe : '');
+            card.setAttribute('data-sample_rd', item.sample_rd != null ? item.sample_rd : '');
+            card.setAttribute('data-reliability_quantity', item.reliability_quantity != null ? item.reliability_quantity : '');
+            card.setAttribute('data-envproction_quantity', item.envproction_quantity != null ? item.envproction_quantity : '');
             card.setAttribute('draggable', 'true');
 
             setDraggable(card, false);
@@ -4558,7 +5244,8 @@
                         'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                         'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
                         'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
-                        'sample_sender','sample_type','sample_quantity','high_frequency'
+                        'sample_sender','sample_type','sample_quantity','high_frequency',
+                        'apply_createdAt','demandFinishedTime','sample_dqe','sample_rd','reliability_quantity','envproction_quantity'
                     ];
                     attributes.forEach(attr => {
                         taskData[attr] = e.dataTransfer.getData(`project-${attr}`);
@@ -4939,7 +5626,10 @@
                     'sample_id', 'days', 'sizecoding', 'tester', 'job_number', 'startDate', 'sample_name',
                     'sample_model', 'materialCode', 'sample_category', 'version', 'priority', 'sample_leader',
                     'supplier', 'test_project_category', 'test_projects', 'schedule', 'create_time',
-                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark'
+                    'schedule_days', 'schedule_start_date', 'schedule_end_date', 'schedule_color', 'remark',
+                    'sample_sender', 'sample_type', 'sample_quantity', 'high_frequency',
+                    'apply_createdAt', 'demandFinishedTime', 'sample_dqe', 'sample_rd',
+                    'reliability_quantity', 'envproction_quantity'
                 ];
                 attributes.forEach(attr => {
                     taskData[attr] = originalCell.getAttribute(`data-${attr}`);
@@ -5012,6 +5702,12 @@
         document.getElementById('detail_job_number').textContent = project.cancel_code;
         document.getElementById('detail_cancel_date').textContent = project.cancel_date;
         document.getElementById('detail_cancel_reason').textContent = project.cancel_reason;
+        document.getElementById('detail_apply_createdAt').textContent = project.apply_createdAt || '';
+        document.getElementById('detail_demandFinishedTime').textContent = project.demandFinishedTime || '';
+        document.getElementById('detail_sample_dqe').textContent = project.sample_dqe || '';
+        document.getElementById('detail_sample_rd').textContent = project.sample_rd || '';
+        document.getElementById('detail_reliability_quantity').textContent = project.reliability_quantity || '';
+        document.getElementById('detail_envproction_quantity').textContent = project.envproction_quantity || '';
 
         // 根据用户权限设置恢复按钮状态
         const recoverBtn = document.getElementById('recoverBtn');

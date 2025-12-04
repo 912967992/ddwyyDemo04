@@ -378,7 +378,13 @@
             ei.sample_sender,
             ei.sample_type,
             ei.sample_quantity,
-            ei.high_frequency
+            ei.high_frequency,
+            ei.apply_createdAt,
+            ei.demandFinishedTime,
+            ei.sample_dqe,
+            ei.sample_rd,
+            ei.reliability_quantity,
+            ei.envproction_quantity
         FROM electric_info ei
         WHERE (ei.isUsed = 0 OR ei.isUsed IS NULL)
           AND ei.isCancel = 0
@@ -688,7 +694,13 @@
         ei.sample_sender,
         ei.sample_type,
         ei.sample_quantity,
-        ei.high_frequency
+        ei.high_frequency,
+        ei.apply_createdAt,
+        ei.demandFinishedTime,
+        ei.sample_dqe,
+        ei.sample_rd,
+        ei.reliability_quantity,
+        ei.envproction_quantity
         FROM electric_info ei
         WHERE ei.sample_id IN
         <foreach collection="electricInfoIds" item="id" open="(" separator="," close=")">

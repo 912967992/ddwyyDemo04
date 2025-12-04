@@ -494,20 +494,54 @@ h3{
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden; /* 改为 hidden，避免双重滚动 */
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(3px);
+    /* 移除 backdrop-filter 以提升滚动性能 */
+    /* backdrop-filter: blur(3px); */
 }
 
 .modal-content {
     background-color: #ffffff;
-    margin: 10% auto;
-    padding: 30px;
+    margin: 5% auto; /* 调整 margin 以适应新的滚动方式 */
+    padding: 0; /* 移除 padding，移到内部元素 */
     border: none;
-    width: 80%;
-    max-width: 500px;
+    width: 90%; /* 增加宽度 */
+    max-width: 1200px; /* 增加最大宽度 */
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    max-height: 90vh; /* 添加最大高度 */
+    overflow: hidden; /* 隐藏溢出，由内部滚动容器处理 */
+    display: flex;
+    flex-direction: column;
+    /* 硬件加速优化 */
+    transform: translateZ(0);
+    will-change: scroll-position;
+    /* 优化渲染性能 */
+    contain: layout style paint;
+}
+
+/* 模态框内容区域滚动优化 */
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    /* 硬件加速和滚动优化 */
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    /* 减少重绘 */
+    will-change: scroll-position;
+}
+
+/* 模态框头部固定 */
+.modal-header {
+    flex-shrink: 0;
+    position: relative;
+    /* 避免滚动时重绘 */
+    transform: translateZ(0);
+    will-change: auto;
 }
 
 .close, .close-problem {

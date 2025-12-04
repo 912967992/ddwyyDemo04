@@ -204,6 +204,7 @@ public class TestEnvironmentController {
         }
 
         List<PassbackData> passbackList = testManIndexService.getPassbackByElectricInfoIds(electricInfoIds);
+//        System.out.println("passbackList:"+passbackList);
 
         // 将 PassbackData 映射成 Map<Integer, PassbackData>
         Map<String, PassbackData> passbackMap = passbackList.stream()
@@ -267,6 +268,12 @@ public class TestEnvironmentController {
             merged.put("sample_type", passback.getSample_type());
             merged.put("sample_quantity", passback.getSample_quantity());
             merged.put("high_frequency", passback.getHigh_frequency());
+            merged.put("apply_createdAt", passback.getApply_createdAt());
+            merged.put("demandFinishedTime", passback.getDemandFinishedTime());
+            merged.put("sample_dqe", passback.getSample_dqe());
+            merged.put("sample_rd", passback.getSample_rd());
+            merged.put("reliability_quantity", passback.getReliability_quantity());
+            merged.put("envproction_quantity", passback.getEnvproction_quantity());
         }
 
         return merged;
