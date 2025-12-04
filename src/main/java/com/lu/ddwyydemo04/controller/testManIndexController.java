@@ -731,35 +731,10 @@ public class testManIndexController {
             // 这里是提交报告时候抓取问题点的方法
             String problem = getProblemFromJson(filepath,model,coding);
 
-            // 检查问题是否包含缺少列的错误
-            if (problem.startsWith("缺少列:")) {
+            // 检查返回结果，如果不是"getProblem"则表示有错误
+            if (!problem.equals("getProblem")) {
                 response.put("status", "error");
-                response.put("message", problem); // 返回缺少列的错误信息
-                logger.error("提交文件失败：" + filepath + "，" + problem);
-                return response;
-            }else if(problem.startsWith("需要进入页面查看问题点是否存在才可提交")){
-                response.put("status", "error");
-                response.put("message", problem); // 返回缺少列的错误信息
-                logger.error("提交文件失败：" + filepath + "，" + problem);
-                return response;
-            }else if(problem.startsWith("工作表'测试问题点汇总'不存在！提交失败，请检查。")){
-                response.put("status", "error");
-                response.put("message", problem); // 返回缺少列的错误信息
-                logger.error("提交文件失败：" + filepath + "，" + problem);
-                return response;
-            }else if(problem.startsWith("问题类别的值请按标准库")){
-                response.put("status", "error");
-                response.put("message", problem); // 返回缺少列的错误信息
-                logger.error("提交文件失败：" + filepath + "，" + problem);
-                return response;
-            }else if(problem.startsWith("问题类别不能为空") || 
-                     problem.startsWith("复现概率不能为空") || 
-                     problem.startsWith("当前状态不能为空") || 
-                     problem.startsWith("缺陷等级不能为空") ||
-                     problem.startsWith("缺陷等级必须为") ||
-                     problem.startsWith("当前状态必须为")){
-                response.put("status", "error");
-                response.put("message", problem); // 返回验证错误信息
+                response.put("message", problem); // 返回错误信息（已汇总）
                 logger.error("提交文件失败：" + filepath + "，" + problem);
                 return response;
             }
@@ -873,6 +848,7 @@ public class testManIndexController {
                 }
             }
             
+            // 工作表不存在时立即返回
             if (sheet == null) {
                 return "工作表'测试问题点汇总'不存在！提交失败，请检查。"; // 返回错误信息
             }
@@ -915,9 +891,12 @@ public class testManIndexController {
                 }
             }
 
-            // 如果有缺少的列名，返回错误信息
+            // 收集所有验证错误
+            List<String> validationErrors = new ArrayList<>();
+            
+            // 如果有缺少的列名，添加到错误列表
             if (!missingColumns.isEmpty()) {
-                return "缺少列: " + String.join(", ", missingColumns); // 返回缺少列的错误信息
+                validationErrors.add("缺少列: " + String.join(", ", missingColumns));
             }
 
             // 读取数据行并进行验证
@@ -927,6 +906,7 @@ public class testManIndexController {
             if (rowIterator.hasNext()) rowIterator.next(); // 跳过第一行
             if (rowIterator.hasNext()) rowIterator.next(); // 跳过表头行
 
+            int rowNumber = 3; // 从第3行开始（跳过第一行和第二行表头）
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 Map<String, String> rowMap = new LinkedHashMap<>();
@@ -939,57 +919,68 @@ public class testManIndexController {
 
                 // 跳过空行
                 boolean isEmpty = rowMap.values().stream().allMatch(String::isEmpty);
-                if (isEmpty) continue;
+                if (isEmpty) {
+                    rowNumber++;
+                    continue;
+                }
 
                 // 检查问题点字段是否为空，如果为空则跳过该行
                 if (isOnlySequenceNumberRow(rowMap)) {
+                    rowNumber++;
                     continue; // 跳过问题点字段为空的行
                 }
 
                 // 检查问题类别的值是否为空或是否包含"-"符号
                 String problemCategory = rowMap.get("问题类别");
                 if (problemCategory == null || problemCategory.trim().isEmpty()) {
-                    return "问题类别不能为空，请填写问题类别，问题类别的值同时必须包含'-'";
-                }
-                if (!problemCategory.contains("-")) {
-                    return "问题类别的值请按标准库有\"-\"来写，当前值：" + problemCategory;
+                    validationErrors.add("第" + rowNumber + "行：问题类别不能为空，请填写问题类别，问题类别的值同时必须包含'-'");
+                } else if (!problemCategory.contains("-")) {
+                    validationErrors.add("第" + rowNumber + "行：问题类别的值请按标准库有\"-\"来写，当前值：" + problemCategory);
                 }
 
                 // 检查复现概率不能为空
                 String reproductionProbability = rowMap.get("复现概率");
                 if (reproductionProbability == null || reproductionProbability.trim().isEmpty()) {
-                    return "复现概率不能为空，请填写复现概率";
+                    validationErrors.add("第" + rowNumber + "行：复现概率不能为空，请填写复现概率");
                 }
 
                 // 检查当前状态必须为open、close、follow up三个其中一个，兼容大小写和close、closed
                 String currentStatus = rowMap.get("当前状态");
                 if (currentStatus == null || currentStatus.trim().isEmpty()) {
-                    return "当前状态不能为空，请填写当前状态";
-                }
-                String normalizedStatus = currentStatus.trim().toLowerCase();
-                if (!normalizedStatus.equals("open") && 
-                    !normalizedStatus.equals("close") && 
-                    !normalizedStatus.equals("closed") && 
-                    !normalizedStatus.equals("following up") &&
-                    !normalizedStatus.equals("follow up")) {
-                    return "当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus;
+                    validationErrors.add("第" + rowNumber + "行：当前状态不能为空，请填写当前状态");
+                } else {
+                    String normalizedStatus = currentStatus.trim().toLowerCase();
+                    if (!normalizedStatus.equals("open") && 
+                        !normalizedStatus.equals("close") && 
+                        !normalizedStatus.equals("closed") && 
+                        !normalizedStatus.equals("following up") &&
+                        !normalizedStatus.equals("follow up")) {
+                        validationErrors.add("第" + rowNumber + "行：当前状态必须为open、close、closed或follow up中的一个，当前值：" + currentStatus);
+                    }
                 }
 
                 // 检查缺陷等级的值必须为S、A、B、C、D之一，要求必须为大写
                 String defectLevel = rowMap.get("缺陷等级");
                 if (defectLevel == null || defectLevel.trim().isEmpty()) {
-                    return "缺陷等级不能为空，请填写缺陷等级";
-                }
-                String normalizedDefectLevel = defectLevel.trim().toUpperCase();
-                if (!normalizedDefectLevel.equals("S") && 
-                    !normalizedDefectLevel.equals("A") && 
-                    !normalizedDefectLevel.equals("B") && 
-                    !normalizedDefectLevel.equals("C") && 
-                    !normalizedDefectLevel.equals("D")) {
-                    return "缺陷等级必须为S、A、B、C、D中的一个（大写），当前值：" + defectLevel;
+                    validationErrors.add("第" + rowNumber + "行：缺陷等级不能为空，请填写缺陷等级");
+                } else {
+                    String normalizedDefectLevel = defectLevel.trim().toUpperCase();
+                    if (!normalizedDefectLevel.equals("S") && 
+                        !normalizedDefectLevel.equals("A") && 
+                        !normalizedDefectLevel.equals("B") && 
+                        !normalizedDefectLevel.equals("C") && 
+                        !normalizedDefectLevel.equals("D")) {
+                        validationErrors.add("第" + rowNumber + "行：缺陷等级必须为S、A、B、C、D中的一个（大写），当前值：" + defectLevel);
+                    }
                 }
 
                 filteredRows.add(rowMap);
+                rowNumber++;
+            }
+            
+            // 如果有验证错误，汇总返回
+            if (!validationErrors.isEmpty()) {
+                return "验证失败，发现以下问题：\n" + String.join("\n", validationErrors);
             }
 
             // 获取当前时间
