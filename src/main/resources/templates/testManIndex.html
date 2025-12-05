@@ -1256,6 +1256,10 @@
                                 <option value="汪科业">汪科业</option>
 
                             </select>
+                            <label for="edit_cc_recipients">抄送者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <input type="text" id="edit_cc_recipients" name="edit_cc_recipients" placeholder="请输入抄送者姓名，多个用逗号分隔，例如：张三,李四">
+                            <span style="color: #999; margin-left: 2px;">(非必填)</span><br>
+
                             <label for="edit_electric_id">IT提单系统测试编号:</label>
                             <input type="text" id="edit_electric_id" name="edit_electric_id"
                                    placeholder="如有，请在IT系统寻找到对应电气编号，例如ET2505260009">
@@ -1297,6 +1301,7 @@
         document.getElementById('edit_sample_leader').value = product.sample_leader;
         document.getElementById('tester').value = product.tester;
         document.getElementById('edit_electric_id').value = product.electric_sample_id;
+        document.getElementById('edit_cc_recipients').value = product.cc_recipients || '';
 
         // 设置问题点确认状态复选框的初始值
         console.log('product对象:', product); // 调试信息
@@ -2014,7 +2019,8 @@
                     'data-sample_leader="' + product.sample_leader + '" ' +
                     'data-result_judge="' + product.result_judge + '" ' +
                     'data-rd_result_judge="' + product.rd_result_judge + '" ' +
-                    'data-queststats="' + product.questStats + '">' + buttonLabel + '</button>';
+                    'data-queststats="' + product.questStats + '" ' +
+                    'data-cc_recipients="' + (product.cc_recipients || '') + '">' + buttonLabel + '</button>';
 
                 // 转发按钮
                 actionButtons += '<button class="action-btn forward-btn" data-filepath="' + product.filepath + '">转发</button>';
@@ -2059,6 +2065,7 @@
 
                     var questStats = $(this).data('queststats');  // 确保获取questStats数据
                     var sample_id  = $(this).data('sample_id');
+                    var cc_recipients = $(this).data('cc_recipients') || '';  // 获取抄送者信息
 
                     if (schedule === 0) {
 
@@ -2069,7 +2076,7 @@
                                     finishBtn(confirmation,
                                         filepath, model, coding, category, version, schedule,
                                         big_species, small_species, high_frequency, sample_frequency,
-                                        questStats, sample_id, dqe ,rd ,projectLeader
+                                        questStats, sample_id, dqe ,rd ,projectLeader, cc_recipients
                                     );
                                 }
                             });
@@ -2080,7 +2087,7 @@
                                     finishBtn(confirmation,
                                         filepath, model, coding, category, version, schedule,
                                         big_species, small_species, high_frequency, sample_frequency,
-                                        questStats, sample_id, dqe
+                                        questStats, sample_id, dqe, null, null, ''
                                     );
                                 }
                             });
@@ -2226,7 +2233,7 @@
     }
 
 
-    function finishBtn(confirmation, filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, dqe ,rd ,projectLeader ) {
+    function finishBtn(confirmation, filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, dqe ,rd ,projectLeader, cc_recipients ) {
         if (confirmation) {
             if (schedule === 0) {
                 // 显示休息天数模态框
@@ -2236,7 +2243,7 @@
                         if (choice === '退样') {
                             const tuiOrJp = "tui";
                             alert('用户选择了退样，后续处理逻辑可以在这里完成。');
-                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, null, tuiOrJp);
+                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, null, tuiOrJp, cc_recipients);
                             // 如果需要，调用后续逻辑
                         } else if (choice === '竞品') {
 
@@ -2247,7 +2254,7 @@
                             }
                             const tuiOrJp = "jp";
                             // 如果需要，调用后续逻辑
-                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd , tuiOrJp);
+                            submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd , tuiOrJp, cc_recipients);
                         } else {
                             if (!dqe || !rd || !projectLeader) {
                                 alert("检测到您没填写对应项目的DQE、RD，和项目负责人，请填写，才能准确发送对应流程提醒他们！");
@@ -2257,7 +2264,7 @@
                             confirm(`你确定要提交 ${filepath} 吗？`)
                                 .then((confirmation)=>{
                                     if(confirmation){
-                                        submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, rd);
+                                        submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe, rd, null, cc_recipients);
                                     }
                                 })
                         }
@@ -2280,7 +2287,10 @@
                         questStats,
                         sample_id,
                         0, // 撤回时无休息天数
-                        dqe
+                        dqe,
+                        null,
+                        null,
+                        ''
                     );
                 }
 
@@ -2339,7 +2349,7 @@
         }
     }
 
-    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd, tuiOrJp) {
+    function submitFinish(filepath, model, coding, category, version, schedule, big_species, small_species, high_frequency, sample_frequency, questStats, sample_id, restDays, dqe , rd, tuiOrJp, cc_recipients) {
         // 用户点击了确认
         $.ajax({
             url: '/testManIndex/finishTest', // 控制器的路径
@@ -2372,10 +2382,20 @@
                         updateSchedule("1", sample_id, rd, statusBarBgColor, username, "rd");
                     }, 2000); // 2000 毫秒 = 2 秒
 
+                    // 如果有抄送者，发送文本通知给抄送者
+                    if (cc_recipients && cc_recipients.trim() !== '') {
+                        const ccList = cc_recipients.split(',').map(name => name.trim()).filter(name => name !== '');
+                        ccList.forEach((ccName, index) => {
+                            setTimeout(() => {
+                                sendCcNotification(sample_id, ccName, username, "1");
+                            }, 2000 + (index * 2000)); // 每个抄送者间隔2秒
+                        });
+                    }
+
                     // 等待 2 秒后发送给绮敏
-                    // setTimeout(() => {
-                    //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    // }, 2000); // 2000 毫秒 = 2 秒
+                    setTimeout(() => {
+                        updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                    }, 2000); // 2000 毫秒 = 2 秒
 
                     AccessLogUtil.record("提交报告走审核流程按钮");
                 }else if(dqe && response.message.includes("退样成功")){
@@ -2384,6 +2404,16 @@
                     setTimeout(() => {
                         updateSchedule("9", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
+
+                    // 如果有抄送者，发送文本通知给抄送者
+                    if (cc_recipients && cc_recipients.trim() !== '') {
+                        const ccList = cc_recipients.split(',').map(name => name.trim()).filter(name => name !== '');
+                        ccList.forEach((ccName, index) => {
+                            setTimeout(() => {
+                                sendCcNotification(sample_id, ccName, username, "9");
+                            }, 4000 + (index * 2000)); // 在发送给绮敏之后，每个抄送者间隔2秒
+                        });
+                    }
 
                     AccessLogUtil.record("提交报告走退样流程按钮");
 
@@ -2405,6 +2435,16 @@
                     setTimeout(() => {
                         updateSchedule("10", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
                     }, 2000); // 2000 毫秒 = 2 秒
+
+                    // 如果有抄送者，发送文本通知给抄送者
+                    if (cc_recipients && cc_recipients.trim() !== '') {
+                        const ccList = cc_recipients.split(',').map(name => name.trim()).filter(name => name !== '');
+                        ccList.forEach((ccName, index) => {
+                            setTimeout(() => {
+                                sendCcNotification(sample_id, ccName, username, "10");
+                            }, 4000 + (index * 2000)); // 在发送给绮敏之后，每个抄送者间隔2秒
+                        });
+                    }
 
                     AccessLogUtil.record("提交报告走竞品流程按钮");
                 }
@@ -3840,6 +3880,36 @@
     function exportFile(sampleId) {
         // 直接访问后端的下载接口，让浏览器自动下载
         window.location.href = `/problemMoudle/downloadFile?sampleId=${sampleId}`;
+    }
+
+    // 发送文本通知给抄送者
+    function sendCcNotification(sample_id, ccName, sender, sample_schedule) {
+        fetch('/problemMoudle/sendCcNotification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sample_id: sample_id,
+                cc_name: ccName,
+                sender: sender,
+                sample_schedule: sample_schedule
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Network response was not ok');
+                    });
+                }
+                return response.text();
+            })
+            .then(text => {
+                console.log('抄送通知发送成功:', text);
+            })
+            .catch((error) => {
+                console.error('发送抄送通知失败:', error);
+            });
     }
 
     function updateSchedule(sample_schedule, sample_id, receiver, statusBarBgColor, sender, job ,selectedOption,isReceiverTester) {

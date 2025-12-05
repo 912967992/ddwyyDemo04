@@ -1718,27 +1718,200 @@
 
             // 设置模态框内容
             document.getElementById('modalBody').innerHTML = `
-            <!--            <p><strong>电气编号：</strong>${item.sample_id}</p>-->
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <p><strong>电气编号：</strong></p>
+            <style>
+                .detail-section {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-left: 4px solid #007bff;
+                }
+                .detail-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                }
+                @media (max-width: 1200px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                @media (max-width: 900px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+                .detail-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .detail-label {
+                    font-size: 12px;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+                .detail-value {
+                    font-size: 13px;
+                    color: #212529;
+                    font-weight: 400;
+                    word-break: break-word;
+                }
+                .detail-edit-group {
+                    background: #fff;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 15px;
+                    border: 1px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .detail-edit-group label {
+                    font-weight: 600;
+                    color: #495057;
+                    min-width: 80px;
+                }
+                .detail-edit-group input {
+                    flex: 1;
+                    padding: 6px 10px;
+                    border: 1px solid #ced4da;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+                .detail-edit-group button {
+                    padding: 6px 16px;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    transition: background 0.2s;
+                }
+                .detail-edit-group button:hover {
+                    background: #0056b3;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            </style>
+            
+            <!-- 电气编号编辑区域 -->
+            <div class="detail-edit-group">
+                <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${item.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
+                <button id="copyProjectBtn" style="margin-left: 10px; padding: 6px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s;">复制项目</button>
             </div>
-            <p><strong>项目名称：</strong>${item.sample_name}</p>
-            <p><strong>大小编码：</strong>${item.sample_model + ' ' + item.materialCode}</p>
-            <p><strong>产品类别：</strong>${item.sample_category}</p>
-            <p><strong>版本：</strong>${item.version}</p>
-            <p><strong>优先级：</strong>${item.priority}</p>
-            <p><strong>项目负责人：</strong>${item.sample_leader}</p>
-            <p><strong>供应商：</strong>${item.supplier}</p>
-            <p><strong>试验项目类别：</strong>${item.testProjectCategory}</p>
-            <p><strong>测试子项目：</strong>${item.testProjects}</p>
-            <p><strong>状态：</strong>${getScheduleText(item.schedule)}</p>
-            <p><strong>送样人：</strong>${item.sample_sender}</p>
-            <p><strong>送样类别：</strong>${item.sample_type}</p>
-            <p><strong>送样数量：</strong>${item.sample_quantity}</p>
-            <p><strong>是否高频：</strong>${item.high_frequency}</p>
-            <p><strong>创建时间：</strong>${item.create_time}</p>
+
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📋 基本信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目名称</span>
+                        <span class="detail-value">${item.sample_name || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">大小编码</span>
+                        <span class="detail-value">${item.sample_model || ''} ${item.materialCode || ''}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">产品类别</span>
+                        <span class="detail-value">${item.sample_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">版本</span>
+                        <span class="detail-value">${item.version || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">优先级</span>
+                        <span class="detail-value">${item.priority || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">状态</span>
+                        <span class="detail-value"><span class="status-badge" style="background: #e7f3ff; color: #0066cc;">${getScheduleText(item.schedule) || '-'}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 人员信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">👥 人员信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目负责人</span>
+                        <span class="detail-value">${item.sample_leader || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样人</span>
+                        <span class="detail-value">${item.sample_sender || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">🧪 测试信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">试验项目类别</span>
+                        <span class="detail-value">${item.testProjectCategory || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">测试子项目</span>
+                        <span class="detail-value">${item.testProjects || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">是否高频</span>
+                        <span class="detail-value">${item.high_frequency || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样类别</span>
+                        <span class="detail-value">${item.sample_type || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数量信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📦 数量信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">送样数量</span>
+                        <span class="detail-value">${item.sample_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">供应商</span>
+                        <span class="detail-value">${item.supplier || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">⏰ 时间信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">接单时间</span>
+                        <span class="detail-value">${item.create_time || '-'}</span>
+                    </div>
+                </div>
+            </div>
         `;
 
             document.getElementById('scheduleDays').value = item.scheduleDays != null ? item.scheduleDays : '';
@@ -1863,6 +2036,34 @@
             if (!checkEditPermission()) {
                 document.getElementById('editSampleIdBtn').style.opacity = '0.5';
                 document.getElementById('editSampleIdBtn').style.cursor = 'not-allowed';
+            }
+
+            // 绑定复制项目按钮点击事件
+            const copyBtn = document.getElementById('copyProjectBtn');
+            if (copyBtn) {
+                // 根据用户权限设置复制项目按钮状态
+                if (!checkEditPermission()) {
+                    copyBtn.style.opacity = '0.5';
+                    copyBtn.style.cursor = 'not-allowed';
+                    copyBtn.disabled = true;
+                } else {
+                    copyBtn.style.opacity = '1';
+                    copyBtn.style.cursor = 'pointer';
+                    copyBtn.disabled = false;
+                }
+                
+                copyBtn.onclick = null; // 清除之前的事件
+                copyBtn.onclick = function() {
+                    // 检查编辑权限
+                    if (!checkEditPermission()) {
+                        alert('您没有编辑权限，无法复制项目。');
+                        return;
+                    }
+                    // 设置当前右键点击的项目数据
+                    currentRightClickCell = null;
+                    currentRightClickProject = card;
+                    copyProject();
+                };
             }
 
         };
@@ -4115,26 +4316,200 @@
 
         // 设置模态框内容
         document.getElementById('modalBody').innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <p><strong>电气编号：</strong></p>
+            <style>
+                .detail-section {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-left: 4px solid #007bff;
+                }
+                .detail-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                }
+                @media (max-width: 1200px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                @media (max-width: 900px) {
+                    .detail-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+                .detail-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .detail-label {
+                    font-size: 12px;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+                .detail-value {
+                    font-size: 13px;
+                    color: #212529;
+                    font-weight: 400;
+                    word-break: break-word;
+                }
+                .detail-edit-group {
+                    background: #fff;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 15px;
+                    border: 1px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .detail-edit-group label {
+                    font-weight: 600;
+                    color: #495057;
+                    min-width: 80px;
+                }
+                .detail-edit-group input {
+                    flex: 1;
+                    padding: 6px 10px;
+                    border: 1px solid #ced4da;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+                .detail-edit-group button {
+                    padding: 6px 16px;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    transition: background 0.2s;
+                }
+                .detail-edit-group button:hover {
+                    background: #0056b3;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            </style>
+            
+            <!-- 电气编号编辑区域 -->
+            <div class="detail-edit-group">
+                <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${taskData.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
+                <button id="copyProjectBtn" style="margin-left: 10px; padding: 6px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s;">复制项目</button>
             </div>
-            <p><strong>项目名称：</strong>${taskData.sample_name}</p>
-            <p><strong>大小编码：</strong>${taskData.sample_model + ' ' + taskData.materialCode}</p>
-            <p><strong>产品类别：</strong>${taskData.sample_category}</p>
-            <p><strong>版本：</strong>${taskData.version}</p>
-            <p><strong>优先级：</strong>${taskData.priority}</p>
-            <p><strong>项目负责人：</strong>${taskData.sample_leader}</p>
-            <p><strong>供应商：</strong>${taskData.supplier}</p>
-            <p><strong>试验项目类别：</strong>${taskData.test_project_category}</p>
-            <p><strong>测试子项目：</strong>${taskData.test_projects}</p>
-            <p><strong>状态：</strong>${getScheduleText(taskData.schedule)}</p>
-            <p><strong>送样人：</strong>${taskData.sample_sender}</p>
-            <p><strong>送样类别：</strong>${taskData.sample_type}</p>
-            <p><strong>送样数量：</strong>${taskData.sample_quantity}</p>
-            <p><strong>是否高频：</strong>${taskData.high_frequency}</p>
-            <p><strong>创建时间：</strong>${taskData.create_time}</p>
+
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📋 基本信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目名称</span>
+                        <span class="detail-value">${taskData.sample_name || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">大小编码</span>
+                        <span class="detail-value">${taskData.sample_model || ''} ${taskData.materialCode || ''}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">产品类别</span>
+                        <span class="detail-value">${taskData.sample_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">版本</span>
+                        <span class="detail-value">${taskData.version || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">优先级</span>
+                        <span class="detail-value">${taskData.priority || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">状态</span>
+                        <span class="detail-value"><span class="status-badge" style="background: #e7f3ff; color: #0066cc;">${getScheduleText(taskData.schedule) || '-'}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 人员信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">👥 人员信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">项目负责人</span>
+                        <span class="detail-value">${taskData.sample_leader || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样人</span>
+                        <span class="detail-value">${taskData.sample_sender || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">🧪 测试信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">试验项目类别</span>
+                        <span class="detail-value">${taskData.test_project_category || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">测试子项目</span>
+                        <span class="detail-value">${taskData.test_projects || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">是否高频</span>
+                        <span class="detail-value">${taskData.high_frequency || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">送样类别</span>
+                        <span class="detail-value">${taskData.sample_type || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数量信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">📦 数量信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">送样数量</span>
+                        <span class="detail-value">${taskData.sample_quantity || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">供应商</span>
+                        <span class="detail-value">${taskData.supplier || '-'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间信息 -->
+            <div class="detail-section">
+                <div class="detail-section-title">⏰ 时间信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">接单时间</span>
+                        <span class="detail-value">${taskData.create_time || '-'}</span>
+                    </div>
+                </div>
+            </div>
         `;
 
         document.getElementById('scheduleDays').value = taskData.scheduleDays != null ? taskData.scheduleDays : '';
@@ -4307,8 +4682,114 @@
                 });
         });
 
+        // 绑定复制项目按钮点击事件
+        const copyBtn = document.getElementById('copyProjectBtn');
+        if (copyBtn) {
+            // 根据用户权限设置复制项目按钮状态
+            if (!checkEditPermission()) {
+                copyBtn.style.opacity = '0.5';
+                copyBtn.style.cursor = 'not-allowed';
+                copyBtn.disabled = true;
+            } else {
+                copyBtn.style.opacity = '1';
+                copyBtn.style.cursor = 'pointer';
+                copyBtn.disabled = false;
+            }
+            
+            // 移除之前的事件监听器（如果存在）
+            copyBtn.onclick = null;
+            // 绑定新的事件
+            copyBtn.onclick = function() {
+                // 检查编辑权限
+                if (!checkEditPermission()) {
+                    alert('您没有编辑权限，无法复制项目。');
+                    return;
+                }
+                copyProject();
+            };
+        }
+
     }
 
+    // 复制项目函数
+    function copyProject(event) {
+        if (event) {
+            event.stopPropagation(); // 阻止事件冒泡
+        }
+        
+        // 检查编辑权限
+        if (!checkEditPermission()) {
+            alert('您没有编辑权限，无法复制项目。');
+            return;
+        }
+        
+        // 关闭右键菜单
+        const contextMenu = document.getElementById('contextMenu');
+        if (contextMenu) {
+            contextMenu.style.display = 'none';
+        }
+
+        // 优先从项目详情模态框的电气编号输入框获取（这是从数据库查询的准确值）
+        let sampleId = null;
+        const editSampleIdInput = document.getElementById('editSampleId');
+        if (editSampleIdInput && editSampleIdInput.value) {
+            sampleId = editSampleIdInput.value.trim();
+        } else {
+            // 如果模态框没有打开，则从页面元素获取
+            if (currentRightClickCell) {
+                sampleId = currentRightClickCell.getAttribute('data-sample_id');
+                // 检查是否有多个项目合并
+                const multiSampleId = currentRightClickCell.getAttribute('data1-sample_id');
+                if (multiSampleId) {
+                    alert("这是多个相同天数项目合并的单元格，请先拆分后再复制项目。");
+                    return;
+                }
+            } else if (currentRightClickProject) {
+                sampleId = currentRightClickProject.getAttribute('data-sample_id');
+            }
+        }
+
+        if (!sampleId || sampleId.trim() === '') {
+            alert("无法获取项目信息，请重试。");
+            return;
+        }
+
+        // 确认复制
+        if (!confirm(`确定要复制项目 ${sampleId} 吗？系统将自动生成唯一的电气编号。`)) {
+            return;
+        }
+
+        // 发送复制请求到后端
+        fetch('/scheduleBoard/copyProject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sample_id: sampleId
+            })
+        })
+            .then(response => response.json())
+            .then(async result => {
+                if (result.success) {
+                    // 显示成功消息，包含新生成的电气编号
+                    const newSampleId = result.newSampleId || '未知';
+                    alert(result.message || `项目复制成功！新电气编号为：${newSampleId}`);
+                    // 刷新排期面板
+                    await refreshSchedule();
+                    // 刷新项目池子，立即显示新复制的项目
+                    loadProjectPoolData();
+                    // 关闭模态框
+                    document.getElementById('modal').style.display = 'none';
+                } else {
+                    alert(result.message || '复制项目失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                console.error('复制项目时出错:', error);
+                alert('复制项目时出错，请稍后重试');
+            });
+    }
 
     function getScheduleText(code) {
         switch (code) {

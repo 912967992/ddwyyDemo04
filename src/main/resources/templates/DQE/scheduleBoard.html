@@ -2275,8 +2275,24 @@
             // 绑定复制项目按钮点击事件
             const copyBtn = document.getElementById('copyProjectBtn');
             if (copyBtn) {
+                // 根据用户权限设置复制项目按钮状态
+                if (!checkEditPermission()) {
+                    copyBtn.style.opacity = '0.5';
+                    copyBtn.style.cursor = 'not-allowed';
+                    copyBtn.disabled = true;
+                } else {
+                    copyBtn.style.opacity = '1';
+                    copyBtn.style.cursor = 'pointer';
+                    copyBtn.disabled = false;
+                }
+                
                 copyBtn.onclick = null; // 清除之前的事件
                 copyBtn.onclick = function() {
+                    // 检查编辑权限
+                    if (!checkEditPermission()) {
+                        alert('您没有编辑权限，无法复制项目。');
+                        return;
+                    }
                     // 设置当前右键点击的项目数据
                     currentRightClickCell = null;
                     currentRightClickProject = card;
@@ -5004,10 +5020,26 @@
         // 绑定复制项目按钮点击事件（使用onclick避免重复绑定）
         const copyBtn = document.getElementById('copyProjectBtn');
         if (copyBtn) {
+            // 根据用户权限设置复制项目按钮状态
+            if (!checkEditPermission()) {
+                copyBtn.style.opacity = '0.5';
+                copyBtn.style.cursor = 'not-allowed';
+                copyBtn.disabled = true;
+            } else {
+                copyBtn.style.opacity = '1';
+                copyBtn.style.cursor = 'pointer';
+                copyBtn.disabled = false;
+            }
+            
             // 移除之前的事件监听器（如果存在）
             copyBtn.onclick = null;
             // 绑定新的事件
             copyBtn.onclick = function() {
+                // 检查编辑权限
+                if (!checkEditPermission()) {
+                    alert('您没有编辑权限，无法复制项目。');
+                    return;
+                }
                 copyProject();
             };
         }
@@ -5018,6 +5050,12 @@
     function copyProject(event) {
         if (event) {
             event.stopPropagation(); // 阻止事件冒泡
+        }
+        
+        // 检查编辑权限
+        if (!checkEditPermission()) {
+            alert('您没有编辑权限，无法复制项目。');
+            return;
         }
         
         // 关闭右键菜单

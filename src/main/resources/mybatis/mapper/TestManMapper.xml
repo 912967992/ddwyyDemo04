@@ -107,7 +107,8 @@
             priority = #{priority},
             sample_remark = #{sample_remark},
             planTestDuration = #{planTestDuration},
-            electric_sample_id = #{electric_sample_id}
+            electric_sample_id = #{electric_sample_id},
+            cc_recipients = #{cc_recipients}
         WHERE
             sample_id =#{sample_id}
     </update>
@@ -130,7 +131,8 @@
             priority = #{priority},
             sample_remark = #{sample_remark},
             planTestDuration = #{planTestDuration},
-            electric_sample_id = #{electric_sample_id}
+            electric_sample_id = #{electric_sample_id},
+            cc_recipients = #{cc_recipients}
         WHERE
             sample_id =#{sample_id}
     </update>

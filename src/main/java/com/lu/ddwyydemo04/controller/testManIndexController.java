@@ -358,7 +358,8 @@ public class testManIndexController {
             @RequestParam("edit_sample_leader") String editSampleleader,
             @RequestParam("tester") String tester,
             @RequestParam("edit_electric_id") String edit_electric_id,
-            @RequestParam(value = "passbackConfirm", required = false) String passbackConfirm
+            @RequestParam(value = "passbackConfirm", required = false) String passbackConfirm,
+            @RequestParam(value = "edit_cc_recipients", required = false) String edit_cc_recipients
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -477,7 +478,13 @@ public class testManIndexController {
             sample.setSample_Developer(editSampleDeveloper.trim());
             sample.setSample_leader(editSampleleader.trim());
             sample.setTester(tester);
-
+            
+            // 处理抄送者
+            if (edit_cc_recipients != null && !edit_cc_recipients.trim().isEmpty()) {
+                sample.setCc_recipients(edit_cc_recipients.trim());
+            } else {
+                sample.setCc_recipients(null);
+            }
 
 //            sample.setScheduleStartTime(edit_scheduleStartTime);
 //            sample.setScheduleEndTime(edit_scheduleEndTime);

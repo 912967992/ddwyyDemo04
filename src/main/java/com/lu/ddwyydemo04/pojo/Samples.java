@@ -63,6 +63,8 @@ public class Samples {
 
     private String passbackConfirm; // 回传确认状态
 
+    private String cc_recipients; // 抄送者
+
     public String getSample_id() {
         return sample_id;
     }
@@ -412,6 +414,14 @@ public class Samples {
         this.passbackConfirm = passbackConfirm;
     }
 
+    public String getCc_recipients() {
+        return cc_recipients;
+    }
+
+    public void setCc_recipients(String cc_recipients) {
+        this.cc_recipients = cc_recipients;
+    }
+
     @Override
     public String toString() {
         return "Samples{" +
@@ -457,6 +467,7 @@ public class Samples {
                 ", scheduleTestCycle='" + scheduleTestCycle + '\'' +
                 ", electric_sample_id='" + electric_sample_id + '\'' +
                 ", passbackConfirm='" + passbackConfirm + '\'' +
+                ", cc_recipients='" + cc_recipients + '\'' +
                 '}';
     }
 }

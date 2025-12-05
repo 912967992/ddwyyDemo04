@@ -856,6 +856,7 @@ public class DQEproblemMoudleController {
 
         //62712385 -->产品研发部，523528658 --> 电子DQE组， 523459714 --》电子测试组
         //20250228 简化审核流程
+        System.out.println("job:"+job);
         if(sampleSchedule.equals("2")){
             setting_role = "okManager";
         }else if(sampleSchedule.equals("9") || sampleSchedule.equals("10") ){
@@ -1001,6 +1002,61 @@ public class DQEproblemMoudleController {
         }
     }
 
+
+    /**
+     * 发送文本格式的通知给抄送者
+     */
+    @PostMapping("/problemMoudle/sendCcNotification")
+    @ResponseBody
+    public ResponseEntity<String> sendCcNotification(@RequestBody Map<String, String> request) throws ApiException {
+        String sampleId = request.get("sample_id");
+        String ccName = request.get("cc_name");
+        String sender = request.get("sender");
+        String sampleSchedule = request.get("sample_schedule");
+        
+        if (sampleId == null || ccName == null || sender == null || sampleSchedule == null) {
+            return ResponseEntity.badRequest().body("缺少必要参数");
+        }
+        
+        // 查询样品信息
+        List<Samples> sampleList = dqeproblemMoudleService.querySamples(sampleId);
+        if (sampleList == null || sampleList.isEmpty()) {
+            return ResponseEntity.status(404).body("未找到样品信息");
+        }
+        
+        Samples sample = sampleList.get(0);
+        
+        // 获取当前时间
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String notifyTime = LocalDateTime.now().format(formatter);
+        
+        // 构建文本消息内容（与发送给许梦瑶的格式一致）
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("测试进度: ").append(accessTokenService.returnSchedule(sampleSchedule)).append("\n");
+        contentBuilder.append("完整型号: ").append(sample.getFull_model() != null ? sample.getFull_model() : "").append("\n");
+        contentBuilder.append("样品阶段: ").append(sample.getSample_category() != null ? sample.getSample_category() : "").append("\n");
+        contentBuilder.append("版本: ").append(sample.getVersion() != null ? sample.getVersion() : "").append("\n");
+        contentBuilder.append("产品名称: ").append(sample.getSample_name() != null ? sample.getSample_name() : "").append("\n");
+        contentBuilder.append("提交时间: ").append(notifyTime).append("\n");
+        contentBuilder.append("报告提交者: ").append(sender).append("\n");
+        
+        // 获取抄送者的userId
+        String userId = accessTokenService.getUserIdByName(ccName);
+        if (userId == null || userId.isEmpty()) {
+            logger.warn("未找到抄送者 {} 的userId", ccName);
+            return ResponseEntity.status(404).body("未找到与 " + ccName + " 匹配的用户，无法发送通知");
+        }
+        
+        // 发送文本通知
+        try {
+            accessTokenService.sendTextNotification(userId, contentBuilder.toString());
+            logger.info("已发送文本通知给抄送者: {}, 样品ID: {}", ccName, sampleId);
+            return ResponseEntity.ok("通知已发送给 " + ccName);
+        } catch (Exception e) {
+            logger.error("发送抄送通知失败: " + e.getMessage(), e);
+            return ResponseEntity.status(500).body("发送通知失败: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/problemMoudle/exportProblemXlsx")
     @ResponseBody
