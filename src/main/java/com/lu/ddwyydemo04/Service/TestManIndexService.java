@@ -519,6 +519,110 @@ public class TestManIndexService {
         return testManDao.getElectricInfo(sample_id);
     }
 
+    /**
+     * 生成唯一的复制sample_id
+     * @param originalSampleId 原始sample_id
+     * @return 唯一的sample_id
+     */
+    private String generateUniqueCopySampleId(String originalSampleId) {
+        // 如果原sample_id包含"-copy"，先去掉它
+        String baseSampleId = originalSampleId;
+        if (originalSampleId.contains("-copy")) {
+            // 去掉 "-copy" 及其后面的数字（如果有）
+            // 例如：ET001-copy -> ET001, ET001-copy1 -> ET001, ET001-copy2 -> ET001
+            baseSampleId = originalSampleId.replaceFirst("-copy\\d*$", "");
+        }
+        
+        // 先尝试 baseSampleId + "-copy"
+        String newSampleId = baseSampleId + "-copy";
+        int count = testManDao.queryElectricalCode(newSampleId);
+        
+        if (count == 0) {
+            return newSampleId;
+        }
+        
+        // 如果 "-copy" 已存在，尝试 "-copy1", "-copy2" 等
+        int copyNumber = 1;
+        do {
+            newSampleId = baseSampleId + "-copy" + copyNumber;
+            count = testManDao.queryElectricalCode(newSampleId);
+            copyNumber++;
+        } while (count > 0);
+        
+        return newSampleId;
+    }
+
+    /**
+     * 复制electric_info表中的项目
+     * @param originalSampleId 原始sample_id
+     * @return 新生成的sample_id，如果复制失败返回null
+     */
+    public String copyElectricInfo(String originalSampleId) {
+        // 获取原始项目信息
+        List<PassbackData> originalDataList = testManDao.getElectricInfo(originalSampleId);
+        
+        if (originalDataList == null || originalDataList.isEmpty()) {
+            return null;
+        }
+        
+        PassbackData originalData = originalDataList.get(0);
+        
+        // 生成唯一的复制sample_id
+        String newSampleId = generateUniqueCopySampleId(originalSampleId);
+        
+        // 创建新的项目数据
+        PassbackData newData = new PassbackData();
+        newData.setSample_id(newSampleId);
+        newData.setSample_category(originalData.getSample_category());
+        newData.setSample_model(originalData.getSample_model());
+        newData.setMaterialCode(originalData.getMaterialCode());
+        newData.setSample_frequency(originalData.getSample_frequency());
+        newData.setSample_name(originalData.getSample_name());
+        newData.setVersion(originalData.getVersion());
+        newData.setPriority(originalData.getPriority());
+        newData.setSample_leader(originalData.getSample_leader());
+        newData.setSupplier(originalData.getSupplier());
+        newData.setTestProjectCategory(originalData.getTestProjectCategory());
+        newData.setTestProjects(originalData.getTestProjects());
+        newData.setSchedule(originalData.getSchedule());
+        newData.setScheduleDays(originalData.getScheduleDays());
+        newData.setSchedule_color(originalData.getSchedule_color());
+        newData.setRemark(originalData.getRemark());
+        newData.setWaitSample_classify(originalData.getWaitSample_classify());
+        newData.setSample_sender(originalData.getSample_sender());
+        newData.setSample_type(originalData.getSample_type());
+        newData.setSample_quantity(originalData.getSample_quantity());
+        newData.setHigh_frequency(originalData.getHigh_frequency());
+        newData.setProductRequirement(originalData.getProductRequirement());
+        newData.setProductApprovalDoc(originalData.getProductApprovalDoc());
+        newData.setApply_createdAt(originalData.getApply_createdAt());
+        newData.setDemandFinishedTime(originalData.getDemandFinishedTime());
+        newData.setSample_dqe(originalData.getSample_dqe());
+        newData.setSample_rd(originalData.getSample_rd());
+        newData.setReliability_quantity(originalData.getReliability_quantity());
+        newData.setEnvproction_quantity(originalData.getEnvproction_quantity());
+        newData.setDqe_group(originalData.getDqe_group());
+        
+        // 设置默认值
+        newData.setIsUsed(0);
+        newData.setIsCancel(0);
+        newData.setSample_actual_id(null);
+        newData.setActual_start_time(null);
+        newData.setActual_finish_time(null);
+        newData.setReportReviewTime(null);
+        newData.setSampleRecognizeResult(null);
+        newData.setTester(null);
+        newData.setTestDuration(null);
+        newData.setFilepath(null);
+        newData.setChangeRecord(null);
+        newData.setSchedule_start_date(null);
+        newData.setSchedule_end_date(null);
+        
+        // 插入新数据
+        int result = testManDao.insertElectricInfo(newData);
+        return result > 0 ? newSampleId : null;
+    }
+
     public List<String> getMaterialCodes(String sampleId) {
         List<MaterialItem> items = getDistinctMaterialCodes(sampleId);
 

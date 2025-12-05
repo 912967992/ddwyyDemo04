@@ -1176,6 +1176,7 @@
         viewAttrDiv.textContent = '查看属性';
         viewAttrDiv.onclick = showProjectAttributes;
         contextMenu.appendChild(viewAttrDiv);
+
         
         // 只有编辑用户才能看到编辑选项
         if (checkEditPermission()) {
@@ -2024,6 +2025,7 @@
                 <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${item.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
+                <button id="copyProjectBtn" style="margin-left: 10px; padding: 6px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s;">复制项目</button>
             </div>
 
             <!-- 基本信息 -->
@@ -2268,6 +2270,18 @@
             if (!checkEditPermission()) {
                 document.getElementById('editSampleIdBtn').style.opacity = '0.5';
                 document.getElementById('editSampleIdBtn').style.cursor = 'not-allowed';
+            }
+
+            // 绑定复制项目按钮点击事件
+            const copyBtn = document.getElementById('copyProjectBtn');
+            if (copyBtn) {
+                copyBtn.onclick = null; // 清除之前的事件
+                copyBtn.onclick = function() {
+                    // 设置当前右键点击的项目数据
+                    currentRightClickCell = null;
+                    currentRightClickProject = card;
+                    copyProject();
+                };
             }
 
         };
@@ -4694,6 +4708,7 @@
                 <label>🔌 电气编号：</label>
                 <input type="text" id="editSampleId" value="${taskData.sample_id}">
                 <button id="editSampleIdBtn">修改</button>
+                <button id="copyProjectBtn" style="margin-left: 10px; padding: 6px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s;">复制项目</button>
             </div>
 
             <!-- 基本信息 -->
@@ -4986,6 +5001,96 @@
                 });
         });
 
+        // 绑定复制项目按钮点击事件（使用onclick避免重复绑定）
+        const copyBtn = document.getElementById('copyProjectBtn');
+        if (copyBtn) {
+            // 移除之前的事件监听器（如果存在）
+            copyBtn.onclick = null;
+            // 绑定新的事件
+            copyBtn.onclick = function() {
+                copyProject();
+            };
+        }
+
+    }
+
+    // 复制项目函数
+    function copyProject(event) {
+        if (event) {
+            event.stopPropagation(); // 阻止事件冒泡
+        }
+        
+        // 关闭右键菜单
+        const contextMenu = document.getElementById('contextMenu');
+        if (contextMenu) {
+            contextMenu.style.display = 'none';
+        }
+
+        // 优先从项目详情模态框的电气编号输入框获取（这是从数据库查询的准确值）
+        let sampleId = null;
+        const editSampleIdInput = document.getElementById('editSampleId');
+        if (editSampleIdInput && editSampleIdInput.value) {
+            sampleId = editSampleIdInput.value.trim();
+        } else {
+            // 如果模态框没有打开，则从页面元素获取
+            if (currentRightClickCell) {
+                sampleId = currentRightClickCell.getAttribute('data-sample_id');
+                // 检查是否有多个项目合并
+                const multiSampleId = currentRightClickCell.getAttribute('data1-sample_id');
+                if (multiSampleId) {
+                    alert("这是多个相同天数项目合并的单元格，请先拆分后再复制项目。");
+                    return;
+                }
+            } else if (currentRightClickProject) {
+                sampleId = currentRightClickProject.getAttribute('data-sample_id');
+            }
+        }
+
+        if (!sampleId || sampleId.trim() === '') {
+            alert("无法获取项目信息，请重试。");
+            return;
+        }
+
+        // 确认复制
+        if (!confirm(`确定要复制项目 ${sampleId} 吗？系统将自动生成唯一的电气编号。`)) {
+            return;
+        }
+
+        // 发送复制请求到后端
+        fetch('/scheduleBoard/copyProject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sample_id: sampleId
+            })
+        })
+            .then(response => response.json())
+            .then(async result => {
+                if (result.success) {
+                    // 显示成功消息，包含新生成的电气编号
+                    const newSampleId = result.newSampleId || '未知';
+                    alert(result.message || `项目复制成功！新电气编号为：${newSampleId}`);
+                    // 刷新排期面板
+                    await refreshSchedule();
+                    // 刷新项目池子，立即显示新复制的项目
+                    loadProjectPoolData();
+                    // 刷新待送样池子，立即显示新复制的项目
+                    loadPendingSamplePoolData();
+                    // 如果项目详情模态框是打开的，关闭它
+                    const modal = document.getElementById('modal');
+                    if (modal && modal.style.display === 'block') {
+                        modal.style.display = 'none';
+                    }
+                } else {
+                    alert(result.message || '项目复制失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                console.error('复制项目时出错:', error);
+                alert('复制项目时出错，请稍后重试');
+            });
     }
 
 

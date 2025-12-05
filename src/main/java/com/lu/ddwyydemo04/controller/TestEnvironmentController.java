@@ -962,10 +962,10 @@ public class TestEnvironmentController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // 判断原来的电气编号是否含有“XZ”
+        // 判断原来的电气编号是否含有"XZ"
         if (!oldSampleId.contains("XZ")) {
             response.put("success", false);
-            response.put("message", "原电气编号不包含‘XZ’，无需操作");
+            response.put("message", "原电气编号不包含'XZ'，无需操作");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -997,6 +997,40 @@ public class TestEnvironmentController {
             response.put("success", false);
             response.put("message", "数据迁移或更新失败");
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/scheduleBoard/copyProject")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> copyProject(@RequestBody Map<String, String> request) {
+        String sampleId = request.get("sample_id");
+        Map<String, Object> response = new HashMap<>();
+
+        if (sampleId == null || sampleId.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "电气编号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            // 调用服务层复制项目
+            String newSampleId = testManIndexService.copyElectricInfo(sampleId);
+            
+            if (newSampleId != null && !newSampleId.isEmpty()) {
+                response.put("success", true);
+                response.put("message", "项目复制成功！新电气编号为：" + newSampleId);
+                response.put("newSampleId", newSampleId);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "项目复制失败，请检查原项目是否存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            logger.error("复制项目时出错: " + sampleId, e);
+            response.put("success", false);
+            response.put("message", "复制项目时出错：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
