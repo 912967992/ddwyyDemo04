@@ -1256,6 +1256,9 @@
                                 <option value="汪科业">汪科业</option>
 
                             </select>
+                            <label for="edit_tester_teamwork">合作测试人:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <input type="text" id="edit_tester_teamwork" name="edit_tester_teamwork" placeholder="请输入合作测试人姓名，多个用逗号分隔，例如：张三,李四">
+                            <span style="color: #999; margin-left: 2px;">(非必填)</span><br>
                             <label for="edit_cc_recipients">抄送者:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                             <input type="text" id="edit_cc_recipients" name="edit_cc_recipients" placeholder="请输入抄送者姓名，多个用逗号分隔，例如：张三,李四">
                             <span style="color: #999; margin-left: 2px;">(非必填)</span><br>
@@ -1300,6 +1303,7 @@
         document.getElementById('edit_sample_Developer').value = product.sample_Developer;
         document.getElementById('edit_sample_leader').value = product.sample_leader;
         document.getElementById('tester').value = product.tester;
+        document.getElementById('edit_tester_teamwork').value = product.tester_teamwork || '';
         document.getElementById('edit_electric_id').value = product.electric_sample_id;
         document.getElementById('edit_cc_recipients').value = product.cc_recipients || '';
 
@@ -1970,7 +1974,17 @@
                 // 每个单元格的具体值作为title属性的值
                 table += '<th colspan="2" title="大型号' + product.sample_model + ', 小型号' + product.sample_coding  + '">' + '' + product.sample_model + ' ' + product.sample_coding  + '</th>';
                 table += '<th colspan="1" title="类别：' + product.sample_category + ', 版本' + product.version + ', 任务属性' + product.questStats  + '">' + product.sample_category + ' ' + product.version + ' ' + product.questStats + '</th>';
-                table += '<th colspan="1" title="第' + product.sample_frequency + '次送样' +'">' + '第' + product.sample_frequency + '次送样' + '</th>';
+                // 构建第几次送样和合作测试人的显示内容
+                var sendSampleText = '第' + product.sample_frequency + '次送样';
+                var teamworkText = '';
+                if (product.tester_teamwork && product.tester_teamwork.trim() !== '') {
+                    teamworkText = '<br/><span style="font-size: 0.9em; color: #666;">合作测试人：' + product.tester_teamwork + '</span>';
+                }
+                var sendSampleTitle = '第' + product.sample_frequency + '次送样';
+                if (product.tester_teamwork && product.tester_teamwork.trim() !== '') {
+                    sendSampleTitle += '，合作测试人：' + product.tester_teamwork;
+                }
+                table += '<th colspan="1" title="' + sendSampleTitle + '">' + sendSampleText + teamworkText + '</th>';
                 table += '</tr>';
                 table += '<tr>';
                 table += '<th colspan="1" title="大类' + product.big_species + ', 品类细分' + product.small_species + '">' + '' + product.big_species + ' ' + product.small_species +  '</th>';

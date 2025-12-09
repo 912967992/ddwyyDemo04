@@ -359,7 +359,8 @@ public class testManIndexController {
             @RequestParam("tester") String tester,
             @RequestParam("edit_electric_id") String edit_electric_id,
             @RequestParam(value = "passbackConfirm", required = false) String passbackConfirm,
-            @RequestParam(value = "edit_cc_recipients", required = false) String edit_cc_recipients
+            @RequestParam(value = "edit_cc_recipients", required = false) String edit_cc_recipients,
+            @RequestParam(value = "edit_tester_teamwork", required = false) String edit_tester_teamwork
             ) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -479,6 +480,13 @@ public class testManIndexController {
             sample.setSample_leader(editSampleleader.trim());
             sample.setTester(tester);
             
+            // 处理合作测试人
+            if (edit_tester_teamwork != null && !edit_tester_teamwork.trim().isEmpty()) {
+                sample.setTester_teamwork(edit_tester_teamwork.trim());
+            } else {
+                sample.setTester_teamwork(null);
+            }
+            
             // 处理抄送者
             if (edit_cc_recipients != null && !edit_cc_recipients.trim().isEmpty()) {
                 sample.setCc_recipients(edit_cc_recipients.trim());
@@ -576,13 +584,20 @@ public class testManIndexController {
             }
 
             //如果有更改当前测试人，则需要添加共同测试人
-            String tester_teamwork = testManIndexService.queryTester_teamwork(sample_id);
-            boolean containsName = tester_teamwork.contains(tester);
-            if(containsName){
+            // 如果用户手动设置了合作测试人，直接使用用户设置的值
+            if (edit_tester_teamwork != null && !edit_tester_teamwork.trim().isEmpty()) {
+                // 用户手动设置了合作测试人，直接使用 updateSample 保存
                 testManIndexService.updateSample(sample);
-            }else{
-                testManIndexService.updateSampleTeamWork(sample);
-                logger.info("添加共同测试人:"+tester);
+            } else {
+                // 用户没有手动设置，使用原有逻辑：如果当前测试者不在合作测试人列表中，则自动追加
+                String tester_teamwork = testManIndexService.queryTester_teamwork(sample_id);
+                boolean containsName = tester_teamwork != null && tester_teamwork.contains(tester);
+                if(containsName){
+                    testManIndexService.updateSample(sample);
+                }else{
+                    testManIndexService.updateSampleTeamWork(sample);
+                    logger.info("添加共同测试人:"+tester);
+                }
             }
             response.put("oldFilePath", oldFilePath);
             response.put("status", "success");
