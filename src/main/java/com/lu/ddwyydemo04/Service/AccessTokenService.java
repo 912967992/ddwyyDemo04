@@ -708,7 +708,7 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 15 06 * * ?") // 每天北京时间的 10:12
+    @Scheduled(cron = "0 15 06 * * ?")
     public void refreshUserIds() throws ApiException {
         List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L,913639520L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList(523528658L); // 示例大部门 ID,913639520是NAS网通组
@@ -1425,7 +1425,7 @@ public class AccessTokenService {
 //     @Scheduled(cron = "0 47 10 * * ?") // 每天早上10点31分执行
     // @Scheduled(cron = "0 0 */1 * * ?") // 每1小时执行一次
     // @Scheduled(fixedRate = 3600000) // 每1小时执行一次（毫秒）
-    // @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）
+//     @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）
     public void scheduledQueryDept63652303Users() {
         logger.info("========== 定时任务开始：查询部门 63652303L 的子部门（分组）信息 ==========");
         Long deptId = 63652303L;

@@ -903,6 +903,8 @@
                         <option value="20" selected>20</option>
                         <option value="50">50</option>
                         <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="500">500</option>
                     </select>
                     <span>条</span>
                 </div>
@@ -5017,17 +5019,27 @@
                 return;
             }
 
+            // 获取当前页面显示的数据（只加入当前页的数据）
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const currentPageData = filteredData.slice(startIndex, endIndex);
+
+            if (currentPageData.length === 0) {
+                alert('当前页面没有数据可以加入收藏夹！');
+                return;
+            }
+
             // 获取当前筛选条件
             const filters = getCurrentFilters();
             const filterDescription = generateFilterDescription(filters);
 
-            // 创建收藏夹项目
+            // 创建收藏夹项目（只包含当前页的数据）
             const cartItem = {
                 id: Date.now(), // 使用时间戳作为唯一ID
                 filters: filters,
-                data: [...filteredData], // 复制当前筛选结果
-                dataCount: filteredData.length,
-                filterDescription: filterDescription,
+                data: [...currentPageData], // 只复制当前页的数据
+                dataCount: currentPageData.length,
+                filterDescription: filterDescription + ` (第${currentPage}页)`,
                 saveTime: new Date().toLocaleString('zh-CN'),
                 user: currentUser
             };
@@ -5041,7 +5053,7 @@
             // 更新收藏夹计数
             updateCartCount();
 
-            alert(`已成功将 ${filteredData.length} 条数据加入收藏夹！`);
+            alert(`已成功将当前页 ${currentPageData.length} 条数据加入收藏夹！`);
         }
 
         // 获取当前筛选条件

@@ -548,7 +548,7 @@ public class ProblemLibraryController {
             centeredStyle.setBorderRight(BorderStyle.THIN);
 
             // 列宽
-            for (int i = 0; i < 44; i++) sheet.setColumnWidth(i, 20 * 256);
+            for (int i = 0; i < 45; i++) sheet.setColumnWidth(i, 20 * 256);
 
             // ====== 标题 ======
             Row titleRow = sheet.createRow(0);
@@ -569,13 +569,13 @@ public class ProblemLibraryController {
             titleStyle.setBorderRight(BorderStyle.THIN);
             titleCell.setCellStyle(titleStyle);
 
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 43));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 44));
 
             // ====== 表头 ======
             Row headerRow = sheet.createRow(1);
             headerRow.setHeightInPoints(50);
             String[] headers = {
-                    "序号", "样品ID", "完整编码", "SKU", "样品阶段", "版本", "芯片方案", "测试平台", "测试设备", "其他设备",
+                    "序号", "样品ID", "完整编码", "SKU", "小类", "样品阶段", "版本", "芯片方案", "测试平台", "测试设备", "其他设备",
                     "问题点", "问题类别", "问题图片/视频", "报告日期", "复现手法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
                     "对比上一版或竞品", "测试人员", "改善对策", "分析责任人", "改善后风险", "下一版回归测试", "备注",
                     "创建时间", "历史版本ID", "创建者", "DQE确认", "DQE审核时间", "DQE责任人", "研发确认", "研发审核时间", "研发责任人",
@@ -597,46 +597,47 @@ public class ProblemLibraryController {
                 createCell(row, 1, issue.getSample_id(), centeredStyle);
                 createCell(row, 2, issue.getFull_model(), centeredStyle);
                 createCell(row, 3, issue.getSku(), centeredStyle);
-                createCell(row, 4, issue.getSample_stage(), centeredStyle);
-                createCell(row, 5, issue.getVersion(), centeredStyle);
-                createCell(row, 6, issue.getChip_solution(), centeredStyle);
-                createCell(row, 7, issue.getTest_platform(), centeredStyle);
-                createCell(row, 8, issue.getTest_device(), centeredStyle);
-                createCell(row, 9, issue.getOther_device(), centeredStyle);
-                createCell(row, 10, issue.getProblem(), centeredStyle);
-                createCell(row, 11, issue.getProblemCategory(), centeredStyle);
-                createCell(row, 12, issue.getProblem_image_or_video(), centeredStyle);
-                createCell(row, 13, issue.getProblem_time(), centeredStyle);
-                createCell(row, 14, issue.getReproduction_method(), centeredStyle);
-                createCell(row, 15, issue.getRecovery_method(), centeredStyle);
-                createCell(row, 16, issue.getReproduction_probability(), centeredStyle);
-                createCell(row, 17, issue.getDefect_level(), centeredStyle);
-                createCell(row, 18, issue.getCurrent_status(), centeredStyle);
-                createCell(row, 19, issue.getComparison_with_previous(), centeredStyle);
-                createCell(row, 20, issue.getTester(), centeredStyle);
-                createCell(row, 21, issue.getImprovement_plan(), centeredStyle);
-                createCell(row, 22, issue.getResponsible_person(), centeredStyle);
-                createCell(row, 23, issue.getPost_improvement_risk(), centeredStyle);
-                createCell(row, 24, issue.getNext_version_regression_test(), centeredStyle);
-                createCell(row, 25, issue.getRemark(), centeredStyle);
-                createCell(row, 26, issue.getCreated_at(), centeredStyle);
-                createCell(row, 27, issue.getHistory_id(), centeredStyle);
-                createCell(row, 28, issue.getCreated_by(), centeredStyle);
-                createCell(row, 29, issue.getDqe_confirm(), centeredStyle);
-                createCell(row, 30, issue.getDqe_review_at(), centeredStyle);
-                createCell(row, 31, issue.getDqe(), centeredStyle);
-                createCell(row, 32, issue.getRd_confirm(), centeredStyle);
-                createCell(row, 33, issue.getRd_review_at(), centeredStyle);
-                createCell(row, 34, issue.getRd(), centeredStyle);
-                createCell(row, 35, issue.getModifier(), centeredStyle);
-                createCell(row, 36, issue.getModify_at(), centeredStyle);
-                createCell(row, 37, issue.getResponsibleDepartment(), centeredStyle);
-                createCell(row, 38, issue.getGreen_union_dqe(), centeredStyle);
-                createCell(row, 39, issue.getGreen_union_rd(), centeredStyle);
-                createCell(row, 40, issue.getSolution_provider(), centeredStyle);
-                createCell(row, 41, issue.getSupplier(), centeredStyle);
-                createCell(row, 42, issue.getReview_conclusion(), centeredStyle);
-                createCell(row, 43, issue.getTest_Overseas(), centeredStyle);
+                createCell(row, 4, issue.getSmall_species(), centeredStyle);
+                createCell(row, 5, issue.getSample_stage(), centeredStyle);
+                createCell(row, 6, issue.getVersion(), centeredStyle);
+                createCell(row, 7, issue.getChip_solution(), centeredStyle);
+                createCell(row, 8, issue.getTest_platform(), centeredStyle);
+                createCell(row, 9, issue.getTest_device(), centeredStyle);
+                createCell(row, 10, issue.getOther_device(), centeredStyle);
+                createCell(row, 11, issue.getProblem(), centeredStyle);
+                createCell(row, 12, issue.getProblemCategory(), centeredStyle);
+                createCell(row, 13, issue.getProblem_image_or_video(), centeredStyle);
+                createCell(row, 14, issue.getProblem_time(), centeredStyle);
+                createCell(row, 15, issue.getReproduction_method(), centeredStyle);
+                createCell(row, 16, issue.getRecovery_method(), centeredStyle);
+                createCell(row, 17, issue.getReproduction_probability(), centeredStyle);
+                createCell(row, 18, issue.getDefect_level(), centeredStyle);
+                createCell(row, 19, issue.getCurrent_status(), centeredStyle);
+                createCell(row, 20, issue.getComparison_with_previous(), centeredStyle);
+                createCell(row, 21, issue.getTester(), centeredStyle);
+                createCell(row, 22, issue.getImprovement_plan(), centeredStyle);
+                createCell(row, 23, issue.getResponsible_person(), centeredStyle);
+                createCell(row, 24, issue.getPost_improvement_risk(), centeredStyle);
+                createCell(row, 25, issue.getNext_version_regression_test(), centeredStyle);
+                createCell(row, 26, issue.getRemark(), centeredStyle);
+                createCell(row, 27, issue.getCreated_at(), centeredStyle);
+                createCell(row, 28, issue.getHistory_id(), centeredStyle);
+                createCell(row, 29, issue.getCreated_by(), centeredStyle);
+                createCell(row, 30, issue.getDqe_confirm(), centeredStyle);
+                createCell(row, 31, issue.getDqe_review_at(), centeredStyle);
+                createCell(row, 32, issue.getDqe(), centeredStyle);
+                createCell(row, 33, issue.getRd_confirm(), centeredStyle);
+                createCell(row, 34, issue.getRd_review_at(), centeredStyle);
+                createCell(row, 35, issue.getRd(), centeredStyle);
+                createCell(row, 36, issue.getModifier(), centeredStyle);
+                createCell(row, 37, issue.getModify_at(), centeredStyle);
+                createCell(row, 38, issue.getResponsibleDepartment(), centeredStyle);
+                createCell(row, 39, issue.getGreen_union_dqe(), centeredStyle);
+                createCell(row, 40, issue.getGreen_union_rd(), centeredStyle);
+                createCell(row, 41, issue.getSolution_provider(), centeredStyle);
+                createCell(row, 42, issue.getSupplier(), centeredStyle);
+                createCell(row, 43, issue.getReview_conclusion(), centeredStyle);
+                createCell(row, 44, issue.getTest_Overseas(), centeredStyle);
 
                 rowNum++;
             }
@@ -669,7 +670,7 @@ public class ProblemLibraryController {
             centeredStyle.setBorderRight(BorderStyle.THIN);
 
             // 列宽
-            for (int i = 0; i < 44; i++) sheet.setColumnWidth(i, 20 * 256);
+            for (int i = 0; i < 45; i++) sheet.setColumnWidth(i, 20 * 256);
 
             // ====== 标题 ======
             Row titleRow = sheet.createRow(0);
@@ -690,13 +691,13 @@ public class ProblemLibraryController {
             titleStyle.setBorderRight(BorderStyle.THIN);
             titleCell.setCellStyle(titleStyle);
 
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 43));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 44));
 
             // ====== 表头 ======
             Row headerRow = sheet.createRow(1);
             headerRow.setHeightInPoints(50);
             String[] headers = {
-                    "序号", "样品ID", "完整编码", "SKU", "样品阶段", "版本", "芯片方案", "测试平台", "测试设备", "其他设备",
+                    "序号", "样品ID", "完整编码", "SKU", "小类", "样品阶段", "版本", "芯片方案", "测试平台", "测试设备", "其他设备",
                     "问题点", "问题类别", "问题图片/视频", "报告日期", "复现手法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
                     "对比上一版或竞品", "测试人员", "改善对策", "分析责任人", "改善后风险", "下一版回归测试", "备注",
                     "创建时间", "历史版本ID", "创建者", "DQE确认", "DQE审核时间", "DQE责任人", "研发确认", "研发审核时间", "研发责任人",
@@ -718,46 +719,47 @@ public class ProblemLibraryController {
                 createCell(row, 1, item.get("sample_id"), centeredStyle);
                 createCell(row, 2, item.get("full_model"), centeredStyle);
                 createCell(row, 3, item.get("sku"), centeredStyle);
-                createCell(row, 4, item.get("sample_stage"), centeredStyle);
-                createCell(row, 5, item.get("version"), centeredStyle);
-                createCell(row, 6, item.get("chip_solution"), centeredStyle);
-                createCell(row, 7, item.get("test_platform"), centeredStyle);
-                createCell(row, 8, item.get("test_device"), centeredStyle);
-                createCell(row, 9, item.get("other_device"), centeredStyle);
-                createCell(row, 10, item.get("problem"), centeredStyle);
-                createCell(row, 11, item.get("problemCategory"), centeredStyle);
-                createCell(row, 12, item.get("problem_image_or_video"), centeredStyle);
-                createCell(row, 13, item.get("problem_time"), centeredStyle);
-                createCell(row, 14, item.get("reproduction_method"), centeredStyle);
-                createCell(row, 15, item.get("recovery_method"), centeredStyle);
-                createCell(row, 16, item.get("reproduction_probability"), centeredStyle);
-                createCell(row, 17, item.get("defect_level"), centeredStyle);
-                createCell(row, 18, item.get("current_status"), centeredStyle);
-                createCell(row, 19, item.get("comparison_with_previous"), centeredStyle);
-                createCell(row, 20, item.get("tester"), centeredStyle);
-                createCell(row, 21, item.get("improvement_plan"), centeredStyle);
-                createCell(row, 22, item.get("responsible_person"), centeredStyle);
-                createCell(row, 23, item.get("post_improvement_risk"), centeredStyle);
-                createCell(row, 24, item.get("next_version_regression_test"), centeredStyle);
-                createCell(row, 25, item.get("remark"), centeredStyle);
-                createCell(row, 26, item.get("created_at"), centeredStyle);
-                createCell(row, 27, item.get("history_id"), centeredStyle);
-                createCell(row, 28, item.get("created_by"), centeredStyle);
-                createCell(row, 29, item.get("dqe_confirm"), centeredStyle);
-                createCell(row, 30, item.get("dqe_review_at"), centeredStyle);
-                createCell(row, 31, item.get("dqe"), centeredStyle);
-                createCell(row, 32, item.get("rd_confirm"), centeredStyle);
-                createCell(row, 33, item.get("rd_review_at"), centeredStyle);
-                createCell(row, 34, item.get("rd"), centeredStyle);
-                createCell(row, 35, item.get("modifier"), centeredStyle);
-                createCell(row, 36, item.get("modify_at"), centeredStyle);
-                createCell(row, 37, item.get("responsibleDepartment"), centeredStyle);
-                createCell(row, 38, item.get("green_union_dqe"), centeredStyle);
-                createCell(row, 39, item.get("green_union_rd"), centeredStyle);
-                createCell(row, 40, item.get("solution_provider"), centeredStyle);
-                createCell(row, 41, item.get("supplier"), centeredStyle);
-                createCell(row, 42, item.get("review_conclusion"), centeredStyle);
-                createCell(row, 43, item.get("test_Overseas"), centeredStyle);
+                createCell(row, 4, item.get("small_species"), centeredStyle);
+                createCell(row, 5, item.get("sample_stage"), centeredStyle);
+                createCell(row, 6, item.get("version"), centeredStyle);
+                createCell(row, 7, item.get("chip_solution"), centeredStyle);
+                createCell(row, 8, item.get("test_platform"), centeredStyle);
+                createCell(row, 9, item.get("test_device"), centeredStyle);
+                createCell(row, 10, item.get("other_device"), centeredStyle);
+                createCell(row, 11, item.get("problem"), centeredStyle);
+                createCell(row, 12, item.get("problemCategory"), centeredStyle);
+                createCell(row, 13, item.get("problem_image_or_video"), centeredStyle);
+                createCell(row, 14, item.get("problem_time"), centeredStyle);
+                createCell(row, 15, item.get("reproduction_method"), centeredStyle);
+                createCell(row, 16, item.get("recovery_method"), centeredStyle);
+                createCell(row, 17, item.get("reproduction_probability"), centeredStyle);
+                createCell(row, 18, item.get("defect_level"), centeredStyle);
+                createCell(row, 19, item.get("current_status"), centeredStyle);
+                createCell(row, 20, item.get("comparison_with_previous"), centeredStyle);
+                createCell(row, 21, item.get("tester"), centeredStyle);
+                createCell(row, 22, item.get("improvement_plan"), centeredStyle);
+                createCell(row, 23, item.get("responsible_person"), centeredStyle);
+                createCell(row, 24, item.get("post_improvement_risk"), centeredStyle);
+                createCell(row, 25, item.get("next_version_regression_test"), centeredStyle);
+                createCell(row, 26, item.get("remark"), centeredStyle);
+                createCell(row, 27, item.get("created_at"), centeredStyle);
+                createCell(row, 28, item.get("history_id"), centeredStyle);
+                createCell(row, 29, item.get("created_by"), centeredStyle);
+                createCell(row, 30, item.get("dqe_confirm"), centeredStyle);
+                createCell(row, 31, item.get("dqe_review_at"), centeredStyle);
+                createCell(row, 32, item.get("dqe"), centeredStyle);
+                createCell(row, 33, item.get("rd_confirm"), centeredStyle);
+                createCell(row, 34, item.get("rd_review_at"), centeredStyle);
+                createCell(row, 35, item.get("rd"), centeredStyle);
+                createCell(row, 36, item.get("modifier"), centeredStyle);
+                createCell(row, 37, item.get("modify_at"), centeredStyle);
+                createCell(row, 38, item.get("responsibleDepartment"), centeredStyle);
+                createCell(row, 39, item.get("green_union_dqe"), centeredStyle);
+                createCell(row, 40, item.get("green_union_rd"), centeredStyle);
+                createCell(row, 41, item.get("solution_provider"), centeredStyle);
+                createCell(row, 42, item.get("supplier"), centeredStyle);
+                createCell(row, 43, item.get("review_conclusion"), centeredStyle);
+                createCell(row, 44, item.get("test_Overseas"), centeredStyle);
 
                 rowNum++;
             }
