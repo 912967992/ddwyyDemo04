@@ -136,12 +136,12 @@
     <!-- 项目详情模态框 -->
     <!-- 项目详情模态框 -->
     <div id="project-detail-modal" class="modal">
-        <div class="modal-content" style="max-width: 1200px; width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-content" style="max-width: 1200px; width: 90%; max-height: 70vh; height: 70vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="flex-shrink: 0; position: relative; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; border-radius: 8px 8px 0 0;">
                 <h2 id="project-detail-title" style="margin: 0; font-size: 18px;">📋 项目详情</h2>
                 <span class="close" id="close-project-modal" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: white; font-size: 28px; cursor: pointer;">&times;</span>
             </div>
-            <div class="modal-body" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px; transform: translateZ(0); -webkit-overflow-scrolling: touch;">
+            <div class="modal-body" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px; transform: translateZ(0); -webkit-overflow-scrolling: touch; min-height: 0;">
                 <div id="project-detail-info" style="padding: 0;">加载中...</div>
 
                 <!-- 新增：开始测试区域 -->
@@ -4419,10 +4419,25 @@
                 let html = `
                 <style>
                     /* 滚动性能优化 */
-                    .modal-body {
+                    #project-detail-modal .modal-body {
                         -webkit-overflow-scrolling: touch;
                         scroll-behavior: smooth;
                         overscroll-behavior: contain;
+                    }
+                    /* 自定义滚动条样式 */
+                    #project-detail-modal .modal-body::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    #project-detail-modal .modal-body::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 4px;
+                    }
+                    #project-detail-modal .modal-body::-webkit-scrollbar-thumb {
+                        background: #888;
+                        border-radius: 4px;
+                    }
+                    #project-detail-modal .modal-body::-webkit-scrollbar-thumb:hover {
+                        background: #555;
                     }
                     #project-detail-info {
                         contain: layout style paint;
@@ -4577,14 +4592,6 @@
                             <span class="detail-label">产品类别</span>
                             <span class="detail-value">${data.sample_type || '-'}</span>
                         </div>
-                        <div class="detail-item">
-                            <span class="detail-label">样品承认结果</span>
-                            <span class="detail-value">${data.sampleRecognizeResult || '-'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">实际测试时长</span>
-                            <span class="detail-value">${data.testDuration || '-'}</span>
-                        </div>
                     </div>
                 </div>
 
@@ -4634,9 +4641,9 @@
                     </div>
                 </div>
 
-                <!-- 实际测试时间 -->
+                <!-- 时间信息 -->
                 <div class="detail-section">
-                    <div class="detail-section-title">⏰ 实际测试时间</div>
+                    <div class="detail-section-title">📆 时间信息</div>
                     <div class="detail-grid">
                         <div class="detail-item">
                             <span class="detail-label">实际开始测试时间</span>
@@ -4646,13 +4653,6 @@
                             <span class="detail-label">实际测试完成时间</span>
                             <span class="detail-value">${data.actual_finish_time || '-'}</span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 时间信息 -->
-                <div class="detail-section">
-                    <div class="detail-section-title">📆 时间信息</div>
-                    <div class="detail-grid">
                         <div class="detail-item">
                             <span class="detail-label">样品提单申请时间</span>
                             <span class="detail-value">${data.apply_createdAt || '-'}</span>
