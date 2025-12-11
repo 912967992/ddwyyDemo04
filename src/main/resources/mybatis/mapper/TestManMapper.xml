@@ -477,7 +477,7 @@
                    #{schedule},
                    NOW(),
                    #{scheduleDays},
-                   #{schedule_color},
+                   'yellow',
                    #{schedule_start_date},
                    #{schedule_end_date},
                    #{remark},
