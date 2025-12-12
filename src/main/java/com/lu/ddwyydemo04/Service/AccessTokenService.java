@@ -741,6 +741,7 @@ public class AccessTokenService {
                 user.setPosition("tester"); // 特殊条件：如果是官旺华，则职位为 tester,因为他被放到了电子DQE租
             }else if (user.getUsername().equals("胡雪梅")) {
                 user.setDepartmentName("数据储存");
+                user.setPosition("DQE");
             } else if (majorDeptId.equals(913639520L)) { // NAS网通组
                 user.setPosition("DQE");
                 user.setDepartmentName("NAS网通组");
