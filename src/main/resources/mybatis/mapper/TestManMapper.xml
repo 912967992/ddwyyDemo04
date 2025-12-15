@@ -1109,13 +1109,13 @@
             sample_category, version, sample_name, create_time, sample_schedule,
             sample_frequency, sample_quantity, big_species, small_species, high_frequency,
             questStats, planTestDuration, scheduleStartTime, scheduleEndTime, scheduleTestCycle,electric_sample_id,sample_DQE,
-                             sample_Developer
+                             sample_Developer,sample_leader
         ) VALUES (
                      #{tester}, #{tester_teamwork}, #{filepath}, #{sample_model}, #{sample_coding}, #{full_model},
                      #{sample_category}, #{version}, #{sample_name}, NOW(), '0',
                      #{sample_frequency}, #{sample_quantity}, #{big_species}, #{small_species}, #{high_frequency},
                      #{questStats}, #{planTestDuration}, #{scheduleStartTime}, #{scheduleEndTime}, #{scheduleTestCycle}, #{electric_sample_id},
-                  #{sample_DQE}, #{sample_Developer}
+                  #{sample_DQE}, #{sample_Developer} ,#{sample_leader}
                  )
     </insert>
 

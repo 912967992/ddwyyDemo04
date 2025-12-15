@@ -1948,6 +1948,8 @@ public class testManIndexController {
         String demandFinishedTime = (String) projectData.get("demandFinishedTime");
         String sample_dqe = (String) projectData.get("sample_dqe");
         String sample_rd = (String) projectData.get("sample_rd");
+        String sample_leader = (String) projectData.get("sample_leader");
+        System.out.println("sample_leader:"+sample_leader);
         String reliability_quantity = (String) projectData.get("reliability_quantity");
         String envproction_quantity = (String) projectData.get("envproction_quantity");
 
@@ -2028,6 +2030,7 @@ public class testManIndexController {
 
 
             for (String codeEntry : codeEntries) {
+                System.out.println("codeEntry:"+codeEntry);
                 String trimmed = codeEntry.trim(); // 去空格
                 if (!trimmed.isEmpty()) {
                     // 分割成 STTestCode 和 sample_frequency
@@ -2048,16 +2051,33 @@ public class testManIndexController {
                                 + sampleFrequency + ".xlsx";
 
                         String fileDir = savepath;
-                        String filePath = fileDir + "/" + fileName;
+                        // 确保目录存在
+                        File dir = new File(fileDir);
+                        if (!dir.exists() && !dir.mkdirs()) {
+                            logger.error("无法创建目录: " + fileDir);
+                            response.put("message", "无法创建文件保存目录: " + fileDir);
+                            response.put("success", false);
+                            return ResponseEntity.ok(response);
+                        }
+                        
+                        // 使用 File.separator 确保跨平台兼容性
+                        String filePath = fileDir + File.separator + fileName;
                         System.out.println("filePath:"+filePath);
 
+                        // 先检查是否已存在相同的测试任务
+                        int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
+//                        System.out.println("count:"+count);
+                        if(count != 0){
+                            response.put("message", "已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
+                            response.put("success", false); // 可选：用于前端区分是否成功
+                            return ResponseEntity.ok(response);
+                        }
+
+                        // 只有在 count == 0 时才创建文件
                         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                             workbook.createSheet("Sheet1");
                             try (FileOutputStream out = new FileOutputStream(filePath)) {
-                                int count = excelShowService.sampleCount(model,materialCode,category,version,sampleFrequency,"",small_species,isHighFrequency,questStats);
-//                                System.out.println("count:"+count);
-                                if(count == 0){
-                                    workbook.write(out);
+                                workbook.write(out);
                                     sample.setFilepath(filePath);
 
                                     sample.setSample_model(model);
@@ -2081,6 +2101,7 @@ public class testManIndexController {
                                     //20251129新增
                                     sample.setSample_DQE(sample_dqe);
                                     sample.setSample_Developer(sample_rd);
+                                    sample.setSample_leader(sample_leader);
 
                                     int insert = testManIndexService.insertSampleFromElectric(sample);
                                     if(insert==0){
@@ -2107,14 +2128,10 @@ public class testManIndexController {
                                             postStartTestTime(electric_sample_id,actual_time);
                                         }
                                     }
-                                }else{
-                                    response.put("message", "已经存在这个版本信息的测试任务了，不可以再创造重复的测试任务！");
-                                    response.put("success", false); // 可选：用于前端区分是否成功
-                                    return ResponseEntity.ok(response);
-                                }
                             }
                         } catch (IOException e) {
-                            response.put("message", "XLSX 文件创建失败");
+                            logger.error("XLSX 文件创建失败，文件路径: " + filePath + ", 错误信息: " + e.getMessage(), e);
+                            response.put("message", "XLSX 文件创建失败: " + e.getMessage());
                             response.put("success", false); // 可选：用于前端区分是否成功
                             return ResponseEntity.ok(response);
                         }
