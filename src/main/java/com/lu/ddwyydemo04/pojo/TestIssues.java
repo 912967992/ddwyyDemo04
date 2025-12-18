@@ -96,6 +96,9 @@ public class TestIssues {
     // 关联的样品ID
     private String sample_id;
 
+    // 电气编号（从electric_info表的sample_id获取）
+    private String electric_sample_id;
+
     private String created_by;
 
     private String dqe_confirm;
@@ -364,6 +367,14 @@ public class TestIssues {
         this.sample_id = sample_id;
     }
 
+    public String getElectric_sample_id() {
+        return electric_sample_id;
+    }
+
+    public void setElectric_sample_id(String electric_sample_id) {
+        this.electric_sample_id = electric_sample_id;
+    }
+
     public String getCreated_by() {
         return created_by;
     }
@@ -535,6 +546,7 @@ public class TestIssues {
                 ", created_at=" + created_at +
                 ", history_id=" + history_id +
                 ", sample_id=" + sample_id +
+                ", electric_sample_id='" + electric_sample_id + '\'' +
                 ", created_by='" + created_by + '\'' +
                 ", dqe_confirm='" + dqe_confirm + '\'' +
                 ", dqe_review_at=" + dqe_review_at +

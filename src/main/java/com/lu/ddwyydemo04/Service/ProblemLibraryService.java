@@ -76,7 +76,7 @@ public class ProblemLibraryService {
         }
         
         String[] filterKeys = {
-            "fullModel", "sampleStage", "version", "bigSpecies", "smallSpecies",
+            "fullModel", "electricSampleId", "sampleStage", "version", "bigSpecies", "smallSpecies",
             "problemCategory", "defectLevel", "currentStatus", "tester",
             "responsibleDepartment", "startDate", "endDate", "dqe", "problem",
             "testPlatform", "testDevice", "otherDevice"

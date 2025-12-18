@@ -225,6 +225,11 @@ public class ProblemLibraryCacheService {
             return false;
         }
         
+        // 电气编号
+        if (!matchesFilter(problem.getElectric_sample_id(), filters.get("electricSampleId"))) {
+            return false;
+        }
+        
         // 样品阶段（不区分大小写）
         if (filters.get("sampleStage") != null && !filters.get("sampleStage").toString().isEmpty()) {
             String sampleStage = problem.getSample_stage();

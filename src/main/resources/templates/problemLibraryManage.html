@@ -664,6 +664,13 @@
                     </div>
                 </div>
                 <div class="filter-group">
+                    <label>电气编号:</label>
+                    <div class="input-with-suggestions">
+                        <input type="text" id="electricSampleIdFilter" placeholder="输入电气编号" class="filter-input">
+                        <div class="suggestions-dropdown" id="electricSampleIdSuggestions"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
                     <label>样品阶段:</label>
                     <div class="input-with-suggestions">
                         <input type="text" id="sampleStageFilter" placeholder="输入样品阶段" class="filter-input">
@@ -866,6 +873,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>电气编号</th>
                         <th>完整编码</th>
                         <th>大类</th>
                         <th>小类</th>
@@ -1448,6 +1456,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>电气编号</th>
                                     <th>完整编码</th>
                                     <th>大类</th>
                                     <th>小类</th>
@@ -1550,6 +1559,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>电气编号</th>
                                 <th>完整编码</th>
                                 <th>大类</th>
                                 <th>小类</th>
@@ -2707,7 +2717,7 @@
 
             // 为筛选输入框添加回车键搜索功能
             const filterInputs = [
-                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
+                'fullModelFilter', 'electricSampleIdFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
                 'testerFilter', 'dqeFilter', 'problemFilter', 'testPlatformFilter', 'testDeviceFilter', 'otherDeviceFilter'
             ];
 
@@ -2944,6 +2954,7 @@
 
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -3005,7 +3016,7 @@
         function resetFilters() {
             // 重置输入框过滤器
             const inputFilters = [
-                'fullModelFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
+                'fullModelFilter', 'electricSampleIdFilter', 'sampleStageFilter', 'versionFilter', 'bigSpeciesFilter', 'smallSpeciesFilter',
                 'testerFilter', 'responsibleDepartmentFilter', 'testPlatformFilter', 'dqeFilter', 'testDeviceFilter'
             ];
             
@@ -3064,6 +3075,7 @@
             // 使用当前的筛选条件
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -3747,6 +3759,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${problem.id}</td>
+                    <td>${problem.electric_sample_id || ''}</td>
                     <td>${problem.full_model || ''}</td>
                     <td>${problem.big_species || ''}</td>
                     <td>${problem.small_species || ''}</td>
@@ -3949,6 +3962,7 @@
             
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -3971,6 +3985,7 @@
             return allProblemData.filter(item => {
                 // 应用所有过滤器条件（除了状态）
                 if (filters.fullModel && !item.full_model?.toLowerCase().includes(filters.fullModel.toLowerCase())) return false;
+                if (filters.electricSampleId && !item.electric_sample_id?.toLowerCase().includes(filters.electricSampleId.toLowerCase())) return false;
                 if (filters.sampleStage && !item.sample_stage?.toLowerCase().includes(filters.sampleStage.toLowerCase())) return false;
                 if (filters.version && !item.version?.toLowerCase().includes(filters.version.toLowerCase())) return false;
                 if (filters.bigSpecies && !item.big_species?.toLowerCase().includes(filters.bigSpecies.toLowerCase())) return false;
@@ -4016,6 +4031,7 @@
             // 获取当前过滤器的值（排除问题类别过滤器）
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -4037,6 +4053,7 @@
             return allProblemData.filter(item => {
                 // 应用所有过滤器条件（除了问题类别）
                 if (filters.fullModel && !item.full_model?.toLowerCase().includes(filters.fullModel.toLowerCase())) return false;
+                if (filters.electricSampleId && !item.electric_sample_id?.toLowerCase().includes(filters.electricSampleId.toLowerCase())) return false;
                 if (filters.sampleStage && !item.sample_stage?.toLowerCase().includes(filters.sampleStage.toLowerCase())) return false;
                 if (filters.version && !item.version?.toLowerCase().includes(filters.version.toLowerCase())) return false;
                 if (filters.bigSpecies && !item.big_species?.toLowerCase().includes(filters.bigSpecies.toLowerCase())) return false;
@@ -4263,6 +4280,7 @@
             // 定义需要自动完成的过滤器映射
             const filterMappings = {
                 'fullModelFilter': 'fullModel',
+                'electricSampleIdFilter': 'electricSampleId',
                 'sampleStageFilter': 'sampleStage',
                 'versionFilter': 'version',
                 'bigSpeciesFilter': 'bigSpecies',
@@ -4464,6 +4482,7 @@
 
             const filters = {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -5060,6 +5079,7 @@
         function getCurrentFilters() {
             return {
                 fullModel: document.getElementById('fullModelFilter').value,
+                electricSampleId: document.getElementById('electricSampleIdFilter').value,
                 sampleStage: document.getElementById('sampleStageFilter').value,
                 version: document.getElementById('versionFilter').value,
                 bigSpecies: document.getElementById('bigSpeciesFilter').value,
@@ -5084,6 +5104,7 @@
             const descriptions = [];
 
             if (filters.fullModel) descriptions.push(`完整编码: ${filters.fullModel}`);
+            if (filters.electricSampleId) descriptions.push(`电气编号: ${filters.electricSampleId}`);
             if (filters.sampleStage) descriptions.push(`样品阶段: ${filters.sampleStage}`);
             if (filters.version) descriptions.push(`版本: ${filters.version}`);
             if (filters.bigSpecies) descriptions.push(`大类: ${filters.bigSpecies}`);
@@ -5209,7 +5230,7 @@
             if (!data || data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="19" style="text-align: center; color: #666;">暂无数据</td>
+                    <td colspan="20" style="text-align: center; color: #666;">暂无数据</td>
                 `;
                 tbody.appendChild(row);
                 return;
@@ -5219,6 +5240,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${problem.id || ''}</td>
+                    <td>${problem.electric_sample_id || ''}</td>
                     <td>${problem.full_model || ''}</td>
                     <td>${problem.big_species || ''}</td>
                     <td>${problem.small_species || ''}</td>
@@ -5346,7 +5368,7 @@
             if (mergedData.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="19" style="text-align: center; color: #666;">没有数据</td>
+                    <td colspan="20" style="text-align: center; color: #666;">没有数据</td>
                 `;
                 tbody.appendChild(row);
                 return;
@@ -5356,6 +5378,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${problem.id}</td>
+                    <td>${problem.electric_sample_id || ''}</td>
                     <td>${problem.full_model || ''}</td>
                     <td>${problem.big_species || ''}</td>
                     <td>${problem.small_species || ''}</td>
