@@ -228,6 +228,10 @@
             <input type="date" id="endDate" class="date-picker">
             <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
             <button class="save-schedule-btn" onclick="saveScheduleWithPermission()">保存排期</button>
+            <label id="showGroupWorkloadLabel" style="display: none; margin-left: 15px; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="showGroupWorkloadCheckbox" onchange="toggleGroupWorkload()" style="margin-right: 5px;">
+                <span>显示组别负荷</span>
+            </label>
         </div>
     </div>
     <div id="scheduleBoard">请选择排期面板时间并点击设置日期按钮，才会展示面板</div>
@@ -1040,6 +1044,20 @@
         // 初始化权限状态指示器
         updatePermissionIndicator();
         
+        // 初始化组别负荷开关显示
+        const showGroupWorkloadLabel = document.getElementById('showGroupWorkloadLabel');
+        if (checkEditPermission()) {
+            showGroupWorkloadLabel.style.display = 'inline-block';
+            // 从localStorage读取保存的状态
+            const savedState = localStorage.getItem('showGroupWorkload');
+            if (savedState !== null) {
+                showGroupWorkload = savedState === 'true';
+                document.getElementById('showGroupWorkloadCheckbox').checked = showGroupWorkload;
+            }
+        } else {
+            showGroupWorkloadLabel.style.display = 'none';
+        }
+        
         // 获取当前 UTC 时间
         const now = new Date();
 
@@ -1065,6 +1083,16 @@
         document.getElementById('startDate').value = startDate;
         document.getElementById('endDate').value = endDate;
     });
+    
+    // 切换组别负荷显示
+    function toggleGroupWorkload() {
+        const checkbox = document.getElementById('showGroupWorkloadCheckbox');
+        showGroupWorkload = checkbox.checked;
+        // 保存状态到localStorage
+        localStorage.setItem('showGroupWorkload', showGroupWorkload);
+        // 重新渲染排期面板
+        refreshSchedule();
+    }
 
 
 
@@ -1080,6 +1108,9 @@
     // 权限控制相关变量
     let canEdit = false;
     const allowedEditors = ['许梦瑶', '卢绮敏', '卢健', '李良健'];
+    
+    // 组别负荷显示控制变量
+    let showGroupWorkload = false;
 
     // 检查用户是否有编辑权限
     function checkEditPermission() {
@@ -1155,12 +1186,21 @@
     // 更新权限状态指示器
     function updatePermissionIndicator() {
         const indicator = document.getElementById('permissionIndicator');
+        const showGroupWorkloadLabel = document.getElementById('showGroupWorkloadLabel');
         if (checkEditPermission()) {
             indicator.className = 'edit-mode';
             indicator.textContent = '编辑模式';
+            // 显示组别负荷开关
+            if (showGroupWorkloadLabel) {
+                showGroupWorkloadLabel.style.display = 'inline-block';
+            }
         } else {
             indicator.className = 'readonly-mode';
             indicator.textContent = '只读模式';
+            // 隐藏组别负荷开关
+            if (showGroupWorkloadLabel) {
+                showGroupWorkloadLabel.style.display = 'none';
+            }
         }
     }
 
@@ -2764,18 +2804,32 @@
             if (!groupTesters) return;
 
             const groupRowSpan = groupTesters.length;
+            const rowspanForGroup = showGroupWorkload ? groupRowSpan + 1 : groupRowSpan;
             groupTesters.forEach((tester, testerIndex) => {
                 const testerName = tester.test_engineer_name;
                 const jobNumber = tester.engineer_id;
 
                 html += '<tr style="height: 60px;">';
                 if (testerIndex === 0) {
-                    html += `<td class="frozen-cell" rowspan="${groupRowSpan}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
+                    html += `<td class="frozen-cell" rowspan="${rowspanForGroup}" style="text-align: center; font-weight: bold;">${groupName}</td>`;
                 }
                 html += `<td class="frozen-cell"><strong class="tester-name" data-tester="${testerName}" style="cursor: pointer; color: #007bff;">${testerName}</strong></td>`;
                 html += '</tr>';
             });
+            
+            // 如果开启了组别负荷显示，添加该组的负荷行到冻结列
+            if (showGroupWorkload) {
+                html += '<tr style="height: 40px; background-color: #e8e8e8; font-weight: bold;">';
+                html += `<td class="frozen-cell" style="text-align: center; background-color: #e8e8e8; font-weight: bold;">${groupName}负荷</td>`;
+                html += '</tr>';
+            }
         });
+        
+        // 添加负荷行到冻结列
+        html += '<tr style="height: 40px; background-color: #f0f0f0; font-weight: bold;">';
+        html += '<td class="frozen-cell" colspan="2" style="text-align: center; background-color: #f0f0f0; font-weight: bold;">负荷</td>';
+        html += '</tr>';
+        
         html += '</tbody></table>';
         html += '</div>';
         
@@ -2966,7 +3020,85 @@
 
                 html += '</tr>';
             });
+            
+            // 如果开启了组别负荷显示，计算并添加该组的负荷行
+            if (showGroupWorkload) {
+                // 计算该组每天的负荷（该组所有测试人员在当天的排期数量总和）
+                const groupDailyWorkload = {};
+                allDates.forEach(date => {
+                    groupDailyWorkload[date] = 0;
+                });
+                
+                // 遍历该组所有测试人员的任务，统计每天的排期数量
+                groupTesters.forEach(tester => {
+                    const testerName = tester.test_engineer_name;
+                    if (dateMap[testerName]) {
+                        dateMap[testerName].forEach(task => {
+                            const dateRange = getDateRange(task.startDate, task.endDate);
+                            dateRange.forEach(date => {
+                                if (groupDailyWorkload.hasOwnProperty(date)) {
+                                    groupDailyWorkload[date]++;
+                                }
+                            });
+                        });
+                    }
+                });
+                
+                // 添加该组的负荷行
+                html += '<tr style="height: 40px; background-color: #e8e8e8; font-weight: bold;">';
+                allDates.forEach(date => {
+                    const dateObj = new Date(date);
+                    const dayOfWeek = dateObj.getDay();
+                    let weekendClass = '';
+                    const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+                    const isHoliday = holidays && holidays.some(h => h.holiday_date === date);
+                    
+                    if (isWeekend || isHoliday) {
+                        weekendClass = 'weekend-border';
+                    }
+                    
+                    const workload = groupDailyWorkload[date] || 0;
+                    html += `<td class="${weekendClass}" style="text-align: center; background-color: #e8e8e8; font-weight: bold;">${workload}</td>`;
+                });
+                html += '</tr>';
+            }
         });
+
+        // 计算每天的负荷（排期数量）
+        const dailyWorkload = {};
+        allDates.forEach(date => {
+            dailyWorkload[date] = 0;
+        });
+        
+        // 遍历所有测试人员的任务，统计每一天的排期数量
+        Object.keys(dateMap).forEach(testerName => {
+            dateMap[testerName].forEach(task => {
+                const dateRange = getDateRange(task.startDate, task.endDate);
+                dateRange.forEach(date => {
+                    if (dailyWorkload.hasOwnProperty(date)) {
+                        dailyWorkload[date]++;
+                    }
+                });
+            });
+        });
+
+        // 添加负荷行
+        html += '<tr style="height: 40px; background-color: #f0f0f0; font-weight: bold;">';
+        allDates.forEach(date => {
+            const dateObj = new Date(date);
+            const dayOfWeek = dateObj.getDay();
+            let weekendClass = '';
+            const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+            const isHoliday = holidays && holidays.some(h => h.holiday_date === date);
+            
+            if (isWeekend || isHoliday) {
+                weekendClass = 'weekend-border';
+            }
+            
+            const workload = dailyWorkload[date] || 0;
+            html += `<td class="${weekendClass}" style="text-align: center; background-color: #f0f0f0; font-weight: bold;">${workload}</td>`;
+        });
+        html += '</tr>';
 
         html += '</tbody></table>';
         html += '</div>'; // 关闭 main-table-container
