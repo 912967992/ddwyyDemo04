@@ -95,16 +95,12 @@
 
         /* 只读模式样式 */
         .readonly-mode {
-            position: fixed;
-            top: 10px;
-            right: 10px;
             background: #6c757d;
             color: white;
             padding: 8px 16px;
             border-radius: 4px;
             font-size: 14px;
             font-weight: bold;
-            z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
@@ -113,16 +109,12 @@
         }
 
         .edit-mode {
-            position: fixed;
-            top: 10px;
-            right: 10px;
             background: #28a745;
             color: white;
             padding: 8px 16px;
             border-radius: 4px;
             font-size: 14px;
             font-weight: bold;
-            z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
@@ -134,8 +126,15 @@
 </head>
 <body>
 
-<!-- 权限状态指示器 -->
-<div id="permissionIndicator"></div>
+<!-- 顶部按钮组 -->
+<div style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px; align-items: center;">
+    <!-- 台账展示按钮 -->
+    <button onclick="showLedgerModal()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        📊 台账展示
+    </button>
+    <!-- 权限状态指示器 -->
+    <div id="permissionIndicator"></div>
+</div>
 
 <div class="pool-container">
     <div id="projectList" class="project-container">
@@ -215,20 +214,15 @@
     </div>
 </div>
 
-<!-- 台账展示按钮 -->
-<div style="margin: 20px 0; text-align: left;">
-    <button onclick="showLedgerModal()" style="padding: 10px 20px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        📊 台账展示
-    </button>
-</div>
 
 <!-- 台账展示模态框 -->
-<div id="ledgerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
-    <div style="background: white; border-radius: 8px; padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
-        <!-- 关闭按钮 -->
-        <button onclick="closeLedgerModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
-        
-        <h2 style="margin-top: 0; margin-bottom: 25px; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">台账展示</h2>
+<div id="ledgerModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; border-radius: 8px; padding: 0; max-width: 800px; width: 90%; max-height: 90vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); min-width: 400px; min-height: 300px; flex-direction: column; box-sizing: border-box;">
+    <!-- 拖动条和关闭按钮 -->
+    <div id="ledgerModalHeader" style="position: relative; padding: 15px 30px; border-bottom: 2px solid #007bff; cursor: move; user-select: none; flex-shrink: 0;">
+        <h2 style="margin: 0; color: #333; display: inline-block;">台账展示</h2>
+        <button onclick="closeLedgerModal()" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
+    </div>
+    <div id="ledgerModalContent" style="padding: 30px; flex: 1; overflow-y: auto; box-sizing: border-box; min-height: 0;">
         
         <div class="ledger-stats" style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 20px;">
             <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
@@ -1993,7 +1987,289 @@
             modal.style.display = 'flex';
             // 打开模态框时加载数据
             loadLedgerData();
+            // 初始化拖动功能
+            initLedgerModalDrag();
         }
+    }
+    
+    // 初始化台账模态框拖动和调整大小功能
+    let ledgerModalDragHandler = null;
+    let ledgerModalResizeHandler = null;
+    const RESIZE_THRESHOLD = 10; // 边缘检测阈值（像素）
+    
+    function initLedgerModalDrag() {
+        const modal = document.getElementById('ledgerModal');
+        const header = document.getElementById('ledgerModalHeader');
+        if (!modal || !header) return;
+        
+        // 如果已经初始化过，先移除旧的事件监听器
+        if (ledgerModalDragHandler) {
+            header.removeEventListener('mousedown', ledgerModalDragHandler.dragStart);
+            document.removeEventListener('mousemove', ledgerModalDragHandler.drag);
+            document.removeEventListener('mouseup', ledgerModalDragHandler.dragEnd);
+        }
+        
+        if (ledgerModalResizeHandler) {
+            modal.removeEventListener('mousemove', ledgerModalResizeHandler.handleMouseMove);
+            modal.removeEventListener('mousedown', ledgerModalResizeHandler.handleMouseDown);
+            document.removeEventListener('mousemove', ledgerModalResizeHandler.handleResize);
+            document.removeEventListener('mouseup', ledgerModalResizeHandler.handleResizeEnd);
+        }
+        
+        let isDragging = false;
+        let isResizing = false;
+        let resizeDirection = '';
+        let currentX = 0;
+        let currentY = 0;
+        let initialX;
+        let initialY;
+        let startWidth = 0;
+        let startHeight = 0;
+        let startX = 0;
+        let startY = 0;
+        
+        // 获取模态框的初始位置（居中位置）
+        const rect = modal.getBoundingClientRect();
+        currentX = rect.left;
+        currentY = rect.top;
+        
+        // 检测鼠标是否在边缘
+        const getResizeDirection = function(e, element) {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const width = rect.width;
+            const height = rect.height;
+            
+            let direction = '';
+            
+            // 检测是否在边缘区域
+            if (x <= RESIZE_THRESHOLD) {
+                direction += 'w'; // 左边缘
+            } else if (x >= width - RESIZE_THRESHOLD) {
+                direction += 'e'; // 右边缘
+            }
+            
+            if (y <= RESIZE_THRESHOLD) {
+                direction += 'n'; // 上边缘
+            } else if (y >= height - RESIZE_THRESHOLD) {
+                direction += 's'; // 下边缘
+            }
+            
+            return direction;
+        };
+        
+        // 根据方向设置光标
+        const setCursor = function(direction) {
+            const cursors = {
+                '': 'default',
+                'n': 'n-resize',
+                's': 's-resize',
+                'e': 'e-resize',
+                'w': 'w-resize',
+                'ne': 'ne-resize',
+                'nw': 'nw-resize',
+                'se': 'se-resize',
+                'sw': 'sw-resize'
+            };
+            modal.style.cursor = cursors[direction] || 'default';
+        };
+        
+        // 鼠标移动时检测边缘
+        const handleMouseMove = function(e) {
+            if (isDragging || isResizing) return;
+            
+            // 如果鼠标在标题栏上，不检测边缘
+            if (header.contains(e.target)) {
+                modal.style.cursor = 'move';
+                return;
+            }
+            
+            const direction = getResizeDirection(e, modal);
+            setCursor(direction);
+        };
+        
+        // 开始调整大小
+        const handleMouseDown = function(e) {
+            if (e.target.tagName === 'BUTTON') return; // 如果点击的是按钮，不处理
+            if (header.contains(e.target)) return; // 如果点击的是标题栏，由拖动处理
+            
+            const direction = getResizeDirection(e, modal);
+            if (direction) {
+                isResizing = true;
+                resizeDirection = direction;
+                
+                // 在开始调整大小前，确保移除transform并设置正确的位置
+                const rect = modal.getBoundingClientRect();
+                currentX = rect.left;
+                currentY = rect.top;
+                
+                // 如果还在使用transform居中，先移除并设置实际位置
+                if (modal.style.transform && modal.style.transform.includes('translate')) {
+                    modal.style.left = currentX + 'px';
+                    modal.style.top = currentY + 'px';
+                    modal.style.transform = 'none';
+                }
+                
+                // 重新获取位置（确保准确）
+                const newRect = modal.getBoundingClientRect();
+                startWidth = newRect.width;
+                startHeight = newRect.height;
+                currentX = newRect.left;
+                currentY = newRect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+        
+        // 调整大小
+        const handleResize = function(e) {
+            if (!isResizing) return;
+            
+            e.preventDefault();
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newLeft = currentX;
+            let newTop = currentY;
+            
+            // 根据方向调整大小和位置
+            if (resizeDirection.includes('e')) {
+                // 从右侧调整，只改变宽度
+                newWidth = Math.max(parseInt(modal.style.minWidth) || 400, startWidth + deltaX);
+            }
+            if (resizeDirection.includes('w')) {
+                // 从左侧调整，改变宽度和位置
+                const minWidth = parseInt(modal.style.minWidth) || 400;
+                const widthChange = startWidth - deltaX;
+                if (widthChange >= minWidth) {
+                    newWidth = widthChange;
+                    newLeft = currentX + deltaX;
+                } else {
+                    // 如果达到最小宽度，保持最小宽度，调整位置
+                    newWidth = minWidth;
+                    newLeft = currentX + (startWidth - minWidth);
+                }
+            }
+            if (resizeDirection.includes('s')) {
+                // 从下侧调整，只改变高度
+                newHeight = Math.max(parseInt(modal.style.minHeight) || 300, startHeight + deltaY);
+            }
+            if (resizeDirection.includes('n')) {
+                // 从上侧调整，改变高度和位置
+                const minHeight = parseInt(modal.style.minHeight) || 300;
+                const heightChange = startHeight - deltaY;
+                if (heightChange >= minHeight) {
+                    newHeight = heightChange;
+                    newTop = currentY + deltaY;
+                } else {
+                    // 如果达到最小高度，保持最小高度，调整位置
+                    newHeight = minHeight;
+                    newTop = currentY + (startHeight - minHeight);
+                }
+            }
+            
+            // 确保transform已经被移除
+            modal.style.transform = 'none';
+            
+            // 应用新的大小
+            modal.style.width = newWidth + 'px';
+            modal.style.height = newHeight + 'px';
+            modal.style.maxWidth = 'none';
+            modal.style.maxHeight = 'none';
+            
+            // 应用新的位置（只在需要时更新）
+            if (resizeDirection.includes('w')) {
+                modal.style.left = newLeft + 'px';
+            }
+            if (resizeDirection.includes('n')) {
+                modal.style.top = newTop + 'px';
+            }
+            
+            modal.style.display = 'flex'; // 使用flex布局以便内容区域自适应
+        };
+        
+        // 结束调整大小
+        const handleResizeEnd = function(e) {
+            if (isResizing) {
+                isResizing = false;
+                resizeDirection = '';
+                modal.style.cursor = 'default';
+            }
+        };
+        
+        // 拖动功能
+        const dragStart = function(e) {
+            if (e.target.tagName === 'BUTTON') return; // 如果点击的是按钮，不拖动
+            if (isResizing) return; // 如果正在调整大小，不拖动
+            
+            if (e.target === header || header.contains(e.target)) {
+                isDragging = true;
+                header.style.cursor = 'grabbing';
+                
+                // 获取当前模态框位置
+                const rect = modal.getBoundingClientRect();
+                currentX = rect.left;
+                currentY = rect.top;
+                
+                // 如果还在使用transform居中，先移除并设置实际位置
+                if (modal.style.transform && modal.style.transform.includes('translate')) {
+                    modal.style.left = currentX + 'px';
+                    modal.style.top = currentY + 'px';
+                    modal.style.transform = 'none';
+                    // 重新获取位置
+                    const newRect = modal.getBoundingClientRect();
+                    currentX = newRect.left;
+                    currentY = newRect.top;
+                }
+                
+                initialX = e.clientX - currentX;
+                initialY = e.clientY - currentY;
+            }
+        };
+        
+        const drag = function(e) {
+            if (isDragging && !isResizing) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                // 确保transform已经被移除
+                modal.style.transform = 'none';
+                
+                // 更新模态框位置
+                modal.style.left = currentX + 'px';
+                modal.style.top = currentY + 'px';
+            }
+        };
+        
+        const dragEnd = function(e) {
+            if (isDragging) {
+                isDragging = false;
+                header.style.cursor = 'move';
+            }
+        };
+        
+        // 保存事件处理函数引用，以便后续移除
+        ledgerModalDragHandler = { dragStart, drag, dragEnd };
+        ledgerModalResizeHandler = { handleMouseMove, handleMouseDown, handleResize, handleResizeEnd };
+        
+        // 绑定拖动事件
+        header.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+        
+        // 绑定调整大小事件
+        modal.addEventListener('mousemove', handleMouseMove);
+        modal.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleResize);
+        document.addEventListener('mouseup', handleResizeEnd);
     }
 
     // 关闭台账模态框
@@ -2133,19 +2409,11 @@
             });
         }
         
-        // 台账展示模态框
-        const ledgerModal = document.getElementById('ledgerModal');
-        if (ledgerModal) {
-            ledgerModal.addEventListener('click', function(e) {
-                if (e.target === ledgerModal) {
-                    closeLedgerModal();
-                }
-            });
-        }
-        
-        // ESC键关闭模态框
+        // ESC键关闭模态框（保留ESC键关闭功能，但移除点击外部关闭）
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                const setInitialStockModal = document.getElementById('setInitialStockModal');
+                const ledgerModal = document.getElementById('ledgerModal');
                 if (setInitialStockModal && setInitialStockModal.style.display === 'flex') {
                     closeSetInitialStockModal();
                 }
