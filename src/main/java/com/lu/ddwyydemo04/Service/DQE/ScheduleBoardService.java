@@ -232,6 +232,16 @@ public class ScheduleBoardService {
     }
 
     /**
+     * 根据时间段获取台账统计数据
+     * @param startDate 开始日期（格式：yyyy-MM-dd）
+     * @param endDate 结束日期（格式：yyyy-MM-dd）
+     * @return 时间段内的进账、出账、存账统计数据
+     */
+    public Map<String, Object> getLedgerStatsByDateRange(String startDate, String endDate) {
+        return scheduleBoardDao.getLedgerStatsByDateRange(startDate, endDate);
+    }
+
+    /**
      * 设置初始存账值
      */
     public boolean setInitialStockCount(Integer initialStockCount, String setBy) {
@@ -250,6 +260,13 @@ public class ScheduleBoardService {
      */
     public void autoCalculateAndSaveTodayStats() {
         scheduleBoardDao.autoCalculateAndSaveTodayStats();
+    }
+
+    /**
+     * 获取台账详细数据（按小类或测试人员维度）
+     */
+    public List<Map<String, Object>> getLedgerDetailByDimension(String type, String dimension) {
+        return scheduleBoardDao.getLedgerDetailByDimension(type, dimension);
     }
 
 }

@@ -525,13 +525,15 @@
                 (SELECT in_count FROM ledger_stats WHERE stat_date = CURDATE()),
                 (SELECT COUNT(*) FROM electric_info 
                  WHERE DATE(create_time) = CURDATE() 
-                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+                 AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器'))
             ) as in_count,
             COALESCE(
                 (SELECT out_count FROM ledger_stats WHERE stat_date = CURDATE()),
                 (SELECT COUNT(*) FROM electric_info 
                  WHERE DATE(schedule_end_date) = CURDATE() 
-                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+                 AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器'))
             ) as out_count,
             COALESCE(
                 (SELECT stock_count FROM ledger_stats WHERE stat_date = CURDATE()),
@@ -546,10 +548,12 @@
                 ) + 
                 (SELECT COUNT(*) FROM electric_info 
                  WHERE DATE(create_time) = CURDATE() 
-                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) -
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+                 AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器')) -
                 (SELECT COUNT(*) FROM electric_info 
                  WHERE DATE(schedule_end_date) = CURDATE() 
-                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+                 AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器'))
             ) as stock_count,
             -- 检查是否已设置初始存账
             (SELECT COUNT(*) FROM ledger_stats 
@@ -575,10 +579,12 @@
             CURDATE() as stat_date,
             (SELECT COUNT(*) FROM electric_info 
              WHERE DATE(create_time) = CURDATE() 
-             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as in_count,
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+             AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器')) as in_count,
             (SELECT COUNT(*) FROM electric_info 
              WHERE DATE(schedule_end_date) = CURDATE() 
-             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as out_count,
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+             AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器')) as out_count,
             -- 存账 = 昨天的存账 + (今天的进账 - 今天的出账)
             COALESCE(
                 (SELECT stock_count FROM ledger_stats 
@@ -590,10 +596,12 @@
             ) + 
             (SELECT COUNT(*) FROM electric_info 
              WHERE DATE(create_time) = CURDATE() 
-             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) -
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+             AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器')) -
             (SELECT COUNT(*) FROM electric_info 
              WHERE DATE(schedule_end_date) = CURDATE() 
-             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as stock_count
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+             AND (sample_category IS NULL OR REPLACE(sample_category, ' ', '') != 'NAS服务器')) as stock_count
         ON DUPLICATE KEY UPDATE
             in_count = VALUES(in_count),
             out_count = VALUES(out_count),
@@ -606,6 +614,99 @@
         SELECT COUNT(*) > 0
         FROM ledger_stats
         WHERE initial_stock_count IS NOT NULL
+    </select>
+
+    <!-- 根据时间段查询台账统计数据 -->
+    <!-- 直接从ledger_stats表查询，该表已保存每日的进出存数据 -->
+    <select id="getLedgerStatsByDateRange" resultType="map">
+        SELECT 
+            -- 进账：时间段内所有日期的进账总和
+            COALESCE(
+                (SELECT SUM(in_count) FROM ledger_stats 
+                 WHERE stat_date >= #{startDate}
+                 AND stat_date &lt;= #{endDate}
+                 AND in_count IS NOT NULL),
+                0
+            ) as in_count,
+            
+            -- 出账：时间段内所有日期的出账总和
+            COALESCE(
+                (SELECT SUM(out_count) FROM ledger_stats 
+                 WHERE stat_date >= #{startDate}
+                 AND stat_date &lt;= #{endDate}
+                 AND out_count IS NOT NULL),
+                0
+            ) as out_count,
+            
+            -- 存账：时间段结束日期的存账（如果结束日期没有记录，使用最近一天的存账）
+            COALESCE(
+                (SELECT stock_count FROM ledger_stats 
+                 WHERE stat_date = #{endDate}
+                 AND stock_count IS NOT NULL),
+                -- 如果结束日期没有记录，使用结束日期之前最近一天的存账
+                (SELECT stock_count FROM ledger_stats 
+                 WHERE stat_date &lt;= #{endDate}
+                 AND stock_count IS NOT NULL
+                 ORDER BY stat_date DESC LIMIT 1),
+                0
+            ) as stock_count
+    </select>
+
+    <!-- 获取台账详细数据（按小类或测试人员维度） -->
+    <select id="getLedgerDetailByDimension" resultType="map">
+        SELECT 
+            ei.sample_id as sample_id,
+            ei.sample_category as sample_category,
+            ei.sample_model as sample_model,
+            <choose>
+                <when test="dimension == 'category'">
+                    COALESCE(ei.sample_category, '未分类') as dimension_value,
+                </when>
+                <otherwise>
+                    COALESCE(ei.tester, '未分配') as dimension_value,
+                </otherwise>
+            </choose>
+            ei.tester as tester,
+            ei.schedule_start_date as schedule_start_date,
+            ei.schedule_end_date as schedule_end_date,
+            (
+                SELECT GROUP_CONCAT(
+                    DISTINCT CONCAT(mi.materialCode, IF(mi.sample_frequency IS NOT NULL AND mi.sample_frequency != '', CONCAT('-', mi.sample_frequency), ''))
+                    ORDER BY mi.sample_frequency, mi.materialCode
+                    SEPARATOR ', '
+                )
+                FROM material_items mi
+                WHERE mi.sample_id = ei.sample_id
+                  AND mi.materialCode IS NOT NULL
+                  AND mi.materialCode != ''
+            ) AS materialCode
+        FROM electric_info ei
+        WHERE (ei.sample_id IS NULL OR ei.sample_id NOT LIKE '%CD%')
+        AND (ei.sample_category IS NULL OR REPLACE(ei.sample_category, ' ', '') != 'NAS服务器')
+        <choose>
+            <when test="type == 'in'">
+                AND DATE(ei.create_time) = CURDATE()
+            </when>
+            <when test="type == 'out'">
+                AND DATE(ei.schedule_end_date) = CURDATE()
+            </when>
+            <when test="type == 'stock'">
+                -- 存账：今天之前创建且今天未结束的项目（昨天的存账），加上今天创建且未结束的项目（今天进账），排除今天结束的项目（今天出账）
+                AND (
+                    (DATE(ei.create_time) &lt; CURDATE() 
+                     AND (ei.schedule_end_date IS NULL OR DATE(ei.schedule_end_date) > CURDATE()))
+                    OR
+                    (DATE(ei.create_time) = CURDATE() 
+                     AND (ei.schedule_end_date IS NULL OR DATE(ei.schedule_end_date) > CURDATE()))
+                )
+            </when>
+        </choose>
+        <if test="dimension == 'category'">
+            ORDER BY ei.sample_category, ei.sample_id
+        </if>
+        <if test="dimension == 'tester'">
+            ORDER BY ei.tester, ei.sample_id
+        </if>
     </select>
 
 

@@ -158,6 +158,14 @@ public interface ScheduleBoardDao {
     Map<String, Object> getLedgerStats();
 
     /**
+     * 根据时间段获取台账统计数据
+     * @param startDate 开始日期（格式：yyyy-MM-dd）
+     * @param endDate 结束日期（格式：yyyy-MM-dd）
+     * @return 时间段内的进账、出账、存账统计数据
+     */
+    Map<String, Object> getLedgerStatsByDateRange(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    /**
      * 设置初始存账值
      */
     boolean setInitialStockCount(@Param("initialStockCount") Integer initialStockCount, 
@@ -172,6 +180,15 @@ public interface ScheduleBoardDao {
      * 自动计算并保存今天的统计数据
      */
     void autoCalculateAndSaveTodayStats();
+
+    /**
+     * 获取台账详细数据（按小类或测试人员维度）
+     * @param type 类型：in(进账)、out(出账)、stock(存账)
+     * @param dimension 维度：category(小类)、tester(测试人员)
+     * @return 详细数据列表
+     */
+    List<Map<String, Object>> getLedgerDetailByDimension(@Param("type") String type, 
+                                                          @Param("dimension") String dimension);
 
 
 

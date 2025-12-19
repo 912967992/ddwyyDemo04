@@ -1247,6 +1247,36 @@ public class ScheduleBoardController {
     }
 
     /**
+     * 根据时间段获取台账统计数据
+     * @param requestData 包含startDate和endDate的请求数据
+     * @return 时间段内的进账、出账、存账统计数据
+     */
+    @PostMapping("/scheduleBoardController/getLedgerStatsByDateRange")
+    @ResponseBody
+    public Map<String, Object> getLedgerStatsByDateRange(@RequestBody Map<String, String> requestData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String startDate = requestData.get("startDate");
+            String endDate = requestData.get("endDate");
+            
+            if (startDate == null || endDate == null || startDate.isEmpty() || endDate.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "开始时间和结束时间不能为空");
+                return result;
+            }
+            
+            // 获取时间段内的统计数据
+            Map<String, Object> stats = scheduleBoardService.getLedgerStatsByDateRange(startDate, endDate);
+            result.put("success", true);
+            result.put("data", stats);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "获取时间段台账数据失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
      * 设置初始存账值（仅限许梦瑶或卢健）
      */
     @PostMapping("/scheduleBoardController/setInitialStockCount")
@@ -1300,6 +1330,27 @@ public class ScheduleBoardController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "检查失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 获取台账详细数据（按小类或测试人员维度）
+     * @param type 类型：in(进账)、out(出账)、stock(存账)
+     * @param dimension 维度：category(小类)、tester(测试人员)
+     */
+    @GetMapping("/scheduleBoardController/getLedgerDetailByDimension")
+    @ResponseBody
+    public Map<String, Object> getLedgerDetailByDimension(@RequestParam String type, 
+                                                           @RequestParam String dimension) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            List<Map<String, Object>> detailData = scheduleBoardService.getLedgerDetailByDimension(type, dimension);
+            result.put("success", true);
+            result.put("data", detailData);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "获取详细数据失败：" + e.getMessage());
         }
         return result;
     }
