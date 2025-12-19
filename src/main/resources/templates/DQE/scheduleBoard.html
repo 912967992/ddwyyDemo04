@@ -132,10 +132,6 @@
     <button onclick="showLedgerModal()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
         📊 台账展示
     </button>
-    <!-- 时间段台账查询按钮 -->
-    <button onclick="showLedgerDateRangeModal()" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        📅 时间段台账查询
-    </button>
     <!-- 权限状态指示器 -->
     <div id="permissionIndicator"></div>
 </div>
@@ -224,6 +220,10 @@
     <!-- 拖动条和关闭按钮 -->
     <div id="ledgerModalHeader" style="position: relative; padding: 15px 30px; border-bottom: 2px solid #007bff; cursor: move; user-select: none; flex-shrink: 0;">
         <h2 style="margin: 0; color: #333; display: inline-block;">台账展示</h2>
+        <!-- 时间段台账查询按钮 -->
+        <button onclick="showLedgerDateRangeModal()" style="position: absolute; top: 50%; right: 50px; transform: translateY(-50%); padding: 6px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-50%) scale(1.05)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='translateY(-50%) scale(1)';">
+            📅 时间段查询
+        </button>
         <button onclick="closeLedgerModal()" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
     </div>
     <div id="ledgerModalContent" style="padding: 30px; flex: 1; overflow-y: auto; box-sizing: border-box; min-height: 0;">
