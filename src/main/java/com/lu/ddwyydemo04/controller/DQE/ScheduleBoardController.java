@@ -1223,5 +1223,86 @@ public class ScheduleBoardController {
         }
     }
 
+    /**
+     * 获取台账统计数据
+     * 自动计算并保存今天的统计数据（如果还没有保存的话）
+     */
+    @GetMapping("/scheduleBoardController/getLedgerStats")
+    @ResponseBody
+    public Map<String, Object> getLedgerStats() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 自动计算并保存今天的统计数据
+            scheduleBoardService.autoCalculateAndSaveTodayStats();
+            
+            // 获取统计数据
+            Map<String, Object> stats = scheduleBoardService.getLedgerStats();
+            result.put("success", true);
+            result.put("data", stats);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "获取台账数据失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 设置初始存账值（仅限许梦瑶或卢健）
+     */
+    @PostMapping("/scheduleBoardController/setInitialStockCount")
+    @ResponseBody
+    public Map<String, Object> setInitialStockCount(@RequestBody Map<String, Object> requestData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String username = (String) requestData.get("username");
+            Integer initialStockCount = Integer.valueOf(requestData.get("initialStockCount").toString());
+            
+            // 权限检查：只有许梦瑶或卢健可以设置
+            if (username == null || (!username.equals("许梦瑶") && !username.equals("卢健"))) {
+                result.put("success", false);
+                result.put("message", "权限不足，只有许梦瑶或卢健可以设置初始存账值");
+                return result;
+            }
+            
+            // 检查是否已设置过初始值
+            if (scheduleBoardService.checkInitialStockSet()) {
+                result.put("success", false);
+                result.put("message", "初始存账值已设置，无法重复设置");
+                return result;
+            }
+            
+            boolean success = scheduleBoardService.setInitialStockCount(initialStockCount, username);
+            if (success) {
+                result.put("success", true);
+                result.put("message", "初始存账值设置成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "设置初始存账值失败");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "设置初始存账值失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 检查是否已设置初始存账
+     */
+    @GetMapping("/scheduleBoardController/checkInitialStockSet")
+    @ResponseBody
+    public Map<String, Object> checkInitialStockSet() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean hasSet = scheduleBoardService.checkInitialStockSet();
+            result.put("success", true);
+            result.put("hasSet", hasSet);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "检查失败：" + e.getMessage());
+        }
+        return result;
+    }
+
 
 }

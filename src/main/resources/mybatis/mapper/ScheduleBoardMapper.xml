@@ -480,5 +480,133 @@
             AND finish_time is not null
     </select>
 
+    <!-- 查询台账进账数据：今天创建且sample_id不包含CD的记录数 -->
+    <select id="getLedgerInCount" resultType="int">
+        SELECT COUNT(*)
+        FROM electric_info
+        WHERE DATE(create_time) = CURDATE()
+        AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+    </select>
+
+    <!-- 查询台账出账数据：今天结束且sample_id不包含CD的记录数 -->
+    <select id="getLedgerOutCount" resultType="int">
+        SELECT COUNT(*)
+        FROM electric_info
+        WHERE DATE(schedule_end_date) = CURDATE()
+        AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')
+    </select>
+
+    <!-- 查询台账存账数据：昨天的存数（进-出）+ 之前剩下的总和 -->
+    <select id="getLedgerStockCount" resultType="int">
+        SELECT 
+            -- 获取昨天的存账，如果没有则使用初始存账值
+            COALESCE(
+                (SELECT stock_count FROM ledger_stats 
+                 WHERE stat_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)),
+                (SELECT initial_stock_count FROM ledger_stats 
+                 WHERE initial_stock_count IS NOT NULL 
+                 ORDER BY stat_date ASC LIMIT 1),
+                0
+            ) + 
+            -- 加上今天的进账减去出账
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(create_time) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) -
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(schedule_end_date) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+    </select>
+
+    <!-- 查询台账统计数据（包含进账、出账、存账） -->
+    <!-- 优先从已保存的记录读取，如果没有则实时计算 -->
+    <select id="getLedgerStats" resultType="map">
+        SELECT 
+            COALESCE(
+                (SELECT in_count FROM ledger_stats WHERE stat_date = CURDATE()),
+                (SELECT COUNT(*) FROM electric_info 
+                 WHERE DATE(create_time) = CURDATE() 
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+            ) as in_count,
+            COALESCE(
+                (SELECT out_count FROM ledger_stats WHERE stat_date = CURDATE()),
+                (SELECT COUNT(*) FROM electric_info 
+                 WHERE DATE(schedule_end_date) = CURDATE() 
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+            ) as out_count,
+            COALESCE(
+                (SELECT stock_count FROM ledger_stats WHERE stat_date = CURDATE()),
+                -- 如果今天没有记录，实时计算存账
+                COALESCE(
+                    (SELECT stock_count FROM ledger_stats 
+                     WHERE stat_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)),
+                    (SELECT initial_stock_count FROM ledger_stats 
+                     WHERE initial_stock_count IS NOT NULL 
+                     ORDER BY stat_date ASC LIMIT 1),
+                    0
+                ) + 
+                (SELECT COUNT(*) FROM electric_info 
+                 WHERE DATE(create_time) = CURDATE() 
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) -
+                (SELECT COUNT(*) FROM electric_info 
+                 WHERE DATE(schedule_end_date) = CURDATE() 
+                 AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%'))
+            ) as stock_count,
+            -- 检查是否已设置初始存账
+            (SELECT COUNT(*) FROM ledger_stats 
+             WHERE initial_stock_count IS NOT NULL) > 0 as has_initial_stock
+    </select>
+
+    <!-- 设置初始存账值 -->
+    <insert id="setInitialStockCount">
+        INSERT INTO ledger_stats (stat_date, initial_stock_count, initial_set_by, initial_set_time, stock_count, in_count, out_count)
+        VALUES (CURDATE(), #{initialStockCount}, #{setBy}, NOW(), #{initialStockCount}, 0, 0)
+        ON DUPLICATE KEY UPDATE
+            initial_stock_count = #{initialStockCount},
+            initial_set_by = #{setBy},
+            initial_set_time = NOW(),
+            stock_count = #{initialStockCount},
+            update_time = NOW()
+    </insert>
+
+    <!-- 自动计算并保存今天的统计数据 -->
+    <insert id="autoCalculateAndSaveTodayStats">
+        INSERT INTO ledger_stats (stat_date, in_count, out_count, stock_count)
+        SELECT 
+            CURDATE() as stat_date,
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(create_time) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as in_count,
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(schedule_end_date) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as out_count,
+            -- 存账 = 昨天的存账 + (今天的进账 - 今天的出账)
+            COALESCE(
+                (SELECT stock_count FROM ledger_stats 
+                 WHERE stat_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)),
+                (SELECT initial_stock_count FROM ledger_stats 
+                 WHERE initial_stock_count IS NOT NULL 
+                 ORDER BY stat_date ASC LIMIT 1),
+                0
+            ) + 
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(create_time) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) -
+            (SELECT COUNT(*) FROM electric_info 
+             WHERE DATE(schedule_end_date) = CURDATE() 
+             AND (sample_id IS NULL OR sample_id NOT LIKE '%CD%')) as stock_count
+        ON DUPLICATE KEY UPDATE
+            in_count = VALUES(in_count),
+            out_count = VALUES(out_count),
+            stock_count = VALUES(stock_count),
+            update_time = CURRENT_TIMESTAMP
+    </insert>
+
+    <!-- 检查是否已设置初始存账 -->
+    <select id="checkInitialStockSet" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM ledger_stats
+        WHERE initial_stock_count IS NOT NULL
+    </select>
+
 
 </mapper>

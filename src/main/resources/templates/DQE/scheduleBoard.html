@@ -215,6 +215,67 @@
     </div>
 </div>
 
+<!-- 台账展示按钮 -->
+<div style="margin: 20px 0; text-align: left;">
+    <button onclick="showLedgerModal()" style="padding: 10px 20px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        📊 台账展示
+    </button>
+</div>
+
+<!-- 台账展示模态框 -->
+<div id="ledgerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 8px; padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
+        <!-- 关闭按钮 -->
+        <button onclick="closeLedgerModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
+        
+        <h2 style="margin-top: 0; margin-bottom: 25px; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">台账展示</h2>
+        
+        <div class="ledger-stats" style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">进账</div>
+                <div id="ledgerInCount" style="font-size: 48px; font-weight: bold; color: #28a745; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">今日新增（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">出账</div>
+                <div id="ledgerOutCount" style="font-size: 48px; font-weight: bold; color: #dc3545; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">今日结束（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">存账</div>
+                <div id="ledgerStockCount" style="font-size: 48px; font-weight: bold; color: #007bff; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">昨天存数+（进-出）</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #eee;">
+            <div id="setInitialStockBtnContainer" style="display: none;">
+                <button onclick="showSetInitialStockModal()" style="padding: 8px 16px; background-color: #ffc107; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">⚠️ 设置初始存账</button>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="refreshLedgerData()" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">🔄 刷新数据</button>
+                <button onclick="closeLedgerModal()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置初始存账模态框 -->
+<div id="setInitialStockModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 8px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: #333;">设置初始存账值</h3>
+        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">请输入之前的存账总数（此操作只能执行一次，请谨慎填写）</p>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">初始存账数量：</label>
+            <input type="number" id="initialStockCountInput" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;" placeholder="请输入数字">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button onclick="closeSetInitialStockModal()" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">取消</button>
+            <button onclick="confirmSetInitialStock()" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">确认设置</button>
+        </div>
+    </div>
+</div>
+
 <!-- 排期面板区域 -->
 <div class="schedule-board-container">
     <div class="schedule-board-header">
@@ -228,8 +289,8 @@
             <input type="date" id="endDate" class="date-picker">
             <button class="save-schedule-btn" onclick="refreshSchedule()">设置日期</button>
             <button class="save-schedule-btn" onclick="saveScheduleWithPermission()">保存排期</button>
-            <label id="showGroupWorkloadLabel" style="display: none; margin-left: 15px; cursor: pointer; user-select: none;">
-                <input type="checkbox" id="showGroupWorkloadCheckbox" onchange="toggleGroupWorkload()" style="margin-right: 5px;">
+            <label id="showGroupWorkloadLabel" style="margin-left: 15px; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="showGroupWorkloadCheckbox" onchange="toggleGroupWorkload()" style="margin-right: 5px;" disabled>
                 <span>显示组别负荷</span>
             </label>
         </div>
@@ -1186,20 +1247,20 @@
     // 更新权限状态指示器
     function updatePermissionIndicator() {
         const indicator = document.getElementById('permissionIndicator');
-        const showGroupWorkloadLabel = document.getElementById('showGroupWorkloadLabel');
+        const showGroupWorkloadCheckbox = document.getElementById('showGroupWorkloadCheckbox');
         if (checkEditPermission()) {
             indicator.className = 'edit-mode';
             indicator.textContent = '编辑模式';
-            // 显示组别负荷开关
-            if (showGroupWorkloadLabel) {
-                showGroupWorkloadLabel.style.display = 'inline-block';
+            // 启用组别负荷开关
+            if (showGroupWorkloadCheckbox) {
+                showGroupWorkloadCheckbox.disabled = false;
             }
         } else {
             indicator.className = 'readonly-mode';
             indicator.textContent = '只读模式';
-            // 隐藏组别负荷开关
-            if (showGroupWorkloadLabel) {
-                showGroupWorkloadLabel.style.display = 'none';
+            // 禁用组别负荷开关
+            if (showGroupWorkloadCheckbox) {
+                showGroupWorkloadCheckbox.disabled = true;
             }
         }
     }
@@ -1925,6 +1986,181 @@
         });
     }
 
+    // 显示台账模态框
+    function showLedgerModal() {
+        const modal = document.getElementById('ledgerModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // 打开模态框时加载数据
+            loadLedgerData();
+        }
+    }
+
+    // 关闭台账模态框
+    function closeLedgerModal() {
+        const modal = document.getElementById('ledgerModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 加载台账数据
+    function loadLedgerData() {
+        fetch('/scheduleBoardController/getLedgerStats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const stats = data.data;
+                    // 更新进账数量
+                    const inCount = stats.in_count || 0;
+                    const inCountEl = document.getElementById('ledgerInCount');
+                    if (inCountEl) inCountEl.textContent = inCount;
+                    
+                    // 更新出账数量
+                    const outCount = stats.out_count || 0;
+                    const outCountEl = document.getElementById('ledgerOutCount');
+                    if (outCountEl) outCountEl.textContent = outCount;
+                    
+                    // 更新存账数量
+                    const stockCount = stats.stock_count || 0;
+                    const stockCountEl = document.getElementById('ledgerStockCount');
+                    if (stockCountEl) stockCountEl.textContent = stockCount;
+                    
+                    // 检查是否需要显示设置初始值按钮
+                    checkAndShowSetInitialStockButton(stats.has_initial_stock);
+                } else {
+                    console.error('获取台账数据失败:', data.message || '未知错误');
+                    const inCountEl = document.getElementById('ledgerInCount');
+                    const outCountEl = document.getElementById('ledgerOutCount');
+                    const stockCountEl = document.getElementById('ledgerStockCount');
+                    if (inCountEl) inCountEl.textContent = '-';
+                    if (outCountEl) outCountEl.textContent = '-';
+                    if (stockCountEl) stockCountEl.textContent = '-';
+                }
+            })
+            .catch(error => {
+                console.error('加载台账数据出错:', error);
+                const inCountEl = document.getElementById('ledgerInCount');
+                const outCountEl = document.getElementById('ledgerOutCount');
+                const stockCountEl = document.getElementById('ledgerStockCount');
+                if (inCountEl) inCountEl.textContent = '-';
+                if (outCountEl) outCountEl.textContent = '-';
+                if (stockCountEl) stockCountEl.textContent = '-';
+            });
+    }
+
+    // 检查并显示设置初始存账按钮
+    function checkAndShowSetInitialStockButton(hasInitialStock) {
+        const username = localStorage.getItem('username') || '';
+        const allowedUsers = ['许梦瑶', '卢健'];
+        
+        // 只有授权用户且未设置初始值时才显示按钮
+        if (allowedUsers.includes(username) && !hasInitialStock) {
+            document.getElementById('setInitialStockBtnContainer').style.display = 'block';
+        } else {
+            document.getElementById('setInitialStockBtnContainer').style.display = 'none';
+        }
+    }
+
+    // 显示设置初始存账模态框
+    function showSetInitialStockModal() {
+        document.getElementById('setInitialStockModal').style.display = 'flex';
+        document.getElementById('initialStockCountInput').value = '';
+        document.getElementById('initialStockCountInput').focus();
+    }
+
+    // 关闭设置初始存账模态框
+    function closeSetInitialStockModal() {
+        document.getElementById('setInitialStockModal').style.display = 'none';
+    }
+
+    // 确认设置初始存账
+    function confirmSetInitialStock() {
+        const input = document.getElementById('initialStockCountInput');
+        const initialStockCount = parseInt(input.value);
+        const username = localStorage.getItem('username') || '';
+        
+        if (isNaN(initialStockCount) || initialStockCount < 0) {
+            alert('请输入有效的数字（大于等于0）');
+            return;
+        }
+        
+        if (!username) {
+            alert('无法获取用户信息，请重新登录');
+            return;
+        }
+        
+        // 发送请求设置初始存账
+        fetch('/scheduleBoardController/setInitialStockCount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                initialStockCount: initialStockCount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('初始存账值设置成功！');
+                closeSetInitialStockModal();
+                // 如果台账模态框是打开的，重新加载台账数据
+                const ledgerModal = document.getElementById('ledgerModal');
+                if (ledgerModal && ledgerModal.style.display === 'flex') {
+                    loadLedgerData();
+                }
+            } else {
+                alert('设置失败：' + (data.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('设置初始存账值出错:', error);
+            alert('设置失败，请稍后重试');
+        });
+    }
+
+    // 点击模态框外部关闭
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置初始存账模态框
+        const setInitialStockModal = document.getElementById('setInitialStockModal');
+        if (setInitialStockModal) {
+            setInitialStockModal.addEventListener('click', function(e) {
+                if (e.target === setInitialStockModal) {
+                    closeSetInitialStockModal();
+                }
+            });
+        }
+        
+        // 台账展示模态框
+        const ledgerModal = document.getElementById('ledgerModal');
+        if (ledgerModal) {
+            ledgerModal.addEventListener('click', function(e) {
+                if (e.target === ledgerModal) {
+                    closeLedgerModal();
+                }
+            });
+        }
+        
+        // ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (setInitialStockModal && setInitialStockModal.style.display === 'flex') {
+                    closeSetInitialStockModal();
+                }
+                if (ledgerModal && ledgerModal.style.display === 'flex') {
+                    closeLedgerModal();
+                }
+            }
+        });
+    });
+
+    // 刷新台账数据
+    function refreshLedgerData() {
+        loadLedgerData();
+    }
+
     // 页面加载后请求数据
     window.onload = function () {
         // 获取展示的组的数据
@@ -1936,6 +2172,7 @@
         loadPendingSamplePoolData();
         // 加载节假日数据
         loadHolidaysData();
+        // 台账数据在打开模态框时加载，不在这里自动加载
 
         // 模态框关闭
         document.getElementById('infoCloseBtn').onclick = function () {

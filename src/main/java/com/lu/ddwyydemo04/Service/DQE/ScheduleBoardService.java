@@ -203,4 +203,53 @@ public class ScheduleBoardService {
         return scheduleBoardDao.findTesterUnconfirmedSamples();
     }
 
+    /**
+     * 获取台账进账数量
+     */
+    public int getLedgerInCount() {
+        return scheduleBoardDao.getLedgerInCount();
+    }
+
+    /**
+     * 获取台账出账数量
+     */
+    public int getLedgerOutCount() {
+        return scheduleBoardDao.getLedgerOutCount();
+    }
+
+    /**
+     * 获取台账存账数量
+     */
+    public int getLedgerStockCount() {
+        return scheduleBoardDao.getLedgerStockCount();
+    }
+
+    /**
+     * 获取台账统计数据
+     */
+    public Map<String, Object> getLedgerStats() {
+        return scheduleBoardDao.getLedgerStats();
+    }
+
+    /**
+     * 设置初始存账值
+     */
+    public boolean setInitialStockCount(Integer initialStockCount, String setBy) {
+        return scheduleBoardDao.setInitialStockCount(initialStockCount, setBy);
+    }
+
+    /**
+     * 检查是否已设置初始存账
+     */
+    public boolean checkInitialStockSet() {
+        return scheduleBoardDao.checkInitialStockSet();
+    }
+
+    /**
+     * 自动计算并保存今天的统计数据
+     */
+    public void autoCalculateAndSaveTodayStats() {
+        scheduleBoardDao.autoCalculateAndSaveTodayStats();
+    }
+
 }

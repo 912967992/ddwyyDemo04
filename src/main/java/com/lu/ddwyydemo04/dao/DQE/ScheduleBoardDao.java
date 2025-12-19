@@ -137,6 +137,42 @@ public interface ScheduleBoardDao {
     List<Map<String, Object>> findRDUnconfirmedSamples();
     List<Map<String, Object>> findTesterUnconfirmedSamples();
 
+    /**
+     * 查询台账进账数据：今天创建且sample_id不包含CD的记录数
+     */
+    int getLedgerInCount();
+
+    /**
+     * 查询台账出账数据（待补充逻辑）
+     */
+    int getLedgerOutCount();
+
+    /**
+     * 查询台账存账数据（待补充逻辑）
+     */
+    int getLedgerStockCount();
+
+    /**
+     * 查询台账统计数据（包含进账、出账、存账）
+     */
+    Map<String, Object> getLedgerStats();
+
+    /**
+     * 设置初始存账值
+     */
+    boolean setInitialStockCount(@Param("initialStockCount") Integer initialStockCount, 
+                                  @Param("setBy") String setBy);
+
+    /**
+     * 检查是否已设置初始存账
+     */
+    boolean checkInitialStockSet();
+
+    /**
+     * 自动计算并保存今天的统计数据
+     */
+    void autoCalculateAndSaveTodayStats();
+
 
 
 
