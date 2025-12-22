@@ -397,6 +397,10 @@
 </head>
 <body>
 <button class="BackBtn" onclick="location.href='/DQEIndex'">返回<br>主页</button>
+<!-- 台账展示按钮 -->
+<button onclick="showLedgerModal()" style="position: fixed; top: 20px; right: 200px; padding: 15px 25px; background-color: #17a2b8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 1000; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#138496'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.3)';" onmouseout="this.style.backgroundColor='#17a2b8'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.2)';">
+    📊 台账展示
+</button>
 <button class="specialist-btn" id="specialistBtn" onclick="showSpecialistDashboard()">项目专员<br>数据看板</button>
 
 <div class="container">
@@ -8051,6 +8055,1002 @@
         </div>
     </div>
 </div>
+
+<!-- 台账展示模态框 -->
+<div id="ledgerModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; border-radius: 8px; padding: 0; max-width: 800px; width: 90%; max-height: 90vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); min-width: 400px; min-height: 300px; flex-direction: column; box-sizing: border-box;">
+    <!-- 拖动条和关闭按钮 -->
+    <div id="ledgerModalHeader" style="position: relative; padding: 15px 30px; border-bottom: 2px solid #007bff; cursor: move; user-select: none; flex-shrink: 0;">
+        <h2 style="margin: 0; color: #333; display: inline-block;">台账展示</h2>
+        <!-- 时间段台账查询按钮 -->
+        <button onclick="showLedgerDateRangeModal()" style="position: absolute; top: 50%; right: 50px; transform: translateY(-50%); padding: 6px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-50%) scale(1.05)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='translateY(-50%) scale(1)';">
+            📅 时间段查询
+        </button>
+        <button onclick="closeLedgerModal()" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
+    </div>
+    <div id="ledgerModalContent" style="padding: 30px; flex: 1; overflow-y: auto; box-sizing: border-box; min-height: 0;">
+        
+        <div class="ledger-stats" style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">进账</div>
+                <div id="ledgerInCount" onclick="showLedgerDetail('in')" style="font-size: 48px; font-weight: bold; color: #28a745; margin-bottom: 10px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.1)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">-</div>
+                <div style="font-size: 13px; color: #999;">今日新增（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">出账</div>
+                <div id="ledgerOutCount" onclick="showLedgerDetail('out')" style="font-size: 48px; font-weight: bold; color: #dc3545; margin-bottom: 10px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.1)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">-</div>
+                <div style="font-size: 13px; color: #999;">今日结束（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">存账</div>
+                <div id="ledgerStockCount" onclick="showLedgerDetail('stock')" style="font-size: 48px; font-weight: bold; color: #007bff; margin-bottom: 10px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.1)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">-</div>
+                <div style="font-size: 13px; color: #999;">昨天存数+（进-出）</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #eee;">
+            <div id="setInitialStockBtnContainer" style="display: none;">
+                <button onclick="showSetInitialStockModal()" style="padding: 8px 16px; background-color: #ffc107; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">⚠️ 设置初始存账</button>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="refreshLedgerData()" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">🔄 刷新数据</button>
+                <button onclick="closeLedgerModal()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置初始存账模态框 -->
+<div id="setInitialStockModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 8px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: #333;">设置初始存账值</h3>
+        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">请输入之前的存账总数（此操作只能执行一次，请谨慎填写）</p>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">初始存账数量：</label>
+            <input type="number" id="initialStockCountInput" min="0" step="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;" placeholder="请输入数字">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button onclick="closeSetInitialStockModal()" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">取消</button>
+            <button onclick="confirmSetInitialStock()" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">确认设置</button>
+        </div>
+    </div>
+</div>
+
+<!-- 时间段台账查询模态框 -->
+<div id="ledgerDateRangeModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10003; background: white; border-radius: 8px; padding: 0; max-width: 900px; width: 90%; max-height: 90vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); min-width: 500px; min-height: 400px; flex-direction: column; box-sizing: border-box;">
+    <!-- 拖动条和关闭按钮 -->
+    <div id="ledgerDateRangeModalHeader" style="position: relative; padding: 15px 30px; border-bottom: 2px solid #28a745; cursor: move; user-select: none; flex-shrink: 0;">
+        <h2 style="margin: 0; color: #333; display: inline-block;">时间段台账查询</h2>
+        <button onclick="closeLedgerDateRangeModal()" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
+    </div>
+    <div id="ledgerDateRangeModalContent" style="padding: 30px; flex: 1; overflow-y: auto; box-sizing: border-box; min-height: 0;">
+        <!-- 时间选择区域 -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold; font-size: 14px;">开始时间：</label>
+                    <input type="date" id="ledgerDateRangeStart" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold; font-size: 14px;">结束时间：</label>
+                    <input type="date" id="ledgerDateRangeEnd" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-left: 4px solid #007bff; border-radius: 4px;">
+                <div style="font-size: 13px; color: #0066cc;">
+                    <strong>提示：</strong>如果已在搜索查询中筛选了时间段，将自动使用该时间段。您也可以手动选择其他时间段进行查询。
+                </div>
+            </div>
+        </div>
+        
+        <!-- 统计结果展示区域 -->
+        <div class="ledger-stats" style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">进账</div>
+                <div id="ledgerDateRangeInCount" style="font-size: 48px; font-weight: bold; color: #28a745; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">时间段内新增（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">出账</div>
+                <div id="ledgerDateRangeOutCount" style="font-size: 48px; font-weight: bold; color: #dc3545; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">时间段内结束（不含CD）</div>
+            </div>
+            <div class="ledger-stat-item" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 500;">存账</div>
+                <div id="ledgerDateRangeStockCount" style="font-size: 48px; font-weight: bold; color: #007bff; margin-bottom: 10px;">-</div>
+                <div style="font-size: 13px; color: #999;">时间段结束时的存数</div>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #eee;">
+            <div style="font-size: 13px; color: #666;">
+                <span id="ledgerDateRangeInfo">请选择时间段后点击查询</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="queryLedgerDateRange()" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">🔍 查询</button>
+                <button onclick="closeLedgerDateRangeModal()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 台账详细数据展示模态框 -->
+<div id="ledgerDetailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 10002; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 12px; padding: 0; max-width: 1100px; width: 95%; max-height: 90vh; box-shadow: 0 10px 40px rgba(0,0,0,0.3); min-width: 700px; flex-direction: column; box-sizing: border-box; display: flex; overflow: hidden;">
+        <!-- 头部 -->
+        <div style="position: relative; padding: 20px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; border-radius: 12px 12px 0 0;">
+            <h2 id="ledgerDetailTitle" style="margin: 0; color: white; display: inline-block; font-size: 20px; font-weight: 600; letter-spacing: 0.5px;">台账详细数据</h2>
+            <button onclick="closeLedgerDetailModal()" style="position: absolute; top: 50%; right: 20px; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; font-size: 24px; cursor: pointer; color: white; line-height: 1; padding: 0; width: 32px; height: 32px; border-radius: 50%; transition: all 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(-50%) scale(1)';">&times;</button>
+        </div>
+        <!-- 维度切换和内容 -->
+        <div style="padding: 25px 30px; flex: 1; overflow-y: auto; box-sizing: border-box; min-height: 0; background-color: #f8f9fa;">
+            <!-- 维度切换按钮 -->
+            <div style="display: flex; gap: 12px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef;">
+                <button id="dimensionCategoryBtn" onclick="switchLedgerDimension('category')" style="padding: 10px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; letter-spacing: 0.5px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">📊 按小类</button>
+                <button id="dimensionTesterBtn" onclick="switchLedgerDimension('tester')" style="padding: 10px 24px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; letter-spacing: 0.5px;" onmouseover="if(this.style.background === '' || this.style.background === 'none') { this.style.backgroundColor='#5a6268'; } this.style.transform='translateY(-2px)';" onmouseout="if(this.style.background === '' || this.style.background === 'none') { this.style.backgroundColor='#6c757d'; } this.style.transform='translateY(0)';">👤 按测试人员</button>
+            </div>
+            <!-- 数据展示区域 -->
+            <div id="ledgerDetailContent" style="min-height: 200px; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div style="text-align: center; padding: 60px 40px; color: #999; font-size: 16px;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                    <div>加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 台账展示相关函数
+    function showLedgerModal() {
+        const modal = document.getElementById('ledgerModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // 打开模态框时加载数据
+            loadLedgerData();
+            // 初始化拖动功能
+            initLedgerModalDrag();
+        }
+    }
+    
+    // 初始化台账模态框拖动和调整大小功能
+    let ledgerModalDragHandler = null;
+    let ledgerModalResizeHandler = null;
+    const RESIZE_THRESHOLD = 10; // 边缘检测阈值（像素）
+    
+    function initLedgerModalDrag() {
+        const modal = document.getElementById('ledgerModal');
+        const header = document.getElementById('ledgerModalHeader');
+        if (!modal || !header) return;
+        
+        // 如果已经初始化过，先移除旧的事件监听器
+        if (ledgerModalDragHandler) {
+            header.removeEventListener('mousedown', ledgerModalDragHandler.dragStart);
+            document.removeEventListener('mousemove', ledgerModalDragHandler.drag);
+            document.removeEventListener('mouseup', ledgerModalDragHandler.dragEnd);
+        }
+        
+        if (ledgerModalResizeHandler) {
+            modal.removeEventListener('mousemove', ledgerModalResizeHandler.handleMouseMove);
+            modal.removeEventListener('mousedown', ledgerModalResizeHandler.handleMouseDown);
+            document.removeEventListener('mousemove', ledgerModalResizeHandler.handleResize);
+            document.removeEventListener('mouseup', ledgerModalResizeHandler.handleResizeEnd);
+        }
+        
+        let isDragging = false;
+        let isResizing = false;
+        let resizeDirection = '';
+        let currentX = 0;
+        let currentY = 0;
+        let initialX;
+        let initialY;
+        let startWidth = 0;
+        let startHeight = 0;
+        let startX = 0;
+        let startY = 0;
+        
+        // 获取模态框的初始位置（居中位置）
+        const rect = modal.getBoundingClientRect();
+        currentX = rect.left;
+        currentY = rect.top;
+        
+        // 检测鼠标是否在边缘
+        const getResizeDirection = function(e, element) {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const width = rect.width;
+            const height = rect.height;
+            
+            let direction = '';
+            
+            // 检测是否在边缘区域
+            if (x <= RESIZE_THRESHOLD) {
+                direction += 'w'; // 左边缘
+            } else if (x >= width - RESIZE_THRESHOLD) {
+                direction += 'e'; // 右边缘
+            }
+            
+            if (y <= RESIZE_THRESHOLD) {
+                direction += 'n'; // 上边缘
+            } else if (y >= height - RESIZE_THRESHOLD) {
+                direction += 's'; // 下边缘
+            }
+            
+            return direction;
+        };
+        
+        // 根据方向设置光标
+        const setCursor = function(direction) {
+            const cursors = {
+                '': 'default',
+                'n': 'n-resize',
+                's': 's-resize',
+                'e': 'e-resize',
+                'w': 'w-resize',
+                'ne': 'ne-resize',
+                'nw': 'nw-resize',
+                'se': 'se-resize',
+                'sw': 'sw-resize'
+            };
+            modal.style.cursor = cursors[direction] || 'default';
+        };
+        
+        // 鼠标移动时检测边缘
+        const handleMouseMove = function(e) {
+            if (isDragging || isResizing) return;
+            
+            // 如果鼠标在标题栏上，不检测边缘
+            if (header.contains(e.target)) {
+                modal.style.cursor = 'move';
+                return;
+            }
+            
+            const direction = getResizeDirection(e, modal);
+            setCursor(direction);
+        };
+        
+        // 开始调整大小
+        const handleMouseDown = function(e) {
+            if (e.target.tagName === 'BUTTON') return; // 如果点击的是按钮，不处理
+            if (header.contains(e.target)) return; // 如果点击的是标题栏，由拖动处理
+            
+            const direction = getResizeDirection(e, modal);
+            if (direction) {
+                isResizing = true;
+                resizeDirection = direction;
+                
+                // 在开始调整大小前，确保移除transform并设置正确的位置
+                const rect = modal.getBoundingClientRect();
+                currentX = rect.left;
+                currentY = rect.top;
+                
+                // 如果还在使用transform居中，先移除并设置实际位置
+                if (modal.style.transform && modal.style.transform.includes('translate')) {
+                    modal.style.left = currentX + 'px';
+                    modal.style.top = currentY + 'px';
+                    modal.style.transform = 'none';
+                }
+                
+                // 重新获取位置（确保准确）
+                const newRect = modal.getBoundingClientRect();
+                startWidth = newRect.width;
+                startHeight = newRect.height;
+                currentX = newRect.left;
+                currentY = newRect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+        
+        // 调整大小
+        const handleResize = function(e) {
+            if (!isResizing) return;
+            
+            e.preventDefault();
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newLeft = currentX;
+            let newTop = currentY;
+            
+            // 根据方向调整大小和位置
+            if (resizeDirection.includes('e')) {
+                // 从右侧调整，只改变宽度
+                newWidth = Math.max(parseInt(modal.style.minWidth) || 400, startWidth + deltaX);
+            }
+            if (resizeDirection.includes('w')) {
+                // 从左侧调整，改变宽度和位置
+                const minWidth = parseInt(modal.style.minWidth) || 400;
+                const widthChange = startWidth - deltaX;
+                if (widthChange >= minWidth) {
+                    newWidth = widthChange;
+                    newLeft = currentX + deltaX;
+                } else {
+                    // 如果达到最小宽度，保持最小宽度，调整位置
+                    newWidth = minWidth;
+                    newLeft = currentX + (startWidth - minWidth);
+                }
+            }
+            if (resizeDirection.includes('s')) {
+                // 从下侧调整，只改变高度
+                newHeight = Math.max(parseInt(modal.style.minHeight) || 300, startHeight + deltaY);
+            }
+            if (resizeDirection.includes('n')) {
+                // 从上侧调整，改变高度和位置
+                const minHeight = parseInt(modal.style.minHeight) || 300;
+                const heightChange = startHeight - deltaY;
+                if (heightChange >= minHeight) {
+                    newHeight = heightChange;
+                    newTop = currentY + deltaY;
+                } else {
+                    // 如果达到最小高度，保持最小高度，调整位置
+                    newHeight = minHeight;
+                    newTop = currentY + (startHeight - minHeight);
+                }
+            }
+            
+            // 确保transform已经被移除
+            modal.style.transform = 'none';
+            
+            // 应用新的大小
+            modal.style.width = newWidth + 'px';
+            modal.style.height = newHeight + 'px';
+            modal.style.maxWidth = 'none';
+            modal.style.maxHeight = 'none';
+            
+            // 应用新的位置（只在需要时更新）
+            if (resizeDirection.includes('w')) {
+                modal.style.left = newLeft + 'px';
+            }
+            if (resizeDirection.includes('n')) {
+                modal.style.top = newTop + 'px';
+            }
+            
+            modal.style.display = 'flex'; // 使用flex布局以便内容区域自适应
+        };
+        
+        // 结束调整大小
+        const handleResizeEnd = function(e) {
+            if (isResizing) {
+                isResizing = false;
+                resizeDirection = '';
+                modal.style.cursor = 'default';
+            }
+        };
+        
+        // 拖动功能
+        const dragStart = function(e) {
+            if (e.target.tagName === 'BUTTON') return; // 如果点击的是按钮，不拖动
+            if (isResizing) return; // 如果正在调整大小，不拖动
+            
+            if (e.target === header || header.contains(e.target)) {
+                isDragging = true;
+                header.style.cursor = 'grabbing';
+                
+                // 获取当前模态框位置
+                const rect = modal.getBoundingClientRect();
+                currentX = rect.left;
+                currentY = rect.top;
+                
+                // 如果还在使用transform居中，先移除并设置实际位置
+                if (modal.style.transform && modal.style.transform.includes('translate')) {
+                    modal.style.left = currentX + 'px';
+                    modal.style.top = currentY + 'px';
+                    modal.style.transform = 'none';
+                    // 重新获取位置
+                    const newRect = modal.getBoundingClientRect();
+                    currentX = newRect.left;
+                    currentY = newRect.top;
+                }
+                
+                initialX = e.clientX - currentX;
+                initialY = e.clientY - currentY;
+            }
+        };
+        
+        const drag = function(e) {
+            if (isDragging && !isResizing) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                // 确保transform已经被移除
+                modal.style.transform = 'none';
+                
+                // 更新模态框位置
+                modal.style.left = currentX + 'px';
+                modal.style.top = currentY + 'px';
+            }
+        };
+        
+        const dragEnd = function(e) {
+            if (isDragging) {
+                isDragging = false;
+                header.style.cursor = 'move';
+            }
+        };
+        
+        // 保存事件处理函数引用，以便后续移除
+        ledgerModalDragHandler = { dragStart, drag, dragEnd };
+        ledgerModalResizeHandler = { handleMouseMove, handleMouseDown, handleResize, handleResizeEnd };
+        
+        // 绑定拖动事件
+        header.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+        
+        // 绑定调整大小事件
+        modal.addEventListener('mousemove', handleMouseMove);
+        modal.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleResize);
+        document.addEventListener('mouseup', handleResizeEnd);
+    }
+
+    // 关闭台账模态框
+    function closeLedgerModal() {
+        const modal = document.getElementById('ledgerModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 加载台账数据
+    function loadLedgerData() {
+        fetch('/scheduleBoardController/getLedgerStats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const stats = data.data;
+                    // 更新进账数量
+                    const inCount = stats.in_count || 0;
+                    const inCountEl = document.getElementById('ledgerInCount');
+                    if (inCountEl) inCountEl.textContent = inCount;
+                    
+                    // 更新出账数量
+                    const outCount = stats.out_count || 0;
+                    const outCountEl = document.getElementById('ledgerOutCount');
+                    if (outCountEl) outCountEl.textContent = outCount;
+                    
+                    // 更新存账数量
+                    const stockCount = stats.stock_count || 0;
+                    const stockCountEl = document.getElementById('ledgerStockCount');
+                    if (stockCountEl) stockCountEl.textContent = stockCount;
+                    
+                    // 检查是否需要显示设置初始值按钮
+                    checkAndShowSetInitialStockButton(stats.has_initial_stock);
+                } else {
+                    console.error('获取台账数据失败:', data.message || '未知错误');
+                    const inCountEl = document.getElementById('ledgerInCount');
+                    const outCountEl = document.getElementById('ledgerOutCount');
+                    const stockCountEl = document.getElementById('ledgerStockCount');
+                    if (inCountEl) inCountEl.textContent = '-';
+                    if (outCountEl) outCountEl.textContent = '-';
+                    if (stockCountEl) stockCountEl.textContent = '-';
+                }
+            })
+            .catch(error => {
+                console.error('加载台账数据出错:', error);
+                const inCountEl = document.getElementById('ledgerInCount');
+                const outCountEl = document.getElementById('ledgerOutCount');
+                const stockCountEl = document.getElementById('ledgerStockCount');
+                if (inCountEl) inCountEl.textContent = '-';
+                if (outCountEl) outCountEl.textContent = '-';
+                if (stockCountEl) stockCountEl.textContent = '-';
+            });
+    }
+
+    // 检查并显示设置初始存账按钮
+    function checkAndShowSetInitialStockButton(hasInitialStock) {
+        const username = localStorage.getItem('username') || '';
+        const allowedUsers = ['许梦瑶', '卢健'];
+        
+        // 只有授权用户且未设置初始值时才显示按钮
+        if (allowedUsers.includes(username) && !hasInitialStock) {
+            document.getElementById('setInitialStockBtnContainer').style.display = 'block';
+        } else {
+            document.getElementById('setInitialStockBtnContainer').style.display = 'none';
+        }
+    }
+
+    // 显示设置初始存账模态框
+    function showSetInitialStockModal() {
+        document.getElementById('setInitialStockModal').style.display = 'flex';
+        document.getElementById('initialStockCountInput').value = '';
+        document.getElementById('initialStockCountInput').focus();
+    }
+
+    // 关闭设置初始存账模态框
+    function closeSetInitialStockModal() {
+        document.getElementById('setInitialStockModal').style.display = 'none';
+    }
+
+    // 确认设置初始存账
+    function confirmSetInitialStock() {
+        const input = document.getElementById('initialStockCountInput');
+        const initialStockCount = parseInt(input.value);
+        const username = localStorage.getItem('username') || '';
+        
+        if (isNaN(initialStockCount) || initialStockCount < 0) {
+            alert('请输入有效的数字（大于等于0）');
+            return;
+        }
+        
+        if (!username) {
+            alert('无法获取用户信息，请重新登录');
+            return;
+        }
+        
+        // 发送请求设置初始存账
+        fetch('/scheduleBoardController/setInitialStockCount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                initialStockCount: initialStockCount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('初始存账值设置成功！');
+                closeSetInitialStockModal();
+                // 如果台账模态框是打开的，重新加载台账数据
+                const ledgerModal = document.getElementById('ledgerModal');
+                if (ledgerModal && ledgerModal.style.display === 'flex') {
+                    loadLedgerData();
+                }
+            } else {
+                alert('设置失败：' + (data.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('设置初始存账值出错:', error);
+            alert('设置失败，请稍后重试');
+        });
+    }
+
+    // 刷新台账数据
+    function refreshLedgerData() {
+        loadLedgerData();
+    }
+
+    // 显示时间段台账查询模态框
+    function showLedgerDateRangeModal() {
+        const modal = document.getElementById('ledgerDateRangeModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            
+            // 尝试从搜索查询中获取已筛选的时间段
+            const searchCreateTimeStart = document.getElementById('searchCreateTimeStart');
+            const searchCreateTimeEnd = document.getElementById('searchCreateTimeEnd');
+            
+            const startInput = document.getElementById('ledgerDateRangeStart');
+            const endInput = document.getElementById('ledgerDateRangeEnd');
+            
+            // 如果搜索查询中有时间段，自动填充
+            if (searchCreateTimeStart && searchCreateTimeStart.value) {
+                startInput.value = searchCreateTimeStart.value;
+            }
+            if (searchCreateTimeEnd && searchCreateTimeEnd.value) {
+                endInput.value = searchCreateTimeEnd.value;
+            }
+            
+            // 如果没有设置时间，默认使用今天
+            if (!startInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                startInput.value = today;
+                endInput.value = today;
+            }
+            
+            // 初始化模态框拖动功能
+            initLedgerDateRangeModalDrag();
+        }
+    }
+
+    // 关闭时间段台账查询模态框
+    function closeLedgerDateRangeModal() {
+        const modal = document.getElementById('ledgerDateRangeModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 初始化时间段台账查询模态框拖动功能
+    let ledgerDateRangeModalDragHandler = null;
+    function initLedgerDateRangeModalDrag() {
+        const modal = document.getElementById('ledgerDateRangeModal');
+        const header = document.getElementById('ledgerDateRangeModalHeader');
+        
+        if (!modal || !header) return;
+        
+        // 移除旧的事件监听器
+        if (ledgerDateRangeModalDragHandler) {
+            header.removeEventListener('mousedown', ledgerDateRangeModalDragHandler.dragStart);
+            document.removeEventListener('mousemove', ledgerDateRangeModalDragHandler.drag);
+            document.removeEventListener('mouseup', ledgerDateRangeModalDragHandler.dragEnd);
+        }
+        
+        let isDragging = false;
+        let currentX = 0;
+        let currentY = 0;
+        let initialX = 0;
+        let initialY = 0;
+        
+        const dragStart = (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            initialX = e.clientX - currentX;
+            initialY = e.clientY - currentY;
+            
+            if (e.target === header || header.contains(e.target)) {
+                isDragging = true;
+            }
+        };
+        
+        const drag = (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                modal.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+            }
+        };
+        
+        const dragEnd = () => {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        };
+        
+        header.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+        
+        ledgerDateRangeModalDragHandler = { dragStart, drag, dragEnd };
+    }
+
+    // 查询时间段内的台账数据
+    function queryLedgerDateRange() {
+        const startDate = document.getElementById('ledgerDateRangeStart').value;
+        const endDate = document.getElementById('ledgerDateRangeEnd').value;
+        
+        if (!startDate || !endDate) {
+            alert('请选择开始时间和结束时间');
+            return;
+        }
+        
+        if (startDate > endDate) {
+            alert('开始时间不能晚于结束时间');
+            return;
+        }
+        
+        // 显示加载状态
+        document.getElementById('ledgerDateRangeInCount').textContent = '...';
+        document.getElementById('ledgerDateRangeOutCount').textContent = '...';
+        document.getElementById('ledgerDateRangeStockCount').textContent = '...';
+        document.getElementById('ledgerDateRangeInfo').textContent = '查询中...';
+        
+        // 发送查询请求
+        fetch('/scheduleBoardController/getLedgerStatsByDateRange', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                startDate: startDate,
+                endDate: endDate
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const stats = data.data;
+                // 更新进账数量
+                const inCount = stats.in_count || 0;
+                document.getElementById('ledgerDateRangeInCount').textContent = inCount;
+                
+                // 更新出账数量
+                const outCount = stats.out_count || 0;
+                document.getElementById('ledgerDateRangeOutCount').textContent = outCount;
+                
+                // 更新存账数量
+                const stockCount = stats.stock_count || 0;
+                document.getElementById('ledgerDateRangeStockCount').textContent = stockCount;
+                
+                // 更新信息提示
+                document.getElementById('ledgerDateRangeInfo').textContent = 
+                    `查询时间段：${startDate} 至 ${endDate}`;
+            } else {
+                console.error('获取时间段台账数据失败:', data.message || '未知错误');
+                document.getElementById('ledgerDateRangeInCount').textContent = '-';
+                document.getElementById('ledgerDateRangeOutCount').textContent = '-';
+                document.getElementById('ledgerDateRangeStockCount').textContent = '-';
+                document.getElementById('ledgerDateRangeInfo').textContent = '查询失败：' + (data.message || '未知错误');
+            }
+        })
+        .catch(error => {
+            console.error('查询时间段台账数据出错:', error);
+            document.getElementById('ledgerDateRangeInCount').textContent = '-';
+            document.getElementById('ledgerDateRangeOutCount').textContent = '-';
+            document.getElementById('ledgerDateRangeStockCount').textContent = '-';
+            document.getElementById('ledgerDateRangeInfo').textContent = '查询出错，请稍后重试';
+        });
+    }
+
+    // 当前台账详细数据类型和维度
+    let currentLedgerType = ''; // 'in', 'out', 'stock'
+    let currentLedgerDimension = 'category'; // 'category', 'tester'
+
+    // 显示台账详细数据模态框
+    function showLedgerDetail(type) {
+        currentLedgerType = type;
+        currentLedgerDimension = 'category'; // 默认按小类展示
+        
+        // 设置标题
+        const titleMap = {
+            'in': '进账详细数据',
+            'out': '出账详细数据',
+            'stock': '存账详细数据'
+        };
+        document.getElementById('ledgerDetailTitle').textContent = titleMap[type] || '台账详细数据';
+        
+        // 显示模态框
+        const modal = document.getElementById('ledgerDetailModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // 重置维度按钮状态
+            const categoryBtn = document.getElementById('dimensionCategoryBtn');
+            const testerBtn = document.getElementById('dimensionTesterBtn');
+            // 激活按小类按钮
+            categoryBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            categoryBtn.style.backgroundColor = ''; // 清除 backgroundColor
+            categoryBtn.style.fontWeight = '600';
+            categoryBtn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            // 取消激活按测试人员按钮
+            testerBtn.style.background = 'none';
+            testerBtn.style.backgroundColor = '#6c757d';
+            testerBtn.style.fontWeight = '500';
+            testerBtn.style.boxShadow = 'none';
+            // 加载数据
+            loadLedgerDetailData();
+        }
+    }
+
+    // 关闭台账详细数据模态框
+    function closeLedgerDetailModal() {
+        const modal = document.getElementById('ledgerDetailModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 切换台账详细数据维度
+    function switchLedgerDimension(dimension) {
+        currentLedgerDimension = dimension;
+        
+        // 更新按钮样式
+        const categoryBtn = document.getElementById('dimensionCategoryBtn');
+        const testerBtn = document.getElementById('dimensionTesterBtn');
+        
+        if (dimension === 'category') {
+            // 激活按小类按钮
+            categoryBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            categoryBtn.style.backgroundColor = ''; // 清除 backgroundColor
+            categoryBtn.style.fontWeight = '600';
+            categoryBtn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            // 取消激活按测试人员按钮
+            testerBtn.style.background = 'none';
+            testerBtn.style.backgroundColor = '#6c757d';
+            testerBtn.style.fontWeight = '500';
+            testerBtn.style.boxShadow = 'none';
+        } else {
+            // 激活按测试人员按钮
+            testerBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            testerBtn.style.backgroundColor = ''; // 清除 backgroundColor
+            testerBtn.style.fontWeight = '600';
+            testerBtn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            // 取消激活按小类按钮
+            categoryBtn.style.background = 'none';
+            categoryBtn.style.backgroundColor = '#6c757d';
+            categoryBtn.style.fontWeight = '500';
+            categoryBtn.style.boxShadow = 'none';
+        }
+        
+        // 重新加载数据
+        loadLedgerDetailData();
+    }
+
+    // 加载台账详细数据
+    function loadLedgerDetailData() {
+        const contentEl = document.getElementById('ledgerDetailContent');
+        if (!contentEl) return;
+        
+        contentEl.innerHTML = `
+            <div style="text-align: center; padding: 60px 40px; color: #999; font-size: 16px;">
+                <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                <div>加载中...</div>
+            </div>
+        `;
+        
+        fetch(`/scheduleBoardController/getLedgerDetailByDimension?type=${currentLedgerType}&dimension=${currentLedgerDimension}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    renderLedgerDetailData(data.data);
+                } else {
+                    contentEl.innerHTML = `
+                        <div style="text-align: center; padding: 60px 40px; color: #dc3545; font-size: 16px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
+                            <div>加载失败：${data.message || '未知错误'}</div>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('加载台账详细数据出错:', error);
+                contentEl.innerHTML = `
+                    <div style="text-align: center; padding: 60px 40px; color: #dc3545; font-size: 16px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
+                        <div>加载失败，请稍后重试</div>
+                    </div>
+                `;
+            });
+    }
+
+    // 渲染台账详细数据
+    function renderLedgerDetailData(dataList) {
+        const contentEl = document.getElementById('ledgerDetailContent');
+        if (!contentEl || !dataList || dataList.length === 0) {
+            contentEl.innerHTML = `
+                <div style="text-align: center; padding: 60px 40px; color: #999; font-size: 16px;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                    <div>暂无数据</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const dimensionLabel = currentLedgerDimension === 'category' ? '小类' : '测试人员';
+        const icon = currentLedgerDimension === 'category' ? '📦' : '👤';
+        
+        // 按维度值分组
+        const groupedData = {};
+        dataList.forEach(item => {
+            const key = item.dimension_value || (currentLedgerDimension === 'category' ? '未分类' : '未分配');
+            if (!groupedData[key]) {
+                groupedData[key] = [];
+            }
+            groupedData[key].push(item);
+        });
+        
+        // 计算总数量
+        const totalCount = dataList.length;
+        
+        let html = `
+            <div style="padding: 20px 25px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-bottom: 2px solid #dee2e6;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">${icon}</span>
+                        <span style="font-size: 16px; font-weight: 600; color: #333;">${dimensionLabel}统计</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 14px; color: #666;">合计：</span>
+                        <span style="font-size: 18px; font-weight: bold; color: #007bff;">${totalCount}</span>
+                        <span style="font-size: 14px; color: #666;">项</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 按数量排序
+        const sortedGroups = Object.keys(groupedData).sort((a, b) => groupedData[b].length - groupedData[a].length);
+        
+        sortedGroups.forEach((key, index) => {
+            const items = groupedData[key];
+            const count = items.length;
+            const percentage = ((count / totalCount) * 100).toFixed(1);
+            
+            html += `
+                <div style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; ${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8f9fa;'}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 20px; font-weight: bold; color: #667eea; min-width: 30px;">${index + 1}</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #333;">${key}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 14px; color: #666;">数量：</span>
+                            <span style="font-size: 18px; font-weight: bold; color: #28a745;">${count}</span>
+                            <span style="font-size: 14px; color: #999;">(${percentage}%)</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+            `;
+            
+            items.forEach(item => {
+                html += `
+                    <div style="padding: 10px; background: white; border-radius: 6px; border: 1px solid #dee2e6; font-size: 13px; color: #495057;">
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #212529;">${item.project_name || '未知项目'}</div>
+                        <div style="color: #6c757d; font-size: 12px;">${item.create_time || ''}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        contentEl.innerHTML = html;
+    }
+
+    // 点击模态框外部关闭和ESC键关闭
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置初始存账模态框
+        const setInitialStockModal = document.getElementById('setInitialStockModal');
+        if (setInitialStockModal) {
+            setInitialStockModal.addEventListener('click', function(e) {
+                if (e.target === setInitialStockModal) {
+                    closeSetInitialStockModal();
+                }
+            });
+        }
+        
+        // ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const setInitialStockModal = document.getElementById('setInitialStockModal');
+                const ledgerModal = document.getElementById('ledgerModal');
+                const ledgerDetailModal = document.getElementById('ledgerDetailModal');
+                const ledgerDateRangeModal = document.getElementById('ledgerDateRangeModal');
+                if (setInitialStockModal && setInitialStockModal.style.display === 'flex') {
+                    closeSetInitialStockModal();
+                }
+                if (ledgerDateRangeModal && ledgerDateRangeModal.style.display === 'flex') {
+                    closeLedgerDateRangeModal();
+                }
+                if (ledgerDetailModal && ledgerDetailModal.style.display === 'flex') {
+                    closeLedgerDetailModal();
+                }
+                if (ledgerModal && ledgerModal.style.display === 'flex') {
+                    closeLedgerModal();
+                }
+            }
+        });
+        
+        // 点击时间段台账查询模态框外部关闭
+        const ledgerDateRangeModal = document.getElementById('ledgerDateRangeModal');
+        if (ledgerDateRangeModal) {
+            ledgerDateRangeModal.addEventListener('click', function(e) {
+                if (e.target === ledgerDateRangeModal) {
+                    closeLedgerDateRangeModal();
+                }
+            });
+        }
+        
+        // 点击台账详细数据模态框外部关闭
+        const ledgerDetailModal = document.getElementById('ledgerDetailModal');
+        if (ledgerDetailModal) {
+            ledgerDetailModal.addEventListener('click', function(e) {
+                // 点击背景（模态框本身）时关闭，但不关闭内部的div
+                if (e.target === ledgerDetailModal) {
+                    closeLedgerDetailModal();
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>
 </html>
