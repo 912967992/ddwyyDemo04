@@ -2707,7 +2707,8 @@ public class testManIndexController {
         Map<String, Object> result = new HashMap<>();
         try {
             logger.info("手动触发查询部门 63652303L 的子部门（分组）信息");
-            Long deptId = 63652303L;
+//            Long deptId = 63652303L;
+            Long deptId = 1044768107L;
             accessTokenService.queryAndPrintDeptUsers(deptId);
             result.put("success", true);
             result.put("message", "查询完成，请查看日志获取详细信息");

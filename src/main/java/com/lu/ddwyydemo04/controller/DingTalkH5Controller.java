@@ -465,6 +465,12 @@ public class DingTalkH5Controller {
                 List<Long> parentDeptIdList = parent.getJSONArray("parent_dept_id_list").toJavaList(Long.class);
 
                 // 检查部门 ID 并打印相应的信息
+                // 如果部门ID是1044809148，设置为tester
+                if (parentDeptIdList.contains(1044809148L)) {
+                    job = "tester";
+                    break;  // 找到后可选择立即返回
+                }
+                
                 if (parentDeptIdList.contains(62712385L)) {
 //                    System.out.println("产品研发部");
                     job = "rd";

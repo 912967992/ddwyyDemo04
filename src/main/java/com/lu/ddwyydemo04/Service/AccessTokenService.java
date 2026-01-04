@@ -728,8 +728,12 @@ public class AccessTokenService {
             Long majorDeptId = user.getMajorDeptId(); // 获取大部门 ID
             Long deptId = user.getDeptId(); // 获取小部门 ID
 
+            // 如果部门ID是1044809148，设置为tester
+            if (deptId != null && deptId.equals(1044809148L)) {
+                user.setPosition("tester");
+            }
             // 特殊条件设置：产品经营部的耳机组（925840291和925828219）中，除了高玄英和姜呈祥，其他人都设为 job=rd
-            if (majorDeptId.equals(62632390L) && (deptId.equals(925840291L) || deptId.equals(925828219L))) {
+            else if (majorDeptId.equals(62632390L) && (deptId.equals(925840291L) || deptId.equals(925828219L))) {
                 if (user.getUsername().equals("高玄英") || user.getUsername().equals("姜呈祥")) {
                     user.setPosition("projectLeader");
                 } else {
