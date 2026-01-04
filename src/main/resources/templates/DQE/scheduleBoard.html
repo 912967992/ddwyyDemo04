@@ -121,6 +121,16 @@
         .edit-mode::before {
             content: "✏️ ";
         }
+
+        /* 池子容器隐藏样式 */
+        .pools-hidden {
+            display: none !important;
+        }
+
+        /* 切换按钮样式 */
+        #togglePoolsBtn.pools-hidden-state {
+            background-color: #28a745 !important;
+        }
     </style>
 
 </head>
@@ -128,6 +138,10 @@
 
 <!-- 顶部按钮组 -->
 <div style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px; align-items: center;">
+    <!-- 隐藏/显示池子按钮 -->
+    <button id="togglePoolsBtn" onclick="togglePoolsVisibility()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.3s;">
+        👁️ 隐藏池子
+    </button>
     <!-- 台账展示按钮 -->
     <button onclick="showLedgerModal()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
         📊 台账展示
@@ -136,7 +150,7 @@
     <div id="permissionIndicator"></div>
 </div>
 
-<div class="pool-container">
+<div id="poolsContainer" class="pool-container">
     <div id="projectList" class="project-container">
         <h2>项目池子
             <!-- 新增项目按钮 -->
@@ -9244,6 +9258,26 @@
             }
         }
     };
+
+    // 切换池子显示/隐藏
+    function togglePoolsVisibility() {
+        const poolsContainer = document.getElementById('poolsContainer');
+        const toggleBtn = document.getElementById('togglePoolsBtn');
+        
+        if (poolsContainer && toggleBtn) {
+            if (poolsContainer.classList.contains('pools-hidden')) {
+                // 显示池子
+                poolsContainer.classList.remove('pools-hidden');
+                toggleBtn.textContent = '👁️ 隐藏池子';
+                toggleBtn.style.backgroundColor = '#6c757d';
+            } else {
+                // 隐藏池子
+                poolsContainer.classList.add('pools-hidden');
+                toggleBtn.textContent = '👁️ 显示池子';
+                toggleBtn.style.backgroundColor = '#28a745';
+            }
+        }
+    }
 
 </script>
 
