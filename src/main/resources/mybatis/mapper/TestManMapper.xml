@@ -1093,11 +1093,30 @@
 
     
     <select id="getElectricInfo" resultType="PassbackData">
-        SELECT * FROM electric_info WHERE sample_id = #{sample_id}
+        SELECT 
+            ei.*,
+            IFNULL(
+                (
+                    SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                    FROM material_items mi
+                    WHERE mi.sample_id = ei.sample_id
+                      AND mi.materialCode IS NOT NULL
+                      AND mi.materialCode != ''
+                ),
+                ei.materialCode
+            ) AS materialCode
+        FROM electric_info ei
+        WHERE ei.sample_id = #{sample_id}
     </select>
 
     <select id="getDistinctMaterialCodes" resultType="MaterialItem">
         SELECT DISTINCT materialCode, sample_frequency
+        FROM material_items
+        WHERE sample_id = #{sample_id}
+    </select>
+
+    <select id="getAllMaterialItems" resultType="MaterialItem">
+        SELECT STTestCode, materialCode, sample_frequency
         FROM material_items
         WHERE sample_id = #{sample_id}
     </select>

@@ -157,6 +157,8 @@ public interface TestManDao {
     List<PassbackData> getElectricInfo(@Param("sample_id")String sample_id);
 
     List<MaterialItem> getDistinctMaterialCodes(@Param("sample_id")String sample_id);
+    
+    List<MaterialItem> getAllMaterialItems(@Param("sample_id")String sample_id);
 
     int insertSampleFromElectric(Samples sample);
     int updateActualSampleId(@Param("sample_id")String sample_id,@Param("sample_actual_id")String sample_actual_id,

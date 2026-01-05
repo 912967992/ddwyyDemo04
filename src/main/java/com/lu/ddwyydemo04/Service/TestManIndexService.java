@@ -620,7 +620,17 @@ public class TestManIndexService {
         
         // 插入新数据
         int result = testManDao.insertElectricInfo(newData);
-        return result > 0 ? newSampleId : null;
+        
+        if (result > 0) {
+            // 复制 material_items 表的数据
+            List<MaterialItem> originalMaterialItems = testManDao.getAllMaterialItems(originalSampleId);
+            if (originalMaterialItems != null && !originalMaterialItems.isEmpty()) {
+                insertMaterialItem(newSampleId, originalMaterialItems);
+            }
+            return newSampleId;
+        }
+        
+        return null;
     }
 
     public List<String> getMaterialCodes(String sampleId) {
