@@ -2410,9 +2410,9 @@
                     }
 
                     // 等待 2 秒后发送给绮敏
-                    setTimeout(() => {
-                        updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
-                    }, 2000); // 2000 毫秒 = 2 秒
+                    // setTimeout(() => {
+                    //     updateSchedule("1", sample_id, "许梦瑶", statusBarBgColor, username, "notice");
+                    // }, 2000); // 2000 毫秒 = 2 秒
 
                     AccessLogUtil.record("提交报告走审核流程按钮");
                 }else if(dqe && response.message.includes("退样成功")){
