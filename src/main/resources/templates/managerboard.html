@@ -500,6 +500,9 @@
     let specialistProjectData = []; // 存储所有项目数据用于统计
     let originalSpecialistProjectData = []; // 保存原始数据用于筛选
     let filteredSpecialistProjectData = []; // 筛选后的数据
+    
+    // 节假日数据（用于计算工作日）
+    let holidaysData = []; // 存储节假日列表，格式: ['2024-10-01', '2024-10-02', ...]
 
     // 根据job参数设置页面标题和角色信息
     function initializeRoleBasedContent() {
@@ -546,8 +549,44 @@
     // 页面加载完成后获取数据
     document.addEventListener('DOMContentLoaded', function() {
         initializeRoleBasedContent();
+        loadHolidaysData(); // 先加载节假日数据
         loadProjectData();
     });
+    
+    // 加载节假日数据（从数据库 holidays 表获取）
+    function loadHolidaysData() {
+        fetch('/scheduleBoard/getHolidays')
+            .then(response => response.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    // 将节假日数据转换为日期字符串数组，格式化为 YYYY-MM-DD
+                    // 确保日期格式统一，去除可能的时间部分
+                    holidaysData = data.map(holiday => {
+                        let dateStr = holiday.holiday_date;
+                        // 如果日期包含时间部分，只取日期部分
+                        if (dateStr && dateStr.includes(' ')) {
+                            dateStr = dateStr.split(' ')[0];
+                        }
+                        // 如果日期包含 T（ISO格式），只取日期部分
+                        if (dateStr && dateStr.includes('T')) {
+                            dateStr = dateStr.split('T')[0];
+                        }
+                        return dateStr;
+                    }).filter(date => date); // 过滤掉空值
+                    console.log('节假日数据加载成功，共', holidaysData.length, '个节假日');
+                    if (holidaysData.length > 0) {
+                        console.log('节假日示例:', holidaysData.slice(0, 5));
+                    }
+                } else {
+                    console.warn('节假日数据格式不正确');
+                    holidaysData = [];
+                }
+            })
+            .catch(error => {
+                console.error('加载节假日数据失败:', error);
+                holidaysData = []; // 如果加载失败，使用空数组
+            });
+    }
 
     // 加载项目数据
     function loadProjectData() {
@@ -613,6 +652,11 @@
 
     // 显示项目专员数据看板
     function showSpecialistDashboard() {
+        // 确保节假日数据已加载（如果还没加载，先加载）
+        if (holidaysData.length === 0) {
+            loadHolidaysData();
+        }
+        
         // 创建模态框
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -1719,7 +1763,68 @@
         return monthlyData;
     }
 
-    // 计算排期时间分类
+    // 判断是否为周末
+    function isWeekend(date) {
+        const day = date.getDay();
+        return day === 0 || day === 6; // 0是周日，6是周六
+    }
+    
+    // 判断是否为节假日（从数据库 holidays 表查询）
+    function isHoliday(date) {
+        if (!holidaysData || holidaysData.length === 0) {
+            return false;
+        }
+        // 将日期格式化为 YYYY-MM-DD 格式，与数据库中的 holiday_date 格式匹配
+        const dateStr = date.getFullYear() + '-' + 
+                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(date.getDate()).padStart(2, '0');
+        // 在节假日数据中查找匹配的日期
+        return holidaysData.includes(dateStr);
+    }
+    
+    // 判断是否为工作日（排除周末和节假日）
+    function isWorkday(date) {
+        return !isWeekend(date) && !isHoliday(date);
+    }
+    
+    // 计算两个日期之间的工作日数量（排除周末和节假日）
+    // 用于排期时间计算：从接单日期的下一天开始，到排期日期结束（包含排期日）
+    function calculateWorkdays(startDate, endDate) {
+        if (!startDate || !endDate) {
+            return 0;
+        }
+        
+        // 确保日期对象
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+        
+        // 如果结束日期早于或等于开始日期，返回0
+        if (end <= start) {
+            return 0;
+        }
+        
+        // 从接单日期的下一天开始计算（接单当天不算）
+        const current = new Date(start);
+        current.setDate(current.getDate() + 1);
+        
+        let workdays = 0;
+        
+        // 从开始日期的下一天到结束日期（包含结束日期），逐日检查
+        while (current <= end) {
+            if (isWorkday(current)) {
+                workdays++;
+            }
+            // 移动到下一天
+            current.setDate(current.getDate() + 1);
+        }
+        
+        return workdays;
+    }
+    
+    // 计算排期时间分类（使用工作日计算）
     function calculateScheduleCategory(project) {
         const createTime = project.create_time;
         const firstScheduleTime = getFirstScheduleTime(project.changeRecord, project.first_schedule_time_from_records);
@@ -1735,13 +1840,14 @@
             const firstScheduleDate = new Date(firstScheduleTime);
             firstScheduleDate.setHours(0, 0, 0, 0);
 
-            const diffDays = Math.ceil((firstScheduleDate - createDate) / (1000 * 60 * 60 * 24));
+            // 使用工作日计算，排除周末和节假日
+            const workdays = calculateWorkdays(createDate, firstScheduleDate);
 
-            if (diffDays <= 1) return '1天内开始排期';
-            if (diffDays <= 3) return '2-3天开始排期';
-            if (diffDays <= 7) return '4-7天开始排期';
-            if (diffDays <= 15) return '8-15天开始排期';
-            if (diffDays <= 30) return '16-30天开始排期';
+            if (workdays <= 1) return '1天内开始排期';
+            if (workdays <= 3) return '2-3天开始排期';
+            if (workdays <= 7) return '4-7天开始排期';
+            if (workdays <= 15) return '8-15天开始排期';
+            if (workdays <= 30) return '16-30天开始排期';
             return '30天以上开始排期';
         } catch (e) {
             return '无第一次排期时间';
