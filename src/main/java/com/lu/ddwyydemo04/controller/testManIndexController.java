@@ -2698,7 +2698,7 @@ public class testManIndexController {
     }
 
     /**
-     * 手动触发查询部门 63652303L 的子部门（分组）信息
+     * 手动触发查询部门 XX的子部门（分组）信息
      * 访问地址：/queryDeptUsers
      */
     @GetMapping("/queryDeptUsers")
@@ -2706,9 +2706,11 @@ public class testManIndexController {
     public Map<String, Object> queryDeptUsers() {
         Map<String, Object> result = new HashMap<>();
         try {
-            logger.info("手动触发查询部门 63652303L 的子部门（分组）信息");
+//            logger.info("手动触发查询部门 63652303L 的子部门（分组）信息");
 //            Long deptId = 63652303L;
-            Long deptId = 1044768107L;
+            // 1055000000：品质管理平台     63652303 ：品质工程部          产品研发中心：90070106     1055223378：充电创意事业部
+//            349996662：充电创意事业部-研发部-DC组
+            Long deptId = 62632390L;
             accessTokenService.queryAndPrintDeptUsers(deptId);
             result.put("success", true);
             result.put("message", "查询完成，请查看日志获取详细信息");

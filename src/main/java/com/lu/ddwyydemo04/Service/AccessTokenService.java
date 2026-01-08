@@ -708,9 +708,11 @@ public class AccessTokenService {
 
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
-    @Scheduled(cron = "0 15 06 * * ?")
+    @Scheduled(cron = "0 25 06 * * ?")
     public void refreshUserIds() throws ApiException {
-        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L, 62632390L,913639520L); // 示例大部门 ID,913639520是NAS网通组
+        // 20260108  62632390产品经营部去掉了，不存在钉钉了，暂时先去掉吧
+        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L,913639520L); // 示例大部门 ID,913639520是NAS网通组
+//        List<Long> targetDeptIds = Arrays.asList(349996662L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList(523528658L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList( 63652303L); // 示例大部门 ID
         List<User> allUsers = new ArrayList<>(); // 用于存放所有用户的列表
@@ -749,7 +751,7 @@ public class AccessTokenService {
             } else if (majorDeptId.equals(913639520L)) { // NAS网通组
                 user.setPosition("DQE");
                 user.setDepartmentName("NAS网通组");
-            } else if (majorDeptId.equals(62712385L)) { // 产品研发部
+            } else if (majorDeptId.equals(62712385L) || majorDeptId.equals(349996662L)) { // 产品研发部
                 user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
                 // 进一步检查是否在测试组
@@ -1379,10 +1381,32 @@ public class AccessTokenService {
         try {
             logger.info("========== 开始查询部门 ID: " + deptId + " 的子部门（分组）信息 ==========");
             
-            // 获取部门名称
+            // 获取部门名称和上级部门信息
             String deptName = getDepartmentNameByDeptId(deptId);
-            logger.info("父部门名称: " + deptName);
-            logger.info("父部门ID: " + deptId);
+            logger.info("部门名称: " + deptName);
+            logger.info("部门ID: " + deptId);
+            
+            // 获取上级部门信息
+            try {
+                DingTalkClient infoClient = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/v2/department/get");
+                OapiV2DepartmentGetRequest infoReq = new OapiV2DepartmentGetRequest();
+                infoReq.setDeptId(deptId);
+                OapiV2DepartmentGetResponse infoRsp = infoClient.execute(infoReq, getAccessToken());
+                
+                // 提取上级部门ID
+                String parentIdStr = extractParamOfResult(infoRsp.getBody(), "parent_id");
+                if (parentIdStr != null && !parentIdStr.isEmpty() && !parentIdStr.equals("0")) {
+                    Long parentId = Long.parseLong(parentIdStr);
+                    String parentDeptName = getDepartmentNameByDeptId(parentId);
+                    logger.info("上级部门名称: " + parentDeptName);
+                    logger.info("上级部门ID: " + parentId);
+                } else {
+                    logger.info("上级部门: 无（顶级部门）");
+                }
+            } catch (Exception e) {
+                logger.warn("获取上级部门信息失败: " + e.getMessage());
+            }
+            
             logger.info("----------------------------------------");
             
             // 查询该部门的子部门列表

@@ -471,7 +471,8 @@ public class DingTalkH5Controller {
                     break;  // 找到后可选择立即返回
                 }
                 
-                if (parentDeptIdList.contains(62712385L)) {
+//                if (parentDeptIdList.contains(62712385L) ) {
+                if (parentDeptIdList.contains(62712385L) || parentDeptIdList.contains(349996662L)) {
 //                    System.out.println("产品研发部");
                     job = "rd";
                 }
