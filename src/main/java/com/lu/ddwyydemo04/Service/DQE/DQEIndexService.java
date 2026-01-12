@@ -121,7 +121,7 @@ public class DQEIndexService {
     public boolean checkNASPermission(String username) {
         try {
             // 特殊用户列表，可以直接访问
-            String[] allowedUsers = {"卢健", "李良健", "许梦瑶", "卢绮敏"};
+            String[] allowedUsers = {"卢健", "李良健", "许梦瑶", "卢绮敏", "邓继元"};
             
             // 检查是否为特殊用户
             for (String allowedUser : allowedUsers) {
