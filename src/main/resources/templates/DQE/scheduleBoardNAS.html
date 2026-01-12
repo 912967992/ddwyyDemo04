@@ -2342,13 +2342,13 @@
             return;
         }
 
-        // 构建导出URL
-        const exportUrl = `/scheduleBoardController/exportScheduleToExcel?startDate=${startDate}&endDate=${endDate}`;
+        // 构建导出URL - 使用NAS组专用的导出接口
+        const exportUrl = `/scheduleBoardNASController/exportScheduleToExcelNAS?startDate=${startDate}&endDate=${endDate}`;
 
         // 创建隐藏的下载链接
         const link = document.createElement('a');
         link.href = exportUrl;
-        link.download = `排期面板_${startDate}_${endDate}.xlsx`;
+        link.download = `NAS组排期面板_${startDate}_${endDate}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
