@@ -294,6 +294,40 @@ public class DingTalkUserCacheService {
         }
         return stats;
     }
+
+    /**
+     * 清理所有用户信息缓存
+     * 在应用启动时调用，清除所有旧的用户信息缓存
+     * @return 清理的缓存数量
+     */
+    public int clearAllUserInfoCache() {
+        try {
+            System.out.println("开始清理Redis中的用户信息缓存...");
+            
+            // 获取所有用户信息缓存键
+            java.util.Set<String> userKeys = redisService.keys(USER_INFO_CACHE_PREFIX + "*");
+            
+            if (userKeys == null || userKeys.isEmpty()) {
+                System.out.println("✅ Redis中没有用户信息缓存需要清理");
+                return 0;
+            }
+            
+            // 将Set转换为List，用于批量删除
+            java.util.List<String> keyList = new java.util.ArrayList<>(userKeys);
+            
+            // 批量删除所有用户信息缓存
+            Long deletedCount = redisService.delete(keyList);
+            int count = deletedCount != null ? deletedCount.intValue() : 0;
+            
+            System.out.println("✅ 已清理 " + count + " 个用户信息缓存");
+            return count;
+            
+        } catch (Exception e) {
+            System.err.println("清理用户信息缓存时发生错误: " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
 }
 
 
