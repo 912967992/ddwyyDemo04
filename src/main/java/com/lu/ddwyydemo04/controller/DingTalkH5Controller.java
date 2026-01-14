@@ -437,7 +437,7 @@ public class DingTalkH5Controller {
         if ("官旺华".equals(username) || "赵梓宇".equals(username) || "刘鹏飞".equals(username)) {
             return "tester";
         } else {
-            if ("卢健".equals(username) || "许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) ) {
+            if ( "卢健".equals(username) || "许梦瑶".equals(username) || "卢绮敏".equals(username) || "蓝明城".equals(username) ) {
                 return "DQE";
             }else if("吴川".equals(username)){
                 return "SQE";
@@ -465,9 +465,31 @@ public class DingTalkH5Controller {
                 List<Long> parentDeptIdList = parent.getJSONArray("parent_dept_id_list").toJavaList(Long.class);
 
                 // 检查部门 ID 并打印相应的信息
-                // 如果部门ID是1044809148，设置为tester
+                // 如果部门ID是1044809148，设置为tester，1044809148L是光学实验室
                 if (parentDeptIdList.contains(1044809148L)) {
                     job = "tester";
+                    break;  // 找到后可选择立即返回
+                }
+                
+                // 电子测试组及其所有子部门的ID列表
+                Set<Long> testerDeptIds = new HashSet<>(Arrays.asList(
+                    523459714L,  // 原电子测试组
+                    1044830096L, // 蓝牙音频
+                    1045276038L, // 线材
+                    1044665230L, // 影音设备
+                    1045229052L, // 数据储存/网通
+                    1044579225L, // 摄像头产品
+                    1045239061L, // 高频信号测试
+                    992946901L,  // 产品运营兼容性测试
+                    1045082062L, // 选品APP测试
+                    993496054L   // 测试开发
+                ));
+                
+                // 检查是否包含电子测试组或其任何子部门（独立判断，不依赖品质工程部）
+                boolean isTester = parentDeptIdList.stream().anyMatch(testerDeptIds::contains);
+                if (isTester) {
+//                    System.out.println("有电子测试组或其子部门，是测试技术员");
+                    job = "tester";  // 设置为 "tester"，并优先返回
                     break;  // 找到后可选择立即返回
                 }
                 
@@ -478,12 +500,8 @@ public class DingTalkH5Controller {
                 }
                 if (parentDeptIdList.contains(63652303L)) {
 //                    System.out.println("品质工程部");
-//                    if (parentDeptIdList.contains(523459714L) && !username.equals("卢健")) {
-                    if (parentDeptIdList.contains(523459714L) ) {
-//                        System.out.println("有电子测试组，是测试技术员");
-                        job = "tester";  // 设置为 "tester"，并优先返回
-                        break;  // 找到后可选择立即返回
-                    }else{
+                    // 如果不是测试组，则设置为DQE
+                    if (!isTester) {
                         job = "DQE";
                     }
                 }
