@@ -276,48 +276,71 @@ public class DQEproblemMoudleController {
                 String projectDQE = sample.getSample_DQE();
                 String projectRD = sample.getSample_Developer();
                 String projectLeader = sample.getSample_leader();
+                String projectTester = sample.getTester(); // 获取项目测试负责人
 
                 // 检查用户是否是项目的直接负责人
                 boolean isDirectResponsible = username.equals(projectDQE) || 
                                             username.equals(projectRD) || 
                                             username.equals(projectLeader);
 
-                if (!isDirectResponsible) {
-                    // 检查用户是否是代理人
-                    String param;
-                    switch (job) {
-                        case "DQE":
-                            param = projectDQE;
-                            break;
-                        case "rd":
-                            param = projectRD;
-                            break;
-                        case "projectLeader":
-                            param = projectLeader;
-                            break;
-                        default:
-                            param = "default_group";
-                            break;
-                    }
-                    String agentsStr = dqeIndexService.getAgents(param);
-                    boolean isAgent = false;
+                // 如果是 tester 角色，检查是否是项目的测试负责人
+                boolean isTesterResponsible = "tester".equals(job) && username.equals(projectTester);
 
-                    if (agentsStr != null && !agentsStr.trim().isEmpty()) {
-                        String[] agentArray = agentsStr.split(",");
-                        for (String agent : agentArray) {
-                            String trimmedAgent = agent.trim();
-                            if (!trimmedAgent.isEmpty()) {
-                                // 检查当前用户是否在代理人列表中
-                                if (trimmedAgent.equals(username)) {
-                                    isAgent = true;
-                                    break;
+                if (!isDirectResponsible && !isTesterResponsible) {
+                    // 如果是 tester 角色，检查要保存的问题点是否都是该 tester 提出的
+                    if ("tester".equals(job)) {
+                        // 检查所有要保存的问题点是否都是该 tester 提出的
+                        boolean allIssuesBelongToTester = true;
+                        for (Map<String, Object> row : allData) {
+                            String issueTester = (String) row.get("tester");
+                            // 如果是新增的问题点（没有id），允许保存
+                            Integer id = (Integer) row.get("id");
+                            if (id != null && issueTester != null && !issueTester.equals(username) && !issueTester.equals("/")) {
+                                allIssuesBelongToTester = false;
+                                break;
+                            }
+                        }
+                        if (!allIssuesBelongToTester) {
+                            return ResponseEntity.badRequest().body("您只能修改自己提出的问题点");
+                        }
+                        // 如果所有问题点都是该 tester 提出的，允许保存，继续执行后续代码
+                    } else {
+                        // 检查用户是否是代理人
+                        String param;
+                        switch (job) {
+                            case "DQE":
+                                param = projectDQE;
+                                break;
+                            case "rd":
+                                param = projectRD;
+                                break;
+                            case "projectLeader":
+                                param = projectLeader;
+                                break;
+                            default:
+                                param = "default_group";
+                                break;
+                        }
+                        String agentsStr = dqeIndexService.getAgents(param);
+                        boolean isAgent = false;
+
+                        if (agentsStr != null && !agentsStr.trim().isEmpty()) {
+                            String[] agentArray = agentsStr.split(",");
+                            for (String agent : agentArray) {
+                                String trimmedAgent = agent.trim();
+                                if (!trimmedAgent.isEmpty()) {
+                                    // 检查当前用户是否在代理人列表中
+                                    if (trimmedAgent.equals(username)) {
+                                        isAgent = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (!isAgent) {
-                        return ResponseEntity.badRequest().body("非您的项目，请叫对应负责人设置您为代理人");
+                        if (!isAgent) {
+                            return ResponseEntity.badRequest().body("非您的项目，请叫对应负责人设置您为代理人");
+                        }
                     }
                 }
             } catch (Exception e) {
