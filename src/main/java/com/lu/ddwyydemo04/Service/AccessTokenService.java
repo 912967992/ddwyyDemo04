@@ -709,9 +709,11 @@ public class AccessTokenService {
 
 //    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜12点执行,0 43 14是北京时间的 14：43
     @Scheduled(cron = "0 25 06 * * ?")
+//    @Scheduled(cron = "0 50 17 * * ?")
     public void refreshUserIds() throws ApiException {
         // 20260108  62632390产品经营部去掉了，不存在钉钉了，暂时先去掉吧
-        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L,913639520L); // 示例大部门 ID,913639520是NAS网通组
+        List<Long> targetDeptIds = Arrays.asList(62712385L, 523528658L,913639520L, 595956188L); // 示例大部门 ID,913639520是NAS网通组    595956188L阙兰的组
+//        List<Long> targetDeptIds = Arrays.asList( 595956188L); // 示例大部门 ID,913639520是NAS网通组    595956188L阙兰的组
 //        List<Long> targetDeptIds = Arrays.asList(349996662L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList(523528658L); // 示例大部门 ID,913639520是NAS网通组
 //        List<Long> targetDeptIds = Arrays.asList( 63652303L); // 示例大部门 ID
@@ -747,6 +749,9 @@ public class AccessTokenService {
                 user.setPosition("tester"); // 特殊条件：如果是官旺华，则职位为 tester,因为他被放到了电子DQE租
             }else if (user.getUsername().equals("胡雪梅")) {
                 user.setDepartmentName("数据储存");
+                user.setPosition("DQE");
+            }else if (majorDeptId.equals(595956188L)) {  //技术支持组  阙兰的
+                user.setDepartmentName("技术支持组");
                 user.setPosition("DQE");
             } else if (majorDeptId.equals(913639520L)) { // NAS网通组
                 user.setPosition("DQE");
@@ -1457,7 +1462,7 @@ public class AccessTokenService {
 //     @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）
     public void scheduledQueryDept63652303Users() {
         logger.info("========== 定时任务开始：查询部门 63652303L 的子部门（分组）信息 ==========");
-        Long deptId = 63652303L;
+        Long deptId = 523459714L;
         queryAndPrintDeptUsers(deptId);
         logger.info("========== 定时任务结束 ==========");
     }
