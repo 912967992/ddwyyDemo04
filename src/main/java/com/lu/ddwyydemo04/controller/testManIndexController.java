@@ -2710,7 +2710,7 @@ public class testManIndexController {
 //            Long deptId = 63652303L;
             // 1055000000：品质管理平台     63652303 ：品质工程部          产品研发中心：90070106     1055223378：充电创意事业部
 //            349996662：充电创意事业部-研发部-DC组                 // 595956188 ：阙兰所在的组
-            Long deptId = 595956188L;
+            Long deptId = 1055536311L;
             accessTokenService.queryAndPrintDeptUsers(deptId);
             result.put("success", true);
             result.put("message", "查询完成，请查看日志获取详细信息");

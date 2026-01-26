@@ -13,6 +13,40 @@
     <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <style>
+        /* 自定义输入框样式优化 */
+        #customResultInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
+            background-color: #ffffff;
+        }
+        
+        #customResultInput:hover {
+            border-color: #adb5bd;
+        }
+        
+        #customResultInput::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+        }
+        
+        #customInputContainer {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -268,7 +302,29 @@
                 <option value="4">会议评审接受</option>
                 <option value="5">验证样品合格</option>
                 <option value="6">验证样品不合格</option>
+                <option value="custom">自定义</option>
             </select>
+            <!-- 自定义输入框，默认隐藏 -->
+            <div id="customInputContainer" style="display: none; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <label for="customResultInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 14px;">请输入自定义结果：</label>
+                <textarea id="customResultInput" class="form-control" placeholder="请输入自定义审核结果（支持多行输入）" rows="4" style="
+                    margin-top: 5px; 
+                    resize: vertical; 
+                    min-height: 100px; 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                    line-height: 1.6; 
+                    padding: 12px 15px;
+                    border: 2px solid #dee2e6;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    color: #212529;
+                    background-color: #ffffff;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                    width: 100%;
+                    box-sizing: border-box;
+                "></textarea>
+            </div>
         </div>
         <div class="confirmModal-footer">
             <button id="cancelSelection">取消</button>
@@ -696,6 +752,10 @@
                         }else if(cellData === "10"){
                             td.textContent = "测试人员竞品完成";
                             td.style.color = 'green';
+                        }else if(cellData && cellData.trim() !== ""){
+                            // 如果是自定义值（不在预设值范围内），直接显示原始值
+                            td.textContent = cellData;
+                            td.style.color = '#8a4e07'; // 设置自定义值的颜色，便于区分
                         }
 
                     } else if(headers[index] === "DQE判定" || headers[index] === "研发判定"){
@@ -718,6 +778,10 @@
                         }
                         else if(cellData === "6"){
                             td.textContent = "验证样品不合格";
+                        }else if(cellData && cellData.trim() !== ""){
+                            // 如果是自定义值（不在预设值范围内），直接显示原始值
+                            td.textContent = cellData;
+                            td.style.color = '#8a4e07'; // 设置自定义值的颜色，便于区分
                         }
                     }else if (headers[index] === "问题点数量") {
                         // 设置自动换行
@@ -2592,6 +2656,20 @@
         
         // 最终结果选择框变化事件
         $('#finalResult').on('change', function() {
+            const selectedValue = $(this).val();
+            const customInputContainer = $('#customInputContainer');
+            const customResultInput = $('#customResultInput');
+            
+            if (selectedValue === 'custom') {
+                // 显示自定义输入框
+                customInputContainer.show();
+                customResultInput.focus(); // 自动聚焦到输入框
+            } else {
+                // 隐藏自定义输入框并清空值
+                customInputContainer.hide();
+                customResultInput.val('');
+            }
+            
             checkConfirmButtonState();
         });
         
@@ -2600,12 +2678,22 @@
             const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
             const selectedValue = $('#finalResult').val();
             const confirmBtn = $('#confirmSelection');
+            const customResultInput = $('#customResultInput');
+            
+            let isValid = false;
             
             if (isNoticeChecked && selectedValue !== '') {
-                confirmBtn.prop('disabled', false);
-            } else {
-                confirmBtn.prop('disabled', true);
+                if (selectedValue === 'custom') {
+                    // 如果是自定义选项，需要检查输入框是否有值
+                    const customValue = customResultInput.val().trim();
+                    isValid = customValue !== '';
+                } else {
+                    // 其他选项直接有效
+                    isValid = true;
+                }
             }
+            
+            confirmBtn.prop('disabled', !isValid);
         }
         
         // 初始化模态框状态的函数
@@ -2613,15 +2701,22 @@
             $('#signatureNoticeCheck').prop('checked', false);
             $('#noticeContent').hide();
             $('#finalResult').val('');
+            $('#customInputContainer').hide();
+            $('#customResultInput').val('');
             $('#confirmSelection').prop('disabled', true);
         }
+        
+        // 自定义输入框输入事件监听
+        $('#customResultInput').on('input', function() {
+            checkConfirmButtonState();
+        });
         
         // 处理确认选择
         $('#confirmSelection').on('click', function() {
 
             // 再次验证
             const isNoticeChecked = $('#signatureNoticeCheck').is(':checked');
-            const selectedOption = $('#finalResult').val();
+            let selectedOption = $('#finalResult').val();
             
             if (!isNoticeChecked) {
                 alert('请先阅读并勾选签样须知！');
@@ -2633,14 +2728,28 @@
                 return;
             }
             
+            // 如果是自定义选项，获取输入框的值
+            let isCustomValue = false;
+            if (selectedOption === 'custom') {
+                const customValue = $('#customResultInput').val().trim();
+                if (customValue === '') {
+                    alert('请输入自定义审核结果！');
+                    return;
+                }
+                selectedOption = customValue; // 使用自定义输入的值
+                isCustomValue = true;
+            }
+            
             //20250226简化审核流程
             const statusBarBgColor = "0xFF5E97F6";
             if(job==="DQE"){
                 updateResult(currentSampleId,job,selectedOption, statusBarBgColor)
-                alert("DQE承认结果已保存为:"+returnResult(selectedOption));
+                const displayResult = isCustomValue ? selectedOption : returnResult(selectedOption);
+                alert("DQE承认结果已保存为:"+displayResult);
             }else if(job === "rd"){
                 updateResult(currentSampleId,job,selectedOption)
-                alert("研发承认结果已保存为:"+returnResult(selectedOption));
+                const displayResult = isCustomValue ? selectedOption : returnResult(selectedOption);
+                alert("研发承认结果已保存为:"+displayResult);
             }
             AccessLogUtil.record("签样按钮")
 

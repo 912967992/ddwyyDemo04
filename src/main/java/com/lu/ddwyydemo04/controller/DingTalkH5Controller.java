@@ -471,6 +471,12 @@ public class DingTalkH5Controller {
                     break;  // 找到后可选择立即返回
                 }
                 
+                // 如果部门ID是993225441，设置为tester，993225441L是NAS测试组
+                if (parentDeptIdList.contains(993225441L)) {
+                    job = "tester";
+                    break;  // 找到后可选择立即返回
+                }
+                
                 // 电子测试组及其所有子部门的ID列表
                 Set<Long> testerDeptIds = new HashSet<>(Arrays.asList(
                     523459714L,  // 原电子测试组

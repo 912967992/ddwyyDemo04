@@ -1914,24 +1914,65 @@
 
 
     function returnResult(result_judge) {
-        switch (result_judge) {
-            case 0:
-                return "签样";
-            case 1:
-                return "退样";
-            case 2:
-                return "限收";
-            case 3:
-                return "特采";
-            case 4:
-                return "会议评审接受";
-            case 5:
-                return "验证样品合格";
-            case 6:
-                return "验证样品不合格";
-            default:
-                return "未知"; // 默认返回值
+        // 处理空值或无效值
+        if (result_judge === null || result_judge === undefined || result_judge === '') {
+            return "未知";
         }
+        
+        // 如果是字符串类型
+        if (typeof result_judge === 'string') {
+            const trimmed = result_judge.trim();
+            // 检查是否是有效的数字字符串（0-6）
+            const numValue = parseInt(trimmed);
+            if (!isNaN(numValue) && trimmed === String(numValue) && numValue >= 0 && numValue <= 6) {
+                // 是有效的数字字符串，进行转换
+                switch (numValue) {
+                    case 0:
+                        return "签样";
+                    case 1:
+                        return "退样";
+                    case 2:
+                        return "限收";
+                    case 3:
+                        return "特采";
+                    case 4:
+                        return "会议评审接受";
+                    case 5:
+                        return "验证样品合格";
+                    case 6:
+                        return "验证样品不合格";
+                }
+            } else {
+                // 不是有效的数字字符串，可能是自定义值，直接返回原值
+                return trimmed;
+            }
+        }
+        
+        // 如果是数字类型
+        if (typeof result_judge === 'number') {
+            switch (result_judge) {
+                case 0:
+                    return "签样";
+                case 1:
+                    return "退样";
+                case 2:
+                    return "限收";
+                case 3:
+                    return "特采";
+                case 4:
+                    return "会议评审接受";
+                case 5:
+                    return "验证样品合格";
+                case 6:
+                    return "验证样品不合格";
+                default:
+                    // 数字但不在0-6范围内，返回原值（可能是其他数字）
+                    return String(result_judge);
+            }
+        }
+        
+        // 其他情况，返回原值的字符串形式
+        return String(result_judge);
     }
 
 
@@ -2002,8 +2043,13 @@
                 var buttonLabel = '';
                 if (product.sample_schedule === "0") {
                     buttonLabel = '提交';
-                } else if (product.sample_schedule ===  "1" ) {//一旦DQE审核了则不允许撤回
-                    buttonLabel = '撤回';
+                } else if (product.sample_schedule ===  "1" ) {
+                    // 如果DQE已经判定过（result_judge有值），则显示"已完成"，否则显示"撤回"
+                    if (product.result_judge && product.result_judge !== null && product.result_judge !== undefined && product.result_judge !== '') {
+                        buttonLabel = '已完成';
+                    } else {
+                        buttonLabel = '撤回';
+                    }
                 } else if(product.sample_schedule ===  "2" ){
                     buttonLabel = '审核完结';
                 } else if(product.sample_schedule ===  "3" || product.sample_schedule ===  "4" ){
@@ -2098,16 +2144,24 @@
                                 }
                             });
                     } else if (schedule === 1) {
-                        confirm(`${filepath}待审核中，你确定要撤回吗?`)
-                            .then((confirmation) => {
-                                if (confirmation) {
-                                    finishBtn(confirmation,
-                                        filepath, model, coding, category, version, schedule,
-                                        big_species, small_species, high_frequency, sample_frequency,
-                                        questStats, sample_id, dqe, null, null, ''
-                                    );
-                                }
-                            });
+                        // 获取原始的result_judge值（未转换的）
+                        var originalResultJudge = $(this).data('result_judge');
+                        // 如果DQE已经判定过（result_judge有值），则显示判定结果，不允许撤回
+                        if (originalResultJudge && originalResultJudge !== null && originalResultJudge !== undefined && originalResultJudge !== '') {
+                            alert(`${filepath}本项目已审核！研发判定结果：${rd_result_judge}, DQE判定结果：${result_judge}`);
+                        } else {
+                            // 如果DQE还未判定，允许撤回
+                            confirm(`${filepath}待审核中，你确定要撤回吗?`)
+                                .then((confirmation) => {
+                                    if (confirmation) {
+                                        finishBtn(confirmation,
+                                            filepath, model, coding, category, version, schedule,
+                                            big_species, small_species, high_frequency, sample_frequency,
+                                            questStats, sample_id, dqe, null, null, ''
+                                        );
+                                    }
+                                });
+                        }
                     } else if (schedule === 2 || schedule === 3 || schedule === 4) {
                         alert(`${filepath}本项目已审核！研发判定结果：${rd_result_judge}, DQE判定结果：${result_judge}`);
                     }
