@@ -163,7 +163,18 @@
                     </label>
                     <br/><br/>
                     
-                    <!-- 额外的三个字段容器 -->
+                    <!-- 是否高频字段，始终显示 -->
+                    <label>
+                        是否高频：
+                        <select id="is-high-frequency">
+                            <option value="">请选择</option>
+                            <option value="是">是</option>
+                            <option value="否">否</option>
+                        </select>
+                    </label>
+                    <br/><br/>
+                    
+                    <!-- 额外的两个字段容器（产品类别和样品数量） -->
                     <div id="additional-fields" style="display: none;">
                         <label>
                             产品类别：
@@ -174,16 +185,6 @@
                         <label>
                             样品数量：
                             <input type="number" id="sample-quantity" placeholder="请输入样品数量" min="1">
-                        </label>
-                        <br/><br/>
-                        
-                        <label>
-                            是否高频：
-                            <select id="is-high-frequency">
-                                <option value="">请选择</option>
-                                <option value="是">是</option>
-                                <option value="否">否</option>
-                            </select>
                         </label>
                         <br/><br/>
                     </div>
@@ -4763,10 +4764,9 @@
 
 
     document.getElementById("start-test-btn").addEventListener("click", () => {
-        // 检查后端数据中是否包含产品类别、样品数量、是否高频
+        // 检查后端数据中是否包含产品类别、样品数量
         const hasCategory = currentProjectData.sample_type && currentProjectData.sample_type.trim() !== '';
         const hasQuantity = currentProjectData.sample_quantity && currentProjectData.sample_quantity > 0;
-        const hasFrequency = currentProjectData.high_frequency && currentProjectData.high_frequency.trim() !== '';
         
         // 展示任务属性表单
         document.getElementById("task-attributes").style.display = "block";
@@ -4775,15 +4775,17 @@
         document.getElementById("start-test-btn").style.display = "none";
         document.getElementById("confirm-task-btn").style.display = "block";
         
-        // 如果后端数据中没有这三个值，则显示额外的输入框
-        if (!hasCategory || !hasQuantity || !hasFrequency) {
+        // 重置"是否高频"下拉选项（始终需要用户选择，不预填充后端数据）
+        document.getElementById("is-high-frequency").value = '';
+        
+        // 如果后端数据中没有产品类别或样品数量，则显示额外的输入框
+        if (!hasCategory || !hasQuantity) {
             document.getElementById("additional-fields").style.display = "block";
         } else {
-            // 如果后端数据中有这三个值，则隐藏额外的输入框，并填充值
+            // 如果后端数据中有这两个值，则隐藏额外的输入框，并填充值
             document.getElementById("additional-fields").style.display = "none";
             document.getElementById("sample-category").value = currentProjectData.sample_type || '';
             document.getElementById("sample-quantity").value = currentProjectData.sample_quantity || '';
-            document.getElementById("is-high-frequency").value = currentProjectData.high_frequency || '';
         }
     });
 
@@ -4792,6 +4794,7 @@
         if (btn.disabled) return; // 防止重复点击
 
         const questStats = document.getElementById("questStats-detail").value;
+        // 始终使用用户选择的"是否高频"值，不从后端数据获取
         let isHighFrequency = document.getElementById("is-high-frequency").value;
         let category = document.getElementById("sample-category").value;
         let quantity = document.getElementById("sample-quantity").value;
@@ -4799,6 +4802,13 @@
         // 验证任务属性（必填）
         if (!questStats) {
             alert("请选择任务属性！");
+            return;
+        }
+        
+        // 验证是否高频（必填，始终需要用户选择）
+        if (!isHighFrequency) {
+            alert("请选择是否高频！");
+            document.getElementById("is-high-frequency").focus();
             return;
         }
         
@@ -4818,17 +4828,10 @@
                 document.getElementById("sample-quantity").focus();
                 return;
             }
-            
-            if (!isHighFrequency) {
-                alert("请选择是否高频！");
-                document.getElementById("is-high-frequency").focus();
-                return;
-            }
         } else {
             // 如果没有显示额外字段，则使用后端数据中的值
             category = currentProjectData.sample_type || '';
             quantity = currentProjectData.sample_quantity || '';
-            isHighFrequency = currentProjectData.high_frequency || '';
         }
 
         // 禁用按钮，避免多次点击
