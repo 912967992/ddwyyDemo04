@@ -1110,5 +1110,134 @@ public class TestEnvironmentController {
         }
     }
 
+    /**
+     * 查询未获取的提单信息接口
+     * 外部系统可以轮询此接口来获取新的提单信息
+     * 查询后会自动将返回的数据标记为已获取
+     * 支持 GET 和 POST 两种请求方式
+     * 需要提供正确的API密钥：X-API-Key: lujian99
+     */
+    @RequestMapping(value = "/passback/getUnfetchedLadingBills", method = {RequestMethod.GET, RequestMethod.POST})
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getUnfetchedLadingBills(
+            @RequestHeader(value = "X-API-Key", required = false) String apiKey) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // 验证API密钥
+        if (apiKey == null || !"lujian99".equals(apiKey)) {
+            logger.warn("API密钥验证失败，请求的密钥: {}", apiKey);
+            response.put("success", false);
+            response.put("message", "请输入正确密钥");
+            response.put("data", new ArrayList<>());
+            response.put("count", 0);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        
+        try {
+            // 查询未获取的提单信息
+            List<PassbackData> unfetchedBills = testManIndexService.getUnfetchedLadingBills();
+            
+            if (unfetchedBills == null || unfetchedBills.isEmpty()) {
+                logger.info("查询未获取的提单信息：暂无数据");
+                response.put("success", true);
+                response.put("message", "暂无未获取的提单信息");
+                response.put("data", new ArrayList<>());
+                response.put("count", 0);
+                return ResponseEntity.ok(response);
+            }
+
+            // 打印查询到的数据
+            logger.info("========== 查询到未获取的提单信息，共 {} 条 ==========", unfetchedBills.size());
+            for (int i = 0; i < unfetchedBills.size(); i++) {
+                PassbackData bill = unfetchedBills.get(i);
+                logger.info("第 {} 条提单信息（完整字段）：", i + 1);
+                logger.info("  id: {}", bill.getId());
+                logger.info("  sample_id: {}", bill.getSample_id());
+                logger.info("  sample_actual_id: {}", bill.getSample_actual_id());
+                logger.info("  sample_category: {}", bill.getSample_category());
+                logger.info("  sample_model: {}", bill.getSample_model());
+                logger.info("  materialCode: {}", bill.getMaterialCode());
+                logger.info("  sample_frequency: {}", bill.getSample_frequency());
+                logger.info("  sample_name: {}", bill.getSample_name());
+                logger.info("  version: {}", bill.getVersion());
+                logger.info("  priority: {}", bill.getPriority());
+                logger.info("  sample_leader: {}", bill.getSample_leader());
+                logger.info("  supplier: {}", bill.getSupplier());
+                logger.info("  testProjectCategory: {}", bill.getTestProjectCategory());
+                logger.info("  testProjects: {}", bill.getTestProjects());
+                logger.info("  schedule: {}", bill.getSchedule());
+                logger.info("  create_time: {}", bill.getCreate_time());
+                logger.info("  scheduleDays: {}", bill.getScheduleDays());
+                logger.info("  isUsed: {}", bill.getIsUsed());
+                logger.info("  changeRecord: {}", bill.getChangeRecord());
+                logger.info("  schedule_start_date: {}", bill.getSchedule_start_date());
+                logger.info("  schedule_end_date: {}", bill.getSchedule_end_date());
+                logger.info("  isCancel: {}", bill.getIsCancel());
+                logger.info("  cancel_reason: {}", bill.getCancel_reason());
+                logger.info("  cancel_by: {}", bill.getCancel_by());
+                logger.info("  cancel_date: {}", bill.getCancel_date());
+                logger.info("  cancel_code: {}", bill.getCancel_code());
+                logger.info("  actual_start_time: {}", bill.getActual_start_time());
+                logger.info("  actual_finish_time: {}", bill.getActual_finish_time());
+                logger.info("  schedule_color: {}", bill.getSchedule_color());
+                logger.info("  reportReviewTime: {}", bill.getReportReviewTime());
+                logger.info("  sampleRecognizeResult: {}", bill.getSampleRecognizeResult());
+                logger.info("  tester: {}", bill.getTester());
+                logger.info("  testDuration: {}", bill.getTestDuration());
+                logger.info("  filepath: {}", bill.getFilepath());
+                logger.info("  remark: {}", bill.getRemark());
+                logger.info("  waitSample_classify: {}", bill.getWaitSample_classify());
+                logger.info("  sample_sender: {}", bill.getSample_sender());
+                logger.info("  sample_type: {}", bill.getSample_type());
+                logger.info("  sample_quantity: {}", bill.getSample_quantity());
+                logger.info("  high_frequency: {}", bill.getHigh_frequency());
+                logger.info("  productRequirement: {}", bill.getProductRequirement());
+                logger.info("  productApprovalDoc: {}", bill.getProductApprovalDoc());
+                logger.info("  apply_createdAt: {}", bill.getApply_createdAt());
+                logger.info("  demandFinishedTime: {}", bill.getDemandFinishedTime());
+                logger.info("  sample_dqe: {}", bill.getSample_dqe());
+                logger.info("  sample_rd: {}", bill.getSample_rd());
+                logger.info("  reliability_quantity: {}", bill.getReliability_quantity());
+                logger.info("  envproction_quantity: {}", bill.getEnvproction_quantity());
+                logger.info("  is_fetched: {}", bill.getIs_fetched());
+                logger.info("  ----------------------------------------");
+            }
+            logger.info("========== 提单信息打印完成 ==========");
+
+            // 提取sample_id列表，用于后续标记为已获取
+            List<String> sampleIds = unfetchedBills.stream()
+                    .map(PassbackData::getSample_id)
+                    .filter(sampleId -> sampleId != null && !sampleId.isEmpty())
+                    .collect(Collectors.toList());
+
+            // 标记为已获取
+            if (!sampleIds.isEmpty()) {
+                int updateCount = testManIndexService.markLadingBillsAsFetched(sampleIds);
+                logger.info("标记了 {} 条提单信息为已获取状态，sample_ids: {}", updateCount, sampleIds);
+            }
+
+            response.put("success", true);
+            response.put("message", "查询成功");
+            response.put("data", unfetchedBills);
+            response.put("count", unfetchedBills.size());
+            
+            // 打印最终返回的响应数据（JSON格式）
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseJson = objectMapper.writeValueAsString(response);
+            logger.info("========== 返回给外部系统的数据（JSON格式） ==========");
+            logger.info(responseJson);
+            logger.info("========== JSON数据打印完成 ==========");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("查询未获取提单信息失败，异常信息：", e);
+            response.put("success", false);
+            response.put("message", "查询失败: " + e.getMessage());
+            response.put("data", new ArrayList<>());
+            response.put("count", 0);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
 
 }

@@ -238,4 +238,10 @@ public interface TestManDao {
     // 根据样品ID查询样品详细信息
     Samples getSampleById(@Param("sample_id")int sample_id);
 
+    // 查询未获取的提单信息（is_fetched = 0 或 NULL）
+    List<PassbackData> getUnfetchedLadingBills();
+
+    // 批量更新提单信息为已获取状态
+    int markLadingBillsAsFetched(@Param("sampleIds") List<String> sampleIds);
+
 }

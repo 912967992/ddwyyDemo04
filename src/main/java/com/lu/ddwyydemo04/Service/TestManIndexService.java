@@ -428,11 +428,16 @@ public class TestManIndexService {
 
             int exist = queryElectricalCode(sampleId);
             if (exist == 0) {
+                // 新插入的数据，确保is_fetched为0（未获取状态）
+                if (data.getIs_fetched() == null) {
+                    data.setIs_fetched(0);
+                }
                 int insert = insertElectricInfo(data);
                 if (insert <= 0) {
                     throw new RuntimeException("插入 electric_info 失败: " + sampleId);
                 }
             } else {
+                // 更新数据时，is_fetched会被重置为0（通过SQL更新），这样更新后的数据可以被重新获取
                 int update = updateElectricInfo(data);
                 if (update <= 0) {
                     throw new RuntimeException("更新 electric_info 失败: " + sampleId);
@@ -917,6 +922,19 @@ public class TestManIndexService {
     // 根据样品ID查询样品详细信息
     public Samples getSampleById(int sample_id){
         return testManDao.getSampleById(sample_id);
+    }
+
+    // 查询未获取的提单信息
+    public List<PassbackData> getUnfetchedLadingBills(){
+        return testManDao.getUnfetchedLadingBills();
+    }
+
+    // 批量标记提单信息为已获取
+    public int markLadingBillsAsFetched(List<String> sampleIds){
+        if (sampleIds == null || sampleIds.isEmpty()) {
+            return 0;
+        }
+        return testManDao.markLadingBillsAsFetched(sampleIds);
     }
 
 

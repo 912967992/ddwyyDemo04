@@ -459,7 +459,8 @@
             sample_dqe,
             sample_rd,
             reliability_quantity,
-            envproction_quantity
+            envproction_quantity,
+            is_fetched
         )
         VALUES (
                    #{sample_id},
@@ -493,7 +494,8 @@
                    #{sample_dqe},
                    #{sample_rd},
                    #{reliability_quantity},
-                   #{envproction_quantity}
+                   #{envproction_quantity},
+                   0
                )
     </insert>
 
@@ -518,7 +520,8 @@
             sample_dqe = #{sample_dqe},
             sample_rd = #{sample_rd},
             reliability_quantity = #{reliability_quantity},
-            envproction_quantity = #{envproction_quantity}
+            envproction_quantity = #{envproction_quantity},
+            is_fetched = 0
         WHERE sample_id = #{sample_id}
     </update>
 
@@ -1589,4 +1592,80 @@
         SELECT * FROM samples
         WHERE sample_id = #{sample_id}
     </select>
+
+    <!-- 查询未获取的提单信息（is_fetched = 0 或 NULL） -->
+    <select id="getUnfetchedLadingBills" resultType="PassbackData">
+        SELECT
+            ei.id,
+            ei.sample_id,
+            ei.sample_actual_id,
+            ei.sample_category,
+            ei.sample_model,
+            IFNULL(
+                    (
+                        SELECT GROUP_CONCAT(mi.materialCode SEPARATOR ',')
+                        FROM material_items mi
+                        WHERE mi.sample_id = ei.sample_id
+                    ),
+                    ei.materialCode
+            ) AS materialCode,
+            ei.sample_frequency,
+            ei.sample_name,
+            ei.version,
+            ei.priority,
+            ei.sample_leader,
+            ei.supplier,
+            ei.testProjectCategory,
+            ei.testProjects,
+            ei.schedule,
+            ei.create_time,
+            ei.scheduleDays,
+            ei.isUsed,
+            ei.changeRecord,
+            ei.schedule_start_date,
+            ei.schedule_end_date,
+            ei.isCancel,
+            ei.cancel_reason,
+            ei.cancel_by,
+            ei.cancel_date,
+            ei.cancel_code,
+            ei.actual_start_time,
+            ei.actual_finish_time,
+            ei.schedule_color,
+            ei.reportReviewTime,
+            ei.sampleRecognizeResult,
+            ei.tester,
+            ei.testDuration,
+            ei.filepath,
+            ei.update_time,
+            ei.remark,
+            ei.waitSample_classify,
+            ei.sample_sender,
+            ei.sample_type,
+            ei.sample_quantity,
+            ei.high_frequency,
+            ei.productRequirement,
+            ei.productApprovalDoc,
+            ei.apply_createdAt,
+            ei.demandFinishedTime,
+            ei.sample_dqe,
+            ei.sample_rd,
+            ei.reliability_quantity,
+            ei.envproction_quantity,
+            ei.is_fetched
+        FROM electric_info ei
+        WHERE (ei.is_fetched = 0 OR ei.is_fetched IS NULL)
+          AND ei.isCancel = 0
+        ORDER BY ei.create_time ASC
+    </select>
+
+    <!-- 批量更新提单信息为已获取状态 -->
+    <update id="markLadingBillsAsFetched">
+        UPDATE electric_info
+        SET is_fetched = 1
+        WHERE sample_id IN
+        <foreach collection="sampleIds" item="sampleId" open="(" separator="," close=")">
+            #{sampleId}
+        </foreach>
+    </update>
 </mapper>

@@ -84,6 +84,9 @@ public class PassbackData {
 
     private String envproction_quantity;
 
+    // 标记是否已被外部系统获取（0-未获取，1-已获取）
+    private Integer is_fetched;
+
 
     // 0707新增字段，送养人，样品状态，送样备注，电气测试数量，是否含高频，产品开发要求，产品承认书
 
@@ -497,6 +500,14 @@ public class PassbackData {
         this.envproction_quantity = envproction_quantity;
     }
 
+    public Integer getIs_fetched() {
+        return is_fetched;
+    }
+
+    public void setIs_fetched(Integer is_fetched) {
+        this.is_fetched = is_fetched;
+    }
+
     @Override
     public String toString() {
         return "PassbackData{" +
@@ -551,6 +562,7 @@ public class PassbackData {
                 ", sample_rd='" + sample_rd + '\'' +
                 ", reliability_quantity='" + reliability_quantity + '\'' +
                 ", envproction_quantity='" + envproction_quantity + '\'' +
+                ", is_fetched=" + is_fetched +
                 '}';
     }
 }
