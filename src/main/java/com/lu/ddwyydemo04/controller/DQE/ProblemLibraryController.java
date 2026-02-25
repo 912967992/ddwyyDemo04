@@ -551,7 +551,7 @@ public class ProblemLibraryController {
             centeredStyle.setBorderRight(BorderStyle.THIN);
 
             // 列宽
-            for (int i = 0; i < 46; i++) sheet.setColumnWidth(i, 20 * 256);
+            for (int i = 0; i < 43; i++) sheet.setColumnWidth(i, 20 * 256);
 
             // ====== 标题 ======
             Row titleRow = sheet.createRow(0);
@@ -572,7 +572,7 @@ public class ProblemLibraryController {
             titleStyle.setBorderRight(BorderStyle.THIN);
             titleCell.setCellStyle(titleStyle);
 
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 45));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 42));
 
             // ====== 表头 ======
             Row headerRow = sheet.createRow(1);
@@ -581,7 +581,7 @@ public class ProblemLibraryController {
                     "序号", "样品ID", "电气编号", "完整编码", "SKU", "小类", "样品阶段", "版本", "芯片方案", "测试平台", "测试设备", "其他设备",
                     "问题点", "问题类别", "问题图片/视频", "报告日期", "复现手法", "恢复方法", "复现概率", "缺陷等级", "当前状态",
                     "对比上一版或竞品", "测试人员", "改善对策", "分析责任人", "改善后风险", "下一版回归测试", "备注",
-                    "创建时间", "历史版本ID", "创建者", "DQE确认", "DQE审核时间", "DQE责任人", "研发确认", "研发审核时间", "研发责任人",
+                    "DQE确认", "DQE审核时间", "DQE责任人", "研发确认", "研发审核时间", "研发责任人",
                     "修改者", "修改时间", "责任部门", "DQE确认回复", "研发确认回复", "方案商", "供应商", "评审结论", "内外贸"
             };
             for (int i = 0; i < headers.length; i++) {
@@ -624,24 +624,21 @@ public class ProblemLibraryController {
                 createCell(row, 25, issue.getPost_improvement_risk(), centeredStyle);
                 createCell(row, 26, issue.getNext_version_regression_test(), centeredStyle);
                 createCell(row, 27, issue.getRemark(), centeredStyle);
-                createCell(row, 28, issue.getCreated_at(), centeredStyle);
-                createCell(row, 29, issue.getHistory_id(), centeredStyle);
-                createCell(row, 30, issue.getCreated_by(), centeredStyle);
-                createCell(row, 31, issue.getDqe_confirm(), centeredStyle);
-                createCell(row, 32, issue.getDqe_review_at(), centeredStyle);
-                createCell(row, 33, issue.getDqe(), centeredStyle);
-                createCell(row, 34, issue.getRd_confirm(), centeredStyle);
-                createCell(row, 35, issue.getRd_review_at(), centeredStyle);
-                createCell(row, 36, issue.getRd(), centeredStyle);
-                createCell(row, 37, issue.getModifier(), centeredStyle);
-                createCell(row, 38, issue.getModify_at(), centeredStyle);
-                createCell(row, 39, issue.getResponsibleDepartment(), centeredStyle);
-                createCell(row, 40, issue.getGreen_union_dqe(), centeredStyle);
-                createCell(row, 41, issue.getGreen_union_rd(), centeredStyle);
-                createCell(row, 42, issue.getSolution_provider(), centeredStyle);
-                createCell(row, 43, issue.getSupplier(), centeredStyle);
-                createCell(row, 44, issue.getReview_conclusion(), centeredStyle);
-                createCell(row, 45, issue.getTest_Overseas(), centeredStyle);
+                createCell(row, 28, issue.getDqe_confirm(), centeredStyle);
+                createCell(row, 29, issue.getDqe_review_at(), centeredStyle);
+                createCell(row, 30, issue.getDqe(), centeredStyle);
+                createCell(row, 31, issue.getRd_confirm(), centeredStyle);
+                createCell(row, 32, issue.getRd_review_at(), centeredStyle);
+                createCell(row, 33, issue.getRd(), centeredStyle);
+                createCell(row, 34, issue.getModifier(), centeredStyle);
+                createCell(row, 35, issue.getModify_at(), centeredStyle);
+                createCell(row, 36, issue.getResponsibleDepartment(), centeredStyle);
+                createCell(row, 37, issue.getGreen_union_dqe(), centeredStyle);
+                createCell(row, 38, issue.getGreen_union_rd(), centeredStyle);
+                createCell(row, 39, issue.getSolution_provider(), centeredStyle);
+                createCell(row, 40, issue.getSupplier(), centeredStyle);
+                createCell(row, 41, issue.getReview_conclusion(), centeredStyle);
+                createCell(row, 42, issue.getTest_Overseas(), centeredStyle);
 
                 rowNum++;
             }
