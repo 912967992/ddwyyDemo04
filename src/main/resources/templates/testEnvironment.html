@@ -453,11 +453,57 @@
 
 
 
+        // 测试查询未获取的提单信息接口
+        async function testGetUnfetchedLadingBills() {
+            try {
+                const response = await fetch('/passback/getUnfetchedLadingBills', {
+                    method: 'GET',
+                    headers: {
+                        'X-API-Key': 'lujian99'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    alert('❌ 请求失败\n状态码: ' + response.status + '\n信息: ' + data.message);
+                    console.error('错误响应:', data);
+                    return;
+                }
+                
+                // 显示结果
+                let message = `✅ 查询成功！\n\n`;
+                message += `成功: ${data.success}\n`;
+                message += `消息: ${data.message}\n`;
+                message += `数量: ${data.count} 条\n\n`;
+                
+                if (data.data && data.data.length > 0) {
+                    message += `数据预览（前3条）:\n`;
+                    data.data.slice(0, 3).forEach((item, index) => {
+                        message += `\n${index + 1}. ${item.sample_id} - ${item.sample_name}\n`;
+                    });
+                    if (data.data.length > 3) {
+                        message += `\n... 还有 ${data.data.length - 3} 条数据`;
+                    }
+                }
+                
+                alert(message);
+                console.log('完整返回数据:', data);
+                console.table(data.data); // 以表格形式显示
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                alert('❌ 请求发送失败\n原因: ' + error.message);
+            }
+        }
     </script>
 </head>
 <body>
 <!-- 刷新按钮 -->
 <button class="fixed-button" onclick="refreshPage()">刷新页面</button>
+
+<!-- 测试查询未获取提单信息按钮 -->
+<button class="fixed-button" onclick="testGetUnfetchedLadingBills()" style="background-color: #28a745;">测试查询未获取提单</button>
 
 <!-- 测试数据发送按钮 -->
 <!--<button class="fixed-button" onclick="sendTestData()">发送测试数据</button>-->

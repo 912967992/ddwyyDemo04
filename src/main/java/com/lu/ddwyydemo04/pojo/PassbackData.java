@@ -52,10 +52,12 @@ public class PassbackData {
     private String schedule_color;
     private LocalDateTime reportReviewTime;
     private String sampleRecognizeResult;
+    private String rd_sampleRecognizeResult;  // 研发承认结果
     private String tester;
     private String testDuration;
 
     private String filepath;
+    private LocalDateTime update_time;  // 更新时间
 
     private String remark;
 
@@ -331,6 +333,14 @@ public class PassbackData {
         this.sampleRecognizeResult = sampleRecognizeResult;
     }
 
+    public String getRd_sampleRecognizeResult() {
+        return rd_sampleRecognizeResult;
+    }
+
+    public void setRd_sampleRecognizeResult(String rd_sampleRecognizeResult) {
+        this.rd_sampleRecognizeResult = rd_sampleRecognizeResult;
+    }
+
     public String getTester() {
         return tester;
     }
@@ -355,6 +365,13 @@ public class PassbackData {
         this.filepath = filepath;
     }
 
+    public LocalDateTime getUpdate_time() {
+        return update_time;
+    }
+
+    public void setUpdate_time(LocalDateTime update_time) {
+        this.update_time = update_time;
+    }
 
     public String getChangeRecord() {
         return changeRecord;
@@ -544,9 +561,11 @@ public class PassbackData {
                 ", schedule_color='" + schedule_color + '\'' +
                 ", reportReviewTime=" + reportReviewTime +
                 ", sampleRecognizeResult='" + sampleRecognizeResult + '\'' +
+                ", rd_sampleRecognizeResult='" + rd_sampleRecognizeResult + '\'' +
                 ", tester='" + tester + '\'' +
                 ", testDuration='" + testDuration + '\'' +
                 ", filepath='" + filepath + '\'' +
+                ", update_time=" + update_time +
                 ", remark='" + remark + '\'' +
                 ", waitSample_classify='" + waitSample_classify + '\'' +
                 ", sample_sender='" + sample_sender + '\'' +

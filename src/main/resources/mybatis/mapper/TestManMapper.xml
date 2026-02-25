@@ -1634,6 +1634,7 @@
             ei.schedule_color,
             ei.reportReviewTime,
             ei.sampleRecognizeResult,
+            ei.rd_sampleRecognizeResult,
             ei.tester,
             ei.testDuration,
             ei.filepath,

@@ -1182,9 +1182,11 @@ public class TestEnvironmentController {
                 logger.info("  schedule_color: {}", bill.getSchedule_color());
                 logger.info("  reportReviewTime: {}", bill.getReportReviewTime());
                 logger.info("  sampleRecognizeResult: {}", bill.getSampleRecognizeResult());
+                logger.info("  rd_sampleRecognizeResult: {}", bill.getRd_sampleRecognizeResult());
                 logger.info("  tester: {}", bill.getTester());
                 logger.info("  testDuration: {}", bill.getTestDuration());
                 logger.info("  filepath: {}", bill.getFilepath());
+                logger.info("  update_time: {}", bill.getUpdate_time());
                 logger.info("  remark: {}", bill.getRemark());
                 logger.info("  waitSample_classify: {}", bill.getWaitSample_classify());
                 logger.info("  sample_sender: {}", bill.getSample_sender());
