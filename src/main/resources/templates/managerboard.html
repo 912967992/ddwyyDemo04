@@ -226,7 +226,7 @@
         .project-table th:nth-child(13), .project-table td:nth-child(13) { width: 5%; } /* 送样类别 */
         .project-table th:nth-child(14), .project-table td:nth-child(14) { width: 4%; } /* 送样数量 */
         .project-table th:nth-child(15), .project-table td:nth-child(15) { width: 4%; } /* 是否高频 */
-        .project-table th:nth-child(16), .project-table td:nth-child(16) { width: 6%; } /* 提单时间 */
+        .project-table th:nth-child(16), .project-table td:nth-child(16) { width: 6%; } /* 接单时间 */
         .project-table th:nth-child(17), .project-table td:nth-child(17) { width: 4%; } /* 排期天数 */
         .project-table th:nth-child(18), .project-table td:nth-child(18) { width: 6%; } /* 排期开始 */
         .project-table th:nth-child(19), .project-table td:nth-child(19) { width: 6%; } /* 排期结束 */
@@ -408,10 +408,10 @@
         <h1 id="dashboardTitle">数据看板</h1>
         <p>研发质量管理系统 - 电气测试项目数据展示</p>
 
-        <!-- 提单时间过滤器 -->
+        <!-- 接单时间过滤器 -->
         <div class="time-filter-container">
             <div class="filter-group">
-                <label for="createTimeStart">提单时间开始：</label>
+                <label for="createTimeStart">接单时间开始：</label>
                 <input type="date" id="createTimeStart" class="filter-input">
                 <span class="filter-separator">至</span>
                 <label for="createTimeEnd">结束：</label>
@@ -3330,7 +3330,7 @@
                             <th>送样类别</th>
                             <th>送样数量</th>
                             <th>是否高频</th>
-                            <th>提单时间</th>
+                            <th>接单时间</th>
                             <th>排期天数</th>
                             <th>排期开始</th>
                             <th>排期结束</th>
@@ -4002,7 +4002,7 @@
                             notStartedDaysStats['日期无效'] = (notStartedDaysStats['日期无效'] || 0) + 1;
                         }
                     } else {
-                        // 如果没有提单时间，归类为"未设置"
+                        // 如果没有接单时间，归类为"未设置"
                         notStartedDaysStats['未设置'] = (notStartedDaysStats['未设置'] || 0) + 1;
                     }
                 });
@@ -4513,7 +4513,7 @@
                             </select>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <label style="font-size: 14px; color: #333;">提单时间:</label>
+                            <label style="font-size: 14px; color: #333;">接单时间:</label>
                             <input type="date" class="filter-input" id="modalStartDate" placeholder="开始日期">
                             <span style="color: #666;">至</span>
                             <input type="date" class="filter-input" id="modalEndDate" placeholder="结束日期">
@@ -4544,7 +4544,7 @@
                                 <th>送样类别</th>
                                 <th>送样数量</th>
                                 <th>是否高频</th>
-                                <th>提单时间</th>
+                                <th>接单时间</th>
                                 <th>排期天数</th>
                                 <th>排期开始</th>
                                 <th>排期结束</th>
@@ -5918,7 +5918,7 @@
                 // 准备表头
                 const headers = [
                     '样品编号', '产品名称', '产品类别', '大编码', '物料编码', '版本', '项目负责人',
-                    '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '送样数量', '是否高频', '提单时间', '排期天数',
+                    '当前进度', '测试负责人', 'DQE负责人', '研发负责人', '送样人', '送样类别', '送样数量', '是否高频', '接单时间', '排期天数',
                     '排期开始', '排期结束', '实际开始时间', '实际完成时间', 'DQE承认结果', '研发承认结果'
                 ];
 
@@ -6546,7 +6546,7 @@
                 { value: 'rd_leader', label: '研发负责人' },
                 { value: 'sample_sender', label: '送样人' },
                 { value: 'sample_type', label: '送样类别' },
-                { value: 'create_time', label: '提单时间' },
+                { value: 'create_time', label: '接单时间' },
                 { value: 'scheduleDays', label: '排期天数' },
                 { value: 'schedule_start_date', label: '排期开始时间' },
                 { value: 'schedule_end_date', label: '排期结束时间' },
@@ -7325,7 +7325,7 @@
                                             <th>送样类别</th>
                                             <th>送样数量</th>
                                             <th>是否高频</th>
-                                            <th>提单时间</th>
+                                            <th>接单时间</th>
                                             <th>排期天数</th>
                                             <th>排期开始</th>
                                             <th>排期结束</th>
