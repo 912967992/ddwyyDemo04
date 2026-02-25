@@ -2250,6 +2250,30 @@ public class testManIndexController {
         return testManIndexService.getTestItemsBySampleId(sample_id);
     }
 
+    @PostMapping("/testManIndex/updateTestItemsCompletedStatus")
+    @ResponseBody
+    public Map<String, Object> updateTestItemsCompletedStatus(@RequestParam String sample_id, @RequestBody List<ElectricalTestItem> items) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            logger.info("开始更新测试项完成状态，sample_id: {}, items数量: {}", sample_id, items != null ? items.size() : 0);
+            if (items != null && !items.isEmpty()) {
+                for (ElectricalTestItem item : items) {
+                    logger.info("测试项: ETTestCode={}, testProjectCategory={}, testProjects={}, isCompleted={}", 
+                        item.getETTestCode(), item.getTestProjectCategory(), item.getTestProjects(), item.getIsCompleted());
+                }
+            }
+            testManIndexService.updateTestItemsCompletedStatus(sample_id, items);
+            result.put("status", "success");
+            result.put("message", "测试项完成状态更新成功");
+            logger.info("测试项完成状态更新成功");
+        } catch (Exception e) {
+            logger.error("更新测试项完成状态失败", e);
+            result.put("status", "error");
+            result.put("message", "更新失败: " + e.getMessage());
+        }
+        return result;
+    }
+
 
     private static final Map<String, String> fieldMapping = new HashMap<>();
 

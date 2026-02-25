@@ -272,6 +272,30 @@
     </div>
 </div>
 
+<!-- 查看测试项模态框 -->
+<div id="viewTestItemsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 90%; max-height: 90%; overflow: auto;">
+        <span class="close" id="closeViewTestItemsModal">&times;</span>
+        <h2>测试项详情</h2>
+        <div id="testItemsContainer">
+            <table id="testItemsTable" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">序号</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">试验项目类别</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试子项目</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试归属</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">备注</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">是否完成</th>
+                    </tr>
+                </thead>
+                <tbody id="testItemsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div id="customModal" style="display:none;" class="confirmModal">
     <div class="confirmModal-content">
         <div class="confirmModal-header">
@@ -617,6 +641,18 @@
 
     $(document).ready(function() {
         readyConfig();
+        
+        // 关闭测试项模态框的事件绑定
+        $(document).on('click', '#closeViewTestItemsModal', function() {
+            $('#viewTestItemsModal').hide();
+        });
+        
+        // 点击模态框外部关闭
+        $(document).on('click', '#viewTestItemsModal', function(event) {
+            if (event.target === this) {
+                $(this).hide();
+            }
+        });
 
         currentPage = 1;
         // 设置每页多少个问题点才分页
@@ -670,6 +706,77 @@
             return pages;
         }
 
+        // 获取测试项完成情况的函数 - 只显示可点击的文本
+        function fetchTestItemsCompletion(sampleId, tdElement) {
+            // 显示可点击的文本
+            tdElement.textContent = '查看测试项';
+            tdElement.style.color = '#007bff';
+            tdElement.style.cursor = 'pointer';
+            tdElement.style.textDecoration = 'underline';
+            tdElement.title = '点击查看测试项详情';
+            
+            // 添加点击事件
+            tdElement.addEventListener('click', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡，避免触发行的点击事件
+                viewTestItemsClick(sampleId);
+            });
+        }
+        
+        // 查看测试项详情
+        function viewTestItemsClick(sampleId) {
+            const sampleIdStr = String(sampleId);
+            
+            fetch(`/testManIndex/getTestItems?sample_id=${encodeURIComponent(sampleIdStr)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取测试项数据失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tableBody = document.getElementById('testItemsTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">暂无测试项数据</td></tr>';
+                    } else {
+                        data.forEach((item, index) => {
+                            const row = document.createElement('tr');
+                            // 处理 isCompleted 字段，如果为 null 或 undefined，默认为 false
+                            const isCompleted = item.isCompleted === true || item.isCompleted === 1;
+                            
+                            // 如果已完成，给整行添加背景色
+                            if (isCompleted) {
+                                row.style.backgroundColor = '#d4edda'; // 浅绿色背景
+                            }
+                            
+                            row.innerHTML = `
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjectCategory || ''}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjects || ''}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testOwner || ''}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testRemark || ''}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                                    ${isCompleted ? 
+                                        '<span style="color: #28a745; font-weight: bold; font-size: 16px;">✓ 已完成</span>' : 
+                                        '<span style="color: #6c757d;">未完成</span>'
+                                    }
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+
+                    // 显示模态框
+                    $('#viewTestItemsModal').show();
+                })
+                .catch(error => {
+                    console.error('测试项数据加载失败:', error);
+                    alert('测试项数据加载失败: ' + error.message);
+                });
+        }
+        
+
         function displayPage(pageNum,data) {
             if (pageNum < 1 || pageNum > pages.length) return; // 检查页码范围
 
@@ -688,7 +795,7 @@
 
 
             const headers = [
-                 "样品ID","样品进度","DQE判定", "研发判定","完整编码", "产品名称", "产品类别", "版本", "提交时间",
+                 "样品ID","样品进度","DQE判定", "研发判定","测试项完成情况","完整编码", "产品名称", "产品类别", "版本", "提交时间",
                  "供应商", "任务属性","问题点数量", "大类", "小类", "国内外测试",
                  "测试人员","DQE", "研发工程师","项目负责人", "备注", "合伙测试人",
                  "优先级", "送样数量", "送样次数","高频"
@@ -711,7 +818,7 @@
 
                 // 填充表格行的每个单元格
                 const cells = [
-                    item.sample_id,item.sample_schedule, item.result_judge,item.rd_result_judge,
+                    item.sample_id,item.sample_schedule, item.result_judge,item.rd_result_judge,null, // null作为测试项完成情况的占位符
                     item.full_model, item.sample_name,item.sample_category, item.version,
                     item.finish_time,
                     item.supplier, item.questStats,item.problemCounts,
@@ -783,6 +890,11 @@
                             td.textContent = cellData;
                             td.style.color = '#8a4e07'; // 设置自定义值的颜色，便于区分
                         }
+                    } else if(headers[index] === "测试项完成情况"){
+                        // 异步获取测试项完成情况
+                        td.textContent = "加载中...";
+                        td.style.color = '#999';
+                        fetchTestItemsCompletion(item.sample_id, td);
                     }else if (headers[index] === "问题点数量") {
                         // 设置自动换行
                         td.style.wordWrap = 'break-word'; // 让内容在单元格中自动换行
@@ -807,8 +919,8 @@
                         td.textContent = cellData || '';
                     }
 
-                    // 判断不是 "问题点数量" 时才添加点击事件
-                    if (headers[index] !== "问题点数量") {
+                    // 判断不是 "问题点数量" 和 "测试项完成情况" 时才添加点击事件
+                    if (headers[index] !== "问题点数量" && headers[index] !== "测试项完成情况") {
                         td.addEventListener('click', () => editClickBtn(item.sample_id));
                     }
 

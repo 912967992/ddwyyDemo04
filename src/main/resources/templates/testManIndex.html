@@ -521,11 +521,15 @@
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试子项目</th>
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">测试归属</th>
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">备注</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">是否完成</th>
                         </tr>
                     </thead>
                     <tbody id="testItemsTableBody">
                     </tbody>
                 </table>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button id="saveTestItemsStatusBtn" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">保存完成状态</button>
             </div>
         </div>
     </div>
@@ -4941,7 +4945,12 @@
 
     }
 
+    // 存储当前查看的 sample_id，用于保存时使用
+    let currentTestItemsSampleId = null;
+
     function viewTestItemsClick(sample_id) {
+        currentTestItemsSampleId = sample_id; // 保存当前 sample_id
+        
         fetch(`/testManIndex/getTestItems?sample_id=${encodeURIComponent(sample_id)}`)
             .then(response => response.json())
             .then(data => {
@@ -4949,16 +4958,25 @@
                 tableBody.innerHTML = '';
                 
                 if (data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暂无测试项数据</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">暂无测试项数据</td></tr>';
                 } else {
                     data.forEach((item, index) => {
                         const row = document.createElement('tr');
+                        // 处理 isCompleted 字段，如果为 null 或 undefined，默认为 false
+                        const isCompleted = item.isCompleted === true || item.isCompleted === 1;
                         row.innerHTML = `
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjectCategory || ''}</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testProjects || ''}</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testOwner || ''}</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.testRemark || ''}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                                <input type="checkbox" class="test-item-completed" 
+                                       data-etcode="${item.ETTestCode || ''}" 
+                                       data-category="${item.testProjectCategory || ''}" 
+                                       data-projects="${item.testProjects || ''}"
+                                       ${isCompleted ? 'checked' : ''}>
+                            </td>
                         `;
                         tableBody.appendChild(row);
                     });
@@ -4975,6 +4993,85 @@
         document.getElementById('closeViewTestItemsModal').onclick = function () {
             document.getElementById('viewTestItemsModal').style.display = 'none';
         };
+
+        // 保存按钮点击事件
+        const saveBtn = document.getElementById('saveTestItemsStatusBtn');
+        if (saveBtn) {
+            // 移除旧的事件监听器，避免重复绑定
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            
+            newSaveBtn.onclick = function() {
+                saveTestItemsCompletedStatus();
+            };
+        }
+    }
+
+    // 保存测试项完成状态
+    function saveTestItemsCompletedStatus() {
+        if (!currentTestItemsSampleId) {
+            alert('无法获取样品ID，请重新打开测试项页面');
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('.test-item-completed');
+        const items = [];
+
+        checkboxes.forEach(checkbox => {
+            const item = {
+                ETTestCode: checkbox.getAttribute('data-etcode'),
+                testProjectCategory: checkbox.getAttribute('data-category'),
+                testProjects: checkbox.getAttribute('data-projects'),
+                isCompleted: checkbox.checked
+            };
+            items.push(item);
+        });
+
+        if (items.length === 0) {
+            alert('没有可保存的测试项数据');
+            return;
+        }
+
+        // 调试信息
+        console.log('准备保存的数据:', {
+            sample_id: currentTestItemsSampleId,
+            items: items
+        });
+
+        // 禁用按钮，防止重复提交
+        const saveBtn = document.getElementById('saveTestItemsStatusBtn');
+        const originalText = saveBtn.innerText;
+        saveBtn.disabled = true;
+        saveBtn.innerText = '保存中...';
+
+        fetch(`/testManIndex/updateTestItemsCompletedStatus?sample_id=${encodeURIComponent(currentTestItemsSampleId)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(items)
+        })
+        .then(response => {
+            console.log('响应状态:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('服务器返回:', data);
+            if (data.status === 'success') {
+                alert(data.message || '保存成功');
+            } else {
+                alert(data.message || '保存失败');
+            }
+        })
+        .catch(error => {
+            console.error('保存失败:', error);
+            alert('保存失败: ' + error.message);
+        })
+        .finally(() => {
+            // 恢复按钮状态
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        });
     }
 
 

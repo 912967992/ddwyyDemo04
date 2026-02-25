@@ -14,6 +14,9 @@ public class ElectricalTestItem {
 
     private String testRemark;   //对应测试备注
 
+    // 是否完成
+    private Boolean isCompleted;   //是否完成
+
     public String getETTestCode() {
         return ETTestCode;
     }
@@ -54,6 +57,14 @@ public class ElectricalTestItem {
         this.testRemark = testRemark;
     }
 
+    public Boolean getIsCompleted() {
+        return isCompleted;
+    }
+
+    public void setIsCompleted(Boolean isCompleted) {
+        this.isCompleted = isCompleted;
+    }
+
     @Override
     public String toString() {
         return "ElectricalTestItem{" +
@@ -62,6 +73,7 @@ public class ElectricalTestItem {
                 ", testProjects='" + testProjects + '\'' +
                 ", testOwner='" + testOwner + '\'' +
                 ", testRemark='" + testRemark + '\'' +
+                ", isCompleted=" + isCompleted +
                 '}';
     }
 }

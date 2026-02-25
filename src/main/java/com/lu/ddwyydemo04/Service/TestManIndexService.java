@@ -886,6 +886,11 @@ public class TestManIndexService {
         return testManDao.getTestItemsBySampleId(sample_id);
     }
 
+    // 批量更新测试项完成状态
+    public void updateTestItemsCompletedStatus(String sample_id, List<ElectricalTestItem> items){
+        testManDao.updateTestItemsCompletedStatus(sample_id, items);
+    }
+
     public int queryCountElectricinfo(String sample_sender){
         return  testManDao.queryCountElectricinfo(sample_sender);
     }

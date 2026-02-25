@@ -194,6 +194,9 @@ public interface TestManDao {
     // 查询测试项数据
     List<ElectricalTestItem> getTestItemsBySampleId(@Param("sample_id") String sample_id);
 
+    // 批量更新测试项完成状态
+    void updateTestItemsCompletedStatus(@Param("sample_id") String sample_id, @Param("items") List<ElectricalTestItem> items);
+
     List<TrashProject> getTrashedProjects();
     boolean recoverProjectById(@Param("sample_id")String sample_id);
     boolean updateElectricSampleId(@Param("oldSample_id")String oldSample_id,@Param("newSample_id")String newSample_id);

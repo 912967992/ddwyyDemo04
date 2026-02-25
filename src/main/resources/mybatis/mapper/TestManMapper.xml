@@ -1400,16 +1400,46 @@
             testProjectCategory,
             testProjects,
             testOwner,
-            testRemark
+            testRemark,
+            is_completed as isCompleted
         FROM electrical_test_items
         WHERE sample_id = (
-            SELECT ei.sample_id
-            FROM electric_info ei
-            WHERE FIND_IN_SET(#{sample_id}, ei.sample_actual_id) > 0
-            LIMIT 1
+            SELECT electric_sample_id 
+            FROM samples 
+            WHERE sample_id = #{sample_id}
         )
         ORDER BY ETTestCode
     </select>
+
+    <!-- 批量更新测试项完成状态 -->
+    <!-- 逻辑：根据samples表的sample_id找到electric_sample_id，然后用electric_sample_id匹配electrical_test_items表的sample_id进行更新 -->
+    <update id="updateTestItemsCompletedStatus">
+        UPDATE electrical_test_items eti
+        INNER JOIN samples s ON eti.sample_id = s.electric_sample_id
+        SET eti.is_completed = CASE
+        <foreach collection="items" item="item">
+            WHEN eti.testProjectCategory = #{item.testProjectCategory}
+                AND eti.testProjects = #{item.testProjects}
+                AND (
+                    (eti.ETTestCode IS NULL AND (#{item.ETTestCode} IS NULL OR #{item.ETTestCode} = ''))
+                    OR eti.ETTestCode = #{item.ETTestCode}
+                )
+            THEN #{item.isCompleted}
+        </foreach>
+        ELSE eti.is_completed
+        END
+        WHERE s.sample_id = #{sample_id}
+        AND (
+        <foreach collection="items" item="item" separator=" OR ">
+            (eti.testProjectCategory = #{item.testProjectCategory}
+                AND eti.testProjects = #{item.testProjects}
+                AND (
+                    (eti.ETTestCode IS NULL AND (#{item.ETTestCode} IS NULL OR #{item.ETTestCode} = ''))
+                    OR eti.ETTestCode = #{item.ETTestCode}
+                ))
+        </foreach>
+        )
+    </update>
 
     <!-- 变更记录同步相关SQL -->
 
