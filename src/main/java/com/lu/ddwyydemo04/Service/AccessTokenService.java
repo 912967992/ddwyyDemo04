@@ -756,7 +756,9 @@ public class AccessTokenService {
             } else if (majorDeptId.equals(913639520L)) { // NAS网通组
                 user.setPosition("DQE");
                 user.setDepartmentName("NAS网通组");
-            } else if (majorDeptId.equals(62712385L) || majorDeptId.equals(349996662L)) { // 产品研发部
+            } else if (majorDeptId.equals(62712385L) || majorDeptId.equals(349996662L)
+                    || majorDeptId.equals(350166485L) || majorDeptId.equals(1055595299L)
+                    || majorDeptId.equals(402113698L)  || majorDeptId.equals(1055401355L) ) { // 产品研发部
                 user.setPosition("rd");
             } else if (majorDeptId.equals(523528658L)) { // 电子DQE组
                 // 进一步检查是否在测试组
@@ -1462,7 +1464,7 @@ public class AccessTokenService {
 //     @Scheduled(fixedRate = 60000) // 每1分钟执行一次（测试用）
     public void scheduledQueryDept63652303Users() {
         logger.info("========== 定时任务开始：查询部门 63652303L 的子部门（分组）信息 ==========");
-        Long deptId = 523459714L;
+        Long deptId = 1055223378L;
         queryAndPrintDeptUsers(deptId);
         logger.info("========== 定时任务结束 ==========");
     }
